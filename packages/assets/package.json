@@ -1,0 +1,33 @@
+{
+  "name": "@dm-instamap/assets",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./embeddings": {
+      "import": "./src/embeddings.ts",
+      "types": "./src/embeddings.ts"
+    },
+    "./matcher": {
+      "import": "./src/matcher.ts",
+      "types": "./src/matcher.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "embed": "tsx src/cli/embed.ts",
+    "group": "tsx src/cli/group.ts",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "references:scan": "tsx src/cli/references-scan.ts",
+    "scan": "tsx src/cli/scan.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@dm-instamap/core": "workspace:*",
+    "sharp": "^0.34.5"
+  }
+}

@@ -1,0 +1,12 @@
+[project]
+name = "dm-instamap-worker"
+version = "0.1.0"
+description = "Local FastAPI worker for DM-Instamap asset processing."
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.124.0",
+  "uvicorn[standard]>=0.38.0"
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

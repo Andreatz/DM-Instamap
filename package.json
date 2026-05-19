@@ -1,0 +1,25 @@
+{
+  "name": "dm-instamap",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first modular map generator for D&D.",
+  "packageManager": "pnpm@10.33.3",
+  "scripts": {
+    "assets:group": "pnpm --filter @dm-instamap/assets group",
+    "assets:embed": "pnpm --filter @dm-instamap/assets embed",
+    "assets:scan": "pnpm --filter @dm-instamap/assets scan",
+    "build": "pnpm -r --if-present build",
+    "dev": "pnpm --filter @dm-instamap/web dev",
+    "lint": "pnpm -r --if-present lint",
+    "references:scan": "pnpm --filter @dm-instamap/assets references:scan",
+    "test": "pnpm -r --if-present test",
+    "worker:dev": "pnpm --filter @dm-instamap/worker dev",
+    "worker:install": "python -m pip install -r apps/worker/requirements-dev.txt"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.14"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "@dm-instamap/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@dm-instamap/assets": "workspace:*",
+    "@dm-instamap/ai-bridge": "workspace:*",
+    "@dm-instamap/core": "workspace:*",
+    "@dm-instamap/exporters": "workspace:*",
+    "@dm-instamap/generator": "workspace:*",
+    "next": "^16.0.10",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3"
+  }
+}
