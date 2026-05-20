@@ -1111,9 +1111,80 @@ a {
   background: var(--panel);
   border: 1px solid var(--panel-border);
   border-radius: 8px;
+  display: grid;
+  gap: 10px;
   min-width: 0;
-  overflow: auto;
   padding: 14px;
+}
+
+.editor-canvas-toolbar {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.editor-tool-grid,
+.editor-viewport-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.editor-tool-grid button,
+.editor-viewport-actions button {
+  background: #171b1d;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  color: var(--foreground);
+  cursor: pointer;
+  min-height: 34px;
+  padding: 7px 10px;
+}
+
+.editor-tool-grid button.active {
+  background: rgba(215, 164, 71, 0.16);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.editor-viewport-actions {
+  align-items: center;
+}
+
+.editor-viewport-actions span,
+.editor-canvas-status span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.editor-canvas-wrap {
+  background: #07090a;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  min-height: 460px;
+  overflow: hidden;
+}
+
+.editor-canvas {
+  cursor: crosshair;
+  display: block;
+  height: auto;
+  max-width: 100%;
+  touch-action: none;
+  width: 100%;
+}
+
+.editor-tool-select {
+  cursor: default;
+}
+
+.editor-canvas-status {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
 }
 
 .editor-map-grid {

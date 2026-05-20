@@ -26,8 +26,48 @@ The generator returns a `MapDocument` with:
 
 ## Preview
 
-The `/generate` page renders a simple tile preview of the generated map. It is a
-local preview only and does not export images yet.
+The `/generate` page renders a simple tile preview of the generated map. It has
+two modes:
+
+- `Simple` uses `generateDungeon` directly.
+- `Narrative` builds a local `MapGenerationBlueprint` first, then converts that
+  blueprint into a valid editable `MapDocument`.
+
+Both modes can save the result as a local project.
+
+## Narrative Blueprint
+
+The semantic generator is intentionally local and heuristic. It does not call an
+AI service. It creates a blueprint with:
+
+- narrative room labels;
+- room purpose;
+- tactical role;
+- tags;
+- suggested assets;
+- suggested lights;
+- GM notes;
+- preferred shape and minimum size hints.
+
+Available functions:
+
+```ts
+createNarrativeBlueprint(input)
+generateCryptBlueprint(input)
+generateBuildingBlueprint(input)
+generateDungeonBlueprint(input)
+generateMapFromBlueprint(blueprint)
+```
+
+The first specialized crypt blueprint supports requests such as:
+
+```txt
+Crea una cripta sotto una cattedrale dove i morti non sono ostili ma prigionieri.
+```
+
+It produces rooms like entrance from cathedral sacristy, hall of bound spirits,
+reliquary, prison tomb, ossuary crossing, and final ritual chamber. The
+resulting `MapDocument` remains editable in the project editor.
 
 ## Auto-Furnishing
 
@@ -45,7 +85,19 @@ local preview only and does not export images yet.
 - `treasure_room`
 - `storage`
 
-The placement pass sorts large asset footprints first, then small props. It
-only places assets on floor tiles inside room bounds and tracks occupied cells
-to avoid major collisions. The editor exposes this through the `/editor`
-auto-furnish controls.
+The placement pass now scores assets per room before placing them. It can use
+single assets or `AssetGroup` representatives, plus optional narrative room
+metadata and style tags.
+
+Placement preferences:
+
+- wall placement for bookshelves, shelves, bars, banners, and racks;
+- central placement for altars, tables, sarcophagi, coffins, thrones, and ritual
+  pieces;
+- light placement near room edges;
+- scatter placement for smaller props.
+
+The output includes debug data for each placement: room id, room type,
+footprint, placement preference, score, and match reasons. It also returns a
+summary with room count, placed count, skipped count, and density. The editor
+uses this summary in its auto-furnish status message.

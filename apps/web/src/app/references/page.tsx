@@ -76,6 +76,17 @@ export default async function ReferencesPage() {
                       </span>
                     ))}
                   </div>
+                  {reference.styleDna ? (
+                    <section className="detail-block">
+                      <h3>Style DNA</h3>
+                      <p>{reference.styleDna.promptSummary}</p>
+                      <div className="tag-list">
+                        {reference.styleDna.visualTags.slice(0, 8).map((tag) => (
+                          <span key={tag}>{tag}</span>
+                        ))}
+                      </div>
+                    </section>
+                  ) : null}
                   <p>{reference.path}</p>
                 </div>
               </article>

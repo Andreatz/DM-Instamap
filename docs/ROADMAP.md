@@ -637,6 +637,27 @@ pnpm assets:audit
 
 # Fase 4 — Reference Style DNA
 
+## Stato
+
+Completata il 2026-05-20.
+
+Implementato:
+
+- Tipo `ReferenceStyleDna` in `packages/assets`.
+- Generatore locale `generateReferenceStyleDna`.
+- CLI `pnpm references:style`.
+- File output `data/indexes/reference-style-dna.json` quando esiste un manifest reference.
+- Palette con ruoli euristici: background, floor, wall, accent o unknown.
+- Mood, layout traits, density, visual tags, recommended asset tags e prompt summary.
+- Grid detection base da dimensioni e segnali filename/folder.
+- Integrazione in `/references` con riepilogo Style DNA quando disponibile.
+- Integrazione nel Manual ChatGPT Bridge.
+- Test unitari su generazione Style DNA, scrittura file, bridge prompt e loader web.
+
+Limite noto:
+
+- La grid detection è iniziale e usa metadati/dimensioni e tags; non esegue ancora una vera scansione pixel-level delle linee.
+
 ## Obiettivo
 
 Questa fase implementa la novità 1: “Style DNA” delle mappe reference.
@@ -793,6 +814,35 @@ Gothic crypt battlemap with dark stone palette, warm torch accents, corridor-hea
 
 # Fase 5 — Project System locale
 
+## Stato
+
+Completata il 2026-05-20.
+
+Implementato:
+
+- Formato progetto locale con `project.json` e `map.dmimap.json`.
+- Storage locale in `data/projects`.
+- API Next.js `GET/POST /api/projects` e `GET/PUT/DELETE /api/projects/[projectId]`.
+- Pagine `/projects`, `/projects/new`, `/projects/[projectId]`, `/projects/[projectId]/editor` e `/projects/[projectId]/export`.
+- Creazione progetto da nuovo form e dalla preview `/generate`.
+- Salvataggio dell'editor dentro il progetto corrente.
+- Cancellazione progetto dalla pagina dettaglio.
+- Validazione Zod del `MapDocument`, id progetto sicuri e scrittura atomica.
+- Test unitari per slug, create/read/list/update/delete e id duplicati.
+- Documentazione `docs/PROJECTS.md`.
+
+Verificato con:
+
+```bash
+pnpm install
+pnpm --filter @dm-instamap/web test
+pnpm --filter @dm-instamap/web lint
+```
+
+Limite noto:
+
+- Le cartelle `exports/` e `thumbnails/` del progetto sono create ma non hanno ancora uno storico export o thumbnail automatiche.
+
 ## Obiettivo
 
 Introdurre un sistema di progetti salvati localmente.
@@ -883,6 +933,34 @@ DELETE /api/projects/[projectId]
 ---
 
 # Fase 6 — Vero editor visuale canvas
+
+## Stato
+
+Completata il 2026-05-20.
+
+Implementato:
+
+- Editor canvas custom React senza nuove dipendenze pesanti.
+- Rendering canvas di tile, stanze, muri, porte, luci e placed assets.
+- Tool base: select, floor, wall, erase, door e light.
+- Pan e zoom del canvas.
+- Selezione di room, asset, door e light.
+- Movimento dei placed assets direttamente sul canvas.
+- Salvataggio manuale del `MapDocument` nel Project System da `/projects/[id]/editor`.
+- Drag di assets dalla sidebar e dai risultati di local asset search verso il canvas.
+- Test per painting tile, creazione porte/luci e selezione elementi.
+- Documentazione `docs/EDITOR.md` aggiornata.
+
+Verificato con:
+
+```bash
+pnpm --filter @dm-instamap/web lint
+pnpm --filter @dm-instamap/web test -- src/lib/map-editor.test.ts
+```
+
+Limite noto:
+
+- L'editor canvas resta MVP: niente multi-select, layer avanzati, autosave o asset artwork renderizzato nel canvas/export.
 
 ## Obiettivo
 
@@ -1006,6 +1084,34 @@ Mostrare:
 ---
 
 # Fase 7 — Generatore semantico/narrativo + tattico
+
+## Stato
+
+Completata il 2026-05-20.
+
+Implementato:
+
+- Tipi `TacticalRole`, `NarrativeRoom` e `MapGenerationBlueprint`.
+- Funzioni `createNarrativeBlueprint`, `generateCryptBlueprint`, `generateBuildingBlueprint`, `generateDungeonBlueprint` e `generateMapFromBlueprint`.
+- Generatore crypt specializzato per cripta sotto cattedrale con morti non ostili/prigionieri.
+- Conversione blueprint narrativo in `MapDocument` valido e modificabile.
+- Modalità Simple/Narrative nella pagina `/generate`.
+- Visualizzazione blueprint con ruoli tattici, scopi, tag e stanze narrative.
+- Salvataggio della generazione narrativa come progetto locale.
+- Test per cripta sotto cattedrale, ruoli tattici, connessioni blueprint e conversione a `MapDocument`.
+- Documentazione `docs/GENERATOR.md` aggiornata.
+
+Verificato con:
+
+```bash
+pnpm --filter @dm-instamap/generator lint
+pnpm --filter @dm-instamap/generator test
+pnpm --filter @dm-instamap/web lint
+```
+
+Limite noto:
+
+- Il blueprint guida nomi, ruoli, tag e note; la geometria resta ancora basata sul generatore rettangolare semplice.
 
 ## Obiettivo
 
@@ -1595,6 +1701,27 @@ Suspicious floors
 
 # Novità 5 — Local visual search
 
+## Stato
+
+Completata il 2026-05-20.
+
+Implementato:
+
+- Ricerca testuale locale con fallback su manifest quando `asset-embeddings.json` non esiste.
+- Spiegazione dei risultati tramite `explainAssetSearchResult`.
+- API Next.js `GET /api/assets/search?q=...&limit=...`.
+- API Next.js `POST /api/assets/search-by-image`.
+- Validazione path per ricerca immagine, con blocco path traversal fuori dal workspace.
+- UI Visual/Text Search in `/assets`.
+- Pannello Find Matching Assets in `/editor`, con risultati trascinabili sulla mappa.
+- Integrazione con auto-furnish: i risultati cercati nell’editor possono alimentare il piazzamento automatico.
+- Integrazione con AI Bridge: il prompt può includere risultati di asset search locale.
+- Test per fallback testuale, spiegazioni risultati, helper API e path traversal.
+
+Limite noto:
+
+- La ricerca per immagine richiede ancora embeddings generati con `pnpm assets:embed`; senza embeddings ritorna risultati vuoti ma non rompe la UI.
+
 ## Obiettivo
 
 Trovare assets simili a un testo o a un’immagine reference usando solo dati locali.
@@ -1655,6 +1782,33 @@ In Editor:
 ---
 
 # Novità 6 — Auto-furnish avanzato
+
+## Stato
+
+Completata il 2026-05-20.
+
+Implementato:
+
+- Regole di piazzamento `wall`, `center`, `light` e `scatter`.
+- Scoring asset per stanza basato su room type, tags, `usableFor`, quality score, style tags e suggerimenti narrativi.
+- Supporto `AssetGroup` come sorgente di asset rappresentativi.
+- Supporto opzionale a `NarrativeRoom` e `TacticalRole` tramite blueprint tags e narrative metadata.
+- Output debug esteso con score, placement preference, reasons e summary.
+- Integrazione editor: auto-furnish passa gli AssetGroups e mostra placed/skipped.
+- Test per crypt, library, prison, chapel, boss room, collisioni, AssetGroup e narrative suggestions.
+- Documentazione `docs/GENERATOR.md` aggiornata.
+
+Verificato con:
+
+```bash
+pnpm --filter @dm-instamap/generator lint
+pnpm --filter @dm-instamap/generator test
+pnpm --filter @dm-instamap/web lint
+```
+
+Limite noto:
+
+- Il posizionamento resta cell-based e non ruota ancora automaticamente asset lunghi rispetto al muro più vicino.
 
 ## Obiettivo
 
@@ -1896,36 +2050,36 @@ DM-Instamap può considerarsi maturo quando:
 - [ ] Duplicates.
 - [ ] Quality score.
 - [ ] Batch review.
-- [ ] Local visual search.
+- [x] Local visual search.
 
 ## References
 
 - [ ] Scan.
 - [ ] Preview.
 - [ ] Map type.
-- [ ] Style DNA.
+- [x] Style DNA.
 - [ ] Grid detection base.
-- [ ] Prompt summary.
+- [x] Prompt summary.
 
 ## Generator
 
-- [ ] Simple dungeon.
-- [ ] Narrative blueprint.
-- [ ] Crypt generator.
-- [ ] Building generator.
-- [ ] Tactical roles.
-- [ ] Auto-furnish advanced.
+- [x] Simple dungeon.
+- [x] Narrative blueprint.
+- [x] Crypt generator.
+- [x] Building generator.
+- [x] Tactical roles.
+- [x] Auto-furnish advanced.
 
 ## Web
 
 - [ ] Home.
-- [ ] Projects.
+- [x] Projects.
 - [ ] New map wizard.
 - [ ] Asset browser.
 - [ ] Asset review.
 - [ ] Reference browser.
 - [ ] AI bridge.
-- [ ] Editor canvas.
+- [x] Editor canvas.
 - [ ] Export page.
 
 ## Worker

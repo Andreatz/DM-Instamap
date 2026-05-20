@@ -24,6 +24,7 @@
     "group": "tsx src/cli/group.ts",
     "lint": "tsc -p tsconfig.json --noEmit",
     "references:scan": "tsx src/cli/references-scan.ts",
+    "references:style": "tsx src/cli/references-style.ts",
     "scan": "tsx src/cli/scan.ts",
     "test": "vitest run"
   },

@@ -43,6 +43,7 @@ export {
 
 export {
   createLocalEmbeddingProvider,
+  explainAssetSearchResult,
   generateAssetEmbeddings,
   loadAssetEmbeddingIndex,
   searchAssetsByImage,
@@ -92,3 +93,12 @@ export {
   type ReferencesManifest,
   type SupportedReferenceExtension
 } from "./references";
+
+export {
+  buildReferenceStyleDna,
+  generateReferenceStyleDna,
+  type ReferencePaletteRole,
+  type ReferenceStyleDna,
+  type ReferenceStyleDnaFile,
+  type ReferenceStyleOptions
+} from "./reference-style";

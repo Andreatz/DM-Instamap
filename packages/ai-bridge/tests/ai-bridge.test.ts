@@ -36,8 +36,27 @@ const references = [
     mapType: "building",
     mapTypeConfidence: 0.82,
     path: "keeps/library-map.png",
+    styleDna: {
+      density: "dense",
+      layoutTraits: ["room-cluster"],
+      mood: ["urban", "warm-lit"],
+      promptSummary: "Warm-lit keep library battlemap with dense room-cluster layout.",
+      recommendedAssetTags: ["library", "bookshelf", "table"],
+      visualTags: ["building", "dense", "warm-lit"]
+    },
     tags: ["library", "keep"],
     width: 1200
+  }
+];
+
+const assetSearchResults = [
+  {
+    assetId: "asset-bookshelf",
+    classification: "furniture",
+    reason: "matched library, shelf",
+    relativePath: "props/bookshelf.png",
+    score: 0.91,
+    tags: ["library", "shelf"]
   }
 ];
 
@@ -67,13 +86,18 @@ describe("buildChatGptBridgePrompt", () => {
   it("includes the user request, local context, and required schema", () => {
     const prompt = buildChatGptBridgePrompt({
       assetGroups,
+      assetSearchResults,
       references,
       userRequest: "Create a haunted library."
     });
 
     expect(prompt).toContain("Create a haunted library.");
     expect(prompt).toContain("AVAILABLE ASSET GROUPS");
+    expect(prompt).toContain("LOCAL ASSET SEARCH RESULTS");
+    expect(prompt).toContain("asset-bookshelf");
     expect(prompt).toContain("SELECTED REFERENCE SUMMARIES");
+    expect(prompt).toContain("REFERENCE STYLE DNA");
+    expect(prompt).toContain("Warm-lit keep library battlemap");
     expect(prompt).toContain("REQUIRED JSON SCHEMA");
     expect(prompt).toContain("\"rooms\"");
   });

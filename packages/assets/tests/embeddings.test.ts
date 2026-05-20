@@ -5,6 +5,7 @@ import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 import {
   createLocalEmbeddingProvider,
+  explainAssetSearchResult,
   generateAssetEmbeddings,
   loadAssetEmbeddingIndex,
   searchAssetsByImage,
@@ -39,6 +40,7 @@ describe("local asset embeddings", () => {
 
     expect(results[0]).toMatchObject({
       assetId: "asset-red-floor",
+      reason: expect.stringContaining("red"),
       relativePath: "floors/red-stone.png"
     });
   });
@@ -64,12 +66,18 @@ describe("local asset embeddings", () => {
     });
 
     expect(results[0]?.assetId).toBe("asset-red-floor");
+    expect(results[0]?.reason).toContain("local score");
   });
 
-  it("keeps search optional when no embedding index exists", async () => {
-    const outputRoot = await mkdtemp(path.join(os.tmpdir(), "dm-instamap-no-embeddings-"));
+  it("falls back to manifest metadata when no embedding index exists", async () => {
+    const outputRoot = await createEmbeddingFixture();
 
-    await expect(searchAssetsByText({ outputRoot, query: "floor" })).resolves.toEqual([]);
+    const results = await searchAssetsByText({ outputRoot, query: "blue water" });
+
+    expect(results[0]).toMatchObject({
+      assetId: "asset-blue-water",
+      reason: expect.stringContaining("blue")
+    });
   });
 
   it("exposes a provider interface with text and image methods", async () => {
@@ -80,6 +88,21 @@ describe("local asset embeddings", () => {
 
     expect(provider.dimensions).toBe(textVector.length);
     expect(provider.dimensions).toBe(imageVector.length);
+  });
+
+  it("explains local search results", () => {
+    expect(
+      explainAssetSearchResult(
+        {
+          assetId: "asset-red-floor",
+          reason: "",
+          relativePath: "floors/red-stone.png",
+          score: 0.8,
+          tags: ["red", "stone", "floor"]
+        },
+        "red floor"
+      )
+    ).toContain("matched red, floor");
   });
 });
 

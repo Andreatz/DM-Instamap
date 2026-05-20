@@ -50,6 +50,7 @@ export type AssetEmbeddingOptions = {
 
 export type AssetSearchResult = {
   assetId: string;
+  reason: string;
   relativePath: string;
   score: number;
   tags: string[];
@@ -214,14 +215,21 @@ export async function searchAssetsByText(options: AssetTextSearchOptions): Promi
   const provider = options.provider ?? createLocalEmbeddingProvider();
   const index = await loadAssetEmbeddingIndex(options);
 
-  if (!index || options.query.trim().length === 0) {
+  if (options.query.trim().length === 0) {
     return [];
+  }
+
+  if (!index) {
+    return searchManifestByText(options);
   }
 
   const queryVector = await provider.embedText(options.query);
   const queryTokens = tokenize(options.query);
 
-  return rankVectors(index, queryVector, options.limit, (entry) => tokenBoost(entry, queryTokens));
+  return rankVectors(index, queryVector, options.limit, (entry) => tokenBoost(entry, queryTokens)).map((result) => ({
+    ...result,
+    reason: explainAssetSearchResult(result, options.query)
+  }));
 }
 
 export async function searchAssetsByImage(options: AssetImageSearchOptions): Promise<AssetSearchResult[]> {
@@ -233,7 +241,29 @@ export async function searchAssetsByImage(options: AssetImageSearchOptions): Pro
   }
 
   const queryVector = await provider.embedImage(options.imagePath);
-  return rankVectors(index, queryVector, options.limit);
+  return rankVectors(index, queryVector, options.limit).map((result) => ({
+    ...result,
+    reason: explainAssetSearchResult(result)
+  }));
+}
+
+export function explainAssetSearchResult(result: AssetSearchResult, query = ""): string {
+  const queryTokens = tokenize(query);
+  const resultTokens = new Set(tokenize([result.relativePath, ...result.tags].join(" ")));
+  const matchedTokens = queryTokens.filter((token) => resultTokens.has(token));
+  const reasons: string[] = [];
+
+  if (matchedTokens.length > 0) {
+    reasons.push(`matched ${matchedTokens.slice(0, 4).join(", ")}`);
+  }
+
+  if (result.tags.length > 0) {
+    reasons.push(`tags ${result.tags.slice(0, 4).join(", ")}`);
+  }
+
+  reasons.push(`local score ${Math.round(result.score * 100)}%`);
+
+  return reasons.join("; ");
 }
 
 export async function loadAssetEmbeddingIndex(options: {
@@ -263,12 +293,57 @@ function rankVectors(
   return index.vectors
     .map((entry) => ({
       assetId: entry.assetId,
+      reason: "",
       relativePath: entry.relativePath,
       score: roundScore(cosineSimilarity(queryVector, entry.vector) + boost(entry)),
       tags: entry.tags
     }))
     .sort((left, right) => right.score - left.score || left.relativePath.localeCompare(right.relativePath))
     .slice(0, Math.max(1, Math.floor(limit)));
+}
+
+async function searchManifestByText(options: AssetTextSearchOptions): Promise<AssetSearchResult[]> {
+  const outputRoot = path.resolve(options.outputRoot ?? process.cwd());
+  const manifestPath = path.resolve(outputRoot, DEFAULT_MANIFEST_PATH);
+
+  try {
+    const manifest = parseJsonFile(await readFile(manifestPath, "utf8")) as ManifestFile;
+    const assets = Array.isArray(manifest.assets)
+      ? manifest.assets.map(normalizeManifestAsset).filter((asset): asset is NormalizedManifestAsset => asset !== null)
+      : [];
+    const queryTokens = tokenize(options.query);
+
+    return assets
+      .map((asset) => {
+        const assetTokens = new Set(tokenize([asset.classification, asset.relativePath, ...asset.tags].join(" ")));
+        const matchCount = queryTokens.filter((token) => assetTokens.has(token)).length;
+        const fuzzyCount = queryTokens.filter((token) =>
+          [...assetTokens].some((assetToken) => assetToken.includes(token) || token.includes(assetToken))
+        ).length;
+        const score = queryTokens.length === 0 ? 0 : Math.min(1, (matchCount + fuzzyCount * 0.35) / queryTokens.length);
+        const result: AssetSearchResult = {
+          assetId: asset.id,
+          reason: "",
+          relativePath: asset.relativePath,
+          score: roundScore(score),
+          tags: asset.tags
+        };
+
+        return {
+          ...result,
+          reason: explainAssetSearchResult(result, options.query)
+        };
+      })
+      .filter((result) => result.score > 0)
+      .sort((left, right) => right.score - left.score || left.relativePath.localeCompare(right.relativePath))
+      .slice(0, Math.max(1, Math.floor(options.limit ?? 10)));
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
+      return [];
+    }
+
+    throw error;
+  }
 }
 
 async function extractImageVector(filePath: string): Promise<number[]> {

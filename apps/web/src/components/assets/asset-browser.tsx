@@ -8,6 +8,7 @@ import {
   type AssetBrowserOptions,
   type AssetFilterState
 } from "@/lib/asset-browser";
+import type { AssetSearchApiResult } from "@/lib/asset-search";
 
 type AssetBrowserProps = {
   assets: AssetBrowserEntry[];
@@ -26,6 +27,10 @@ const DEFAULT_FILTERS: AssetFilterState = {
 
 export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: AssetBrowserProps) {
   const [filters, setFilters] = useState<AssetFilterState>(DEFAULT_FILTERS);
+  const [visualSearchQuery, setVisualSearchQuery] = useState("");
+  const [imageSearchPath, setImageSearchPath] = useState("");
+  const [searchResults, setSearchResults] = useState<AssetSearchApiResult[]>([]);
+  const [searchStatus, setSearchStatus] = useState("Local search ready");
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(assets[0]?.id ?? null);
   const visibleAssets = useMemo(() => filterAssets(assets, filters), [assets, filters]);
   const selectedAsset =
@@ -36,6 +41,66 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
       ...current,
       [key]: value
     }));
+  }
+
+  async function runTextSearch() {
+    const query = visualSearchQuery.trim();
+
+    if (!query) {
+      setSearchResults([]);
+      setSearchStatus("Enter a local search query");
+      return;
+    }
+
+    setSearchStatus("Searching local assets");
+
+    try {
+      const response = await fetch(`/api/assets/search?q=${encodeURIComponent(query)}&limit=24`);
+      const payload = (await response.json()) as { results?: AssetSearchApiResult[]; error?: string };
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Search failed");
+      }
+
+      setSearchResults(payload.results ?? []);
+      setSearchStatus(`${payload.results?.length ?? 0} local matches`);
+    } catch (error) {
+      setSearchResults([]);
+      setSearchStatus(error instanceof Error ? error.message : "Search failed");
+    }
+  }
+
+  async function runImageSearch() {
+    const imagePath = imageSearchPath.trim();
+
+    if (!imagePath) {
+      setSearchResults([]);
+      setSearchStatus("Enter a local image path inside the workspace");
+      return;
+    }
+
+    setSearchStatus("Searching similar local images");
+
+    try {
+      const response = await fetch("/api/assets/search-by-image", {
+        body: JSON.stringify({ imagePath, limit: 24 }),
+        headers: {
+          "Content-Type": "application/json"
+        },
+        method: "POST"
+      });
+      const payload = (await response.json()) as { results?: AssetSearchApiResult[]; error?: string };
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Image search failed");
+      }
+
+      setSearchResults(payload.results ?? []);
+      setSearchStatus(`${payload.results?.length ?? 0} similar local assets`);
+    } catch (error) {
+      setSearchResults([]);
+      setSearchStatus(error instanceof Error ? error.message : "Image search failed");
+    }
   }
 
   return (
@@ -57,6 +122,35 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
             value={filters.query}
           />
         </label>
+
+        <section className="detail-block">
+          <h3>Visual/Text Search</h3>
+          <label className="field">
+            <span>Text query</span>
+            <input
+              onChange={(event) => setVisualSearchQuery(event.target.value)}
+              placeholder="crypt coffin, blue water..."
+              type="search"
+              value={visualSearchQuery}
+            />
+          </label>
+          <button onClick={runTextSearch} type="button">
+            Search Assets
+          </button>
+          <label className="field">
+            <span>Image path</span>
+            <input
+              onChange={(event) => setImageSearchPath(event.target.value)}
+              placeholder="data/previews/references/example.webp"
+              type="text"
+              value={imageSearchPath}
+            />
+          </label>
+          <button onClick={runImageSearch} type="button">
+            Search By Image
+          </button>
+          <p>{searchStatus}</p>
+        </section>
 
         <label className="field">
           <span>Kind</span>
@@ -117,6 +211,31 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
       </aside>
 
       <div className="asset-results">
+        {searchResults.length > 0 ? (
+          <section className="detail-block">
+            <h2>Local Search Results</h2>
+            <div className="asset-grid" aria-label="Local visual search results">
+              {searchResults.map((result) => (
+                <button
+                  className="asset-card"
+                  key={result.assetId}
+                  onClick={() => setSelectedAssetId(result.assetId)}
+                  type="button"
+                >
+                  <span className="asset-thumb">
+                    <img alt="" loading="lazy" src={result.thumbnailUrl} />
+                  </span>
+                  <span className="asset-card-name">{getFileName(result.relativePath)}</span>
+                  <span className="asset-card-meta">
+                    {result.classification} - {Math.round(result.score * 100)}%
+                  </span>
+                  <span className="asset-card-meta">{result.reason}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         <div className="asset-grid" aria-label="Asset thumbnails">
           {visibleAssets.map((asset) => (
             <button

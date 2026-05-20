@@ -7,9 +7,11 @@ import {
   searchBridgeContext,
   validateBridgeResponse,
   type BridgeAssetGroupSummary,
+  type BridgeAssetSearchSummary,
   type BridgeReferenceSummary
 } from "@dm-instamap/ai-bridge";
 import type { AssetGroupView } from "@/lib/asset-groups";
+import type { AssetSearchApiResult } from "@/lib/asset-search";
 import type { ReferenceMapView } from "@/lib/references";
 
 type AiBridgeWorkspaceProps = {
@@ -22,26 +24,30 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
     "Create a crypt dungeon with an entrance, chapel, library, treasure room, and boss room."
   );
   const [pastedResponse, setPastedResponse] = useState("");
+  const [assetSearchResults, setAssetSearchResults] = useState<AssetSearchApiResult[]>([]);
   const [status, setStatus] = useState("Manual bridge ready");
   const groupSummaries = useMemo(() => assetGroups.map(toBridgeAssetGroup), [assetGroups]);
   const referenceSummaries = useMemo(() => references.map(toBridgeReference), [references]);
+  const searchSummaries = useMemo(() => assetSearchResults.map(toBridgeAssetSearchResult), [assetSearchResults]);
   const context = useMemo(
     () =>
       searchBridgeContext({
         assetGroups: groupSummaries,
+        assetSearchResults: searchSummaries,
         references: referenceSummaries,
         userRequest
       }),
-    [groupSummaries, referenceSummaries, userRequest]
+    [groupSummaries, referenceSummaries, searchSummaries, userRequest]
   );
   const prompt = useMemo(
     () =>
       buildChatGptBridgePrompt({
         assetGroups: groupSummaries,
+        assetSearchResults: searchSummaries,
         references: referenceSummaries,
         userRequest
       }),
-    [groupSummaries, referenceSummaries, userRequest]
+    [groupSummaries, referenceSummaries, searchSummaries, userRequest]
   );
   const validation = useMemo(() => validateBridgeResponse(pastedResponse), [pastedResponse]);
   const repairPrompt = useMemo(
@@ -61,6 +67,33 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
     setStatus(`${label} copied`);
   }
 
+  async function searchLocalAssetsForPrompt() {
+    const query = userRequest.trim();
+
+    if (!query) {
+      setAssetSearchResults([]);
+      setStatus("Write a request before searching local assets");
+      return;
+    }
+
+    setStatus("Searching local assets for prompt");
+
+    try {
+      const response = await fetch(`/api/assets/search?q=${encodeURIComponent(query)}&limit=8`);
+      const payload = (await response.json()) as { results?: AssetSearchApiResult[]; error?: string };
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Local asset search failed");
+      }
+
+      setAssetSearchResults(payload.results ?? []);
+      setStatus(`${payload.results?.length ?? 0} local assets added to prompt context`);
+    } catch (error) {
+      setAssetSearchResults([]);
+      setStatus(error instanceof Error ? error.message : "Local asset search failed");
+    }
+  }
+
   return (
     <section className="bridge-shell" aria-label="Manual ChatGPT bridge">
       <section className="asset-filters bridge-request-panel">
@@ -77,7 +110,11 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
         <section className="detail-block">
           <h3>Local Context</h3>
           <p>{context.assetGroups.length} asset groups selected</p>
+          <p>{context.assetSearchResults.length} searched assets selected</p>
           <p>{context.references.length} references selected</p>
+          <button onClick={searchLocalAssetsForPrompt} type="button">
+            Search Local Assets
+          </button>
         </section>
 
         <section className="bridge-context-list">
@@ -87,6 +124,18 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
               <strong>{group.name}</strong>
               <span>
                 {group.kind} - {group.assetCount} assets
+              </span>
+            </article>
+          ))}
+        </section>
+
+        <section className="bridge-context-list">
+          <h3>Asset Search</h3>
+          {context.assetSearchResults.map((result) => (
+            <article key={result.assetId}>
+              <strong>{result.relativePath}</strong>
+              <span>
+                {result.classification} - {Math.round(result.score * 100)}% - {result.reason}
               </span>
             </article>
           ))}
@@ -169,6 +218,17 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
   );
 }
 
+function toBridgeAssetSearchResult(result: AssetSearchApiResult): BridgeAssetSearchSummary {
+  return {
+    assetId: result.assetId,
+    classification: result.classification,
+    reason: result.reason,
+    relativePath: result.relativePath,
+    score: result.score,
+    tags: result.tags
+  };
+}
+
 function toBridgeAssetGroup(group: AssetGroupView): BridgeAssetGroupSummary {
   return {
     assetCount: group.assetCount,
@@ -189,6 +249,16 @@ function toBridgeReference(reference: ReferenceMapView): BridgeReferenceSummary 
     mapType: reference.mapType,
     mapTypeConfidence: reference.mapTypeConfidence,
     path: reference.path,
+    styleDna: reference.styleDna
+      ? {
+          density: reference.styleDna.density,
+          layoutTraits: reference.styleDna.layoutTraits,
+          mood: reference.styleDna.mood,
+          promptSummary: reference.styleDna.promptSummary,
+          recommendedAssetTags: reference.styleDna.recommendedAssetTags,
+          visualTags: reference.styleDna.visualTags
+        }
+      : null,
     tags: reference.tags,
     width: reference.width
   };

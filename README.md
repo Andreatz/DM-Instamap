@@ -83,6 +83,7 @@ pnpm assets:group
 pnpm assets:audit
 pnpm assets:embed
 pnpm references:scan <folder>
+pnpm references:style
 ```
 
 The scanner writes lightweight metadata to `data/indexes/` and thumbnails to
@@ -90,15 +91,30 @@ The scanner writes lightweight metadata to `data/indexes/` and thumbnails to
 `local-assets/`, `assets-local/`, `local-references/`, or external storage.
 `pnpm assets:audit` creates `data/indexes/asset-audit.json` with duplicate,
 quality, and review-priority signals for large libraries.
+`pnpm references:style` creates `data/indexes/reference-style-dna.json` with
+local palette, mood, layout, density, grid and prompt-summary hints.
+`pnpm assets:embed` powers local text and image asset search. The asset browser
+and editor keep working without embeddings by falling back to local metadata
+where possible.
+Projects are saved locally in `data/projects/<project-id>/` with a lightweight
+`project.json`, the editable source-of-truth `map.dmimap.json`, plus local
+export and thumbnail folders.
 
 ## Web routes
 
 - `/assets` - asset browser with filters and search.
+- `/api/assets/search?q=crypt%20coffin` - local text-to-asset search.
+- `/api/assets/search-by-image` - local image-to-image asset search.
 - `/assets/review` - single asset correction workflow.
 - `/asset-groups` - grouped asset browser.
 - `/asset-groups/review` - batch-oriented group review.
 - `/references` - reference map browser.
 - `/references/review` - reference correction workflow.
+- `/projects` - local saved project list.
+- `/projects/new` - create a new local project from simple generator settings.
+- `/projects/[projectId]` - project details and local delete action.
+- `/projects/[projectId]/editor` - edit and save the project `MapDocument`.
+- `/projects/[projectId]/export` - export the saved project document.
 - `/generate` - simple procedural dungeon preview.
 - `/editor` - first map editor.
 - `/ai-bridge` - manual ChatGPT bridge, no API calls.

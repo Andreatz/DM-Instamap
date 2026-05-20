@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { autoFurnishMap, generateDungeon, inferFurnishingRoomType, type FurnishingAsset } from "../src";
+import {
+  autoFurnishMap,
+  generateCryptBlueprint,
+  generateDungeon,
+  generateMapFromBlueprint,
+  inferFurnishingRoomType,
+  type FurnishingAsset
+} from "../src";
 
 const selectedAssets: FurnishingAsset[] = [
   {
@@ -37,6 +44,33 @@ const selectedAssets: FurnishingAsset[] = [
     tags: ["torch"],
     usableFor: ["entrance", "corridor", "crypt"],
     widthCells: 1
+  },
+  {
+    assetId: "asset-prison-bars",
+    heightCells: 1,
+    kind: "prop",
+    qualityScore: 88,
+    tags: ["prison", "bars", "chains"],
+    usableFor: ["prison"],
+    widthCells: 2
+  },
+  {
+    assetId: "asset-altar",
+    heightCells: 2,
+    kind: "furniture",
+    qualityScore: 92,
+    tags: ["chapel", "altar", "holy"],
+    usableFor: ["chapel"],
+    widthCells: 2
+  },
+  {
+    assetId: "asset-throne",
+    heightCells: 2,
+    kind: "furniture",
+    qualityScore: 90,
+    tags: ["boss", "throne"],
+    usableFor: ["boss_room"],
+    widthCells: 2
   }
 ];
 
@@ -114,6 +148,74 @@ describe("autoFurnishMap", () => {
     });
 
     expect(result.placed[0]?.assetId).toBe("asset-sarcophagus");
+  });
+
+  it("uses room type rules for crypt, library, prison, chapel, and boss rooms", () => {
+    const map = generateDungeon({
+      heightCells: 48,
+      requiredRooms: ["library", "prison", "chapel", "boss", "storage"],
+      roomCount: 9,
+      theme: "crypt",
+      widthCells: 64
+    });
+
+    const result = autoFurnishMap(map, {
+      assets: selectedAssets,
+      density: "rich"
+    });
+
+    expect(result.summary.placedCount).toBe(result.placed.length);
+    expect(result.placed).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ assetId: "asset-sarcophagus", roomType: "crypt" }),
+        expect.objectContaining({ assetId: "asset-bookshelf", roomType: "library" }),
+        expect.objectContaining({ assetId: "asset-prison-bars", roomType: "prison" }),
+        expect.objectContaining({ assetId: "asset-altar", roomType: "chapel" }),
+        expect.objectContaining({ assetId: "asset-throne", roomType: "boss_room" })
+      ])
+    );
+    expect(result.placed.find((placement) => placement.assetId === "asset-bookshelf")?.placement).toBe("wall");
+    expect(result.placed.find((placement) => placement.assetId === "asset-altar")?.placement).toBe("center");
+  });
+
+  it("uses narrative room suggestions and asset groups when available", () => {
+    const blueprint = generateCryptBlueprint({
+      request: "Crypt under cathedral, non-hostile undead prisoners"
+    });
+    const map = generateMapFromBlueprint(blueprint, {
+      heightCells: 44,
+      widthCells: 64
+    });
+
+    const result = autoFurnishMap(map, {
+      assetGroups: [
+        {
+          assetIds: ["group-ritual-circle-asset"],
+          kind: "decoration",
+          qualityScore: 95,
+          tags: ["ritual", "circle", "crypt"],
+          usableFor: ["boss_room"]
+        }
+      ],
+      assets: selectedAssets,
+      density: "normal",
+      narrativeRooms: blueprint.rooms,
+      styleTags: blueprint.globalTags
+    });
+
+    expect(result.placed).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          assetId: "group-ritual-circle-asset",
+          roomType: "boss_room"
+        })
+      ])
+    );
+    expect(
+      result.placed.find(
+        (placement) => placement.assetId === "group-ritual-circle-asset" && placement.roomType === "boss_room"
+      )?.reasons
+    ).toContain("usableFor:boss_room");
   });
 });
 

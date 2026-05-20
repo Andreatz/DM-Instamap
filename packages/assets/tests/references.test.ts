@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
-import { scanReferences } from "../src";
+import { generateReferenceStyleDna, scanReferences } from "../src";
 
 describe("scanReferences", () => {
   it("scans local reference maps and writes a manifest with thumbnails", async () => {
@@ -89,5 +89,9 @@ describe("scanReferences", () => {
       const preview = await readFile(path.join(outputRoot, reference.thumbnailPath ?? ""));
       expect(preview.byteLength).toBeGreaterThan(0);
     }
+
+    const styleFile = await generateReferenceStyleDna({ outputRoot });
+    expect(styleFile.styles).toHaveLength(3);
+    expect(styleFile.styles.some((style) => style.promptSummary.length > 0)).toBe(true);
   });
 });

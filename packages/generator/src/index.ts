@@ -11,12 +11,14 @@ import {
 
 export {
   autoFurnishMap,
+  inferPlacementPreference,
   inferFurnishingRoomType,
   FURNISHING_DENSITIES,
   FURNISHING_ROOM_TYPES,
   type AutoFurnishOptions,
   type AutoFurnishResult,
   type FurnishingAsset,
+  type FurnishingAssetGroup,
   type FurnishingDensity,
   type FurnishingPlacementDebug,
   type FurnishingRoomType
@@ -427,3 +429,15 @@ function toTitle(value: string): string {
 function unique(values: string[]): string[] {
   return [...new Set(values.filter(Boolean))];
 }
+
+export {
+  createNarrativeBlueprint,
+  generateBuildingBlueprint,
+  generateCryptBlueprint,
+  generateDungeonBlueprint,
+  generateMapFromBlueprint,
+  type MapGenerationBlueprint,
+  type NarrativeGenerationInput,
+  type NarrativeRoom,
+  type TacticalRole
+} from "./blueprint";

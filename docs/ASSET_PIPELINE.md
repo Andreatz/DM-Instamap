@@ -189,9 +189,37 @@ Search helpers:
 
 - `searchAssetsByText`
 - `searchAssetsByImage`
+- `explainAssetSearchResult`
 
 Both helpers return an empty result set when the embedding index is missing, so
 the rest of the application continues to work without generated vectors.
+Text search also falls back to manifest metadata, which keeps basic local
+search usable before embeddings are generated.
+
+Web API:
+
+```text
+GET  /api/assets/search?q=crypt%20coffin&limit=20
+POST /api/assets/search-by-image
+```
+
+The image search endpoint accepts a JSON body:
+
+```json
+{
+  "imagePath": "data/previews/references/example.webp",
+  "limit": 20
+}
+```
+
+The path must stay inside the DM-Instamap workspace to prevent path traversal.
+
+UI integration:
+
+- `/assets` includes a Visual/Text Search panel with ranked results and local
+  match reasons.
+- `/editor` includes a Find Matching Assets panel based on the selected room or
+  a manual query. Results can be dragged directly onto the map.
 
 ## Reference Maps
 
@@ -211,6 +239,32 @@ Each reference entry stores an id, relative path, dimensions, dominant colors,
 thumbnail path, guessed map type, and tags from the folder and filename. The
 `/references` page displays the generated registry. dd2vtt import/export is not
 implemented in this step.
+
+## Reference Style DNA
+
+```bash
+pnpm references:style
+```
+
+The Style DNA step reads `data/indexes/references.manifest.json` and writes:
+
+```text
+data/indexes/reference-style-dna.json
+```
+
+For each reference map it generates local, heuristic style metadata:
+
+- palette roles: background, floor, wall, accent or unknown
+- mood tags such as dark, warm-lit, cold, natural, urban, sacred or cryptic
+- layout traits such as corridor-heavy, room-cluster, central-axis,
+  organic-cave, dense-urban, island-layout or ship-deck
+- density: sparse, medium or dense
+- base grid detection from dimensions and filename/folder signals
+- visual tags and recommended asset tags
+- compact `promptSummary` for the manual ChatGPT bridge
+
+The `/references` page shows Style DNA summaries when the file exists. The
+manual bridge includes selected Style DNA in prompts without calling any API.
 
 ## Reference Review
 

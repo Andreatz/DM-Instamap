@@ -24,19 +24,39 @@ export type BridgeReferenceSummary = {
   mapType: string;
   mapTypeConfidence?: number;
   path: string;
+  styleDna?: {
+    density: string;
+    layoutTraits: string[];
+    mood: string[];
+    promptSummary: string;
+    recommendedAssetTags: string[];
+    visualTags: string[];
+  } | null;
   tags: string[];
   width?: number | null;
 };
 
+export type BridgeAssetSearchSummary = {
+  assetId: string;
+  classification: string;
+  reason: string;
+  relativePath: string;
+  score: number;
+  tags: string[];
+};
+
 export type BridgeContext = {
   assetGroups: BridgeAssetGroupSummary[];
+  assetSearchResults: BridgeAssetSearchSummary[];
   references: BridgeReferenceSummary[];
 };
 
 export type BridgePromptInput = {
   assetGroups: BridgeAssetGroupSummary[];
+  assetSearchResults?: BridgeAssetSearchSummary[];
   maxAssetGroups?: number;
   maxReferences?: number;
+  maxSearchResults?: number;
   references: BridgeReferenceSummary[];
   userRequest: string;
 };
@@ -69,9 +89,14 @@ export function searchBridgeContext(input: BridgePromptInput): BridgeContext {
   const references = rankByTokens(input.references, tokens, summarizeReferenceForSearch)
     .slice(0, input.maxReferences ?? DEFAULT_REFERENCE_LIMIT)
     .map((ranked) => ranked.item);
+  const assetSearchResults = (input.assetSearchResults ?? [])
+    .slice()
+    .sort((left, right) => right.score - left.score || left.relativePath.localeCompare(right.relativePath))
+    .slice(0, input.maxSearchResults ?? 8);
 
   return {
     assetGroups,
+    assetSearchResults,
     references
   };
 }
@@ -90,14 +115,39 @@ export function buildChatGptBridgePrompt(input: BridgePromptInput): string {
     "AVAILABLE ASSET GROUPS:",
     formatAssetGroups(context.assetGroups),
     "",
+    "LOCAL ASSET SEARCH RESULTS:",
+    formatAssetSearchResults(context.assetSearchResults),
+    "",
     "SELECTED REFERENCE SUMMARIES:",
     formatReferences(context.references),
+    "",
+    "REFERENCE STYLE DNA:",
+    formatReferenceStyleDna(context.references),
     "",
     "REQUIRED JSON SCHEMA:",
     REQUIRED_MAP_PLAN_SCHEMA,
     "",
     "Return one JSON object matching the schema. Keep rooms rectangular and editable."
   ].join("\n");
+}
+
+function formatAssetSearchResults(results: BridgeAssetSearchSummary[]): string {
+  if (results.length === 0) {
+    return "[]";
+  }
+
+  return JSON.stringify(
+    results.map((result) => ({
+      assetId: result.assetId,
+      kind: result.classification,
+      path: result.relativePath,
+      reason: result.reason,
+      score: result.score,
+      tags: result.tags.slice(0, 8)
+    })),
+    null,
+    2
+  );
 }
 
 export function validateBridgeResponse(value: string): BridgeValidationResult {
@@ -269,6 +319,22 @@ function formatReferences(references: BridgeReferenceSummary[]): string {
   );
 }
 
+function formatReferenceStyleDna(references: BridgeReferenceSummary[]): string {
+  const styles = references
+    .filter((reference) => reference.styleDna)
+    .map((reference) => ({
+      density: reference.styleDna?.density,
+      layoutTraits: reference.styleDna?.layoutTraits.slice(0, 8),
+      mood: reference.styleDna?.mood.slice(0, 8),
+      promptSummary: reference.styleDna?.promptSummary,
+      recommendedAssetTags: reference.styleDna?.recommendedAssetTags.slice(0, 12),
+      referenceId: reference.id,
+      visualTags: reference.styleDna?.visualTags.slice(0, 12)
+    }));
+
+  return styles.length > 0 ? JSON.stringify(styles, null, 2) : "[]";
+}
+
 function summarizeAssetGroupForSearch(group: BridgeAssetGroupSummary): string {
   return tokenize([
     group.id,
@@ -281,7 +347,17 @@ function summarizeAssetGroupForSearch(group: BridgeAssetGroupSummary): string {
 }
 
 function summarizeReferenceForSearch(reference: BridgeReferenceSummary): string {
-  return tokenize([reference.id, reference.mapType, reference.path, ...reference.tags].join(" ")).join(" ");
+  return tokenize([
+    reference.id,
+    reference.mapType,
+    reference.path,
+    ...(reference.styleDna?.mood ?? []),
+    ...(reference.styleDna?.layoutTraits ?? []),
+    ...(reference.styleDna?.recommendedAssetTags ?? []),
+    ...(reference.styleDna?.visualTags ?? []),
+    reference.styleDna?.promptSummary ?? "",
+    ...reference.tags
+  ].join(" ")).join(" ");
 }
 
 function formatZodErrors(error: ZodError): string[] {

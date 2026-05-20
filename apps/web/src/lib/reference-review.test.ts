@@ -19,6 +19,7 @@ const reference: ReferenceMapView = {
   mapTypeConfidence: 0.42,
   path: "Maps/old-dungeon.png",
   previewUrl: "/references/preview/reference-dungeon",
+  styleDna: null,
   tags: ["dungeon", "old"],
   thumbnailPath: "data/previews/references/reference-dungeon.webp",
   width: 1200

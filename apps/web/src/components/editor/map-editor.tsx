@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type { MapDocument, MapTile, RoomNode } from "@dm-instamap/core";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { DragEvent, PointerEvent, WheelEvent } from "react";
+import type { DoorSegment, LightSource, MapDocument, MapTile, RoomNode, WallSegment } from "@dm-instamap/core";
 import { matchAssetGroupsForRoom, type MatchableAssetGroup } from "@dm-instamap/assets/matcher";
 import { autoFurnishMap, type FurnishingAsset, type FurnishingDensity } from "@dm-instamap/generator";
 import {
@@ -10,15 +11,21 @@ import {
   findRoomAtCell,
   movePlacedAsset,
   parseMapDocumentJson,
+  selectElementAtCell,
   serializeMapDocument,
-  type EditorPaletteAsset
+  updateDocumentForTool,
+  type EditorPaletteAsset,
+  type EditorSelection,
+  type EditorTool
 } from "@/lib/map-editor";
+import type { AssetSearchApiResult } from "@/lib/asset-search";
 
 type MapEditorProps = {
   assetGroups: MatchableAssetGroup[];
   initialDocument: MapDocument;
   mapTheme: string;
   palette: EditorPaletteAsset[];
+  projectId?: string;
 };
 
 type DragPayload =
@@ -33,22 +40,42 @@ type DragPayload =
 
 type ExportFormat = "png" | "webp";
 
-export function MapEditor({ assetGroups, initialDocument, mapTheme, palette }: MapEditorProps) {
+const CANVAS_CELL_SIZE = 24;
+const MIN_ZOOM = 0.35;
+const MAX_ZOOM = 3;
+
+export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, projectId }: MapEditorProps) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [document, setDocument] = useState(initialDocument);
+  const [editorTool, setEditorTool] = useState<EditorTool>("select");
+  const [selectedElement, setSelectedElement] = useState<EditorSelection>(null);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>("room-entrance");
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [hoverCell, setHoverCell] = useState<{ x: number; y: number } | null>(null);
+  const [canvasSize, setCanvasSize] = useState({ height: 620, width: 900 });
+  const [viewport, setViewport] = useState({ offsetX: 24, offsetY: 24, zoom: 1 });
+  const [panStart, setPanStart] = useState<{ offsetX: number; offsetY: number; pointerX: number; pointerY: number } | null>(
+    null
+  );
+  const [draggingAssetId, setDraggingAssetId] = useState<string | null>(null);
   const [furnishingDensity, setFurnishingDensity] = useState<FurnishingDensity>("normal");
   const [exportFormat, setExportFormat] = useState<ExportFormat>("png");
   const [exportIncludeGrid, setExportIncludeGrid] = useState(true);
   const [exportScale, setExportScale] = useState(1);
+  const [assetSearchQuery, setAssetSearchQuery] = useState("");
+  const [assetSearchResults, setAssetSearchResults] = useState<AssetSearchApiResult[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const [jsonText, setJsonText] = useState(() => serializeMapDocument(initialDocument));
   const [status, setStatus] = useState("Ready");
-  const tilesByCell = useMemo(() => createTileLookup(document.tiles), [document.tiles]);
-  const assetsByCell = useMemo(() => createAssetLookup(document.assets), [document.assets]);
   const rooms = document.plan?.rooms.filter((room) => room.kind === "room" || room.kind === "entrance") ?? [];
   const selectedRoom = rooms.find((room) => room.id === selectedRoomId) ?? null;
   const selectedAsset = document.assets.find((asset) => asset.id === selectedAssetId) ?? null;
+  const selectedDoor =
+    selectedElement?.type === "door" ? document.plan?.doors.find((door) => door.id === selectedElement.id) ?? null : null;
+  const selectedLight =
+    selectedElement?.type === "light"
+      ? document.plan?.lights.find((light) => light.id === selectedElement.id) ?? null
+      : null;
   const roomMatches = useMemo(
     () =>
       selectedRoom
@@ -62,12 +89,156 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette }: M
     [assetGroups, mapTheme, selectedRoom]
   );
 
-  function handleCellClick(x: number, y: number) {
-    const room = findRoomAtCell(document, { x, y });
-    setSelectedRoomId(room?.id ?? null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const container = canvas?.parentElement;
+
+    if (!canvas || !container) {
+      return;
+    }
+
+    const updateSize = () => {
+      setCanvasSize({
+        height: Math.max(460, Math.min(760, Math.floor(window.innerHeight * 0.68))),
+        width: Math.max(620, container.clientWidth - 28)
+      });
+    };
+    const observer = new ResizeObserver(updateSize);
+    updateSize();
+    observer.observe(container);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+
+    if (!canvas) {
+      return;
+    }
+
+    drawMapCanvas(canvas, {
+      canvasSize,
+      document,
+      hoverCell,
+      selectedAssetId,
+      selectedDoor,
+      selectedLight,
+      selectedRoomId,
+      viewport
+    });
+  }, [canvasSize, document, hoverCell, selectedAssetId, selectedDoor, selectedLight, selectedRoomId, viewport]);
+
+  const screenToCell = useCallback(
+    (clientX: number, clientY: number) => {
+      const canvas = canvasRef.current;
+
+      if (!canvas) {
+        return null;
+      }
+
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const canvasX = (clientX - rect.left) * scaleX;
+      const canvasY = (clientY - rect.top) * scaleY;
+      const x = Math.floor((canvasX - viewport.offsetX) / viewport.zoom / CANVAS_CELL_SIZE);
+      const y = Math.floor((canvasY - viewport.offsetY) / viewport.zoom / CANVAS_CELL_SIZE);
+
+      if (x < 0 || y < 0 || x >= document.width || y >= document.height) {
+        return null;
+      }
+
+      return { x, y };
+    },
+    [document.height, document.width, viewport.offsetX, viewport.offsetY, viewport.zoom]
+  );
+
+  function handleCanvasPointerDown(event: PointerEvent<HTMLCanvasElement>) {
+    const cell = screenToCell(event.clientX, event.clientY);
+
+    if (event.button === 1 || event.altKey) {
+      event.currentTarget.setPointerCapture(event.pointerId);
+      setPanStart({
+        offsetX: viewport.offsetX,
+        offsetY: viewport.offsetY,
+        pointerX: event.clientX,
+        pointerY: event.clientY
+      });
+      return;
+    }
+
+    if (!cell) {
+      return;
+    }
+
+    if (editorTool === "select") {
+      const selection = selectElementAtCell(document, cell);
+      setSelectedElement(selection);
+      setSelectedAssetId(selection?.type === "asset" ? selection.id : null);
+      setSelectedRoomId(selection?.type === "room" ? selection.id : findRoomAtCell(document, cell)?.id ?? null);
+
+      if (selection?.type === "asset") {
+        event.currentTarget.setPointerCapture(event.pointerId);
+        setDraggingAssetId(selection.id);
+        setStatus("Drag selected asset to move it");
+      }
+      return;
+    }
+
+    setDocument((current) => updateDocumentForTool(current, editorTool, cell));
+    setSelectedElement(null);
+    setSelectedAssetId(null);
+    setSelectedRoomId(findRoomAtCell(document, cell)?.id ?? null);
+    setStatus(createToolStatus(editorTool, cell));
   }
 
-  function handleDrop(event: React.DragEvent, x: number, y: number) {
+  function handleCanvasPointerMove(event: PointerEvent<HTMLCanvasElement>) {
+    if (panStart) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const scaleX = event.currentTarget.width / rect.width;
+      const scaleY = event.currentTarget.height / rect.height;
+      setViewport((current) => ({
+        ...current,
+        offsetX: panStart.offsetX + (event.clientX - panStart.pointerX) * scaleX,
+        offsetY: panStart.offsetY + (event.clientY - panStart.pointerY) * scaleY
+      }));
+      return;
+    }
+
+    const cell = screenToCell(event.clientX, event.clientY);
+    setHoverCell(cell);
+  }
+
+  function handleCanvasPointerUp(event: PointerEvent<HTMLCanvasElement>) {
+    const cell = screenToCell(event.clientX, event.clientY);
+
+    if (draggingAssetId && cell) {
+      setDocument((current) => movePlacedAsset(current, draggingAssetId, cell));
+      setSelectedAssetId(draggingAssetId);
+      setSelectedElement({ id: draggingAssetId, type: "asset" });
+      setStatus(`Moved asset to ${cell.x}, ${cell.y}`);
+    }
+
+    setDraggingAssetId(null);
+    setPanStart(null);
+  }
+
+  function handleCanvasWheel(event: WheelEvent<HTMLCanvasElement>) {
+    event.preventDefault();
+    const delta = event.deltaY > 0 ? -0.1 : 0.1;
+    const nextZoom = clamp(viewport.zoom + delta, MIN_ZOOM, MAX_ZOOM);
+    setViewport((current) => ({
+      ...current,
+      zoom: nextZoom
+    }));
+  }
+
+  function resetViewport() {
+    setViewport({ offsetX: 24, offsetY: 24, zoom: 1 });
+  }
+
+  function handleDrop(event: DragEvent, x: number, y: number) {
     event.preventDefault();
     const payload = readDragPayload(event);
 
@@ -76,7 +247,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette }: M
     }
 
     if (payload.type === "palette") {
-      const paletteAsset = palette.find((asset) => asset.id === payload.assetId);
+      const paletteAsset = createPaletteAsset(payload.assetId, palette, assetSearchResults);
 
       if (!paletteAsset) {
         return;
@@ -92,11 +263,45 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette }: M
     setStatus("Moved asset");
   }
 
-  function saveJson() {
+  function handleCanvasDrop(event: DragEvent<HTMLCanvasElement>) {
+    event.preventDefault();
+    const cell = screenToCell(event.clientX, event.clientY);
+
+    if (!cell) {
+      return;
+    }
+
+    handleDrop(event, cell.x, cell.y);
+  }
+
+  async function saveJson() {
     const serialized = serializeMapDocument(document);
     setJsonText(serialized);
     window.localStorage.setItem("dm-instamap-editor-document", serialized);
-    setStatus("Saved JSON locally");
+
+    if (!projectId) {
+      setStatus("Saved JSON locally");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/projects/${encodeURIComponent(projectId)}`, {
+        body: JSON.stringify({ document }),
+        headers: {
+          "Content-Type": "application/json"
+        },
+        method: "PUT"
+      });
+      const payload = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Project save failed");
+      }
+
+      setStatus("Saved project");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Project save failed");
+    }
   }
 
   function loadJson() {
@@ -135,15 +340,17 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette }: M
   }
 
   function handleAutoFurnish() {
-    const selectedAssets = createFurnishingAssets(assetGroups, palette);
+    const selectedAssets = createFurnishingAssets(assetGroups, palette, assetSearchResults);
     const result = autoFurnishMap(document, {
+      assetGroups: createFurnishingAssetGroups(assetGroups),
       assets: selectedAssets,
-      density: furnishingDensity
+      density: furnishingDensity,
+      styleTags: [mapTheme]
     });
 
     setDocument(result.document);
     setSelectedAssetId(null);
-    setStatus(`Auto-furnished ${result.placed.length} assets`);
+    setStatus(`Auto-furnished ${result.summary.placedCount} assets, skipped ${result.summary.skippedCount}`);
   }
 
   async function handleExport() {
@@ -181,6 +388,36 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette }: M
       setStatus(error instanceof Error ? error.message : "Export failed");
     } finally {
       setIsExporting(false);
+    }
+  }
+
+  async function handleFindMatchingAssets() {
+    const query = (
+      assetSearchQuery.trim() ||
+      [mapTheme, selectedRoom?.label ?? "", ...(selectedRoom?.tags ?? [])].join(" ")
+    ).trim();
+
+    if (!query) {
+      setAssetSearchResults([]);
+      setStatus("Select a room or enter an asset search query");
+      return;
+    }
+
+    setStatus("Searching local assets");
+
+    try {
+      const response = await fetch(`/api/assets/search?q=${encodeURIComponent(query)}&limit=12`);
+      const payload = (await response.json()) as { results?: AssetSearchApiResult[]; error?: string };
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Local asset search failed");
+      }
+
+      setAssetSearchResults(payload.results ?? []);
+      setStatus(`${payload.results?.length ?? 0} local asset suggestions`);
+    } catch (error) {
+      setAssetSearchResults([]);
+      setStatus(error instanceof Error ? error.message : "Local asset search failed");
     }
   }
 
@@ -222,49 +459,71 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette }: M
       </aside>
 
       <section className="editor-map-panel">
-        <div
-          className="editor-map-grid"
-          style={{
-            gridTemplateColumns: `repeat(${document.width}, minmax(0, 1fr))`
-          }}
-        >
-          {Array.from({ length: document.height }).flatMap((_, y) =>
-            Array.from({ length: document.width }).map((__, x) => {
-              const tile = tilesByCell.get(cellKey(x, y));
-              const placedAsset = assetsByCell.get(cellKey(x, y));
-              const room = findRoomAtCell(document, { x, y });
-              const isSelectedRoom = Boolean(room && room.id === selectedRoomId);
-
-              return (
-                <button
-                  className={`editor-cell editor-cell-${tile?.kind ?? "empty"}${isSelectedRoom ? " selected-room" : ""}`}
-                  key={cellKey(x, y)}
-                  onClick={() => handleCellClick(x, y)}
-                  onDragOver={(event) => event.preventDefault()}
-                  onDrop={(event) => handleDrop(event, x, y)}
-                  title={`${x},${y}`}
-                  type="button"
-                >
-                  {placedAsset ? (
-                    <span
-                      className={`editor-placed-asset${selectedAssetId === placedAsset.id ? " selected" : ""}`}
-                      draggable
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setSelectedAssetId(placedAsset.id);
-                      }}
-                      onDragStart={(event) =>
-                        writeDragPayload(event, { placedAssetId: placedAsset.id, type: "placed" })
-                      }
-                    >
-                      {getAssetLabel(placedAsset.assetId)}
-                    </span>
-                  ) : null}
-                </button>
-              );
-            })
-          )}
+        <div className="editor-canvas-toolbar">
+          <div className="editor-tool-grid" aria-label="Editor tools">
+            {[
+              ["select", "Select"],
+              ["paint-floor", "Floor"],
+              ["paint-wall", "Wall"],
+              ["paint-empty", "Erase"],
+              ["door", "Door"],
+              ["light", "Light"]
+            ].map(([tool, label]) => (
+              <button
+                className={editorTool === tool ? "active" : ""}
+                key={tool}
+                onClick={() => setEditorTool(tool as EditorTool)}
+                type="button"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="editor-viewport-actions">
+            <button
+              onClick={() =>
+                setViewport((current) => ({ ...current, zoom: clamp(current.zoom - 0.15, MIN_ZOOM, MAX_ZOOM) }))
+              }
+              type="button"
+            >
+              Zoom -
+            </button>
+            <span>{Math.round(viewport.zoom * 100)}%</span>
+            <button
+              onClick={() =>
+                setViewport((current) => ({ ...current, zoom: clamp(current.zoom + 0.15, MIN_ZOOM, MAX_ZOOM) }))
+              }
+              type="button"
+            >
+              Zoom +
+            </button>
+            <button onClick={resetViewport} type="button">
+              Reset
+            </button>
+          </div>
         </div>
+        <div className="editor-canvas-wrap">
+          <canvas
+            aria-label="Editable map canvas"
+            className={`editor-canvas editor-tool-${editorTool}`}
+            height={canvasSize.height}
+            onContextMenu={(event) => event.preventDefault()}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={handleCanvasDrop}
+            onPointerDown={handleCanvasPointerDown}
+            onPointerLeave={() => setHoverCell(null)}
+            onPointerMove={handleCanvasPointerMove}
+            onPointerUp={handleCanvasPointerUp}
+            onWheel={handleCanvasWheel}
+            ref={canvasRef}
+            width={canvasSize.width}
+          />
+        </div>
+        <footer className="editor-canvas-status">
+          <span>Tool: {formatToolName(editorTool)}</span>
+          <span>{hoverCell ? `Cell ${hoverCell.x}, ${hoverCell.y}` : "Cell -"}</span>
+          <span>{document.width} x {document.height}</span>
+        </footer>
       </section>
 
       <aside className="asset-details editor-inspector">
@@ -277,6 +536,14 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette }: M
           <div>
             <dt>Selected Asset</dt>
             <dd>{selectedAsset?.assetId ?? "none"}</dd>
+          </div>
+          <div>
+            <dt>Selected Door</dt>
+            <dd>{selectedDoor?.id ?? "none"}</dd>
+          </div>
+          <div>
+            <dt>Selected Light</dt>
+            <dd>{selectedLight?.id ?? "none"}</dd>
           </div>
           <div>
             <dt>Doors</dt>
@@ -317,6 +584,40 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette }: M
               </article>
             ))}
             {selectedRoom && roomMatches.length === 0 ? <p>No matching groups found yet.</p> : null}
+          </div>
+        </section>
+
+        <section className="detail-block asset-match-debug">
+          <h3>Find Matching Assets</h3>
+          <label>
+            <span>Search</span>
+            <input
+              onChange={(event) => setAssetSearchQuery(event.target.value)}
+              placeholder={selectedRoom ? `${selectedRoom.label} ${selectedRoom.tags.join(" ")}` : "crypt coffin"}
+              type="search"
+              value={assetSearchQuery}
+            />
+          </label>
+          <button className="save-correction" onClick={handleFindMatchingAssets} type="button">
+            Search Local Assets
+          </button>
+          <div className="asset-match-list">
+            {assetSearchResults.map((result) => (
+              <article key={result.assetId}>
+                <header>
+                  <strong>{getFileName(result.relativePath)}</strong>
+                  <span>{Math.round(result.score * 100)}%</span>
+                </header>
+                <p>{result.reason}</p>
+                <button
+                  draggable
+                  onDragStart={(event) => writeDragPayload(event, { assetId: result.assetId, type: "palette" })}
+                  type="button"
+                >
+                  Drag To Map
+                </button>
+              </article>
+            ))}
           </div>
         </section>
 
@@ -381,8 +682,8 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette }: M
         <section className="detail-block">
           <h3>MapDocument JSON</h3>
           <div className="editor-json-actions">
-            <button onClick={saveJson} type="button">
-              Save JSON
+            <button onClick={() => void saveJson()} type="button">
+              {projectId ? "Save Project" : "Save JSON"}
             </button>
             <button onClick={loadJson} type="button">
               Load JSON
@@ -408,16 +709,12 @@ function createTileLookup(tiles: MapTile[]): Map<string, MapTile> {
   return new Map(tiles.map((tile) => [cellKey(tile.x, tile.y), tile]));
 }
 
-function createAssetLookup(assets: MapDocument["assets"]): Map<string, MapDocument["assets"][number]> {
-  return new Map(assets.map((asset) => [cellKey(asset.position.x, asset.position.y), asset]));
-}
-
-function writeDragPayload(event: React.DragEvent, payload: DragPayload) {
+function writeDragPayload(event: DragEvent, payload: DragPayload) {
   event.dataTransfer.setData("application/json", JSON.stringify(payload));
   event.dataTransfer.effectAllowed = "move";
 }
 
-function readDragPayload(event: React.DragEvent): DragPayload | null {
+function readDragPayload(event: DragEvent): DragPayload | null {
   try {
     const parsed = JSON.parse(event.dataTransfer.getData("application/json")) as DragPayload;
     return parsed.type === "palette" || parsed.type === "placed" ? parsed : null;
@@ -430,7 +727,17 @@ function getAssetLabel(assetId: string): string {
   return assetId.replace(/^asset[_-]?/u, "").charAt(0).toUpperCase() || "A";
 }
 
-function createFurnishingAssets(assetGroups: MatchableAssetGroup[], palette: EditorPaletteAsset[]): FurnishingAsset[] {
+function createFurnishingAssets(
+  assetGroups: MatchableAssetGroup[],
+  palette: EditorPaletteAsset[],
+  searchResults: AssetSearchApiResult[] = []
+): FurnishingAsset[] {
+  const searchedAssets = searchResults.map((result) => ({
+    assetId: result.assetId,
+    kind: result.classification,
+    qualityScore: Math.round(result.score * 100),
+    tags: result.tags
+  }));
   const groupAssets = assetGroups
     .filter((group) => group.assetIds?.[0])
     .map((group) => ({
@@ -441,8 +748,8 @@ function createFurnishingAssets(assetGroups: MatchableAssetGroup[], palette: Edi
       usableFor: group.usableFor ?? []
     }));
 
-  if (groupAssets.length > 0) {
-    return groupAssets;
+  if (searchedAssets.length > 0 || groupAssets.length > 0) {
+    return [...searchedAssets, ...groupAssets];
   }
 
   return palette.map((asset) => ({
@@ -450,6 +757,45 @@ function createFurnishingAssets(assetGroups: MatchableAssetGroup[], palette: Edi
     kind: asset.kind,
     tags: tokenizeText(asset.name)
   }));
+}
+
+function createFurnishingAssetGroups(assetGroups: MatchableAssetGroup[]) {
+  return assetGroups
+    .filter((group) => group.assetIds?.[0])
+    .map((group) => ({
+      assetIds: group.assetIds ?? [],
+      kind: group.kind ?? undefined,
+      qualityScore: group.qualityScore ?? undefined,
+      tags: group.tags ?? [],
+      theme: group.theme ?? undefined,
+      themes: group.themes ?? [],
+      usableFor: group.usableFor ?? []
+    }));
+}
+
+function createPaletteAsset(
+  assetId: string,
+  palette: EditorPaletteAsset[],
+  searchResults: AssetSearchApiResult[]
+): EditorPaletteAsset | null {
+  const paletteAsset = palette.find((asset) => asset.id === assetId);
+
+  if (paletteAsset) {
+    return paletteAsset;
+  }
+
+  const searchResult = searchResults.find((result) => result.assetId === assetId);
+
+  if (!searchResult) {
+    return null;
+  }
+
+  return {
+    id: searchResult.assetId,
+    kind: searchResult.classification,
+    name: getFileName(searchResult.relativePath),
+    thumbnailUrl: searchResult.thumbnailUrl
+  };
 }
 
 function tokenizeText(value: string): string[] {
@@ -462,6 +808,196 @@ function tokenizeText(value: string): string[] {
 function createExportFilename(name: string, format: ExportFormat): string {
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "") || "map";
   return `${slug}.${format}`;
+}
+
+function drawMapCanvas(
+  canvas: HTMLCanvasElement,
+  input: {
+    canvasSize: { height: number; width: number };
+    document: MapDocument;
+    hoverCell: { x: number; y: number } | null;
+    selectedAssetId: string | null;
+    selectedDoor: DoorSegment | null;
+    selectedLight: LightSource | null;
+    selectedRoomId: string | null;
+    viewport: { offsetX: number; offsetY: number; zoom: number };
+  }
+) {
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    return;
+  }
+
+  const { document, hoverCell, selectedAssetId, selectedDoor, selectedLight, selectedRoomId, viewport } = input;
+  const tilesByCell = createTileLookup(document.tiles);
+
+  context.clearRect(0, 0, input.canvasSize.width, input.canvasSize.height);
+  context.fillStyle = "#080a0b";
+  context.fillRect(0, 0, input.canvasSize.width, input.canvasSize.height);
+
+  context.save();
+  context.translate(viewport.offsetX, viewport.offsetY);
+  context.scale(viewport.zoom, viewport.zoom);
+
+  for (let y = 0; y < document.height; y += 1) {
+    for (let x = 0; x < document.width; x += 1) {
+      const tile = tilesByCell.get(cellKey(x, y));
+      context.fillStyle = getTileColor(tile?.kind ?? "empty");
+      context.fillRect(x * CANVAS_CELL_SIZE, y * CANVAS_CELL_SIZE, CANVAS_CELL_SIZE, CANVAS_CELL_SIZE);
+    }
+  }
+
+  drawGrid(context, document, viewport.zoom);
+  drawRooms(context, document.plan?.rooms ?? [], selectedRoomId);
+  drawWalls(context, document.plan?.walls ?? []);
+  drawDoors(context, document.plan?.doors ?? [], selectedDoor?.id ?? null);
+  drawLights(context, document.plan?.lights ?? [], selectedLight?.id ?? null);
+  drawPlacedAssets(context, document.assets, selectedAssetId);
+
+  if (hoverCell) {
+    context.strokeStyle = "rgba(244, 239, 231, 0.85)";
+    context.lineWidth = 2 / viewport.zoom;
+    context.strokeRect(
+      hoverCell.x * CANVAS_CELL_SIZE + 1,
+      hoverCell.y * CANVAS_CELL_SIZE + 1,
+      CANVAS_CELL_SIZE - 2,
+      CANVAS_CELL_SIZE - 2
+    );
+  }
+
+  context.restore();
+}
+
+function drawGrid(context: CanvasRenderingContext2D, document: MapDocument, zoom: number) {
+  if (zoom < 0.45) {
+    return;
+  }
+
+  context.strokeStyle = "rgba(244, 239, 231, 0.08)";
+  context.lineWidth = 1 / zoom;
+  context.beginPath();
+
+  for (let x = 0; x <= document.width; x += 1) {
+    context.moveTo(x * CANVAS_CELL_SIZE, 0);
+    context.lineTo(x * CANVAS_CELL_SIZE, document.height * CANVAS_CELL_SIZE);
+  }
+
+  for (let y = 0; y <= document.height; y += 1) {
+    context.moveTo(0, y * CANVAS_CELL_SIZE);
+    context.lineTo(document.width * CANVAS_CELL_SIZE, y * CANVAS_CELL_SIZE);
+  }
+
+  context.stroke();
+}
+
+function drawRooms(context: CanvasRenderingContext2D, rooms: RoomNode[], selectedRoomId: string | null) {
+  for (const room of rooms) {
+    context.strokeStyle = room.id === selectedRoomId ? "rgba(215, 164, 71, 0.95)" : "rgba(120, 168, 144, 0.4)";
+    context.lineWidth = room.id === selectedRoomId ? 3 : 1.5;
+    context.strokeRect(
+      room.bounds.x * CANVAS_CELL_SIZE,
+      room.bounds.y * CANVAS_CELL_SIZE,
+      room.bounds.width * CANVAS_CELL_SIZE,
+      room.bounds.height * CANVAS_CELL_SIZE
+    );
+  }
+}
+
+function drawWalls(context: CanvasRenderingContext2D, walls: WallSegment[]) {
+  context.strokeStyle = "#20272b";
+  context.lineCap = "square";
+
+  for (const wall of walls) {
+    context.lineWidth = Math.max(2, wall.thickness * 2);
+    context.beginPath();
+    context.moveTo(wall.start.x * CANVAS_CELL_SIZE, wall.start.y * CANVAS_CELL_SIZE);
+    context.lineTo(wall.end.x * CANVAS_CELL_SIZE, wall.end.y * CANVAS_CELL_SIZE);
+    context.stroke();
+  }
+}
+
+function drawDoors(context: CanvasRenderingContext2D, doors: DoorSegment[], selectedDoorId: string | null) {
+  for (const door of doors) {
+    const size = CANVAS_CELL_SIZE * 0.56;
+    const x = door.position.x * CANVAS_CELL_SIZE - size / 2;
+    const y = door.position.y * CANVAS_CELL_SIZE - size / 2;
+    context.fillStyle = door.id === selectedDoorId ? "#f4efe7" : "#d7a447";
+    context.fillRect(x, y, size, size);
+    context.strokeStyle = "#5a3c18";
+    context.lineWidth = 2;
+    context.strokeRect(x, y, size, size);
+  }
+}
+
+function drawLights(context: CanvasRenderingContext2D, lights: LightSource[], selectedLightId: string | null) {
+  for (const light of lights) {
+    const x = light.position.x * CANVAS_CELL_SIZE;
+    const y = light.position.y * CANVAS_CELL_SIZE;
+    context.beginPath();
+    context.fillStyle = light.id === selectedLightId ? "#f4efe7" : light.color;
+    context.arc(x, y, CANVAS_CELL_SIZE * 0.28, 0, Math.PI * 2);
+    context.fill();
+    context.strokeStyle = "rgba(215, 164, 71, 0.25)";
+    context.lineWidth = 1.5;
+    context.beginPath();
+    context.arc(x, y, light.radius * CANVAS_CELL_SIZE, 0, Math.PI * 2);
+    context.stroke();
+  }
+}
+
+function drawPlacedAssets(context: CanvasRenderingContext2D, assets: MapDocument["assets"], selectedAssetId: string | null) {
+  for (const asset of assets) {
+    const x = (asset.position.x + 0.5) * CANVAS_CELL_SIZE;
+    const y = (asset.position.y + 0.5) * CANVAS_CELL_SIZE;
+    const radius = CANVAS_CELL_SIZE * 0.34 * asset.scale;
+    context.beginPath();
+    context.fillStyle = asset.id === selectedAssetId ? "#d7a447" : "#78a890";
+    context.arc(x, y, radius, 0, Math.PI * 2);
+    context.fill();
+    context.strokeStyle = "rgba(244, 239, 231, 0.8)";
+    context.lineWidth = 1.5;
+    context.stroke();
+    context.fillStyle = "#0f1214";
+    context.font = "700 10px Arial";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(getAssetLabel(asset.assetId), x, y);
+  }
+}
+
+function getTileColor(kind: string): string {
+  switch (kind) {
+    case "floor":
+      return "#a88d5d";
+    case "wall":
+      return "#394348";
+    case "door":
+      return "#8a6431";
+    case "empty":
+    default:
+      return "#080a0b";
+  }
+}
+
+function createToolStatus(tool: EditorTool, cell: { x: number; y: number }): string {
+  return `${formatToolName(tool)} at ${cell.x}, ${cell.y}`;
+}
+
+function formatToolName(tool: EditorTool): string {
+  return tool
+    .replace(/^paint-/u, "")
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function getFileName(relativePath: string): string {
+  return relativePath.split(/[\\/]/u).at(-1) ?? relativePath;
 }
 
 function cellKey(x: number, y: number): string {

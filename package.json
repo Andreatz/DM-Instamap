@@ -13,6 +13,7 @@
     "dev": "pnpm --filter @dm-instamap/web dev",
     "lint": "pnpm -r --if-present lint",
     "references:scan": "pnpm --filter @dm-instamap/assets references:scan",
+    "references:style": "pnpm --filter @dm-instamap/assets run references:style",
     "test": "pnpm -r --if-present test",
     "worker:dev": "pnpm --filter @dm-instamap/worker dev",
     "worker:install": "python -m pip install -r apps/worker/requirements-dev.txt"
