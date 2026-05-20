@@ -24,7 +24,7 @@ export default async function ProjectExportPage({ params }: ProjectExportPagePro
         </div>
       </header>
 
-      <ProjectExportPanel document={project.document} />
+      <ProjectExportPanel document={project.document} projectId={project.id} />
     </main>
   );
 }

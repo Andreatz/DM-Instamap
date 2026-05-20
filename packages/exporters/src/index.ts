@@ -28,8 +28,23 @@ export {
   type FoundryWallData
 } from "./foundry";
 
-export type ExportFormat = "png" | "webp" | "dd2vtt" | "foundry";
+export {
+  applyVisibilityMode,
+  isHiddenRoom,
+  listVisibilityModes,
+  type MapVisibilityMode
+} from "./visibility";
+
+export {
+  DMIMAP_FORMAT_VERSION,
+  exportDmImap,
+  type DmImapExportOptions,
+  type DmImapExportPayload,
+  type DmImapExportResult
+} from "./dmimap";
+
+export type ExportFormat = "png" | "webp" | "dd2vtt" | "foundry" | "dmimap";
 
 export function listSupportedExportFormats(): ExportFormat[] {
-  return ["png", "webp", "dd2vtt", "foundry"];
+  return ["png", "webp", "dd2vtt", "foundry", "dmimap"];
 }

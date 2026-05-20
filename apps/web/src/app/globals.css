@@ -1398,3 +1398,384 @@ a {
     position: static;
   }
 }
+
+.site-header {
+  align-items: center;
+  background: var(--panel);
+  border-bottom: 1px solid var(--panel-border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: space-between;
+  padding: 14px 32px;
+}
+
+.site-header-brand a {
+  align-items: baseline;
+  display: inline-flex;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.site-header-brand strong {
+  color: var(--accent);
+  font-size: 18px;
+}
+
+.site-header-brand .muted {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.site-nav a {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--foreground);
+  font-size: 13px;
+  padding: 6px 10px;
+  text-decoration: none;
+}
+
+.site-nav a:hover {
+  background: var(--field);
+  border-color: var(--panel-border);
+}
+
+.home-shell {
+  display: grid;
+  gap: 24px;
+  margin: 0 auto;
+  max-width: 1120px;
+  padding: 32px;
+}
+
+.home-hero {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  display: grid;
+  gap: 12px;
+  padding: 24px;
+}
+
+.home-hero h1 {
+  margin: 0;
+}
+
+.home-hero p {
+  color: var(--muted);
+  margin: 0;
+  max-width: 720px;
+}
+
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.home-actions a {
+  background: var(--accent);
+  border-radius: 6px;
+  color: #111315;
+  font-weight: 600;
+  padding: 8px 14px;
+  text-decoration: none;
+}
+
+.home-actions a.secondary {
+  background: transparent;
+  border: 1px solid var(--panel-border);
+  color: var(--foreground);
+}
+
+.home-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.home-card {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+}
+
+.home-card h2 {
+  font-size: 16px;
+  margin: 0;
+}
+
+.home-card .muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.home-card ul {
+  display: grid;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.home-card ul a {
+  text-decoration: none;
+}
+
+.home-status {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.home-status .pill {
+  background: var(--field);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
+.wizard-shell {
+  display: grid;
+  gap: 24px;
+  margin: 0 auto;
+  max-width: 960px;
+  padding: 32px;
+}
+
+.wizard-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.wizard-steps li {
+  background: var(--field);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  font-size: 12px;
+  padding: 6px 10px;
+}
+
+.wizard-steps li.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #111315;
+  font-weight: 600;
+}
+
+.wizard-steps li.completed {
+  border-color: var(--accent-2);
+  color: var(--accent-2);
+}
+
+.wizard-step {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  display: grid;
+  gap: 14px;
+  padding: 24px;
+}
+
+.wizard-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.wizard-actions button {
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  color: #111315;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 8px 16px;
+}
+
+.wizard-actions button.secondary {
+  background: transparent;
+  border: 1px solid var(--panel-border);
+  color: var(--foreground);
+}
+
+.wizard-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.bridge-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bridge-semantic,
+.bridge-missing-assets,
+.bridge-import,
+.bridge-import-issues,
+.bridge-import-missing {
+  background: var(--field);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+}
+
+.bridge-semantic ul,
+.bridge-import-issues ul,
+.bridge-import-missing ul,
+.bridge-missing-assets ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.batch-shell {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(220px, 280px) 1fr;
+}
+
+.batch-sidebar h2 {
+  margin: 0 0 8px 0;
+}
+
+.batch-sidebar ul {
+  display: grid;
+  gap: 6px;
+  list-style: none;
+  margin: 12px 0 0 0;
+  padding: 0;
+}
+
+.batch-sidebar button {
+  align-items: center;
+  background: var(--field);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  color: var(--foreground);
+  cursor: pointer;
+  display: flex;
+  font-size: 13px;
+  justify-content: space-between;
+  padding: 8px 12px;
+  text-align: left;
+  width: 100%;
+}
+
+.batch-sidebar button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #111315;
+  font-weight: 600;
+}
+
+.batch-count {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  font-size: 11px;
+  padding: 1px 8px;
+}
+
+.batch-sidebar button.active .batch-count {
+  background: rgba(0, 0, 0, 0.2);
+  color: #111315;
+}
+
+.batch-detail {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+}
+
+.batch-table {
+  border-collapse: collapse;
+  font-size: 13px;
+  width: 100%;
+}
+
+.batch-table th,
+.batch-table td {
+  border-bottom: 1px solid var(--panel-border);
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.batch-table th {
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+}
+
+.reason-list {
+  display: grid;
+  gap: 2px;
+  list-style: disc inside;
+  margin: 0;
+  padding: 0;
+}
+
+.badge {
+  border-radius: 999px;
+  font-size: 11px;
+  padding: 2px 8px;
+  text-transform: uppercase;
+}
+
+.badge.priority-critical {
+  background: var(--danger);
+  color: #111315;
+}
+
+.badge.priority-high {
+  background: var(--accent);
+  color: #111315;
+}
+
+.badge.priority-medium {
+  background: var(--accent-2);
+  color: #111315;
+}
+
+.badge.priority-low {
+  background: var(--field);
+  color: var(--muted);
+}
+
+@media (max-width: 720px) {
+  .batch-shell {
+    grid-template-columns: 1fr;
+  }
+}

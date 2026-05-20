@@ -1238,6 +1238,25 @@ export function generateBuildingBlueprint(...)
 
 # Fase 8 — AI bridge manuale avanzato
 
+## Stato
+
+Completata il 2026-05-20.
+
+Implementato:
+
+- `buildPromptPacket` produce un prompt packet Markdown con request, asset groups, style DNA e schema.
+- `validatePlanSemantics` esegue controlli oltre Zod: bounds stanza/porta/luce/asset, duplicate id, asset mancanti, riferimenti a stanze inesistenti.
+- `suggestAssetReplacements` propone sostituzioni rank-ate da asset groups e search risultati locali.
+- `repairPlanLocally` rimuove wall a lunghezza zero, porte/asset fuori bounds, luci con raggio non valido e applica sostituzioni asset.
+- API `POST /api/ai-bridge/import-plan` con modi `new-project` e `update-project`, auto-repair opzionale.
+- Helper `convertPlanToMapDocument` (web) che traduce un `MapPlan` in un `MapDocument` editabile con tile derivate dalle stanze.
+- UI Manual Bridge estesa con copy/download del prompt packet, semantic issues, missing asset suggestions e import nel progetto.
+- Test unitari su prompt packet, validazione semantica, suggestions, repair, conversione plan→document.
+
+Limite noto:
+
+- L'auto-repair sceglie la prima suggestion disponibile per le sostituzioni, senza ulteriore ragionamento tematico.
+
 ## Obiettivo
 
 Potenziare il bridge ChatGPT senza usare API.
@@ -1369,6 +1388,23 @@ Se asset non esiste:
 
 # Fase 9 — Export professionale
 
+## Stato
+
+Completata il 2026-05-20.
+
+Implementato:
+
+- `MapVisibilityMode = "player" | "gm" | "clean"` con `applyVisibilityMode` che filtra stanze secrete, porte/muri associati, asset annotation/secret/trap e note GM.
+- Nuovo formato proprietario `dmimap` con `exportDmImap`, version 1, payload con `document`, `mode`, `exportedAt`.
+- API `POST /api/export` e `POST /api/projects/[projectId]/export` con format png/webp/dd2vtt/foundry/dmimap, mode player/gm/clean, includeGrid e scale.
+- `ProjectExportPanel` aggiornato con selettore formato, modalità, scale e include-grid.
+- File name automatico annotato con il mode (`*-player.png`, `*-clean.foundry.zip`, ecc.).
+- Test su filtro player/gm/clean, tiles delle stanze secrete neutralizzate e dmimap export.
+
+Limite noto:
+
+- I tile delle stanze secrete diventano `empty` in player mode ma i muri perimetrali rimangono visibili; ulteriori euristiche pixel-level non sono incluse.
+
 ## Obiettivo
 
 Rendere gli export realmente utilizzabili al tavolo e nei VTT.
@@ -1463,6 +1499,22 @@ Con:
 
 # Fase 10 — UX finale guidata
 
+## Stato
+
+Completata il 2026-05-20.
+
+Implementato:
+
+- `SiteHeader` globale renderizzato in `layout.tsx`, link a Home, Projects, Assets, Groups, References, AI Bridge, Generate.
+- Home page (`/`) ricostruita: hero con call-to-action, pill di stato (asset groups, references, projects), card Recent Projects, Asset Library, References, Workflows, How It Works.
+- Wizard `/projects/new` in 5 step (Describe → Map Kind → Style → Assets → Generate) con riepilogo finale e creazione progetto via `/api/projects`, redirect su editor.
+- Stati empty/error chiari (lista vuota di progetti, references o asset groups).
+- Stili CSS dedicati per `home-shell`, `home-card`, `wizard-shell`, `wizard-steps`, `site-header`.
+
+Limite noto:
+
+- Il wizard non chiama ancora endpoint specifici per validare blueprint AI; il payload viene mandato a `/api/projects` come prima, ora arricchito con `selectedAssetGroupIds` e `selectedReferenceIds`.
+
 ## Obiettivo
 
 Trasformare la UI da dashboard tecnica a prodotto utilizzabile da un DM.
@@ -1547,6 +1599,18 @@ Mostrare:
 
 # Novità 1 — Style DNA delle mappe reference
 
+## Stato
+
+Completata il 2026-05-20.
+
+Implementato:
+
+- `reference-style-dna.json` generato da `pnpm references:style`.
+- Pagina `/references` mostra palette, mood, layout traits, density, visual tags, recommended asset tags e prompt summary.
+- Manual ChatGPT Bridge include `promptSummary` e `recommendedAssetTags` nel prompt e nel prompt packet `.md`.
+- Project System salva `styleDnaIds` insieme a `selectedReferenceIds` e `selectedAssetGroupIds`.
+- Wizard nuova mappa (Fase 10) consente di selezionare reference maps con preview dello Style DNA.
+
 Questa novità è implementata principalmente nella Fase 4, ma deve influenzare anche Fasi 7, 8 e 10.
 
 ## Obiettivo funzionale
@@ -1587,6 +1651,19 @@ Integra Style DNA in tutto il flusso:
 ---
 
 # Novità 2 — Generatore narrativo + tattico
+
+## Stato
+
+Completata il 2026-05-20.
+
+Implementato:
+
+- Tipi `MapGenerationBlueprint`, `NarrativeRoom`, `TacticalRole`.
+- Generatori specializzati `generateCryptBlueprint`, `generateBuildingBlueprint`, `generateDungeonBlueprint`.
+- `generateMapFromBlueprint` produce `MapDocument` valido editabile.
+- UI `/generate` con modalità Simple e Narrative.
+- Test su cripta sotto cattedrale con morti non ostili / prigionieri.
+- Auto-furnish avanzato (Novità 6) usa `NarrativeRoom` e `TacticalRole` come input opzionali.
 
 Questa novità è implementata nella Fase 7.
 
@@ -1640,7 +1717,21 @@ Ogni stanza deve avere:
 
 # Novità 4 — Batch review intelligente per 20.000 assets
 
-Questa novità è implementata nella Fase 3.
+## Stato
+
+Completata il 2026-05-20.
+
+Implementato:
+
+- `asset-audit.json` generato da `pnpm assets:audit` (Fase 3) con review queue priorizzata e duplicate groups.
+- Pagina `/assets/review/batches` con sidebar di batch (Critical, High Priority, Medium Priority, Duplicates, Low Quality, Unknown Classification, Missing Metadata, Classification Conflict).
+- Componente `AssetAuditBatches` con tabella sortata per priority, conteggio per batch, reasons, link al per-asset review.
+- Loader `loadAssetAudit` + `buildAuditBatches` in `apps/web/src/lib/asset-audit.ts`.
+- Stato `Asset Audit` accessibile anche dalla Home page.
+- Empty state chiaro quando `data/indexes/asset-audit.json` manca.
+- Test unitari per `buildAuditBatches` (categorizzazione critical, duplicates, conflict).
+
+Questa novità è implementata nella Fase 3 e ora completata con la batch UI.
 
 ## Obiettivo funzionale
 
@@ -2036,29 +2127,29 @@ DM-Instamap può considerarsi maturo quando:
 
 ## Core
 
-- [ ] Schemi Zod stabili.
-- [ ] Migrazioni versioni documento.
-- [ ] Test schema.
+- [x] Schemi Zod stabili.
+- [ ] Migrazioni versioni documento. _(`version: 1` dichiarato, nessun migratore tra versioni implementato)_
+- [x] Test schema.
 
 ## Assets
 
-- [ ] Scan.
-- [ ] Preview.
-- [ ] Classification.
-- [ ] Manual overrides.
-- [ ] Audit.
-- [ ] Duplicates.
-- [ ] Quality score.
-- [ ] Batch review.
+- [x] Scan.
+- [x] Preview.
+- [x] Classification.
+- [x] Manual overrides.
+- [x] Audit.
+- [x] Duplicates.
+- [x] Quality score.
+- [x] Batch review.
 - [x] Local visual search.
 
 ## References
 
-- [ ] Scan.
-- [ ] Preview.
-- [ ] Map type.
+- [x] Scan.
+- [x] Preview.
+- [x] Map type.
 - [x] Style DNA.
-- [ ] Grid detection base.
+- [x] Grid detection base.
 - [x] Prompt summary.
 
 ## Generator
@@ -2072,43 +2163,43 @@ DM-Instamap può considerarsi maturo quando:
 
 ## Web
 
-- [ ] Home.
+- [x] Home.
 - [x] Projects.
-- [ ] New map wizard.
-- [ ] Asset browser.
-- [ ] Asset review.
-- [ ] Reference browser.
-- [ ] AI bridge.
+- [x] New map wizard.
+- [x] Asset browser.
+- [x] Asset review.
+- [x] Reference browser.
+- [x] AI bridge.
 - [x] Editor canvas.
-- [ ] Export page.
+- [x] Export page.
 
 ## Worker
 
-- [ ] Health.
-- [ ] Jobs.
-- [ ] Asset scan endpoint.
-- [ ] Reference scan endpoint.
-- [ ] Image analysis endpoint.
-- [ ] Tests.
+- [x] Health.
+- [x] Jobs.
+- [x] Asset scan endpoint. _(placeholder funzionante, da rendere reale)_
+- [x] Reference scan endpoint. _(placeholder funzionante, da rendere reale)_
+- [x] Image analysis endpoint. _(placeholder funzionante, da rendere reale)_
+- [x] Tests.
 
 ## Export
 
-- [ ] PNG.
-- [ ] WEBP.
-- [ ] dd2vtt.
-- [ ] Foundry.
-- [ ] Player safe map.
-- [ ] GM map.
-- [ ] dmimap.
+- [x] PNG.
+- [x] WEBP.
+- [x] dd2vtt.
+- [x] Foundry.
+- [x] Player safe map.
+- [x] GM map.
+- [x] dmimap.
 
 ## Quality
 
-- [ ] CI.
-- [ ] README.
-- [ ] Roadmap.
-- [ ] Tests.
-- [ ] No generated data in Git.
-- [ ] No external API requirement.
+- [x] CI.
+- [x] README.
+- [x] Roadmap.
+- [x] Tests.
+- [x] No generated data in Git.
+- [x] No external API requirement.
 
 ---
 

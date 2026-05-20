@@ -1,17 +1,11 @@
-import { NewProjectForm } from "@/components/projects/new-project-form";
+import { NewProjectWizard } from "@/components/projects/new-project-wizard";
+import { loadAssetGroups } from "@/lib/asset-groups";
+import { loadReferenceMaps } from "@/lib/references";
 
-export default function NewProjectPage() {
-  return (
-    <main className="asset-page">
-      <header className="asset-hero">
-        <div>
-          <strong>DM-Instamap</strong>
-          <h1>New Project</h1>
-          <p>Create a local project backed by an editable MapDocument.</p>
-        </div>
-      </header>
+export const dynamic = "force-dynamic";
 
-      <NewProjectForm />
-    </main>
-  );
+export default async function NewProjectPage() {
+  const [assetGroups, references] = await Promise.all([loadAssetGroups(), loadReferenceMaps()]);
+
+  return <NewProjectWizard assetGroups={assetGroups.groups} references={references.references} />;
 }

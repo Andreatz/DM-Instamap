@@ -3,12 +3,17 @@
 import { useMemo, useState } from "react";
 import {
   buildChatGptBridgePrompt,
+  buildPromptPacket,
   buildRepairPrompt,
+  repairPlanLocally,
   searchBridgeContext,
   validateBridgeResponse,
+  validatePlanSemantics,
   type BridgeAssetGroupSummary,
   type BridgeAssetSearchSummary,
-  type BridgeReferenceSummary
+  type BridgeReferenceSummary,
+  type MissingAssetReport,
+  type SemanticIssue
 } from "@dm-instamap/ai-bridge";
 import type { AssetGroupView } from "@/lib/asset-groups";
 import type { AssetSearchApiResult } from "@/lib/asset-search";
@@ -19,6 +24,17 @@ type AiBridgeWorkspaceProps = {
   references: ReferenceMapView[];
 };
 
+type ImportMode = "new-project" | "update-project";
+
+type ImportResponse = {
+  error?: string;
+  errors?: string[];
+  issues?: SemanticIssue[];
+  missingAssets?: MissingAssetReport[];
+  ok: boolean;
+  project?: { id: string; name: string };
+};
+
 export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspaceProps) {
   const [userRequest, setUserRequest] = useState(
     "Create a crypt dungeon with an entrance, chapel, library, treasure room, and boss room."
@@ -26,9 +42,17 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
   const [pastedResponse, setPastedResponse] = useState("");
   const [assetSearchResults, setAssetSearchResults] = useState<AssetSearchApiResult[]>([]);
   const [status, setStatus] = useState("Manual bridge ready");
+  const [importMode, setImportMode] = useState<ImportMode>("new-project");
+  const [importProjectId, setImportProjectId] = useState("");
+  const [importedProjectId, setImportedProjectId] = useState<string | null>(null);
+  const [importIssues, setImportIssues] = useState<SemanticIssue[]>([]);
+  const [importMissing, setImportMissing] = useState<MissingAssetReport[]>([]);
+  const [autoRepair, setAutoRepair] = useState(true);
+  const [busy, setBusy] = useState(false);
   const groupSummaries = useMemo(() => assetGroups.map(toBridgeAssetGroup), [assetGroups]);
   const referenceSummaries = useMemo(() => references.map(toBridgeReference), [references]);
   const searchSummaries = useMemo(() => assetSearchResults.map(toBridgeAssetSearchResult), [assetSearchResults]);
+  const knownAssetIds = useMemo(() => collectKnownAssetIds(assetGroups), [assetGroups]);
   const context = useMemo(
     () =>
       searchBridgeContext({
@@ -49,7 +73,42 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
       }),
     [groupSummaries, referenceSummaries, searchSummaries, userRequest]
   );
+  const promptPacket = useMemo(
+    () =>
+      buildPromptPacket({
+        assetGroups: groupSummaries,
+        assetSearchResults: searchSummaries,
+        references: referenceSummaries,
+        userRequest
+      }),
+    [groupSummaries, referenceSummaries, searchSummaries, userRequest]
+  );
   const validation = useMemo(() => validateBridgeResponse(pastedResponse), [pastedResponse]);
+  const semantic = useMemo(() => {
+    if (!validation.ok) {
+      return null;
+    }
+
+    return validatePlanSemantics(validation.data, {
+      assetGroups: groupSummaries,
+      assetSearchResults: searchSummaries,
+      knownAssetIds
+    });
+  }, [validation, groupSummaries, searchSummaries, knownAssetIds]);
+  const repairPreview = useMemo(() => {
+    if (!validation.ok || !semantic || semantic.ok) {
+      return null;
+    }
+
+    return repairPlanLocally({
+      context: {
+        assetGroups: groupSummaries,
+        assetSearchResults: searchSummaries,
+        knownAssetIds
+      },
+      plan: validation.data
+    });
+  }, [validation, semantic, groupSummaries, searchSummaries, knownAssetIds]);
   const repairPrompt = useMemo(
     () =>
       validation.ok
@@ -62,9 +121,20 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
     [pastedResponse, prompt, validation]
   );
 
-  async function copyPrompt(value: string, label: string) {
+  async function copyText(value: string, label: string) {
     await navigator.clipboard.writeText(value);
     setStatus(`${label} copied`);
+  }
+
+  function downloadPacket() {
+    const blob = new Blob([promptPacket], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const link = window.document.createElement("a");
+    link.href = url;
+    link.download = "dm-instamap-prompt-packet.md";
+    link.click();
+    URL.revokeObjectURL(url);
+    setStatus("Prompt packet downloaded");
   }
 
   async function searchLocalAssetsForPrompt() {
@@ -91,6 +161,51 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
     } catch (error) {
       setAssetSearchResults([]);
       setStatus(error instanceof Error ? error.message : "Local asset search failed");
+    }
+  }
+
+  async function importPlan() {
+    if (!validation.ok) {
+      setStatus("Fix JSON validation errors before importing");
+      return;
+    }
+
+    if (importMode === "update-project" && !importProjectId.trim()) {
+      setStatus("Provide a project id to update");
+      return;
+    }
+
+    setBusy(true);
+    setStatus(importMode === "new-project" ? "Creating project" : "Updating project");
+
+    try {
+      const response = await fetch("/api/ai-bridge/import-plan", {
+        body: JSON.stringify({
+          applyAutoRepair: autoRepair,
+          mode: importMode,
+          projectId: importMode === "update-project" ? importProjectId.trim() : undefined,
+          response: pastedResponse,
+          sourceRequest: userRequest,
+          userRequest
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST"
+      });
+      const payload = (await response.json()) as ImportResponse;
+
+      if (!response.ok || !payload.ok) {
+        const message = payload.error ?? payload.errors?.join("; ") ?? "Import failed";
+        throw new Error(message);
+      }
+
+      setImportedProjectId(payload.project?.id ?? null);
+      setImportIssues(payload.issues ?? []);
+      setImportMissing(payload.missingAssets ?? []);
+      setStatus(`Plan imported into ${payload.project?.name ?? "project"} (${payload.project?.id ?? ""})`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Import failed");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -156,9 +271,17 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
         <section className="asset-details bridge-prompt-panel">
           <header className="bridge-panel-header">
             <h2>Prompt</h2>
-            <button onClick={() => copyPrompt(prompt, "Prompt")} type="button">
-              Copy Prompt
-            </button>
+            <div className="bridge-action-row">
+              <button onClick={() => copyText(prompt, "Prompt")} type="button">
+                Copy Prompt
+              </button>
+              <button onClick={() => copyText(promptPacket, "Prompt packet")} type="button">
+                Copy Packet (.md)
+              </button>
+              <button onClick={downloadPacket} type="button">
+                Download Packet
+              </button>
+            </div>
           </header>
           <textarea className="bridge-textarea bridge-prompt" readOnly value={prompt} />
         </section>
@@ -180,7 +303,7 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
 
           {pastedResponse.trim() && !validation.ok ? (
             <section className="bridge-errors">
-              <h3>Errors</h3>
+              <h3>Schema Errors</h3>
               <ul>
                 {validation.errors.map((error) => (
                   <li key={error}>{error}</li>
@@ -189,13 +312,116 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
             </section>
           ) : null}
 
-          {validation.ok ? (
+          {validation.ok && semantic ? (
             <section className="bridge-valid-summary">
               <h3>Parsed Plan</h3>
               <p>
                 {validation.data.name} - {validation.data.rooms.length} rooms,{" "}
                 {validation.data.assetPlacements.length} placements
               </p>
+              {semantic.ok ? (
+                <p className="bridge-valid">No semantic issues detected.</p>
+              ) : (
+                <section className="bridge-semantic">
+                  <h4>Semantic Issues</h4>
+                  <ul>
+                    {semantic.issues.map((issue) => (
+                      <li key={`${issue.path}:${issue.message}`}>
+                        <strong>{issue.level === "error" ? "Error" : "Warning"}</strong> [{issue.type}]: {issue.message}
+                      </li>
+                    ))}
+                  </ul>
+                  {semantic.missingAssets.length > 0 ? (
+                    <section className="bridge-missing-assets">
+                      <h4>Missing Asset Suggestions</h4>
+                      {semantic.missingAssets.map((report) => (
+                        <article key={report.assetId}>
+                          <strong>{report.assetId}</strong>
+                          <ul>
+                            {report.suggestions.map((suggestion) => (
+                              <li key={suggestion.suggestionId}>
+                                {suggestion.suggestionId} — {suggestion.reason}
+                              </li>
+                            ))}
+                          </ul>
+                        </article>
+                      ))}
+                    </section>
+                  ) : null}
+                  {repairPreview ? (
+                    <p>
+                      Local auto-repair would remove {repairPreview.removed.invalidWalls.length} invalid walls,{" "}
+                      {repairPreview.removed.outOfBoundsDoors.length} doors, and apply{" "}
+                      {repairPreview.appliedSubstitutions.length} asset substitutions.
+                    </p>
+                  ) : null}
+                </section>
+              )}
+            </section>
+          ) : null}
+
+          {validation.ok ? (
+            <section className="bridge-import">
+              <h3>Import Plan Into Project</h3>
+              <label className="field">
+                <span>Mode</span>
+                <select onChange={(event) => setImportMode(event.target.value as ImportMode)} value={importMode}>
+                  <option value="new-project">Create New Project</option>
+                  <option value="update-project">Update Existing Project</option>
+                </select>
+              </label>
+              {importMode === "update-project" ? (
+                <label className="field">
+                  <span>Project Id</span>
+                  <input
+                    onChange={(event) => setImportProjectId(event.target.value)}
+                    placeholder="e.g. crypt-under-the-cathedral"
+                    value={importProjectId}
+                  />
+                </label>
+              ) : null}
+              <label className="editor-checkbox">
+                <input checked={autoRepair} onChange={(event) => setAutoRepair(event.target.checked)} type="checkbox" />
+                <span>Apply local auto-repair before saving</span>
+              </label>
+              <button
+                className="save-correction"
+                disabled={busy || !validation.ok}
+                onClick={importPlan}
+                type="button"
+              >
+                {busy ? "Working..." : "Import Plan"}
+              </button>
+              {importedProjectId ? (
+                <p>
+                  Imported into <a href={`/projects/${importedProjectId}`}>{importedProjectId}</a>
+                </p>
+              ) : null}
+              {importIssues.length > 0 ? (
+                <section className="bridge-import-issues">
+                  <h4>Residual Issues After Import</h4>
+                  <ul>
+                    {importIssues.map((issue) => (
+                      <li key={`${issue.path}:${issue.message}`}>
+                        [{issue.level}] {issue.message}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+              {importMissing.length > 0 ? (
+                <section className="bridge-import-missing">
+                  <h4>Missing Assets in Saved Plan</h4>
+                  <ul>
+                    {importMissing.map((report) => (
+                      <li key={report.assetId}>
+                        {report.assetId} — suggested:{" "}
+                        {report.suggestions.map((suggestion) => suggestion.suggestionId).join(", ") || "no suggestions"}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
             </section>
           ) : null}
 
@@ -203,7 +429,7 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
             <section className="bridge-repair">
               <header className="bridge-panel-header">
                 <h3>Repair Prompt</h3>
-                <button onClick={() => copyPrompt(repairPrompt, "Repair prompt")} type="button">
+                <button onClick={() => copyText(repairPrompt, "Repair prompt")} type="button">
                   Copy Repair
                 </button>
               </header>
@@ -262,4 +488,17 @@ function toBridgeReference(reference: ReferenceMapView): BridgeReferenceSummary 
     tags: reference.tags,
     width: reference.width
   };
+}
+
+function collectKnownAssetIds(groups: AssetGroupView[]): string[] {
+  const ids = new Set<string>();
+
+  for (const group of groups) {
+    ids.add(group.id);
+    for (const assetId of group.assetIds ?? []) {
+      ids.add(assetId);
+    }
+  }
+
+  return [...ids];
 }

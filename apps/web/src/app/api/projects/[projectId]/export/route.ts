@@ -1,4 +1,3 @@
-import { MapDocumentSchema, type MapDocument } from "@dm-instamap/core";
 import {
   applyVisibilityMode,
   exportDmImap,
@@ -9,31 +8,38 @@ import {
   type MapVisibilityMode,
   type RasterExportFormat
 } from "@dm-instamap/exporters";
+import { InvalidProjectIdError, ProjectNotFoundError, readProject } from "@/lib/projects";
 
 type ExportRequest = {
-  document?: unknown;
   format?: unknown;
   includeGrid?: unknown;
   mode?: unknown;
   scale?: unknown;
 };
 
+type RouteContext = {
+  params: Promise<{
+    projectId: string;
+  }>;
+};
+
 const RASTER_FORMATS = new Set<ExportFormat>(["png", "webp"]);
 const VALID_FORMATS = new Set<ExportFormat>(["png", "webp", "dd2vtt", "foundry", "dmimap"]);
 const VALID_MODES = new Set<MapVisibilityMode>(["player", "gm", "clean"]);
 
-export async function POST(request: Request) {
+export async function POST(request: Request, context: RouteContext) {
   try {
-    const body = (await request.json()) as ExportRequest;
-    const baseDocument = MapDocumentSchema.parse(body.document);
+    const { projectId } = await context.params;
+    const project = await readProject(projectId);
+    const body = (await request.json().catch(() => ({}))) as ExportRequest;
     const format = parseFormat(body.format);
 
     if (!format) {
-      return Response.json({ error: "Export format must be png, webp, dd2vtt, foundry, or dmimap." }, { status: 400 });
+      return Response.json({ error: "Export format must be png, webp, dd2vtt, foundry, or dmimap.", ok: false }, { status: 400 });
     }
 
     const mode = parseMode(body.mode);
-    const document = applyVisibilityMode(baseDocument, mode);
+    const document = applyVisibilityMode(project.document, mode);
     const includeGrid = typeof body.includeGrid === "boolean" ? body.includeGrid : true;
     const scale = typeof body.scale === "number" ? body.scale : 1;
 
@@ -44,13 +50,7 @@ export async function POST(request: Request) {
         scale
       });
 
-      return new Response(toArrayBuffer(result.buffer), {
-        headers: buildHeaders({
-          contentType: result.contentType,
-          filename: namedFilename(result.filename, mode),
-          mode
-        })
-      });
+      return responseFromBuffer(result.buffer, result.contentType, namedFilename(result.filename, mode), mode);
     }
 
     if (format === "dd2vtt") {
@@ -61,13 +61,12 @@ export async function POST(request: Request) {
         scale
       });
 
-      return new Response(toArrayBuffer(Buffer.from(result.json, "utf8")), {
-        headers: buildHeaders({
-          contentType: "application/json",
-          filename: namedFilename(buildFilename(document, "dd2vtt"), mode),
-          mode
-        })
-      });
+      return responseFromBuffer(
+        Buffer.from(result.json, "utf8"),
+        "application/json",
+        namedFilename(`${slugify(document.name || document.id)}.dd2vtt`, mode),
+        mode
+      );
     }
 
     if (format === "foundry") {
@@ -77,27 +76,22 @@ export async function POST(request: Request) {
         scale
       });
 
-      return new Response(toArrayBuffer(result.buffer), {
-        headers: buildHeaders({
-          contentType: "application/zip",
-          filename: namedFilename(result.filename, mode),
-          mode
-        })
-      });
+      return responseFromBuffer(result.buffer, "application/zip", namedFilename(result.filename, mode), mode);
     }
 
     const result = exportDmImap(document, { mode });
-
-    return new Response(toArrayBuffer(result.buffer), {
-      headers: buildHeaders({
-        contentType: result.contentType,
-        filename: result.filename,
-        mode
-      })
-    });
+    return responseFromBuffer(result.buffer, result.contentType, result.filename, mode);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Could not export map.";
-    return Response.json({ error: message }, { status: 400 });
+    if (error instanceof ProjectNotFoundError) {
+      return Response.json({ error: error.message, ok: false }, { status: 404 });
+    }
+
+    if (error instanceof InvalidProjectIdError) {
+      return Response.json({ error: error.message, ok: false }, { status: 400 });
+    }
+
+    const message = error instanceof Error ? error.message : "Could not export project.";
+    return Response.json({ error: message, ok: false }, { status: 400 });
   }
 }
 
@@ -117,11 +111,6 @@ function parseMode(value: unknown): MapVisibilityMode {
   return "gm";
 }
 
-function buildFilename(document: MapDocument, extension: string): string {
-  const slug = document.name.toLowerCase().replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "") || "dm-instamap-map";
-  return `${slug}.${extension}`;
-}
-
 function namedFilename(filename: string, mode: MapVisibilityMode): string {
   if (mode === "gm") {
     return filename;
@@ -136,14 +125,20 @@ function namedFilename(filename: string, mode: MapVisibilityMode): string {
   return `${filename.slice(0, dotIndex)}-${mode}${filename.slice(dotIndex)}`;
 }
 
-function buildHeaders(input: { contentType: string; filename: string; mode: MapVisibilityMode }): HeadersInit {
-  return {
-    "Content-Disposition": `attachment; filename="${input.filename}"`,
-    "Content-Type": input.contentType,
-    "X-DM-Instamap-Export-Mode": input.mode
-  };
+function responseFromBuffer(buffer: Buffer, contentType: string, filename: string, mode: MapVisibilityMode): Response {
+  return new Response(toArrayBuffer(buffer), {
+    headers: {
+      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Content-Type": contentType,
+      "X-DM-Instamap-Export-Mode": mode
+    }
+  });
 }
 
 function toArrayBuffer(buffer: Buffer): ArrayBuffer {
   return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer;
+}
+
+function slugify(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "") || "dm-instamap-map";
 }

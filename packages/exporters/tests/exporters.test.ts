@@ -8,7 +8,7 @@ import {
 
 describe("listSupportedExportFormats", () => {
   it("tracks planned MVP and future export formats", () => {
-    expect(listSupportedExportFormats()).toEqual(["png", "webp", "dd2vtt", "foundry"]);
+    expect(listSupportedExportFormats()).toEqual(["png", "webp", "dd2vtt", "foundry", "dmimap"]);
   });
 });
 
