@@ -58,6 +58,54 @@ describe("narrative blueprints", () => {
 
     expectConnectionsReferenceRooms(blueprint);
   });
+
+  it("routes cave requests to the cave structure and uses cellular automata", () => {
+    const blueprint = createNarrativeBlueprint({
+      request: "A natural cavern flooded with cold water beneath the mountain"
+    });
+    const map = generateMapFromBlueprint(blueprint, { heightCells: 28, widthCells: 36 });
+
+    expect(blueprint.structure).toBe("cave");
+    expect(blueprint.hasWater).toBe(true);
+    expect(map.plan?.rooms.some((room) => room.id === "room-cave-main")).toBe(true);
+    expect(map.tiles.some((tile) => tile.kind === "floor")).toBe(true);
+  });
+
+  it("routes village requests to the village structure with multiple buildings", () => {
+    const blueprint = createNarrativeBlueprint({
+      request: "A small fishing village with a tavern, smithy, and docks",
+      theme: "fishing"
+    });
+    const map = generateMapFromBlueprint(blueprint, { heightCells: 30, widthCells: 40 });
+
+    expect(blueprint.structure).toBe("village");
+    expect(blueprint.hasWater).toBe(true);
+    expect((map.plan?.rooms ?? []).filter((room) => room.kind === "room").length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("routes outdoor requests to the outdoor structure with a river when mentioned", () => {
+    const blueprint = createNarrativeBlueprint({
+      request: "A dense forest clearing with a river running through it"
+    });
+    const map = generateMapFromBlueprint(blueprint, { heightCells: 24, widthCells: 32 });
+
+    expect(blueprint.structure).toBe("outdoor");
+    expect(blueprint.hasWater).toBe(true);
+    expect(blueprint.hasVegetation).toBe(true);
+    expect(map.plan?.rooms.find((room) => room.id === "clearing-main")).toBeDefined();
+  });
+
+  it("applies the requested scale to the generated map dimensions", () => {
+    const small = createNarrativeBlueprint({ request: "A small ruined building" });
+    const large = createNarrativeBlueprint({ request: "A huge sprawling castle keep" });
+    const smallMap = generateMapFromBlueprint(small);
+    const largeMap = generateMapFromBlueprint(large);
+
+    expect(small.scale).toBe("small");
+    expect(large.scale).toBe("large");
+    expect(smallMap.width).toBeLessThan(largeMap.width);
+    expect(smallMap.height).toBeLessThan(largeMap.height);
+  });
 });
 
 function expectConnectionsReferenceRooms(blueprint: MapGenerationBlueprint) {

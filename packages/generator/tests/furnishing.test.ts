@@ -219,6 +219,58 @@ describe("autoFurnishMap", () => {
   });
 });
 
+describe("inferFurnishingRoomType (C3 extensions)", () => {
+  it("detects cave rooms from labels and tags", () => {
+    expect(
+      inferFurnishingRoomType({
+        bounds: { height: 5, width: 5, x: 0, y: 0 },
+        connections: [],
+        id: "room-cave-main",
+        kind: "room",
+        label: "Cave Chamber",
+        tags: ["cave", "organic"]
+      })
+    ).toBe("cave");
+  });
+
+  it("detects clearings from service rooms", () => {
+    expect(
+      inferFurnishingRoomType({
+        bounds: { height: 8, width: 8, x: 0, y: 0 },
+        connections: [],
+        id: "clearing-main",
+        kind: "service",
+        label: "Forest Clearing",
+        tags: ["outdoor", "clearing"]
+      })
+    ).toBe("clearing");
+  });
+
+  it("detects tavern and smithy from labels", () => {
+    expect(
+      inferFurnishingRoomType({
+        bounds: { height: 5, width: 5, x: 0, y: 0 },
+        connections: [],
+        id: "tavern",
+        kind: "room",
+        label: "Tavern",
+        tags: ["interior"]
+      })
+    ).toBe("tavern");
+
+    expect(
+      inferFurnishingRoomType({
+        bounds: { height: 5, width: 5, x: 0, y: 0 },
+        connections: [],
+        id: "smithy",
+        kind: "room",
+        label: "Smithy",
+        tags: ["interior"]
+      })
+    ).toBe("smithy");
+  });
+});
+
 describe("inferFurnishingRoomType", () => {
   it("supports named room types from labels and tags", () => {
     expect(

@@ -1,5 +1,12 @@
 import JSZip from "jszip";
-import type { DoorSegment, LightSource, MapDocument, WallSegment } from "@dm-instamap/core";
+import type {
+  DoorSegment,
+  LightSource,
+  MapDocument,
+  MapNote,
+  RoomNode,
+  WallSegment
+} from "@dm-instamap/core";
 import { exportMapDocumentRaster, type RasterExportFormat } from "./raster";
 
 export type FoundryExportOptions = {
@@ -7,6 +14,7 @@ export type FoundryExportOptions = {
   description?: string;
   imageFormat?: RasterExportFormat;
   includeGridInImage?: boolean;
+  includeJournals?: boolean;
   moduleId?: string;
   moduleTitle?: string;
   scale?: number;
@@ -18,9 +26,30 @@ export type FoundryExportOptions = {
 export type FoundryModuleExportResult = {
   buffer: Buffer;
   filename: string;
+  journalJson: FoundryJournalEntryData[];
   mapImagePath: string;
   moduleJson: FoundryModuleManifest;
   sceneJson: FoundrySceneData;
+};
+
+export type FoundryJournalEntryData = {
+  _id: string;
+  content: string;
+  name: string;
+  pages: Array<{
+    _id: string;
+    name: string;
+    text: {
+      content: string;
+      format: 1;
+    };
+    title: {
+      level: 1;
+      show: true;
+    };
+    type: "text";
+  }>;
+  sort: number;
 };
 
 export type FoundryModuleManifest = {
@@ -37,7 +66,7 @@ export type FoundryModuleManifest = {
     label: string;
     name: string;
     path: string;
-    type: "Scene";
+    type: "Scene" | "JournalEntry";
   }>;
   title: string;
   version: string;
@@ -105,9 +134,12 @@ export async function exportFoundryModule(
     sceneImagePath,
     sceneName: options.sceneName ?? document.name
   });
+  const includeJournals = options.includeJournals ?? true;
+  const journalJson = includeJournals ? buildJournalEntries(document) : [];
   const moduleJson = createModuleManifest({
     author: options.author,
     description: options.description,
+    hasJournals: journalJson.length > 0,
     moduleId,
     moduleTitle: options.moduleTitle ?? document.name,
     version: options.version
@@ -119,9 +151,21 @@ export async function exportFoundryModule(
   zip.file("packs/scenes.db", `${JSON.stringify(sceneJson)}\n`);
   zip.file(mapImagePath, image.buffer);
 
+  if (journalJson.length > 0) {
+    zip.file(
+      "packs/journal.db",
+      `${journalJson.map((entry) => JSON.stringify(entry)).join("\n")}\n`
+    );
+
+    for (const journal of journalJson) {
+      zip.file(`journal/${journal._id}.json`, `${JSON.stringify(journal, null, 2)}\n`);
+    }
+  }
+
   return {
     buffer: await zip.generateAsync({ compression: "DEFLATE", type: "nodebuffer" }),
     filename: `${moduleId}-foundry-module.zip`,
+    journalJson,
     mapImagePath,
     moduleJson,
     sceneJson
@@ -131,10 +175,29 @@ export async function exportFoundryModule(
 function createModuleManifest(input: {
   author?: string;
   description?: string;
+  hasJournals: boolean;
   moduleId: string;
   moduleTitle: string;
   version?: string;
 }): FoundryModuleManifest {
+  const packs: FoundryModuleManifest["packs"] = [
+    {
+      label: "Scenes",
+      name: "scenes",
+      path: "packs/scenes.db",
+      type: "Scene"
+    }
+  ];
+
+  if (input.hasJournals) {
+    packs.push({
+      label: "Journals",
+      name: "journal",
+      path: "packs/journal.db",
+      type: "JournalEntry"
+    });
+  }
+
   return {
     authors: [
       {
@@ -147,17 +210,121 @@ function createModuleManifest(input: {
     },
     description: input.description ?? "Generated locally by DM-Instamap.",
     id: input.moduleId,
-    packs: [
-      {
-        label: "Scenes",
-        name: "scenes",
-        path: "packs/scenes.db",
-        type: "Scene"
-      }
-    ],
+    packs,
     title: input.moduleTitle,
     version: input.version ?? "0.1.0"
   };
+}
+
+function buildJournalEntries(document: MapDocument): FoundryJournalEntryData[] {
+  const entries: FoundryJournalEntryData[] = [];
+  const rooms = document.plan?.rooms ?? [];
+  const gmNotes = document.plan?.gmNotes ?? [];
+  const planNotes = document.plan?.notes ?? [];
+
+  if (rooms.length > 0) {
+    entries.push(buildRoomJournalEntry(document, rooms));
+  }
+
+  if (gmNotes.length > 0) {
+    entries.push(buildGmNotesJournalEntry(document, gmNotes));
+  }
+
+  if (planNotes.length > 0) {
+    entries.push(buildPlanNotesJournalEntry(document, planNotes));
+  }
+
+  return entries.map((entry, index) => ({ ...entry, sort: index * 100 }));
+}
+
+function buildRoomJournalEntry(document: MapDocument, rooms: RoomNode[]): FoundryJournalEntryData {
+  const pages = rooms.map((room, index) => ({
+    _id: toFoundryId(`room-${room.id}-${index}`),
+    name: room.label,
+    text: {
+      content: renderRoomHtml(room),
+      format: 1 as const
+    },
+    title: {
+      level: 1 as const,
+      show: true as const
+    },
+    type: "text" as const
+  }));
+
+  return {
+    _id: toFoundryId(`journal-rooms-${document.id}`),
+    content: `Room overview for ${document.name}.`,
+    name: `${document.name} — Rooms`,
+    pages,
+    sort: 0
+  };
+}
+
+function buildGmNotesJournalEntry(document: MapDocument, notes: MapNote[]): FoundryJournalEntryData {
+  const pages = notes.map((note, index) => ({
+    _id: toFoundryId(`gmnote-${note.id}-${index}`),
+    name: note.title,
+    text: {
+      content: `<p>${escapeHtml(note.text)}</p><p><em>Anchored at (${note.position.x}, ${note.position.y}).</em></p>`,
+      format: 1 as const
+    },
+    title: {
+      level: 1 as const,
+      show: true as const
+    },
+    type: "text" as const
+  }));
+
+  return {
+    _id: toFoundryId(`journal-gmnotes-${document.id}`),
+    content: `GM notes for ${document.name}.`,
+    name: `${document.name} — GM Notes`,
+    pages,
+    sort: 0
+  };
+}
+
+function buildPlanNotesJournalEntry(document: MapDocument, notes: string[]): FoundryJournalEntryData {
+  return {
+    _id: toFoundryId(`journal-plan-${document.id}`),
+    content: `Plan-level notes for ${document.name}.`,
+    name: `${document.name} — Plan Notes`,
+    pages: [
+      {
+        _id: toFoundryId(`plan-notes-${document.id}`),
+        name: "Overview",
+        text: {
+          content: notes.map((note) => `<p>${escapeHtml(note)}</p>`).join(""),
+          format: 1 as const
+        },
+        title: {
+          level: 1 as const,
+          show: true as const
+        },
+        type: "text" as const
+      }
+    ],
+    sort: 0
+  };
+}
+
+function renderRoomHtml(room: RoomNode): string {
+  const tags = room.tags.length > 0 ? `<p><strong>Tags:</strong> ${room.tags.map(escapeHtml).join(", ")}</p>` : "";
+  const connections = room.connections.length > 0
+    ? `<p><strong>Connections:</strong> ${room.connections.map(escapeHtml).join(", ")}</p>`
+    : "";
+  const bounds = `<p><strong>Bounds:</strong> ${room.bounds.x}, ${room.bounds.y} (${room.bounds.width} x ${room.bounds.height})</p>`;
+  return `<h2>${escapeHtml(room.label)}</h2>${bounds}${tags}${connections}`;
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/gu, "&amp;")
+    .replace(/</gu, "&lt;")
+    .replace(/>/gu, "&gt;")
+    .replace(/"/gu, "&quot;")
+    .replace(/'/gu, "&#39;");
 }
 
 function createFoundryScene(

@@ -3,10 +3,11 @@ import Link from "next/link";
 const NAV_LINKS: Array<{ description: string; href: string; label: string }> = [
   { description: "Home", href: "/", label: "Home" },
   { description: "Projects", href: "/projects", label: "Projects" },
+  { description: "Campaigns", href: "/campaigns", label: "Campaigns" },
   { description: "Asset Library", href: "/assets", label: "Assets" },
   { description: "Asset Groups", href: "/asset-groups", label: "Groups" },
   { description: "Reference Maps", href: "/references", label: "References" },
-  { description: "Manual ChatGPT Bridge", href: "/ai-bridge", label: "AI Bridge" },
+  { description: "AI Bridge (auto + manual)", href: "/ai-bridge", label: "AI Bridge" },
   { description: "Generator preview", href: "/generate", label: "Generate" }
 ];
 

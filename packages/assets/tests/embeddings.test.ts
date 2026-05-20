@@ -4,10 +4,13 @@ import path from "node:path";
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 import {
+  createEmbeddingProviderFromEnv,
   createLocalEmbeddingProvider,
+  createRemoteEmbeddingProvider,
   explainAssetSearchResult,
   generateAssetEmbeddings,
   loadAssetEmbeddingIndex,
+  resolveEmbeddingConfigFromEnv,
   searchAssetsByImage,
   searchAssetsByText
 } from "../src";
@@ -167,3 +170,72 @@ async function createEmbeddingFixture(): Promise<string> {
 
   return outputRoot;
 }
+
+describe("remote embedding provider", () => {
+  it("normalizes responses with data[0].embedding to the configured dimensions", async () => {
+    let capturedBody: unknown = null;
+    const fetchImpl: typeof fetch = async (_url, init) => {
+      capturedBody = JSON.parse(String(init?.body ?? "{}"));
+      return new Response(
+        JSON.stringify({
+          data: [
+            {
+              embedding: [0.1, 0.2, 0.3, 0.4, 0.5]
+            }
+          ]
+        }),
+        { headers: { "content-type": "application/json" }, status: 200 }
+      );
+    };
+    const provider = createRemoteEmbeddingProvider({
+      dimensions: 8,
+      endpoint: "https://example.test/embed",
+      fetchImpl,
+      model: "test-embed"
+    });
+    const vector = await provider.embedText("dark gothic library");
+
+    expect(vector).toHaveLength(8);
+    expect(vector.every((value) => typeof value === "number" && Number.isFinite(value))).toBe(true);
+    expect((capturedBody as { model: string }).model).toBe("test-embed");
+  });
+
+  it("throws when the API responds with an error", async () => {
+    const fetchImpl: typeof fetch = async () => new Response("nope", { status: 500 });
+    const provider = createRemoteEmbeddingProvider({
+      endpoint: "https://example.test/embed",
+      fetchImpl
+    });
+
+    await expect(provider.embedText("query")).rejects.toThrow(/Remote embedding request failed/u);
+  });
+});
+
+describe("resolveEmbeddingConfigFromEnv", () => {
+  it("defaults to local when EMBEDDINGS_PROVIDER is unset", () => {
+    expect(resolveEmbeddingConfigFromEnv({})).toEqual({ provider: "local" });
+  });
+
+  it("parses remote configuration", () => {
+    expect(
+      resolveEmbeddingConfigFromEnv({
+        EMBEDDINGS_API_KEY: "secret",
+        EMBEDDINGS_DIMENSIONS: "64",
+        EMBEDDINGS_ENDPOINT: "https://example.test/embed",
+        EMBEDDINGS_MODEL: "clip-vit",
+        EMBEDDINGS_PROVIDER: "remote"
+      })
+    ).toEqual({
+      apiKey: "secret",
+      dimensions: 64,
+      endpoint: "https://example.test/embed",
+      model: "clip-vit",
+      provider: "remote"
+    });
+  });
+
+  it("falls back to local provider when remote endpoint is missing", () => {
+    const provider = createEmbeddingProviderFromEnv({ EMBEDDINGS_PROVIDER: "remote" });
+    expect(provider.id).toBe("local-color-layout-v1");
+  });
+});

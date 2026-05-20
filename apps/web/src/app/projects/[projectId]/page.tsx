@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DeleteProjectButton } from "@/components/projects/delete-project-button";
+import { ProjectSnapshotsPanel } from "@/components/projects/project-snapshots-panel";
 import { ProjectNotFoundError, readProject } from "@/lib/projects";
 
 type ProjectPageProps = {
@@ -55,6 +56,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           </div>
         </dl>
       </section>
+
+      <ProjectSnapshotsPanel projectId={project.id} />
 
       <section className="asset-details">
         <h2>Project Actions</h2>

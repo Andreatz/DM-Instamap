@@ -26,11 +26,19 @@ export {
   exportFoundryModule,
   type FoundryAmbientLightData,
   type FoundryExportOptions,
+  type FoundryJournalEntryData,
   type FoundryModuleExportResult,
   type FoundryModuleManifest,
   type FoundrySceneData,
   type FoundryWallData
 } from "./foundry";
+
+export {
+  exportSessionPack,
+  type SessionPackArtifact,
+  type SessionPackOptions,
+  type SessionPackResult
+} from "./session-pack";
 
 export {
   applyVisibilityMode,

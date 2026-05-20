@@ -10,7 +10,8 @@
       "Bash(pnpm --filter @dm-instamap/web lint)",
       "Bash(pnpm --filter @dm-instamap/web test -- src/lib/ai-bridge-import.test.ts)",
       "Bash(pnpm --filter @dm-instamap/exporters test)",
-      "Bash(pnpm --filter @dm-instamap/web test -- src/lib/asset-audit.test.ts)"
+      "Bash(pnpm --filter @dm-instamap/web test -- src/lib/asset-audit.test.ts)",
+      "Bash(pnpm -r test)"
     ]
   }
 }

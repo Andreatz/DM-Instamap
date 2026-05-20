@@ -1,6 +1,14 @@
 import JSZip from "jszip";
 import { describe, expect, it } from "vitest";
-import { createMapDocument, type DoorSegment, type LightSource, type MapPlan, type WallSegment } from "@dm-instamap/core";
+import {
+  createMapDocument,
+  type DoorSegment,
+  type LightSource,
+  type MapNote,
+  type MapPlan,
+  type RoomNode,
+  type WallSegment
+} from "@dm-instamap/core";
 import { exportFoundryModule } from "../src";
 
 describe("exportFoundryModule", () => {
@@ -73,6 +81,41 @@ describe("exportFoundryModule", () => {
       x: 140,
       y: 140
     });
+  });
+
+  it("emits journal entries for rooms, GM notes, and plan notes", async () => {
+    const result = await exportFoundryModule(createFoundryFixtureWithJournals(), {
+      moduleId: "journal-test"
+    });
+    const zip = await JSZip.loadAsync(result.buffer);
+    const moduleJson = JSON.parse(await zip.file("module.json")!.async("string")) as {
+      packs: Array<{ name: string; type: string }>;
+    };
+
+    expect(result.journalJson.map((entry) => entry.name)).toEqual([
+      "Foundry Journal Test — Rooms",
+      "Foundry Journal Test — GM Notes",
+      "Foundry Journal Test — Plan Notes"
+    ]);
+    expect(result.journalJson[0]?.pages[0]?.text.content).toContain("Entrance Hall");
+    expect(result.journalJson[1]?.pages[0]?.text.content).toContain("pressure plate");
+    expect(moduleJson.packs.find((pack) => pack.type === "JournalEntry")).toBeDefined();
+    expect(zip.file("packs/journal.db")).not.toBeNull();
+  });
+
+  it("skips journal output when includeJournals is false", async () => {
+    const result = await exportFoundryModule(createFoundryFixtureWithJournals(), {
+      includeJournals: false,
+      moduleId: "no-journal-test"
+    });
+    const zip = await JSZip.loadAsync(result.buffer);
+    const moduleJson = JSON.parse(await zip.file("module.json")!.async("string")) as {
+      packs: Array<{ type: string }>;
+    };
+
+    expect(result.journalJson).toHaveLength(0);
+    expect(moduleJson.packs.every((pack) => pack.type === "Scene")).toBe(true);
+    expect(zip.file("packs/journal.db")).toBeNull();
   });
 });
 
@@ -151,5 +194,62 @@ function createFoundryFixture() {
       y: Math.floor(index / 5)
     })),
     width: 5
+  });
+}
+
+function createFoundryFixtureWithJournals() {
+  const rooms: RoomNode[] = [
+    {
+      bounds: { height: 3, width: 4, x: 0, y: 0 },
+      connections: ["room-final"],
+      id: "room-entrance",
+      kind: "entrance",
+      label: "Entrance Hall",
+      tags: ["entrance"]
+    },
+    {
+      bounds: { height: 3, width: 4, x: 5, y: 0 },
+      connections: ["room-entrance"],
+      id: "room-final",
+      kind: "room",
+      label: "Throne Room",
+      tags: ["boss"]
+    }
+  ];
+  const gmNotes: MapNote[] = [
+    {
+      id: "note-trap",
+      position: { x: 3, y: 1 },
+      text: "A pressure plate triggers darts when stepped on.",
+      title: "Trap"
+    }
+  ];
+  const plan: MapPlan = {
+    assetPlacements: [],
+    doors: [],
+    gmNotes,
+    id: "plan-journals",
+    initiative: [],
+    lights: [],
+    name: "Journal Plan",
+    notes: ["Players start at the south entrance."],
+    requestId: "request-journals",
+    rooms,
+    walls: []
+  };
+
+  return createMapDocument({
+    grid: { cellSize: 5, height: 4, pixelsPerCell: 70, type: "square", unit: "ft", width: 10 },
+    height: 4,
+    id: "foundry-journal-test",
+    name: "Foundry Journal Test",
+    plan,
+    tiles: Array.from({ length: 40 }, (_, index) => ({
+      id: `tile-${index}`,
+      kind: "floor" as const,
+      x: index % 10,
+      y: Math.floor(index / 10)
+    })),
+    width: 10
   });
 }

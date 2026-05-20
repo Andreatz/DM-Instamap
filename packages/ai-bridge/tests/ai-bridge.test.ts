@@ -66,10 +66,25 @@ const assetSearchResults = [
 ];
 
 describe("getBridgeStatus", () => {
-  it("keeps integration manual and disabled", () => {
-    expect(getBridgeStatus()).toEqual({
-      enabled: false,
-      mode: "manual-only"
+  it("reports manual-only mode when no AI env is configured", () => {
+    const status = getBridgeStatus({});
+
+    expect(status.enabled).toBe(false);
+    expect(status.mode).toBe("manual-only");
+  });
+
+  it("reports api mode when AI_PROVIDER and AI_API_KEY are set", () => {
+    const status = getBridgeStatus({
+      AI_API_KEY: "sk-test-token",
+      AI_MODEL: "claude-opus-4-7",
+      AI_PROVIDER: "anthropic"
+    });
+
+    expect(status).toEqual({
+      enabled: true,
+      mode: "api",
+      model: "claude-opus-4-7",
+      provider: "anthropic"
     });
   });
 });

@@ -1,4 +1,9 @@
-import { searchAssetsByImage, searchAssetsByText } from "@dm-instamap/assets";
+import {
+  createEmbeddingProviderFromEnv,
+  resolveEmbeddingConfigFromEnv,
+  searchAssetsByImage,
+  searchAssetsByText
+} from "@dm-instamap/assets";
 import { NextRequest, NextResponse } from "next/server";
 import { enrichAssetSearchResults, normalizeSearchLimit, resolveWorkspaceFilePath } from "@/lib/asset-search";
 import { findWorkspaceRoot, loadAssetManifest } from "@/lib/assets-manifest";
@@ -13,13 +18,20 @@ export async function GET(request: NextRequest) {
   const query = request.nextUrl.searchParams.get("q") ?? "";
   const limit = normalizeSearchLimit(request.nextUrl.searchParams.get("limit"));
   const manifest = await loadAssetManifest();
+  const provider = createEmbeddingProviderFromEnv(process.env);
+  const embeddingsConfig = resolveEmbeddingConfigFromEnv(process.env);
   const results = await searchAssetsByText({
     limit,
     outputRoot: workspaceRoot,
+    provider,
     query
   });
 
   return NextResponse.json({
+    embeddings: {
+      provider: provider.id,
+      source: embeddingsConfig.provider
+    },
     mode: "text",
     ok: true,
     query,
@@ -37,13 +49,18 @@ export async function POST(request: NextRequest) {
       typeof payload.limit === "string" || typeof payload.limit === "number" ? payload.limit : undefined
     );
     const manifest = await loadAssetManifest();
+    const provider = createEmbeddingProviderFromEnv(process.env);
     const results = await searchAssetsByImage({
       imagePath: resolvedImagePath,
       limit,
-      outputRoot: workspaceRoot
+      outputRoot: workspaceRoot,
+      provider
     });
 
     return NextResponse.json({
+      embeddings: {
+        provider: provider.id
+      },
       mode: "image",
       ok: true,
       results: enrichAssetSearchResults(results, manifest.assets)

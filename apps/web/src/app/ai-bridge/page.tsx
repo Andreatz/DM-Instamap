@@ -1,3 +1,4 @@
+import { AiAutoWorkspace } from "@/components/ai-bridge/ai-auto-workspace";
 import { AiBridgeWorkspace } from "@/components/ai-bridge/ai-bridge-workspace";
 import { loadAssetGroups } from "@/lib/asset-groups";
 import { loadReferenceMaps } from "@/lib/references";
@@ -12,8 +13,8 @@ export default async function AiBridgePage() {
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>Manual ChatGPT Bridge</h1>
-          <p>Build compact prompts from local context, then validate pasted JSON locally.</p>
+          <h1>AI Bridge</h1>
+          <p>Auto mode talks to a configured provider; manual mode keeps the ChatGPT copy/paste flow.</p>
         </div>
         <dl>
           <div>
@@ -26,6 +27,8 @@ export default async function AiBridgePage() {
           </div>
         </dl>
       </header>
+
+      <AiAutoWorkspace />
 
       <AiBridgeWorkspace assetGroups={assetGroups.groups} references={references.references} />
     </main>

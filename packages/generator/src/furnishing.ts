@@ -14,7 +14,13 @@ export const FURNISHING_ROOM_TYPES = [
   "chapel",
   "boss_room",
   "treasure_room",
-  "storage"
+  "storage",
+  "cave",
+  "village_building",
+  "tavern",
+  "smithy",
+  "shrine",
+  "clearing"
 ] as const;
 
 export type FurnishingRoomType = (typeof FURNISHING_ROOM_TYPES)[number];
@@ -116,15 +122,21 @@ const DENSITY_RATIO: Record<FurnishingDensity, number> = {
 
 const ROOM_TYPE_TERMS: Record<FurnishingRoomType, string[]> = {
   boss_room: ["altar", "boss", "boss_room", "final", "ritual", "sarcophagus", "throne"],
+  cave: ["boulder", "cave", "cavern", "moss", "rock", "rocks", "stalagmite", "stalactite"],
   chapel: ["altar", "candle", "chapel", "holy", "pew", "reliquary", "shrine", "temple"],
+  clearing: ["bush", "clearing", "fern", "log", "outdoor", "rocks", "stump", "tree"],
   corridor: ["corridor", "hall", "light", "torch"],
   crypt: ["bone", "coffin", "crypt", "grave", "sarcophagus", "skull", "tomb"],
   entrance: ["door", "entrance", "gate", "light", "stairs", "torch"],
   forge: ["anvil", "fire", "forge", "metal", "smith", "tool"],
   library: ["book", "bookshelf", "desk", "library", "shelf", "study"],
   prison: ["bar", "bars", "cage", "cell", "chain", "chains", "prison"],
+  shrine: ["altar", "candle", "offering", "shrine", "stone", "marker"],
+  smithy: ["anvil", "bellows", "forge", "hammer", "smithy", "weapons"],
   storage: ["barrel", "box", "crate", "sack", "storage"],
-  treasure_room: ["chest", "coin", "gold", "hoard", "reliquary", "treasure"]
+  tavern: ["bar", "bench", "chair", "fireplace", "stool", "table", "tavern"],
+  treasure_room: ["chest", "coin", "gold", "hoard", "reliquary", "treasure"],
+  village_building: ["bed", "chair", "rug", "shelf", "table", "village"]
 };
 
 export function autoFurnishMap(document: MapDocument, options: AutoFurnishOptions): AutoFurnishResult {
@@ -228,12 +240,32 @@ export function inferFurnishingRoomType(room: RoomNode, narrativeRoom?: Narrativ
     ...(narrativeRoom?.tags ?? [])
   ]).join(" ");
 
+  if (room.kind === "service" || /\b(clearing|outdoor|forest|trail|wilderness)\b/u.test(text)) {
+    return "clearing";
+  }
+
   if (/\b(boss|boss_room|final|ritual)\b/u.test(text)) {
     return "boss_room";
   }
 
   if (/\b(treasure|hoard|reliquary)\b/u.test(text)) {
     return "treasure_room";
+  }
+
+  if (/\b(cave|cavern|stalagmite|stalactite)\b/u.test(text)) {
+    return "cave";
+  }
+
+  if (/\b(tavern|inn)\b/u.test(text)) {
+    return "tavern";
+  }
+
+  if (/\b(smithy|smith)\b/u.test(text)) {
+    return "smithy";
+  }
+
+  if (/\b(shrine|marker)\b/u.test(text)) {
+    return "shrine";
   }
 
   const specificRoomTypes: FurnishingRoomType[] = ["prison", "forge", "library", "chapel", "storage", "crypt"];
@@ -244,6 +276,10 @@ export function inferFurnishingRoomType(room: RoomNode, narrativeRoom?: Narrativ
     if (terms.some((term) => text.includes(term))) {
       return roomType;
     }
+  }
+
+  if (/\bvillage|building|interior|square\b/u.test(text)) {
+    return "village_building";
   }
 
   return "crypt";
@@ -304,7 +340,7 @@ function createAssetsFromGroups(groups: FurnishingAssetGroup[]): FurnishingAsset
 
 function selectRooms(document: MapDocument, includeCorridors: boolean): RoomNode[] {
   const supportedKinds = new Set<RoomNode["kind"]>(
-    includeCorridors ? ["corridor", "entrance", "room"] : ["entrance", "room"]
+    includeCorridors ? ["corridor", "entrance", "room", "service"] : ["entrance", "room", "service"]
   );
   return (document.plan?.rooms ?? []).filter((room) => supportedKinds.has(room.kind));
 }

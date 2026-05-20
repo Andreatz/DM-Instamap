@@ -72,6 +72,23 @@ export type AssetImageSearchOptions = {
   provider?: EmbeddingProvider;
 };
 
+export type RemoteEmbeddingProviderConfig = {
+  dimensions?: number;
+  endpoint: string;
+  fetchImpl?: typeof fetch;
+  headers?: Record<string, string>;
+  id?: string;
+  model?: string;
+};
+
+export type ResolvedEmbeddingConfig = {
+  apiKey?: string;
+  dimensions?: number;
+  endpoint?: string;
+  model?: string;
+  provider: "local" | "remote";
+};
+
 type ManifestFile = {
   assets?: unknown;
 };
@@ -135,6 +152,145 @@ const COLOR_TERMS: Record<string, number> = {
   white: 11,
   yellow: 1
 };
+
+export function createRemoteEmbeddingProvider(config: RemoteEmbeddingProviderConfig): EmbeddingProvider {
+  if (!config.endpoint) {
+    throw new Error("createRemoteEmbeddingProvider: endpoint is required.");
+  }
+
+  const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+
+  if (!fetchImpl) {
+    throw new Error("createRemoteEmbeddingProvider: fetch is not available in this runtime.");
+  }
+
+  const dimensions = Math.max(1, Math.floor(config.dimensions ?? EMBEDDING_DIMENSIONS));
+  const id = config.id ?? `remote:${config.model ?? "default"}`;
+  const headers: Record<string, string> = {
+    "content-type": "application/json",
+    ...(config.headers ?? {})
+  };
+
+  async function callRemote(body: Record<string, unknown>): Promise<number[]> {
+    const response = await fetchImpl(config.endpoint, {
+      body: JSON.stringify({ model: config.model, ...body }),
+      headers,
+      method: "POST"
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "(unable to read response)");
+      throw new Error(`Remote embedding request failed (${response.status}): ${errorText}`);
+    }
+
+    const payload = (await response.json()) as {
+      data?: Array<{ embedding?: unknown }>;
+      embedding?: unknown;
+    };
+    const vector = extractRemoteEmbedding(payload);
+
+    if (vector.length === 0) {
+      throw new Error("Remote embedding response did not include a vector.");
+    }
+
+    return normalizeVector(padOrTruncate(vector, dimensions));
+  }
+
+  return {
+    dimensions,
+    id,
+    async embedAsset(input) {
+      return callRemote({
+        image: input.imagePath,
+        kind: input.kind,
+        relativePath: input.relativePath,
+        tags: input.tags,
+        type: "asset"
+      });
+    },
+    async embedImage(filePath) {
+      return callRemote({ image: filePath, type: "image" });
+    },
+    async embedText(text) {
+      return callRemote({ input: text, type: "text" });
+    }
+  };
+}
+
+export function resolveEmbeddingConfigFromEnv(env: NodeJS.ProcessEnv = process.env): ResolvedEmbeddingConfig {
+  const provider = (env.EMBEDDINGS_PROVIDER ?? "").trim().toLowerCase();
+
+  if (provider === "remote") {
+    const endpoint = (env.EMBEDDINGS_ENDPOINT ?? "").trim();
+    const dimensionsRaw = (env.EMBEDDINGS_DIMENSIONS ?? "").trim();
+    const dimensions = dimensionsRaw ? Number.parseInt(dimensionsRaw, 10) : undefined;
+
+    return {
+      apiKey: (env.EMBEDDINGS_API_KEY ?? "").trim() || undefined,
+      dimensions: Number.isFinite(dimensions) ? dimensions : undefined,
+      endpoint: endpoint || undefined,
+      model: (env.EMBEDDINGS_MODEL ?? "").trim() || undefined,
+      provider: "remote"
+    };
+  }
+
+  return { provider: "local" };
+}
+
+export function createEmbeddingProviderFromEnv(env: NodeJS.ProcessEnv = process.env): EmbeddingProvider {
+  const config = resolveEmbeddingConfigFromEnv(env);
+
+  if (config.provider === "remote" && config.endpoint) {
+    return createRemoteEmbeddingProvider({
+      dimensions: config.dimensions,
+      endpoint: config.endpoint,
+      headers: config.apiKey ? { authorization: `Bearer ${config.apiKey}` } : undefined,
+      model: config.model
+    });
+  }
+
+  return createLocalEmbeddingProvider();
+}
+
+function extractRemoteEmbedding(payload: { data?: Array<{ embedding?: unknown }>; embedding?: unknown }): number[] {
+  const candidates: unknown[] = [];
+
+  if (Array.isArray(payload.data) && payload.data.length > 0) {
+    const first = payload.data[0];
+
+    if (first && typeof first === "object" && "embedding" in first) {
+      candidates.push(first.embedding);
+    }
+  }
+
+  candidates.push(payload.embedding);
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate) && candidate.every((value) => typeof value === "number" && Number.isFinite(value))) {
+      return candidate as number[];
+    }
+  }
+
+  return [];
+}
+
+function padOrTruncate(vector: number[], length: number): number[] {
+  if (vector.length === length) {
+    return vector;
+  }
+
+  if (vector.length > length) {
+    return vector.slice(0, length);
+  }
+
+  const result = vector.slice();
+
+  while (result.length < length) {
+    result.push(0);
+  }
+
+  return result;
+}
 
 export function createLocalEmbeddingProvider(): EmbeddingProvider {
   return {

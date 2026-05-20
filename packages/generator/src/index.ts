@@ -441,5 +441,20 @@ export {
   type MapGenerationBlueprint,
   type NarrativeGenerationInput,
   type NarrativeRoom,
-  type TacticalRole
+  type TacticalRole,
+  type BlueprintScale,
+  type BlueprintMood,
+  type BlueprintStructure
 } from "./blueprint";
+
+export {
+  generateCaveDungeon,
+  generateMultiFloorDungeon,
+  generateOutdoorMap,
+  generateVillageMap,
+  type CaveDungeonOptions,
+  type MultiFloorDungeon,
+  type MultiFloorDungeonOptions,
+  type OutdoorMapOptions,
+  type VillageMapOptions
+} from "./algorithms";

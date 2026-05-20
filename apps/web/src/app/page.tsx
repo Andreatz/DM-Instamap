@@ -72,6 +72,22 @@ export default async function Home() {
             <li>
               <Link href="/assets/review/batches">Batch Review (Critical / High / Duplicates)</Link>
             </li>
+            <li>
+              <Link href="/assets/import-pack">Import Asset Pack</Link>
+            </li>
+            <li>
+              <Link href="/assets/generate">Generate Asset from Prompt</Link>
+            </li>
+          </ul>
+        </section>
+
+        <section className="home-card">
+          <h2>Campaigns</h2>
+          <p className="muted">Group maps and log sessions.</p>
+          <ul>
+            <li>
+              <Link href="/campaigns">All Campaigns</Link>
+            </li>
           </ul>
         </section>
 
@@ -95,10 +111,13 @@ export default async function Home() {
               <Link href="/projects/new">Wizard: Create New Map</Link>
             </li>
             <li>
-              <Link href="/generate">Quick Generator Preview</Link>
+              <Link href="/generate">Quick Generator Preview (cave / village / outdoor / multi-floor)</Link>
             </li>
             <li>
-              <Link href="/ai-bridge">Manual ChatGPT Bridge</Link>
+              <Link href="/ai-bridge">AI Bridge (auto + manual)</Link>
+            </li>
+            <li>
+              <Link href="/assets/import-pack">Import Asset Pack</Link>
             </li>
           </ul>
         </section>

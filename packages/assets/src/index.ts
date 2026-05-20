@@ -42,10 +42,13 @@ export {
 } from "./groups";
 
 export {
+  createEmbeddingProviderFromEnv,
   createLocalEmbeddingProvider,
+  createRemoteEmbeddingProvider,
   explainAssetSearchResult,
   generateAssetEmbeddings,
   loadAssetEmbeddingIndex,
+  resolveEmbeddingConfigFromEnv,
   searchAssetsByImage,
   searchAssetsByText,
   type AssetEmbeddingEntry,
@@ -55,7 +58,9 @@ export {
   type AssetImageSearchOptions,
   type AssetSearchResult,
   type AssetTextSearchOptions,
-  type EmbeddingProvider
+  type EmbeddingProvider,
+  type RemoteEmbeddingProviderConfig,
+  type ResolvedEmbeddingConfig
 } from "./embeddings";
 
 export {
@@ -86,6 +91,34 @@ export {
   analyzeLocalImage,
   type LocalImageAnalysis
 } from "./image-analysis";
+
+export {
+  applyPackRulesToEntry,
+  importAssetPack,
+  listPackPresets,
+  PACK_PRESETS,
+  type PackImporterOptions,
+  type PackImportResult,
+  type PackPreset
+} from "./pack-importer";
+
+export {
+  createAutomatic1111Provider,
+  createCustomImageGenerationProvider,
+  createImageGenerationProviderFromEnv,
+  createReplicateImageGenerationProvider,
+  importGeneratedAssetToLibrary,
+  resolveImageGenerationConfigFromEnv,
+  type Automatic1111ProviderConfig,
+  type CustomImageGenerationProviderConfig,
+  type GeneratedAssetMetadata,
+  type ImageGenerationOutput,
+  type ImageGenerationProvider,
+  type ImageGenerationRequest,
+  type ImportGeneratedAssetOptions,
+  type ReplicateProviderConfig,
+  type ResolvedImageGenerationConfig
+} from "./image-generation";
 
 export {
   scanReferences,

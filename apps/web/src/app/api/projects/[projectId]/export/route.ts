@@ -5,15 +5,21 @@ import {
   exportMapDocumentDd2Vtt,
   exportMapDocumentRaster,
   exportMapDocumentRasterLayerBundle,
+  exportSessionPack,
   type ExportFormat,
   type MapVisibilityMode,
   type RasterExportFormat
 } from "@dm-instamap/exporters";
 import { InvalidProjectIdError, ProjectNotFoundError, readProject } from "@/lib/projects";
 
+type WebExportFormat = ExportFormat | "session-pack";
+
 type ExportRequest = {
+  description?: unknown;
   format?: unknown;
   includeGrid?: unknown;
+  includeInitiative?: unknown;
+  includeJournals?: unknown;
   mode?: unknown;
   scale?: unknown;
   splitLayers?: unknown;
@@ -26,8 +32,8 @@ type RouteContext = {
   }>;
 };
 
-const RASTER_FORMATS = new Set<ExportFormat>(["png", "webp"]);
-const VALID_FORMATS = new Set<ExportFormat>(["png", "webp", "dd2vtt", "foundry", "dmimap"]);
+const RASTER_FORMATS = new Set<WebExportFormat>(["png", "webp"]);
+const VALID_FORMATS = new Set<WebExportFormat>(["png", "webp", "dd2vtt", "foundry", "dmimap", "session-pack"]);
 const VALID_MODES = new Set<MapVisibilityMode>(["player", "gm", "clean"]);
 
 export async function POST(request: Request, context: RouteContext) {
@@ -87,9 +93,25 @@ export async function POST(request: Request, context: RouteContext) {
     }
 
     if (format === "foundry") {
+      const includeJournals = typeof body.includeJournals === "boolean" ? body.includeJournals : true;
       const result = await exportFoundryModule(document, {
         imageFormat: "webp",
         includeGridInImage: includeGrid,
+        includeJournals,
+        scale
+      });
+
+      return responseFromBuffer(result.buffer, "application/zip", namedFilename(result.filename, mode), mode);
+    }
+
+    if (format === "session-pack") {
+      const description = typeof body.description === "string" ? body.description : undefined;
+      const includeInitiative = typeof body.includeInitiative === "boolean" ? body.includeInitiative : true;
+      const result = await exportSessionPack(document, {
+        description,
+        imageFormat: "png",
+        includeGrid,
+        includeInitiative,
         scale
       });
 
@@ -112,12 +134,12 @@ export async function POST(request: Request, context: RouteContext) {
   }
 }
 
-function parseFormat(value: unknown): ExportFormat | null {
+function parseFormat(value: unknown): WebExportFormat | null {
   if (typeof value !== "string") {
     return null;
   }
 
-  return VALID_FORMATS.has(value as ExportFormat) ? (value as ExportFormat) : null;
+  return VALID_FORMATS.has(value as WebExportFormat) ? (value as WebExportFormat) : null;
 }
 
 function parseMode(value: unknown): MapVisibilityMode {

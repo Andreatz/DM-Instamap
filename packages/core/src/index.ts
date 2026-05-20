@@ -399,3 +399,24 @@ export function createMapDocument(input: {
     width: input.width
   });
 }
+
+export {
+  computeDocumentContentHash,
+  createMapSnapshot,
+  diffSnapshots,
+  listSnapshotsInDirectory,
+  readSnapshotFromDirectory,
+  resolveSnapshotsDirectory,
+  restoreSnapshotFromDirectory,
+  SnapshotMetadataSchema,
+  SnapshotRecordSchema,
+  writeSnapshotToDirectory,
+  type CreateSnapshotInput,
+  type SnapshotDiff,
+  type SnapshotDiffField,
+  type SnapshotMetadata,
+  type SnapshotRecord,
+  type SnapshotsDirectoryOptions
+} from "./snapshots";
+
+export { CampaignSchema, createCampaign, type Campaign, type CampaignSession, type CampaignMapLink } from "./campaign";

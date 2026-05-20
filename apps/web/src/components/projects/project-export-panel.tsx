@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { MapDocument } from "@dm-instamap/core";
 
-type ExportFormat = "png" | "webp" | "dd2vtt" | "foundry" | "dmimap";
+type ExportFormat = "png" | "webp" | "dd2vtt" | "foundry" | "dmimap" | "session-pack";
 type ExportMode = "player" | "gm" | "clean";
 
 const FORMAT_OPTIONS: Array<{ description: string; extension: string; label: string; value: ExportFormat }> = [
@@ -11,7 +11,13 @@ const FORMAT_OPTIONS: Array<{ description: string; extension: string; label: str
   { description: "Compressed image for the web.", extension: "webp", label: "WEBP", value: "webp" },
   { description: "Universal VTT (Foundry, Roll20 import).", extension: "dd2vtt", label: "dd2vtt", value: "dd2vtt" },
   { description: "Installable Foundry module ZIP.", extension: "zip", label: "Foundry Module", value: "foundry" },
-  { description: "Proprietary editable JSON.", extension: "dmimap.json", label: "dmimap", value: "dmimap" }
+  { description: "Proprietary editable JSON.", extension: "dmimap.json", label: "dmimap", value: "dmimap" },
+  {
+    description: "All-in-one ZIP: full / GM / player maps, GM notes, initiative, manifest.",
+    extension: "zip",
+    label: "Session Pack",
+    value: "session-pack"
+  }
 ];
 
 const MODE_OPTIONS: Array<{ description: string; label: string; value: ExportMode }> = [
@@ -32,8 +38,12 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
   const [scale, setScale] = useState(1);
   const [splitLayers, setSplitLayers] = useState(false);
   const [webpQuality, setWebpQuality] = useState(92);
+  const [includeJournals, setIncludeJournals] = useState(true);
+  const [includeInitiative, setIncludeInitiative] = useState(true);
+  const [sessionDescription, setSessionDescription] = useState("");
   const [status, setStatus] = useState("Ready to export");
-  const supportsRasterOptions = format === "png" || format === "webp" || format === "dd2vtt" || format === "foundry";
+  const supportsRasterOptions =
+    format === "png" || format === "webp" || format === "dd2vtt" || format === "foundry" || format === "session-pack";
   const supportsSplitLayers = format === "png" || format === "webp";
 
   async function exportProject() {
@@ -43,9 +53,12 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
       const endpoint = projectId ? `/api/projects/${projectId}/export` : "/api/export";
       const response = await fetch(endpoint, {
         body: JSON.stringify({
+          description: format === "session-pack" ? sessionDescription : undefined,
           document: projectId ? undefined : document,
           format,
           includeGrid,
+          includeInitiative: format === "session-pack" ? includeInitiative : undefined,
+          includeJournals: format === "foundry" ? includeJournals : undefined,
           mode,
           scale,
           splitLayers: supportsSplitLayers ? splitLayers : false,
@@ -67,7 +80,7 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
       const link = window.document.createElement("a");
       const extension = supportsSplitLayers && splitLayers ? "zip" : formatExtension(format);
       link.href = url;
-      link.download = buildDownloadName(document.name, extension, mode);
+      link.download = buildDownloadName(document.name, extension, mode, format);
       link.click();
       URL.revokeObjectURL(url);
       setStatus("Export complete");
@@ -140,6 +153,39 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
         </>
       ) : null}
 
+      {format === "foundry" ? (
+        <label className="editor-checkbox">
+          <input
+            checked={includeJournals}
+            onChange={(event) => setIncludeJournals(event.target.checked)}
+            type="checkbox"
+          />
+          <span>Include journal entries (rooms, GM notes, plan notes)</span>
+        </label>
+      ) : null}
+
+      {format === "session-pack" ? (
+        <>
+          <label className="editor-checkbox">
+            <input
+              checked={includeInitiative}
+              onChange={(event) => setIncludeInitiative(event.target.checked)}
+              type="checkbox"
+            />
+            <span>Include initiative.json</span>
+          </label>
+          <label className="field">
+            <span>Description for the DM</span>
+            <textarea
+              onChange={(event) => setSessionDescription(event.target.value)}
+              placeholder="Optional narrative description to ship inside the pack."
+              rows={3}
+              value={sessionDescription}
+            />
+          </label>
+        </>
+      ) : null}
+
       <button className="save-correction" onClick={exportProject} type="button">
         Export
       </button>
@@ -158,13 +204,17 @@ function formatExtension(format: ExportFormat): string {
       return "dd2vtt";
     case "foundry":
       return "zip";
+    case "session-pack":
+      return "zip";
     case "dmimap":
     default:
       return "dmimap.json";
   }
 }
 
-function buildDownloadName(name: string, extension: string, mode: ExportMode): string {
+function buildDownloadName(name: string, extension: string, mode: ExportMode, format: ExportFormat): string {
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "") || "dm-instamap-map";
-  return mode === "gm" ? `${slug}.${extension}` : `${slug}-${mode}.${extension}`;
+  const suffix = format === "session-pack" ? "-session-pack" : "";
+  const base = `${slug}${suffix}`;
+  return mode === "gm" ? `${base}.${extension}` : `${base}-${mode}.${extension}`;
 }
