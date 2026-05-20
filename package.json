@@ -6,6 +6,7 @@
   "packageManager": "pnpm@10.33.3",
   "scripts": {
     "assets:group": "pnpm --filter @dm-instamap/assets group",
+    "assets:audit": "pnpm --filter @dm-instamap/assets run audit",
     "assets:embed": "pnpm --filter @dm-instamap/assets embed",
     "assets:scan": "pnpm --filter @dm-instamap/assets scan",
     "build": "pnpm -r --if-present build",

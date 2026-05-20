@@ -66,6 +66,22 @@ export {
 } from "./matcher";
 
 export {
+  auditAssets,
+  buildAssetReviewQueue,
+  calculateAssetQualityScore,
+  createVisualHash,
+  findDuplicateGroups,
+  type AssetAuditEntry,
+  type AssetAuditFile,
+  type AssetAuditOptions,
+  type AssetAuditWarning,
+  type AssetDuplicateGroup,
+  type AssetQualitySignals,
+  type AuditableAsset,
+  type ReviewPriority
+} from "./audit";
+
+export {
   scanReferences,
   SUPPORTED_REFERENCE_EXTENSIONS,
   type ReferenceDominantColor,

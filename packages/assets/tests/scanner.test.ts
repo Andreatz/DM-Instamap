@@ -59,6 +59,10 @@ describe("scanAssets", () => {
     expect(manifest.assets.every((asset) => asset.fileHash.length === 64)).toBe(true);
     expect(manifest.assets.every((asset) => asset.dominantColors.length > 0)).toBe(true);
     expect(manifest.assets.every((asset) => asset.confidence >= 0 && asset.confidence <= 1)).toBe(true);
+    expect(manifest.assets.every((asset) => asset.qualityScore !== undefined)).toBe(true);
+    expect(manifest.assets.every((asset) => asset.qualitySignals !== undefined)).toBe(true);
+    expect(manifest.assets.every((asset) => asset.reviewPriority !== undefined)).toBe(true);
+    expect(manifest.assets.every((asset) => asset.visualHash !== undefined)).toBe(true);
 
     const png = manifest.assets.find((asset) => asset.relativePath === "red-room.png");
     expect(png).toMatchObject({

@@ -18,6 +18,7 @@
     }
   },
   "scripts": {
+    "audit": "tsx src/cli/audit.ts",
     "build": "tsc -p tsconfig.build.json",
     "embed": "tsx src/cli/embed.ts",
     "group": "tsx src/cli/group.ts",

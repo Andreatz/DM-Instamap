@@ -145,6 +145,29 @@ Codex deve mantenere questa struttura.
 
 # Fase 1 — Stabilizzazione tecnica del progetto
 
+## Stato
+
+Completata il 2026-05-20.
+
+Implementato:
+
+- GitHub Actions CI per install, worker install, lint, test e build.
+- `.env.example` con percorsi locali.
+- README aggiornato con setup, comandi, rotte e troubleshooting.
+- `.gitignore` aggiornato per proteggere asset pesanti, progetti locali ed export locali.
+- Documentazione asset storage aggiornata.
+
+Verificato con:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm worker:install
+pnpm lint
+pnpm test
+pnpm build
+pnpm --filter @dm-instamap/worker test
+```
+
 ## Obiettivo
 
 Rendere il repository affidabile, verificabile e pronto allo sviluppo incrementale.
@@ -330,6 +353,23 @@ passano senza errori.
 
 # Fase 2 — Worker Python reale con job progress
 
+## Stato
+
+Completata il 2026-05-20.
+
+Implementato:
+
+- Job store locale in memoria.
+- Modello job con id, type, status, progress, message, createdAt, updatedAt, result ed error.
+- Endpoint `/jobs`, `/jobs/{job_id}` e `/jobs/{job_id}/cancel`.
+- Endpoint placeholder `/jobs/assets/scan`, `/jobs/references/scan` e `/jobs/images/analyze`.
+- Test Python con `FastAPI TestClient`.
+- Documentazione `docs/WORKER.md`.
+
+Limite noto:
+
+- I job sono in memoria e vengono persi al riavvio del worker.
+
 ## Obiettivo
 
 Trasformare `apps/worker` da semplice `/health` a motore locale per task pesanti.
@@ -429,6 +469,35 @@ Per simulare task lunghi usare `BackgroundTasks` o `asyncio.create_task`, ma man
 ---
 
 # Fase 3 — Asset intelligence avanzata
+
+## Stato
+
+Completata il 2026-05-20.
+
+Implementato:
+
+- Firma visiva locale `visualHash` basata su aspect ratio, trasparenza e colori dominanti.
+- Quality score automatico con segnali di risoluzione, trasparenza, sharpness euristica, confidence e filename/tag signal.
+- Campi manifest retrocompatibili: `visualHash`, `qualityScore`, `qualitySignals`, `duplicateGroupId`, `duplicateConfidence`, `reviewPriority`.
+- Deduplicazione per file hash e visual hash.
+- Report `data/indexes/asset-audit.json`.
+- CLI `pnpm assets:audit`.
+- Funzioni pure esportate da `packages/assets`.
+- Test unitari per quality score, hash visivo, duplicati, review queue e scrittura audit.
+- Documentazione `docs/ASSET_PIPELINE.md` aggiornata.
+
+Verificato con:
+
+```bash
+pnpm --filter @dm-instamap/assets test
+pnpm --filter @dm-instamap/assets lint
+pnpm --filter @dm-instamap/assets build
+pnpm assets:audit
+```
+
+Limite noto:
+
+- La firma visiva è una euristica leggera su metadati già estratti; non è ancora un perceptual hash pixel-level.
 
 ## Obiettivo
 

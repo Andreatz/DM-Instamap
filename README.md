@@ -80,6 +80,7 @@ Asset and reference commands:
 ```bash
 pnpm assets:scan <folder>
 pnpm assets:group
+pnpm assets:audit
 pnpm assets:embed
 pnpm references:scan <folder>
 ```
@@ -87,6 +88,8 @@ pnpm references:scan <folder>
 The scanner writes lightweight metadata to `data/indexes/` and thumbnails to
 `data/previews/`. Keep original asset libraries in ignored folders such as
 `local-assets/`, `assets-local/`, `local-references/`, or external storage.
+`pnpm assets:audit` creates `data/indexes/asset-audit.json` with duplicate,
+quality, and review-priority signals for large libraries.
 
 ## Web routes
 

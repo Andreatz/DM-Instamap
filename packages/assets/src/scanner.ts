@@ -9,6 +9,7 @@ import {
   type AssetClassificationSource,
   type AssetOverride
 } from "./classifier";
+import { enrichAssetWithAuditFields, findDuplicateGroups, type AssetQualitySignals, type ReviewPriority } from "./audit";
 
 export const SUPPORTED_ASSET_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "svg"] as const;
 
@@ -24,14 +25,20 @@ export type AssetManifestEntry = {
   classificationSource: AssetClassificationSource;
   confidence: number;
   dominantColors: DominantColor[];
+  duplicateConfidence?: number | null;
+  duplicateGroupId?: string | null;
   extension: SupportedAssetExtension;
   fileHash: string;
   hasTransparency: boolean | null;
   height: number | null;
   id: string;
+  qualityScore?: number;
+  qualitySignals?: AssetQualitySignals;
   relativePath: string;
+  reviewPriority?: ReviewPriority;
   tags: string[];
   thumbnailPath: string | null;
+  visualHash?: string;
   width: number | null;
 };
 
@@ -97,8 +104,13 @@ export async function scanAssets(folder: string, options: AssetScannerOptions = 
     }
   }
 
+  const duplicateLookup = createDuplicateLookup(findDuplicateGroups(assets));
+  const enrichedAssets = assets.map((asset) =>
+    enrichAssetWithAuditFields(asset, duplicateLookup) as AssetManifestEntry
+  );
+
   const manifest: AssetManifest = {
-    assets,
+    assets: enrichedAssets,
     errors,
     generatedAt: new Date().toISOString(),
     sourceRoot,
@@ -108,6 +120,20 @@ export async function scanAssets(folder: string, options: AssetScannerOptions = 
   await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 
   return manifest;
+}
+
+function createDuplicateLookup(
+  duplicateGroups: ReturnType<typeof findDuplicateGroups>
+): Map<string, { confidence: number; id: string }> {
+  const lookup = new Map<string, { confidence: number; id: string }>();
+
+  for (const group of duplicateGroups) {
+    for (const assetId of group.assetIds) {
+      lookup.set(assetId, { confidence: group.confidence, id: group.id });
+    }
+  }
+
+  return lookup;
 }
 
 async function inspectAsset(input: {

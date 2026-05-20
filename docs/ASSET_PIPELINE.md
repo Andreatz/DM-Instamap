@@ -16,6 +16,15 @@ It writes:
 - `data/indexes/assets.manifest.json`
 - `data/previews/assets/*.webp`
 
+Manifest entries are enriched with local audit hints when possible:
+
+- `visualHash`
+- `qualityScore`
+- `qualitySignals`
+- `duplicateGroupId`
+- `duplicateConfidence`
+- `reviewPriority`
+
 ## Classification
 
 Each manifest entry includes:
@@ -60,6 +69,33 @@ and the first sampled dominant color when available. Each group stores:
 
 The `/asset-groups` page shows the generated groups. Manual rename, merge, and
 split are intentionally left for a later pass.
+
+## Audit Command
+
+```bash
+pnpm assets:audit
+```
+
+The audit step reads `data/indexes/assets.manifest.json` and writes:
+
+```text
+data/indexes/asset-audit.json
+```
+
+It is designed for large libraries before manual review. It uses only local
+metadata and heuristics:
+
+- file hash duplicates
+- lightweight visual hash duplicates from aspect ratio, transparency and
+  dominant colors
+- automatic quality score
+- quality signals for resolution, transparency, sharpness, classification
+  confidence and filename/tag signal
+- review priority: `critical`, `high`, `medium`, or `low`
+
+The audit report stores total asset count, assets needing review, duplicate
+groups, low quality count, classification warnings, and a prioritized review
+queue. No paid APIs, GPU processing, or external services are used.
 
 ## Group Review
 
