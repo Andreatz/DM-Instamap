@@ -14,8 +14,13 @@ coverage/
 data/raw-assets/
 local-assets/
 assets-local/
+local-references/
 reference-maps-local/
 *.dungeondraft_pack
+
+# Local generated project/export output
+data/projects/
+data/exports/
 
 # Python
 __pycache__/
@@ -29,6 +34,7 @@ venv/
 .env
 .env.*
 !.env.example
+*.log
 
 # OS / editor
 .DS_Store

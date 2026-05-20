@@ -8,11 +8,18 @@ Keep heavy asset packs in local or external storage, such as:
 - `data/raw-assets/`
 - `local-assets/`
 - `assets-local/`
+- `local-references/`
 - `reference-maps-local/`
 - external drives or cloud storage
 
 The repository `.gitignore` excludes those folders and `*.dungeondraft_pack`
 files to reduce the risk of accidentally committing large binary libraries.
+
+Generated project files and rendered exports are also local output and should
+stay out of Git by default:
+
+- `data/projects/`
+- `data/exports/`
 
 Generated lightweight indexes and previews are allowed in the repository:
 
