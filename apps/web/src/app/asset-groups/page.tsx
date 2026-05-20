@@ -37,7 +37,7 @@ export default async function AssetGroupsPage() {
           <section className="group-toolbar">
             <span>{groups.groups.length} groups shown</span>
             {groups.generatedAt ? <span>Grouped {new Date(groups.generatedAt).toLocaleString()}</span> : null}
-            <span>Rename, merge, and split are planned for a later pass.</span>
+            <a href="/asset-groups/review">Review groups in batches</a>
           </section>
 
           <section className="group-grid" aria-label="Asset groups">

@@ -46,6 +46,33 @@ export async function saveAssetOverride(input: {
   return next;
 }
 
+export async function saveAssetOverrides(
+  corrections: Array<{
+    assetId: string;
+    correction: AssetCorrection;
+    relativePath: string;
+  }>
+): Promise<AssetOverridesFile> {
+  const overridesPath = await getAssetOverridesPath();
+  let next = await loadAssetOverrides();
+
+  for (const input of corrections) {
+    next = mergeAssetOverride(
+      next,
+      {
+        id: input.assetId,
+        relativePath: input.relativePath
+      },
+      input.correction
+    );
+  }
+
+  await mkdir(path.dirname(overridesPath), { recursive: true });
+  await writeFile(overridesPath, `${JSON.stringify(next, null, 2)}\n`, "utf8");
+
+  return next;
+}
+
 async function getAssetOverridesPath(): Promise<string> {
   const workspaceRoot = await findWorkspaceRoot(process.cwd());
   return path.join(workspaceRoot, "data", "indexes", "asset-overrides.json");

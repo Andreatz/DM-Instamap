@@ -10,12 +10,12 @@ coverage/
 .turbo/
 *.tsbuildinfo
 
-# Local scanner output
-data/indexes/assets.manifest.json
-data/indexes/asset-groups.json
-data/previews/assets/
-data/indexes/references.manifest.json
-data/previews/references/
+# Heavy local asset sources
+data/raw-assets/
+local-assets/
+assets-local/
+reference-maps-local/
+*.dungeondraft_pack
 
 # Python
 __pycache__/

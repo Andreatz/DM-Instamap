@@ -61,6 +61,61 @@ and the first sampled dominant color when available. Each group stores:
 The `/asset-groups` page shows the generated groups. Manual rename, merge, and
 split are intentionally left for a later pass.
 
+## Group Review
+
+The group review page is available at:
+
+```text
+/asset-groups/review
+```
+
+It is designed for large libraries where reviewing every asset one by one is
+not realistic. The workflow reviews `AssetGroup` records in batches and can
+apply corrections to all assets in a group.
+
+The page shows:
+
+- group name
+- kind
+- tags
+- asset count
+- average confidence when available
+- representative thumbnails, with 12 or 24 visible at a time
+- progress stats for total assets, reviewed assets, reviewed groups, unknown
+  remaining, and low-confidence remaining
+
+Review queues:
+
+- low confidence assets
+- unknown assets
+- largest unreviewed groups
+- most used unreviewed groups, using local usage metadata when available
+- random quality sample
+
+Batch operations:
+
+- confirm a group
+- change group kind
+- add tags
+- correct group theme, `usableFor`, and quality score
+- remove a wrong asset from the group review
+- record split instructions
+- record merge instructions
+
+Group review metadata is saved locally to:
+
+```text
+data/indexes/asset-group-reviews.json
+```
+
+Group-wide corrections also write per-asset overrides to:
+
+```text
+data/indexes/asset-overrides.json
+```
+
+This keeps the scanner and grouping pipeline local-first and avoids paid APIs.
+
 ## Room Asset Matching
 
 `packages/assets` exposes a local `AssetMatcher` service through
