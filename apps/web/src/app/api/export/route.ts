@@ -5,6 +5,7 @@ import {
   exportFoundryModule,
   exportMapDocumentDd2Vtt,
   exportMapDocumentRaster,
+  exportMapDocumentRasterLayerBundle,
   type ExportFormat,
   type MapVisibilityMode,
   type RasterExportFormat
@@ -16,6 +17,8 @@ type ExportRequest = {
   includeGrid?: unknown;
   mode?: unknown;
   scale?: unknown;
+  splitLayers?: unknown;
+  webpQuality?: unknown;
 };
 
 const RASTER_FORMATS = new Set<ExportFormat>(["png", "webp"]);
@@ -36,12 +39,32 @@ export async function POST(request: Request) {
     const document = applyVisibilityMode(baseDocument, mode);
     const includeGrid = typeof body.includeGrid === "boolean" ? body.includeGrid : true;
     const scale = typeof body.scale === "number" ? body.scale : 1;
+    const splitLayers = typeof body.splitLayers === "boolean" ? body.splitLayers : false;
+    const webpQuality = typeof body.webpQuality === "number" ? body.webpQuality : undefined;
 
     if (RASTER_FORMATS.has(format)) {
+      if (splitLayers) {
+        const result = await exportMapDocumentRasterLayerBundle(document, {
+          format: format as RasterExportFormat,
+          includeGrid,
+          scale,
+          webpQuality
+        });
+
+        return new Response(toArrayBuffer(result.buffer), {
+          headers: buildHeaders({
+            contentType: result.contentType,
+            filename: namedFilename(result.filename, mode),
+            mode
+          })
+        });
+      }
+
       const result = await exportMapDocumentRaster(document, {
         format: format as RasterExportFormat,
         includeGrid,
-        scale
+        scale,
+        webpQuality
       });
 
       return new Response(toArrayBuffer(result.buffer), {

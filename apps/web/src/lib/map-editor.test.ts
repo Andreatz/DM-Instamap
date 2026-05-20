@@ -2,15 +2,39 @@ import { describe, expect, it } from "vitest";
 import { generateDungeon } from "@dm-instamap/generator";
 import {
   addDoorAtCell,
+  addInitiativeEntry,
   addLightAtCell,
+  addMapNote,
   addPlacedAsset,
+  computeVisibleCells,
+  createPlacedAssetClipboard,
+  deleteInitiativeEntry,
+  deleteMapNote,
   deletePlacedAsset,
+  deletePlacedAssets,
+  duplicatePlacedAsset,
+  duplicatePlacedAssets,
+  ensureEditorLayers,
   findRoomAtCell,
+  getEditorLayerOpacity,
+  groupPlacedAssets,
+  isEditorLayerLocked,
+  isEditorLayerVisible,
   movePlacedAsset,
+  movePlacedAssets,
+  pastePlacedAssetClipboard,
   parseMapDocumentJson,
+  selectPlacedAssetsInBounds,
   selectElementAtCell,
   serializeMapDocument,
   setTileKind,
+  ungroupPlacedAssets,
+  updateInitiativeEntry,
+  updateLightSource,
+  updateMapLayer,
+  updateMapNote,
+  updatePlacedAssetLayer,
+  updatePlacedAssetTransform,
   updateDocumentForTool
 } from "./map-editor";
 
@@ -44,6 +68,137 @@ describe("map editor helpers", () => {
 
     const deleted = deletePlacedAsset(moved, placedId);
     expect(deleted.assets).toHaveLength(0);
+  });
+
+  it("moves, duplicates, deletes, copies and pastes selected asset sets", () => {
+    const first = addPlacedAsset(document, paletteAsset, { x: 4, y: 5 });
+    const second = addPlacedAsset(first, { ...paletteAsset, id: "asset-chair", name: "Chair" }, { x: 7, y: 8 });
+    const selectedIds = second.assets.map((asset) => asset.id);
+
+    const moved = movePlacedAssets(second, selectedIds, { x: 1, y: -1 });
+    expect(moved.assets.map((asset) => asset.position)).toEqual([
+      { x: 5, y: 4 },
+      { x: 8, y: 7 }
+    ]);
+
+    const duplicated = duplicatePlacedAssets(second, selectedIds);
+    expect(duplicated.assets).toHaveLength(4);
+
+    const clipboard = createPlacedAssetClipboard(second, selectedIds);
+    const pasted = pastePlacedAssetClipboard(document, clipboard, { x: 2, y: 2 });
+    expect(pasted.pastedIds).toHaveLength(2);
+    expect(pasted.document.assets.map((asset) => asset.position)).toEqual([
+      { x: 6, y: 7 },
+      { x: 9, y: 10 }
+    ]);
+
+    const selectedInBounds = selectPlacedAssetsInBounds(second, { maxX: 8, maxY: 9, minX: 3, minY: 4 });
+    expect(selectedInBounds).toEqual(selectedIds);
+
+    const deleted = deletePlacedAssets(second, selectedIds);
+    expect(deleted.assets).toHaveLength(0);
+  });
+
+  it("groups and ungroups selected asset sets", () => {
+    const first = addPlacedAsset(document, paletteAsset, { x: 4, y: 5 });
+    const second = addPlacedAsset(first, { ...paletteAsset, id: "asset-chair", name: "Chair" }, { x: 7, y: 8 });
+    const selectedIds = second.assets.map((asset) => asset.id);
+    const grouped = groupPlacedAssets(second, selectedIds);
+
+    expect(grouped.groupId).toBeTruthy();
+    expect(grouped.document.assets.every((asset) => asset.groupId === grouped.groupId)).toBe(true);
+
+    const ungrouped = ungroupPlacedAssets(grouped.document, [selectedIds[0] ?? ""]);
+    expect(ungrouped.assets.every((asset) => asset.groupId === undefined)).toBe(true);
+  });
+
+  it("updates lights and computes line-of-sight visible cells", () => {
+    const withLight = addLightAtCell(document, { x: 3, y: 3 });
+    const lightId = withLight.plan?.lights[0]?.id ?? "";
+    const updated = updateLightSource(withLight, lightId, {
+      color: "#88ccff",
+      flicker: true,
+      intensity: 0.35,
+      radius: 3
+    });
+    const blocked = setTileKind(updated, { x: 4, y: 3 }, "wall");
+    const visibleCells = computeVisibleCells(blocked);
+
+    expect(updated.plan?.lights[0]).toMatchObject({
+      color: "#88ccff",
+      flicker: true,
+      intensity: 0.35,
+      radius: 3
+    });
+    expect(visibleCells).toContain("3,3");
+    expect(visibleCells).not.toContain("5,3");
+  });
+
+  it("adds, updates and deletes GM notes and initiative entries", () => {
+    const withNote = addMapNote(document, { x: 4, y: 5 }, "Secret door behind the altar", "Secret");
+    const noteId = withNote.plan?.gmNotes[0]?.id ?? "";
+    const updatedNote = updateMapNote(withNote, noteId, { text: "Trapdoor behind the altar" });
+    const withoutNote = deleteMapNote(updatedNote, noteId);
+
+    const withInitiative = addInitiativeEntry(withoutNote, {
+      hitPoints: 12,
+      initiative: 14,
+      name: "Skeleton",
+      notes: "Guards the altar",
+      side: "enemy"
+    });
+    const entryId = withInitiative.plan?.initiative[0]?.id ?? "";
+    const updatedInitiative = updateInitiativeEntry(withInitiative, entryId, { hitPoints: 8, initiative: 18 });
+    const withoutInitiative = deleteInitiativeEntry(updatedInitiative, entryId);
+
+    expect(updatedNote.plan?.gmNotes[0]?.text).toBe("Trapdoor behind the altar");
+    expect(withoutNote.plan?.gmNotes).toHaveLength(0);
+    expect(updatedInitiative.plan?.initiative[0]).toMatchObject({ hitPoints: 8, initiative: 18 });
+    expect(withoutInitiative.plan?.initiative).toHaveLength(0);
+  });
+
+  it("updates placed asset transforms and layer assignment", () => {
+    const withAsset = addPlacedAsset(document, paletteAsset, { x: 4, y: 5 });
+    const placedId = withAsset.assets[0]?.id ?? "";
+    const transformed = updatePlacedAssetTransform(withAsset, placedId, {
+      flipX: true,
+      rotation: 375,
+      scale: 2.25
+    });
+    const relayered = updatePlacedAssetLayer(transformed, placedId, "annotation");
+    const duplicated = duplicatePlacedAsset(relayered, placedId);
+
+    expect(transformed.assets[0]).toMatchObject({
+      flipX: true,
+      flipY: false,
+      rotation: 15,
+      scale: 2.25
+    });
+    expect(relayered.assets[0]?.layer).toBe("annotation");
+    expect(duplicated.assets).toHaveLength(2);
+    expect(duplicated.assets[1]?.position).toEqual({ x: 5, y: 6 });
+  });
+
+  it("ensures and updates editor document layers", () => {
+    const layered = ensureEditorLayers(document);
+    const updated = updateMapLayer(layered, "props", {
+      locked: true,
+      opacity: 0.45,
+      visible: false
+    });
+
+    expect(layered.layers.map((layer) => layer.kind)).toEqual([
+      "background",
+      "terrain",
+      "walls",
+      "props",
+      "lighting",
+      "gm-only",
+      "notes"
+    ]);
+    expect(isEditorLayerVisible(updated, "props")).toBe(false);
+    expect(isEditorLayerLocked(updated, "props")).toBe(true);
+    expect(getEditorLayerOpacity(updated, "props")).toBe(0.45);
   });
 
   it("finds a room at a cell position", () => {

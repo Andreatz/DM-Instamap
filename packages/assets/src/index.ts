@@ -83,6 +83,11 @@ export {
 } from "./audit";
 
 export {
+  analyzeLocalImage,
+  type LocalImageAnalysis
+} from "./image-analysis";
+
+export {
   scanReferences,
   SUPPORTED_REFERENCE_EXTENSIONS,
   type ReferenceDominantColor,

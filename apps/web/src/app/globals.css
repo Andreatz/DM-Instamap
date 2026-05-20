@@ -1264,26 +1264,147 @@ a {
 }
 
 .editor-export-controls,
-.editor-furnish-controls {
+.editor-furnish-controls,
+.editor-layer-controls,
+.editor-light-controls,
+.editor-note-controls,
+.editor-selection-controls,
+.editor-initiative-controls,
+.editor-transform-controls {
   display: grid;
   gap: 10px;
 }
 
 .editor-export-controls label,
-.editor-furnish-controls label {
+.editor-furnish-controls label,
+.editor-light-controls label,
+.editor-note-controls label,
+.editor-transform-controls label {
   color: var(--muted);
   display: grid;
   gap: 6px;
 }
 
 .editor-export-controls select,
-.editor-furnish-controls select {
+.editor-furnish-controls select,
+.editor-initiative-form input,
+.editor-initiative-form select,
+.editor-light-controls input,
+.editor-note-card input,
+.editor-note-card textarea,
+.editor-note-controls textarea,
+.editor-transform-controls input,
+.editor-transform-controls select {
   background: var(--field);
   border: 1px solid var(--panel-border);
   border-radius: 8px;
   color: var(--foreground);
   min-height: 38px;
   padding: 8px 10px;
+}
+
+.editor-light-controls > p {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0;
+}
+
+.editor-note-card,
+.editor-initiative-list article {
+  background: #171b1d;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.editor-note-controls button,
+.editor-initiative-controls > button,
+.editor-note-card button,
+.editor-note-list button {
+  background: #171b1d;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  color: var(--foreground);
+  cursor: pointer;
+  min-height: 34px;
+  padding: 7px 10px;
+}
+
+.editor-note-list,
+.editor-initiative-list {
+  display: grid;
+  gap: 8px;
+}
+
+.editor-note-list button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.editor-initiative-form {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) 68px 68px;
+}
+
+.editor-initiative-form select {
+  grid-column: 1 / -1;
+}
+
+.editor-initiative-list article strong,
+.editor-initiative-list article span {
+  display: block;
+}
+
+.editor-initiative-list article span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.editor-layer-list {
+  display: grid;
+  gap: 8px;
+}
+
+.editor-layer-list article {
+  background: #171b1d;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.editor-layer-list header,
+.editor-layer-row,
+.editor-action-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.editor-layer-list header span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.editor-layer-list input[type="range"] {
+  accent-color: var(--accent);
+  width: 100%;
+}
+
+.editor-action-row button {
+  background: #171b1d;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  color: var(--foreground);
+  cursor: pointer;
+  min-height: 34px;
+  padding: 7px 10px;
 }
 
 .editor-checkbox {

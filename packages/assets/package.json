@@ -18,6 +18,7 @@
     }
   },
   "scripts": {
+    "analyze-image": "tsx src/cli/analyze-image.ts",
     "audit": "tsx src/cli/audit.ts",
     "build": "tsc -p tsconfig.build.json",
     "embed": "tsx src/cli/embed.ts",

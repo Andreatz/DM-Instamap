@@ -1,7 +1,11 @@
 export {
   exportMapDocumentRaster,
+  exportMapDocumentRasterLayerBundle,
+  exportMapDocumentRasterLayers,
   renderMapDocumentSvg,
   type RasterExportFormat,
+  type RasterLayerBundleResult,
+  type RasterExportLayer,
   type RasterExportOptions,
   type RasterExportResult
 } from "./raster";

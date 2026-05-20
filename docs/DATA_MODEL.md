@@ -32,7 +32,8 @@ reference maps, asset groups, and requested export formats.
 ## MapPlan
 
 Represents the generated or manually adjusted plan before final editing. It
-contains rooms, walls, doors, light sources, and asset placements.
+contains rooms, walls, doors, light sources, GM notes, initiative entries, and
+asset placements.
 
 ## MapDocument
 
@@ -58,12 +59,25 @@ room associations.
 ## LightSource
 
 Defines local lighting metadata such as type, position, color, radius, and
-intensity.
+intensity. Editor lights can also store a `flicker` flag for local preview and
+future VTT exports.
+
+## MapNote
+
+Defines a GM-only note anchored to a map coordinate. Notes have a title, body
+text, and position so they can be edited with the map and hidden with the Notes
+layer.
+
+## InitiativeEntry
+
+Defines a lightweight combat tracker row stored inside the map plan. Entries
+include name, side, initiative value, optional hit points, optional armor class,
+and optional notes.
 
 ## PlacedAsset
 
 Defines a concrete asset placement on the editable map, including position,
-layer, rotation, scale, lock state, and tags.
+layer, rotation, scale, lock state, optional group id, and tags.
 
 ## GridConfig
 

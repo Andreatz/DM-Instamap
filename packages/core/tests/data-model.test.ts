@@ -5,8 +5,11 @@ import {
   DoorSegmentSchema,
   ExportJobSchema,
   GridConfigSchema,
+  InitiativeEntrySchema,
   LightSourceSchema,
+  MapLayerSchema,
   MapDocumentSchema,
+  MapNoteSchema,
   MapPlanSchema,
   MapRequestSchema,
   PlacedAssetSchema,
@@ -47,6 +50,7 @@ const door = {
 
 const light = {
   color: "#ffcc88",
+  flicker: true,
   id: "light-torch",
   intensity: 0.8,
   kind: "torch",
@@ -56,15 +60,28 @@ const light = {
 
 const placedAsset = {
   assetId: "asset-table",
+  flipX: true,
+  groupId: "asset-group-1",
   id: "placed-table",
   layer: "object",
   position: { x: 5, y: 5 }
 } as const;
 
+const mapLayer = {
+  id: "layer-props",
+  kind: "props",
+  name: "Props",
+  opacity: 0.8,
+  order: 3,
+  visible: true
+} as const;
+
 const plan = {
   assetPlacements: [placedAsset],
   doors: [door],
+  gmNotes: [{ id: "note-1", position: { x: 4, y: 5 }, text: "Hidden lever", title: "Secret" }],
   id: "plan-1",
+  initiative: [{ hitPoints: 12, id: "initiative-1", initiative: 15, name: "Skeleton", side: "enemy" }],
   lights: [light],
   name: "Starter Plan",
   requestId: "request-1",
@@ -135,6 +152,7 @@ const validCases = [
       grid,
       height: 20,
       id: "document-1",
+      layers: [mapLayer],
       name: "Editable Dungeon",
       plan,
       tiles: [{ id: "tile-0-0", kind: "floor", x: 0, y: 0 }],
@@ -146,7 +164,10 @@ const validCases = [
   ["WallSegment", WallSegmentSchema, wall],
   ["DoorSegment", DoorSegmentSchema, door],
   ["LightSource", LightSourceSchema, light],
+  ["MapNote", MapNoteSchema, { id: "note-1", position: { x: 4, y: 5 }, text: "Hidden lever", title: "Secret" }],
+  ["InitiativeEntry", InitiativeEntrySchema, { id: "initiative-1", initiative: 15, name: "Skeleton" }],
   ["PlacedAsset", PlacedAssetSchema, placedAsset],
+  ["MapLayer", MapLayerSchema, mapLayer],
   ["GridConfig", GridConfigSchema, grid],
   [
     "ExportJob",
@@ -174,7 +195,10 @@ const invalidCases = [
   ["WallSegment", WallSegmentSchema, { ...wall, thickness: 0 }],
   ["DoorSegment", DoorSegmentSchema, { ...door, width: -1 }],
   ["LightSource", LightSourceSchema, { ...light, color: "orange" }],
+  ["MapNote", MapNoteSchema, { id: "note-1", position: { x: 4, y: 5 }, text: "", title: "Secret" }],
+  ["InitiativeEntry", InitiativeEntrySchema, { id: "initiative-1", initiative: 15, name: "" }],
   ["PlacedAsset", PlacedAssetSchema, { ...placedAsset, scale: 0 }],
+  ["MapLayer", MapLayerSchema, { ...mapLayer, opacity: 1.5 }],
   ["GridConfig", GridConfigSchema, { ...grid, pixelsPerCell: 0 }],
   ["ExportJob", ExportJobSchema, { createdAt: "2026-05-19T09:59:00.000Z", documentId: "document-1", format: "png", id: "export-1", status: "completed" }]
 ] as const;

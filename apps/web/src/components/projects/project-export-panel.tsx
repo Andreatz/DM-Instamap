@@ -30,8 +30,11 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
   const [mode, setMode] = useState<ExportMode>("gm");
   const [includeGrid, setIncludeGrid] = useState(true);
   const [scale, setScale] = useState(1);
+  const [splitLayers, setSplitLayers] = useState(false);
+  const [webpQuality, setWebpQuality] = useState(92);
   const [status, setStatus] = useState("Ready to export");
   const supportsRasterOptions = format === "png" || format === "webp" || format === "dd2vtt" || format === "foundry";
+  const supportsSplitLayers = format === "png" || format === "webp";
 
   async function exportProject() {
     setStatus(`Exporting ${format.toUpperCase()} (${mode} mode)`);
@@ -44,7 +47,9 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
           format,
           includeGrid,
           mode,
-          scale
+          scale,
+          splitLayers: supportsSplitLayers ? splitLayers : false,
+          webpQuality
         }),
         headers: {
           "Content-Type": "application/json"
@@ -60,7 +65,7 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const link = window.document.createElement("a");
-      const extension = formatExtension(format);
+      const extension = supportsSplitLayers && splitLayers ? "zip" : formatExtension(format);
       link.href = url;
       link.download = buildDownloadName(document.name, extension, mode);
       link.click();
@@ -115,6 +120,23 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
             <input checked={includeGrid} onChange={(event) => setIncludeGrid(event.target.checked)} type="checkbox" />
             <span>Include grid</span>
           </label>
+          {format === "webp" ? (
+            <label className="field">
+              <span>WEBP quality</span>
+              <select onChange={(event) => setWebpQuality(Number(event.target.value))} value={webpQuality}>
+                <option value={70}>70</option>
+                <option value={82}>82</option>
+                <option value={92}>92</option>
+                <option value={100}>100</option>
+              </select>
+            </label>
+          ) : null}
+          {supportsSplitLayers ? (
+            <label className="editor-checkbox">
+              <input checked={splitLayers} onChange={(event) => setSplitLayers(event.target.checked)} type="checkbox" />
+              <span>Export layer ZIP</span>
+            </label>
+          ) : null}
         </>
       ) : null}
 

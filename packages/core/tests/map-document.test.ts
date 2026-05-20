@@ -12,6 +12,15 @@ describe("createMapDocument", () => {
     });
 
     expect(map.editable).toBe(true);
+    expect(map.layers.map((layer) => layer.kind)).toEqual([
+      "background",
+      "terrain",
+      "walls",
+      "props",
+      "lighting",
+      "gm-only",
+      "notes"
+    ]);
   });
 });
 

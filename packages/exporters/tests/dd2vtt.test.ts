@@ -137,6 +137,10 @@ describe("exportMapDocumentDd2Vtt", () => {
     ]);
     expect(result.object.portals).toEqual([
       {
+        bounds: [
+          { x: 2, y: -0.5 },
+          { x: 2, y: 0.5 }
+        ],
         closed: true,
         position: { x: 2, y: 0 },
         rotation: 90,
@@ -177,6 +181,43 @@ describe("exportMapDocumentDd2Vtt", () => {
       width: 1
     });
   });
+
+  it("falls back to tile wall edges when a document has no explicit wall plan", async () => {
+    const document = createMapDocument({
+      height: 2,
+      id: "tile-wall-export",
+      name: "Tile Wall Export",
+      tiles: [
+        { id: "tile-0-0", kind: "wall", x: 0, y: 0 },
+        { id: "tile-1-0", kind: "floor", x: 1, y: 0 },
+        { id: "tile-0-1", kind: "floor", x: 0, y: 1 },
+        { id: "tile-1-1", kind: "floor", x: 1, y: 1 }
+      ],
+      width: 2
+    });
+    const exported = await exportMapDocumentDd2Vtt(document, {
+      embedImage: false
+    });
+
+    expect(exported.object.line_of_sight).toEqual([
+      [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 }
+      ],
+      [
+        { x: 1, y: 0 },
+        { x: 1, y: 1 }
+      ],
+      [
+        { x: 0, y: 1 },
+        { x: 1, y: 1 }
+      ],
+      [
+        { x: 0, y: 0 },
+        { x: 0, y: 1 }
+      ]
+    ]);
+  });
 });
 
 function createDd2VttExportFixture() {
@@ -212,6 +253,7 @@ function createDd2VttExportFixture() {
   const lights: LightSource[] = [
     {
       color: "#ffaa66",
+      flicker: false,
       id: "light-center",
       intensity: 0.75,
       kind: "torch",
@@ -222,7 +264,9 @@ function createDd2VttExportFixture() {
   const plan: MapPlan = {
     assetPlacements: [],
     doors,
+    gmNotes: [],
     id: "plan-export",
+    initiative: [],
     lights,
     name: "Export Plan",
     notes: [],

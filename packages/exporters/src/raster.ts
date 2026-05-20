@@ -1,12 +1,18 @@
+import JSZip from "jszip";
 import sharp from "sharp";
 import type { MapDocument, MapTile, PlacedAsset } from "@dm-instamap/core";
 
 export type RasterExportFormat = "png" | "webp";
+export type RasterExportLayer = "floor" | "walls" | "doors" | "props" | "lighting";
 
 export type RasterExportOptions = {
+  background?: "default" | "transparent";
   format: RasterExportFormat;
   includeGrid?: boolean;
+  layers?: readonly RasterExportLayer[];
+  filenameSuffix?: string;
   scale?: number;
+  webpQuality?: number;
 };
 
 export type RasterExportResult = {
@@ -18,7 +24,16 @@ export type RasterExportResult = {
   width: number;
 };
 
+export type RasterLayerBundleResult = {
+  buffer: Buffer;
+  contentType: "application/zip";
+  filename: string;
+  format: RasterExportFormat;
+  layers: RasterExportLayer[];
+};
+
 const BASE_CELL_PIXELS = 28;
+const DEFAULT_LAYERS: RasterExportLayer[] = ["floor", "walls", "doors", "props", "lighting"];
 
 export async function exportMapDocumentRaster(
   document: MapDocument,
@@ -30,53 +45,158 @@ export async function exportMapDocumentRaster(
   const width = document.width * cellPixels;
   const height = document.height * cellPixels;
   const svg = renderMapDocumentSvg(document, {
+    background: options.background ?? "default",
     cellPixels,
-    includeGrid: options.includeGrid ?? true
+    includeGrid: options.includeGrid ?? true,
+    layers: options.layers
   });
   const pipeline = sharp(Buffer.from(svg)).resize(width, height, { fit: "fill" });
-  const buffer = format === "png" ? await pipeline.png().toBuffer() : await pipeline.webp({ quality: 92 }).toBuffer();
+  const buffer =
+    format === "png"
+      ? await pipeline.png().toBuffer()
+      : await pipeline.webp({ quality: normalizeWebpQuality(options.webpQuality) }).toBuffer();
 
   return {
     buffer,
     contentType: format === "png" ? "image/png" : "image/webp",
-    filename: `${slugify(document.name || document.id)}.${format}`,
+    filename: `${slugify(document.name || document.id)}${options.filenameSuffix ?? ""}.${format}`,
     format,
     height,
     width
   };
 }
 
+export async function exportMapDocumentRasterLayers(
+  document: MapDocument,
+  options: Omit<RasterExportOptions, "background" | "filenameSuffix" | "layers"> & {
+    layers?: readonly RasterExportLayer[];
+  }
+): Promise<Partial<Record<RasterExportLayer, RasterExportResult>>> {
+  const requestedLayers = options.layers ?? DEFAULT_LAYERS;
+  const entries = await Promise.all(
+    DEFAULT_LAYERS.map(async (layer) => {
+      if (!requestedLayers.includes(layer)) {
+        return [layer, null] as const;
+      }
+
+      const result = await exportMapDocumentRaster(document, {
+        ...options,
+        background: "transparent",
+        filenameSuffix: `-${layer}`,
+        includeGrid: options.includeGrid ?? false,
+        layers: [layer]
+      });
+
+      return [layer, result] as const;
+    })
+  );
+
+  return Object.fromEntries(entries.filter((entry): entry is [RasterExportLayer, RasterExportResult] => entry[1] !== null)) as Partial<Record<
+    RasterExportLayer,
+    RasterExportResult
+  >>;
+}
+
+export async function exportMapDocumentRasterLayerBundle(
+  document: MapDocument,
+  options: Omit<RasterExportOptions, "background" | "filenameSuffix"> & {
+    layers?: readonly RasterExportLayer[];
+  }
+): Promise<RasterLayerBundleResult> {
+  const layers = await exportMapDocumentRasterLayers(document, options);
+  const zip = new JSZip();
+  const layerNames = Object.keys(layers) as RasterExportLayer[];
+
+  for (const layer of layerNames) {
+    const result = layers[layer];
+    if (result) {
+      zip.file(result.filename, result.buffer);
+    }
+  }
+
+  zip.file(
+    "manifest.json",
+    `${JSON.stringify(
+      {
+        documentId: document.id,
+        format: options.format,
+        generatedBy: "DM-Instamap",
+        layers: layerNames,
+        map: {
+          height: document.height,
+          width: document.width
+        }
+      },
+      null,
+      2
+    )}\n`
+  );
+
+  return {
+    buffer: await zip.generateAsync({ compression: "DEFLATE", type: "nodebuffer" }),
+    contentType: "application/zip",
+    filename: `${slugify(document.name || document.id)}-${options.format}-layers.zip`,
+    format: options.format,
+    layers: layerNames
+  };
+}
+
 export function renderMapDocumentSvg(
   document: MapDocument,
   options: {
+    background?: "default" | "transparent";
     cellPixels?: number;
     includeGrid?: boolean;
+    layers?: readonly RasterExportLayer[];
   } = {}
 ): string {
   const cellPixels = Math.max(1, Math.round(options.cellPixels ?? BASE_CELL_PIXELS));
   const width = document.width * cellPixels;
   const height = document.height * cellPixels;
+  const layers = new Set(options.layers ?? DEFAULT_LAYERS);
   const tileLookup = new Map(document.tiles.map((tile) => [cellKey(tile.x, tile.y), tile]));
-  const parts: string[] = [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`,
-    `<rect width="100%" height="100%" fill="#080a0b"/>`
-  ];
+  const parts: string[] = [`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`];
+
+  if ((options.background ?? "default") === "default") {
+    parts.push(`<rect width="100%" height="100%" fill="#080a0b"/>`);
+  }
 
   for (let y = 0; y < document.height; y += 1) {
     for (let x = 0; x < document.width; x += 1) {
       const tile = tileLookup.get(cellKey(x, y));
-      parts.push(renderTile(tile, x, y, cellPixels));
+      const renderedTile = renderTile(tile, x, y, cellPixels, layers);
+      if (renderedTile) {
+        parts.push(renderedTile);
+      }
     }
   }
 
-  for (const door of document.plan?.doors ?? []) {
-    parts.push(
-      `<rect x="${door.position.x * cellPixels + cellPixels * 0.2}" y="${door.position.y * cellPixels + cellPixels * 0.2}" width="${cellPixels * 0.6}" height="${cellPixels * 0.6}" fill="#f0b84c"/>`
-    );
+  if (layers.has("walls")) {
+    for (const wall of document.plan?.walls ?? []) {
+      parts.push(
+        `<path d="M${wall.start.x * cellPixels} ${wall.start.y * cellPixels}L${wall.end.x * cellPixels} ${wall.end.y * cellPixels}" stroke="#2f383d" stroke-width="${Math.max(3, wall.thickness * cellPixels * 0.16)}" stroke-linecap="round"/>`
+      );
+    }
+  }
+
+  if (layers.has("doors")) {
+    for (const door of document.plan?.doors ?? []) {
+      parts.push(
+        `<rect x="${door.position.x * cellPixels + cellPixels * 0.2}" y="${door.position.y * cellPixels + cellPixels * 0.2}" width="${cellPixels * 0.6}" height="${cellPixels * 0.6}" fill="#f0b84c"/>`
+      );
+    }
   }
 
   for (const asset of document.assets) {
-    parts.push(renderPlacedAsset(asset, cellPixels));
+    if (shouldRenderAsset(asset, layers)) {
+      parts.push(renderPlacedAsset(asset, cellPixels));
+    }
+  }
+
+  if (layers.has("lighting")) {
+    for (const light of document.plan?.lights ?? []) {
+      parts.push(renderLight(light, cellPixels));
+    }
   }
 
   if (options.includeGrid ?? true) {
@@ -87,8 +207,13 @@ export function renderMapDocumentSvg(
   return parts.join("");
 }
 
-function renderTile(tile: MapTile | undefined, x: number, y: number, cellPixels: number): string {
-  const color = tileColor(tile?.kind ?? "empty");
+function renderTile(tile: MapTile | undefined, x: number, y: number, cellPixels: number, layers: Set<RasterExportLayer>): string | null {
+  const kind = tile?.kind ?? "empty";
+  if (!shouldRenderTile(kind, layers)) {
+    return null;
+  }
+
+  const color = tileColor(kind);
   return `<rect x="${x * cellPixels}" y="${y * cellPixels}" width="${cellPixels}" height="${cellPixels}" fill="${color}"/>`;
 }
 
@@ -98,11 +223,22 @@ function renderPlacedAsset(asset: PlacedAsset, cellPixels: number): string {
   const radius = cellPixels * 0.34;
   const color = asset.layer === "lighting" ? "#f5cc63" : asset.layer === "floor" ? "#6fa0a8" : "#86b38f";
   const label = escapeXml(getAssetInitial(asset.assetId));
+  const scaleX = (asset.flipX ? -1 : 1) * asset.scale;
+  const scaleY = (asset.flipY ? -1 : 1) * asset.scale;
 
   return [
-    `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="${color}" stroke="#f7efe2" stroke-width="${Math.max(1, cellPixels * 0.05)}"/>`,
-    `<text x="${cx}" y="${cy + cellPixels * 0.13}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${Math.max(8, cellPixels * 0.42)}" font-weight="700" fill="#101416">${label}</text>`
+    `<g transform="translate(${cx} ${cy}) rotate(${asset.rotation}) scale(${scaleX} ${scaleY})">`,
+    `<circle cx="0" cy="0" r="${radius}" fill="${color}" stroke="#f7efe2" stroke-width="${Math.max(1, cellPixels * 0.05)}"/>`,
+    `<text x="0" y="${cellPixels * 0.13}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${Math.max(8, cellPixels * 0.42)}" font-weight="700" fill="#101416">${label}</text>`,
+    "</g>"
   ].join("");
+}
+
+function renderLight(light: { color: string; intensity: number; position: { x: number; y: number }; radius: number }, cellPixels: number): string {
+  const cx = light.position.x * cellPixels;
+  const cy = light.position.y * cellPixels;
+  const radius = light.radius * cellPixels;
+  return `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="${escapeXml(light.color)}" fill-opacity="${Math.min(0.55, Math.max(0.08, light.intensity * 0.45))}"/>`;
 }
 
 function renderGrid(widthCells: number, heightCells: number, cellPixels: number): string {
@@ -119,6 +255,34 @@ function renderGrid(widthCells: number, heightCells: number, cellPixels: number)
   }
 
   return lines.join("");
+}
+
+function shouldRenderTile(kind: MapTile["kind"] | "empty", layers: Set<RasterExportLayer>): boolean {
+  if (kind === "floor" || kind === "empty") {
+    return layers.has("floor");
+  }
+
+  if (kind === "wall") {
+    return layers.has("walls");
+  }
+
+  return layers.has("doors");
+}
+
+function shouldRenderAsset(asset: PlacedAsset, layers: Set<RasterExportLayer>): boolean {
+  if (asset.layer === "lighting") {
+    return layers.has("lighting");
+  }
+
+  if (asset.layer === "floor") {
+    return layers.has("floor");
+  }
+
+  if (asset.layer === "wall") {
+    return layers.has("walls");
+  }
+
+  return layers.has("props");
 }
 
 function tileColor(kind: MapTile["kind"] | "empty"): string {
@@ -141,6 +305,14 @@ function normalizeScale(value: number | undefined): number {
   }
 
   return Math.min(4, Math.max(0.5, value));
+}
+
+function normalizeWebpQuality(value: number | undefined): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return 92;
+  }
+
+  return Math.round(Math.min(100, Math.max(1, value)));
 }
 
 function getAssetInitial(assetId: string): string {

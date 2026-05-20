@@ -159,7 +159,9 @@ export function generateDungeon(input: DungeonGeneratorInput): MapDocument {
       roomIds: door.roomIds,
       width: 1
     })),
+    gmNotes: [],
     id: "plan-procedural-dungeon",
+    initiative: [],
     lights: [],
     name: `${toTitle(input.theme ?? "Procedural")} Dungeon Plan`,
     notes: [

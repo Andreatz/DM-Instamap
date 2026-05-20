@@ -217,6 +217,7 @@ export type DoorSegment = z.infer<typeof DoorSegmentSchema>;
 export const LightSourceSchema = z
   .object({
     color: HexColorSchema,
+    flicker: z.boolean().default(false),
     id: IdSchema,
     intensity: z.number().finite().min(0).max(1),
     kind: z.enum(["torch", "lantern", "magic", "daylight", "ambient"]),
@@ -227,9 +228,55 @@ export const LightSourceSchema = z
 
 export type LightSource = z.infer<typeof LightSourceSchema>;
 
+export const MapNoteSchema = z
+  .object({
+    id: IdSchema,
+    position: PointSchema,
+    text: z.string().trim().min(1).max(2000),
+    title: z.string().trim().min(1).max(120)
+  })
+  .strict();
+
+export type MapNote = z.infer<typeof MapNoteSchema>;
+
+export const InitiativeEntrySchema = z
+  .object({
+    armorClass: z.number().int().positive().optional(),
+    hitPoints: z.number().int().optional(),
+    id: IdSchema,
+    initiative: z.number().int(),
+    name: NameSchema,
+    notes: z.string().trim().max(500).optional(),
+    side: z.enum(["player", "enemy", "neutral"]).default("enemy")
+  })
+  .strict();
+
+export type InitiativeEntry = z.infer<typeof InitiativeEntrySchema>;
+
+export const MapLayerKindSchema = z.enum(["background", "terrain", "walls", "props", "lighting", "gm-only", "notes"]);
+
+export type MapLayerKind = z.infer<typeof MapLayerKindSchema>;
+
+export const MapLayerSchema = z
+  .object({
+    id: IdSchema,
+    kind: MapLayerKindSchema,
+    locked: z.boolean().default(false),
+    name: NameSchema,
+    opacity: z.number().finite().min(0).max(1).default(1),
+    order: z.number().int().nonnegative(),
+    visible: z.boolean().default(true)
+  })
+  .strict();
+
+export type MapLayer = z.infer<typeof MapLayerSchema>;
+
 export const PlacedAssetSchema = z
   .object({
     assetId: IdSchema,
+    flipX: z.boolean().default(false),
+    flipY: z.boolean().default(false),
+    groupId: IdSchema.optional(),
     id: IdSchema,
     layer: z.enum(["floor", "wall", "object", "lighting", "annotation"]),
     locked: z.boolean().default(false),
@@ -246,7 +293,9 @@ export const MapPlanSchema = z
   .object({
     assetPlacements: z.array(PlacedAssetSchema).default([]),
     doors: z.array(DoorSegmentSchema).default([]),
+    gmNotes: z.array(MapNoteSchema).default([]),
     id: IdSchema,
+    initiative: z.array(InitiativeEntrySchema).default([]),
     lights: z.array(LightSourceSchema).default([]),
     name: NameSchema,
     notes: z.array(z.string().trim().min(1)).default([]),
@@ -266,6 +315,15 @@ export const MapDocumentSchema = z
     grid: GridConfigSchema,
     height: PositiveIntegerSchema,
     id: IdSchema,
+    layers: z.array(MapLayerSchema).default([
+      { id: "layer-background", kind: "background", locked: true, name: "Background", opacity: 1, order: 0, visible: true },
+      { id: "layer-terrain", kind: "terrain", locked: false, name: "Terrain", opacity: 1, order: 1, visible: true },
+      { id: "layer-walls", kind: "walls", locked: false, name: "Walls", opacity: 1, order: 2, visible: true },
+      { id: "layer-props", kind: "props", locked: false, name: "Props", opacity: 1, order: 3, visible: true },
+      { id: "layer-lighting", kind: "lighting", locked: false, name: "Lighting", opacity: 1, order: 4, visible: true },
+      { id: "layer-gm-only", kind: "gm-only", locked: false, name: "GM Only", opacity: 1, order: 5, visible: true },
+      { id: "layer-notes", kind: "notes", locked: false, name: "Notes", opacity: 1, order: 6, visible: true }
+    ]),
     name: NameSchema,
     plan: MapPlanSchema.optional(),
     tiles: z.array(MapTileSchema).default([]),

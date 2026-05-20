@@ -573,6 +573,8 @@ function canPlaceFootprint(input: {
 function createPlacedAsset(document: MapDocument, offset: number, placement: CandidatePlacement): PlacedAsset {
   return {
     assetId: placement.asset.assetId,
+    flipX: false,
+    flipY: false,
     id: createPlacedAssetId(document, placement.asset.assetId, offset),
     layer: placement.asset.layer,
     locked: false,

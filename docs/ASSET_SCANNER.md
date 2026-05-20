@@ -17,3 +17,14 @@ Results are written to:
 - `data/previews/assets/*.webp`
 
 The scanner uses CPU-only local image processing and does not call paid APIs.
+
+## Single Image Analysis
+
+For worker jobs or quick local checks, analyze one image with:
+
+```bash
+pnpm assets:analyze-image <image>
+```
+
+The command returns JSON with format, dimensions, transparency and sampled
+dominant colors. It uses Sharp locally and does not call external APIs.

@@ -56,6 +56,7 @@ export type Dd2VttExportObject = {
   }>;
   line_of_sight: Point[][];
   portals: Array<{
+    bounds: Point[];
     closed: boolean;
     position: Point;
     rotation: number;
@@ -122,6 +123,7 @@ export async function exportMapDocumentDd2Vtt(
   options: Dd2VttExportOptions = {}
 ): Promise<Dd2VttExportResult> {
   const pixelsPerGrid = Math.max(1, Math.round(document.grid.pixelsPerCell));
+  const walls = document.plan?.walls.length ? document.plan.walls : createWallsFromTiles(document.tiles);
   const object: Dd2VttExportObject = {
     format: 0.3,
     lights: (document.plan?.lights ?? []).map((light) => ({
@@ -130,13 +132,17 @@ export async function exportMapDocumentDd2Vtt(
       position: light.position,
       range: light.radius
     })),
-    line_of_sight: (document.plan?.walls ?? []).map((wall) => [wall.start, wall.end]),
-    portals: (document.plan?.doors ?? []).map((door) => ({
-      closed: !door.isOpen,
-      position: door.position,
-      rotation: door.rotation,
-      width: door.width
-    })),
+    line_of_sight: walls.map((wall) => [wall.start, wall.end]),
+    portals: (document.plan?.doors ?? []).map((door) => {
+      const bounds = createDoorBounds(door);
+      return {
+        bounds,
+        closed: !door.isOpen,
+        position: door.position,
+        rotation: door.rotation,
+        width: door.width
+      };
+    }),
     resolution: {
       image_size: {
         x: document.width * pixelsPerGrid,
@@ -169,6 +175,75 @@ export async function exportMapDocumentDd2Vtt(
   };
 }
 
+function createDoorBounds(door: DoorSegment): Point[] {
+  const halfWidth = door.width / 2;
+  const radians = (door.rotation * Math.PI) / 180;
+  const dx = Math.cos(radians) * halfWidth;
+  const dy = Math.sin(radians) * halfWidth;
+
+  return [
+    {
+      x: roundCoordinate(door.position.x - dx),
+      y: roundCoordinate(door.position.y - dy)
+    },
+    {
+      x: roundCoordinate(door.position.x + dx),
+      y: roundCoordinate(door.position.y + dy)
+    }
+  ];
+}
+
+function createWallsFromTiles(tiles: MapTile[]): WallSegment[] {
+  const wallTiles = new Set(tiles.filter((tile) => tile.kind === "wall").map((tile) => `${tile.x},${tile.y}`));
+  const segments: WallSegment[] = [];
+
+  for (const tile of tiles) {
+    if (tile.kind !== "wall") {
+      continue;
+    }
+
+    const edges = [
+      {
+        adjacent: `${tile.x},${tile.y - 1}`,
+        end: { x: tile.x + 1, y: tile.y },
+        start: { x: tile.x, y: tile.y }
+      },
+      {
+        adjacent: `${tile.x + 1},${tile.y}`,
+        end: { x: tile.x + 1, y: tile.y + 1 },
+        start: { x: tile.x + 1, y: tile.y }
+      },
+      {
+        adjacent: `${tile.x},${tile.y + 1}`,
+        end: { x: tile.x + 1, y: tile.y + 1 },
+        start: { x: tile.x, y: tile.y + 1 }
+      },
+      {
+        adjacent: `${tile.x - 1},${tile.y}`,
+        end: { x: tile.x, y: tile.y + 1 },
+        start: { x: tile.x, y: tile.y }
+      }
+    ];
+
+    for (const edge of edges) {
+      if (wallTiles.has(edge.adjacent)) {
+        continue;
+      }
+
+      segments.push({
+        blocksMovement: true,
+        end: edge.end,
+        id: `tile-wall-${segments.length + 1}`,
+        roomIds: [],
+        start: edge.start,
+        thickness: 1
+      });
+    }
+  }
+
+  return segments;
+}
+
 export async function importDd2VttFile(filePath: string, options: Dd2VttImportOptions = {}): Promise<Dd2VttImportResult> {
   const raw = await readFile(filePath, "utf8");
   return importDd2Vtt(raw, {
@@ -189,7 +264,9 @@ export function importDd2Vtt(input: string | Buffer | unknown, options: Dd2VttIm
   const plan: MapPlan = {
     assetPlacements: [],
     doors,
+    gmNotes: [],
     id: `${documentId}-plan`,
+    initiative: [],
     lights,
     name: `${documentName} Plan`,
     notes: ["Imported from Universal VTT / dd2vtt."],
@@ -351,6 +428,7 @@ function readLights(source: RawDd2Vtt): LightSource[] {
     return [
       {
         color: readHexColor(input.color) ?? "#ffcc88",
+        flicker: false,
         id: `light-${index + 1}`,
         intensity: clamp(readFiniteNumber(input.intensity) ?? 0.75, 0, 1),
         kind: "ambient",
@@ -510,6 +588,10 @@ function samePoint(left: Point, right: Point): boolean {
 
 function distance(left: Point, right: Point): number {
   return Math.hypot(right.x - left.x, right.y - left.y);
+}
+
+function roundCoordinate(value: number): number {
+  return Number(value.toFixed(3));
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {

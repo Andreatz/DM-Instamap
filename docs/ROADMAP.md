@@ -18,6 +18,19 @@ Questo documento serve a:
 2. Identificare cosa manca per renderlo concretamente utile al singolo DM.
 3. Proporre una roadmap di feature priorizzata su 3-6 mesi.
 
+### Aggiornamento implementazione - 2026-05-20
+
+- FASE A completata a livello repo/test automatici.
+- A1: il worker persiste i job in SQLite locale (`~/.dm-instamap/jobs.db`), esegue CLI locali reali via subprocess, supporta cancellazione del processo in corso e salva output/exit code per step.
+- A1: `assets/scan` invoca `pnpm assets:scan`; `references/scan` invoca `pnpm references:scan` e poi `pnpm references:style`; `images/analyze` invoca l'analisi Sharp locale con dimensioni, trasparenza e colori dominanti.
+- A2: l'export raster PNG/WEBP compone `MapDocument`, walls, doors, props e lights, supporta layer separati trasparenti, bundle zip dei layer e qualita WEBP configurabile.
+- A3: l'export dd2vtt produce JSON con immagine base64, walls/lights/portals, bounds espliciti delle porte e fallback line-of-sight dai tile wall quando mancano segmenti plan.
+- Nota verifica manuale: import reali in Foundry/Roll20 restano da fare fuori dai test automatici, usando gli artefatti generati dalla pipeline A.
+- FASE B completata a livello repo/test automatici: il modello dati ora include layer document-level, gruppi asset, note GM ancorate, initiative tracker e luci con flicker.
+- B1/B2: l'editor supporta undo/redo, visibilita/lock/opacita layer, rotazione/scaling/flip asset, cambio layer asset, duplicazione, multi-selezione Ctrl/Shift, marquee selection, selezione asset visibili, group/ungroup e copy/paste locale tra editor.
+- B3/B4: l'editor supporta modifica raggio/colore/intensita/flicker luci, preview fog-of-war grid-based con line-of-sight, note GM ancorate a celle, toggle rapido layer GM-only e initiative tracker minimale.
+- Nota verifica manuale: proiezione al tavolo, import Foundry/Roll20 reali e comportamento con asset library ampia restano da verificare fuori dai test automatici.
+
 ---
 
 ## 1. Roadmap Feature (3-6 mesi, uso personale)

@@ -2,21 +2,43 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DragEvent, PointerEvent, WheelEvent } from "react";
-import type { DoorSegment, LightSource, MapDocument, MapTile, RoomNode, WallSegment } from "@dm-instamap/core";
+import type { DoorSegment, InitiativeEntry, LightSource, MapDocument, MapLayer, MapLayerKind, MapNote, MapTile, RoomNode, WallSegment } from "@dm-instamap/core";
 import { matchAssetGroupsForRoom, type MatchableAssetGroup } from "@dm-instamap/assets/matcher";
 import { autoFurnishMap, type FurnishingAsset, type FurnishingDensity } from "@dm-instamap/generator";
 import {
   addPlacedAsset,
-  deletePlacedAsset,
+  addInitiativeEntry,
+  addMapNote,
+  computeVisibleCells,
+  createPlacedAssetClipboard,
+  deleteInitiativeEntry,
+  deleteMapNote,
+  deletePlacedAssets,
+  duplicatePlacedAssets,
+  ensureEditorLayers,
   findRoomAtCell,
+  groupPlacedAssets,
+  isEditorLayerLocked,
+  isEditorLayerVisible,
   movePlacedAsset,
+  movePlacedAssets,
+  pastePlacedAssetClipboard,
   parseMapDocumentJson,
   selectElementAtCell,
+  selectPlacedAssetsInBounds,
   serializeMapDocument,
+  ungroupPlacedAssets,
+  updateInitiativeEntry,
+  updateLightSource,
+  updateMapLayer,
+  updateMapNote,
   updateDocumentForTool,
+  updatePlacedAssetLayer,
+  updatePlacedAssetTransform,
   type EditorPaletteAsset,
   type EditorSelection,
-  type EditorTool
+  type EditorTool,
+  type PlacedAssetClipboard
 } from "@/lib/map-editor";
 import type { AssetSearchApiResult } from "@/lib/asset-search";
 
@@ -41,16 +63,22 @@ type DragPayload =
 type ExportFormat = "png" | "webp";
 
 const CANVAS_CELL_SIZE = 24;
+const CLIPBOARD_STORAGE_KEY = "dm-instamap-editor-asset-clipboard";
 const MIN_ZOOM = 0.35;
 const MAX_ZOOM = 3;
+const HISTORY_LIMIT = 40;
+const DEFAULT_NOTE_TEXT = "GM note";
 
 export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, projectId }: MapEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [document, setDocument] = useState(initialDocument);
+  const [document, setDocument] = useState(() => ensureEditorLayers(initialDocument));
+  const [undoStack, setUndoStack] = useState<MapDocument[]>([]);
+  const [redoStack, setRedoStack] = useState<MapDocument[]>([]);
   const [editorTool, setEditorTool] = useState<EditorTool>("select");
   const [selectedElement, setSelectedElement] = useState<EditorSelection>(null);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>("room-entrance");
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
   const [hoverCell, setHoverCell] = useState<{ x: number; y: number } | null>(null);
   const [canvasSize, setCanvasSize] = useState({ height: 620, width: 900 });
   const [viewport, setViewport] = useState({ offsetX: 24, offsetY: 24, zoom: 1 });
@@ -58,6 +86,12 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     null
   );
   const [draggingAssetId, setDraggingAssetId] = useState<string | null>(null);
+  const [dragStartCell, setDragStartCell] = useState<{ x: number; y: number } | null>(null);
+  const [marqueeSelection, setMarqueeSelection] = useState<{
+    current: { x: number; y: number };
+    start: { x: number; y: number };
+  } | null>(null);
+  const [fogPreviewEnabled, setFogPreviewEnabled] = useState(true);
   const [furnishingDensity, setFurnishingDensity] = useState<FurnishingDensity>("normal");
   const [exportFormat, setExportFormat] = useState<ExportFormat>("png");
   const [exportIncludeGrid, setExportIncludeGrid] = useState(true);
@@ -65,17 +99,29 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
   const [assetSearchQuery, setAssetSearchQuery] = useState("");
   const [assetSearchResults, setAssetSearchResults] = useState<AssetSearchApiResult[]>([]);
   const [isExporting, setIsExporting] = useState(false);
-  const [jsonText, setJsonText] = useState(() => serializeMapDocument(initialDocument));
+  const [noteDraft, setNoteDraft] = useState(DEFAULT_NOTE_TEXT);
+  const [initiativeDraft, setInitiativeDraft] = useState({
+    hitPoints: "",
+    initiative: "10",
+    name: "",
+    side: "enemy" as InitiativeEntry["side"]
+  });
+  const [jsonText, setJsonText] = useState(() => serializeMapDocument(ensureEditorLayers(initialDocument)));
   const [status, setStatus] = useState("Ready");
   const rooms = document.plan?.rooms.filter((room) => room.kind === "room" || room.kind === "entrance") ?? [];
+  const editorLayers = [...document.layers].sort((left, right) => left.order - right.order);
   const selectedRoom = rooms.find((room) => room.id === selectedRoomId) ?? null;
   const selectedAsset = document.assets.find((asset) => asset.id === selectedAssetId) ?? null;
+  const selectedAssets = document.assets.filter((asset) => selectedAssetIds.includes(asset.id));
   const selectedDoor =
     selectedElement?.type === "door" ? document.plan?.doors.find((door) => door.id === selectedElement.id) ?? null : null;
   const selectedLight =
     selectedElement?.type === "light"
       ? document.plan?.lights.find((light) => light.id === selectedElement.id) ?? null
       : null;
+  const selectedNote =
+    selectedElement?.type === "note" ? document.plan?.gmNotes.find((note) => note.id === selectedElement.id) ?? null : null;
+  const visibleCellKeys = useMemo(() => (fogPreviewEnabled ? computeVisibleCells(document) : []), [document, fogPreviewEnabled]);
   const roomMatches = useMemo(
     () =>
       selectedRoom
@@ -88,6 +134,108 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
         : [],
     [assetGroups, mapTheme, selectedRoom]
   );
+
+  const commitDocument = useCallback(
+    (updater: (current: MapDocument) => MapDocument, message?: string) => {
+      setDocument((current) => {
+        const normalizedCurrent = ensureEditorLayers(current);
+        const next = ensureEditorLayers(updater(normalizedCurrent));
+
+        if (next === current || serializeMapDocument(next) === serializeMapDocument(normalizedCurrent)) {
+          return current;
+        }
+
+        setUndoStack((history) => [...history.slice(-(HISTORY_LIMIT - 1)), normalizedCurrent]);
+        setRedoStack([]);
+
+        if (message) {
+          setStatus(message);
+        }
+
+        return next;
+      });
+    },
+    []
+  );
+
+  const undo = useCallback(() => {
+    setUndoStack((history) => {
+      const previous = history.at(-1);
+
+      if (!previous) {
+        setStatus("Nothing to undo");
+        return history;
+      }
+
+      setRedoStack((redoHistory) => [document, ...redoHistory.slice(0, HISTORY_LIMIT - 1)]);
+      setDocument(previous);
+      setSelectedAssetId(null);
+      setSelectedAssetIds([]);
+      setSelectedElement(null);
+      setStatus("Undo");
+      return history.slice(0, -1);
+    });
+  }, [document]);
+
+  const redo = useCallback(() => {
+    setRedoStack((history) => {
+      const next = history[0];
+
+      if (!next) {
+        setStatus("Nothing to redo");
+        return history;
+      }
+
+      setUndoStack((undoHistory) => [...undoHistory.slice(-(HISTORY_LIMIT - 1)), document]);
+      setDocument(next);
+      setSelectedAssetId(null);
+      setSelectedAssetIds([]);
+      setSelectedElement(null);
+      setStatus("Redo");
+      return history.slice(1);
+    });
+  }, [document]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (isTextInputTarget(event.target)) {
+        return;
+      }
+
+      if (!event.ctrlKey && !event.metaKey && event.key.toLowerCase() === "g") {
+        event.preventDefault();
+        toggleGmLayerVisibility();
+        return;
+      }
+
+      if (!event.ctrlKey && !event.metaKey) {
+        return;
+      }
+
+      if (event.key.toLowerCase() === "z" && !event.shiftKey) {
+        event.preventDefault();
+        undo();
+      }
+
+      if (event.key.toLowerCase() === "y" || (event.key.toLowerCase() === "z" && event.shiftKey)) {
+        event.preventDefault();
+        redo();
+      }
+
+      if (event.key.toLowerCase() === "c") {
+        event.preventDefault();
+        copySelectedAssets();
+      }
+
+      if (event.key.toLowerCase() === "v") {
+        event.preventDefault();
+        pasteAssetClipboard();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [copySelectedAssets, pasteAssetClipboard, redo, undo]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -121,13 +269,32 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       canvasSize,
       document,
       hoverCell,
+      layers: editorLayers,
+      marqueeSelection,
       selectedAssetId,
+      selectedAssetIds,
       selectedDoor,
       selectedLight,
+      selectedNote,
       selectedRoomId,
+      visibleCellKeys,
       viewport
     });
-  }, [canvasSize, document, hoverCell, selectedAssetId, selectedDoor, selectedLight, selectedRoomId, viewport]);
+  }, [
+    canvasSize,
+    document,
+    editorLayers,
+    hoverCell,
+    marqueeSelection,
+    selectedAssetId,
+    selectedAssetIds,
+    selectedDoor,
+    selectedLight,
+    selectedNote,
+    selectedRoomId,
+    visibleCellKeys,
+    viewport
+  ]);
 
   const screenToCell = useCallback(
     (clientX: number, clientY: number) => {
@@ -174,23 +341,50 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
 
     if (editorTool === "select") {
       const selection = selectElementAtCell(document, cell);
-      setSelectedElement(selection);
-      setSelectedAssetId(selection?.type === "asset" ? selection.id : null);
-      setSelectedRoomId(selection?.type === "room" ? selection.id : findRoomAtCell(document, cell)?.id ?? null);
+      const visibleSelection = selection && isSelectionVisible(document, selection) ? selection : null;
+      setSelectedElement(visibleSelection);
+      if (visibleSelection?.type === "asset") {
+        const nextAssetIds =
+          event.shiftKey || event.ctrlKey || event.metaKey
+            ? toggleSelection(selectedAssetIds, visibleSelection.id)
+            : [visibleSelection.id];
+        setSelectedAssetIds(nextAssetIds);
+        setSelectedAssetId(nextAssetIds.at(-1) ?? null);
+        setSelectedElement(nextAssetIds.length > 0 ? { id: nextAssetIds.at(-1) ?? visibleSelection.id, type: "asset" } : null);
+      } else {
+        setSelectedAssetIds([]);
+        setSelectedAssetId(null);
+      }
+      setSelectedRoomId(visibleSelection?.type === "room" ? visibleSelection.id : findRoomAtCell(document, cell)?.id ?? null);
 
-      if (selection?.type === "asset") {
+      if (visibleSelection?.type === "asset") {
+        const asset = document.assets.find((candidate) => candidate.id === visibleSelection.id);
+        if (asset && isEditorLayerLocked(document, assetToLayerKind(asset.layer))) {
+          setStatus("Selected asset layer is locked");
+          return;
+        }
         event.currentTarget.setPointerCapture(event.pointerId);
-        setDraggingAssetId(selection.id);
+        setDraggingAssetId(visibleSelection.id);
+        setDragStartCell(cell);
         setStatus("Drag selected asset to move it");
+      } else if (!visibleSelection) {
+        event.currentTarget.setPointerCapture(event.pointerId);
+        setMarqueeSelection({ current: cell, start: cell });
+        setStatus("Selecting assets");
       }
       return;
     }
 
-    setDocument((current) => updateDocumentForTool(current, editorTool, cell));
+    if (isEditorLayerLocked(document, toolToLayerKind(editorTool))) {
+      setStatus(`${layerLabel(toolToLayerKind(editorTool))} layer is locked`);
+      return;
+    }
+
+    commitDocument((current) => updateDocumentForTool(current, editorTool, cell), createToolStatus(editorTool, cell));
     setSelectedElement(null);
     setSelectedAssetId(null);
+    setSelectedAssetIds([]);
     setSelectedRoomId(findRoomAtCell(document, cell)?.id ?? null);
-    setStatus(createToolStatus(editorTool, cell));
   }
 
   function handleCanvasPointerMove(event: PointerEvent<HTMLCanvasElement>) {
@@ -207,20 +401,50 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     }
 
     const cell = screenToCell(event.clientX, event.clientY);
+    if (cell && marqueeSelection) {
+      setMarqueeSelection((current) => (current ? { ...current, current: cell } : null));
+    }
     setHoverCell(cell);
   }
 
   function handleCanvasPointerUp(event: PointerEvent<HTMLCanvasElement>) {
     const cell = screenToCell(event.clientX, event.clientY);
 
-    if (draggingAssetId && cell) {
-      setDocument((current) => movePlacedAsset(current, draggingAssetId, cell));
+    if (marqueeSelection) {
+      const bounds = createSelectionBounds(marqueeSelection.start, marqueeSelection.current);
+      const assetIds = selectPlacedAssetsInBounds(document, bounds).filter((assetId) => {
+        const asset = document.assets.find((candidate) => candidate.id === assetId);
+        return asset ? isEditorLayerVisible(document, assetToLayerKind(asset.layer)) : false;
+      });
+      const lastAssetId = assetIds.at(-1) ?? null;
+      setSelectedAssetIds(assetIds);
+      setSelectedAssetId(lastAssetId);
+      setSelectedElement(lastAssetId ? { id: lastAssetId, type: "asset" } : null);
+      setStatus(`Selected ${assetIds.length} asset${assetIds.length === 1 ? "" : "s"}`);
+    } else if (draggingAssetId && cell) {
+      const asset = document.assets.find((candidate) => candidate.id === draggingAssetId);
+      if (asset && isEditorLayerLocked(document, assetToLayerKind(asset.layer))) {
+        setStatus(`${layerLabel(assetToLayerKind(asset.layer))} layer is locked`);
+      } else {
+        const currentSelection = selectedAssetIds.includes(draggingAssetId) ? selectedAssetIds : [draggingAssetId];
+        const delta = dragStartCell ? { x: cell.x - dragStartCell.x, y: cell.y - dragStartCell.y } : null;
+        if (delta && currentSelection.length > 1) {
+          commitDocument(
+            (current) => movePlacedAssets(current, currentSelection, delta),
+            `Moved ${currentSelection.length} assets by ${delta.x}, ${delta.y}`
+          );
+        } else {
+          commitDocument((current) => movePlacedAsset(current, draggingAssetId, cell), `Moved asset to ${cell.x}, ${cell.y}`);
+        }
+      }
       setSelectedAssetId(draggingAssetId);
+      setSelectedAssetIds((current) => (current.includes(draggingAssetId) ? current : [draggingAssetId]));
       setSelectedElement({ id: draggingAssetId, type: "asset" });
-      setStatus(`Moved asset to ${cell.x}, ${cell.y}`);
     }
 
     setDraggingAssetId(null);
+    setDragStartCell(null);
+    setMarqueeSelection(null);
     setPanStart(null);
   }
 
@@ -253,14 +477,26 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
         return;
       }
 
-      setDocument((current) => addPlacedAsset(current, paletteAsset, { x, y }));
-      setStatus(`Placed ${paletteAsset.name}`);
+      const layerKind = paletteAsset.kind === "light" ? "lighting" : "props";
+
+      if (isEditorLayerLocked(document, layerKind)) {
+        setStatus(`${layerLabel(layerKind)} layer is locked`);
+        return;
+      }
+
+      commitDocument((current) => addPlacedAsset(current, paletteAsset, { x, y }), `Placed ${paletteAsset.name}`);
       return;
     }
 
-    setDocument((current) => movePlacedAsset(current, payload.placedAssetId, { x, y }));
+    const asset = document.assets.find((candidate) => candidate.id === payload.placedAssetId);
+    if (asset && isEditorLayerLocked(document, assetToLayerKind(asset.layer))) {
+      setStatus(`${layerLabel(assetToLayerKind(asset.layer))} layer is locked`);
+      return;
+    }
+
+    commitDocument((current) => movePlacedAsset(current, payload.placedAssetId, { x, y }), "Moved asset");
     setSelectedAssetId(payload.placedAssetId);
-    setStatus("Moved asset");
+    setSelectedAssetIds([payload.placedAssetId]);
   }
 
   function handleCanvasDrop(event: DragEvent<HTMLCanvasElement>) {
@@ -308,7 +544,10 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     try {
       const parsed = parseMapDocumentJson(jsonText);
       setDocument(parsed);
+      setUndoStack([]);
+      setRedoStack([]);
       setSelectedAssetId(null);
+      setSelectedAssetIds([]);
       setSelectedRoomId(parsed.plan?.rooms.find((room) => room.kind === "entrance")?.id ?? null);
       setStatus("Loaded MapDocument JSON");
     } catch (error) {
@@ -326,17 +565,251 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
 
     setJsonText(saved);
     setDocument(parseMapDocumentJson(saved));
+    setUndoStack([]);
+    setRedoStack([]);
+    setSelectedAssetId(null);
+    setSelectedAssetIds([]);
     setStatus("Loaded local saved document");
   }
 
   function deleteSelectedAsset() {
+    const assetIds = selectedAssetIds.length > 0 ? selectedAssetIds : selectedAssetId ? [selectedAssetId] : [];
+
+    if (assetIds.length === 0) {
+      return;
+    }
+
+    if (hasLockedSelectedAsset(document, selectedAssets, assetIds)) {
+      setStatus("One or more selected asset layers are locked");
+      return;
+    }
+
+    commitDocument(
+      (current) => deletePlacedAssets(current, assetIds),
+      `Deleted ${assetIds.length} selected asset${assetIds.length === 1 ? "" : "s"}`
+    );
+    setSelectedAssetId(null);
+    setSelectedAssetIds([]);
+  }
+
+  function duplicateSelectedAsset() {
+    const assetIds = selectedAssetIds.length > 0 ? selectedAssetIds : selectedAssetId ? [selectedAssetId] : [];
+
+    if (assetIds.length === 0) {
+      return;
+    }
+
+    if (hasLockedSelectedAsset(document, selectedAssets, assetIds)) {
+      setStatus("One or more selected asset layers are locked");
+      return;
+    }
+
+    commitDocument(
+      (current) => duplicatePlacedAssets(current, assetIds),
+      `Duplicated ${assetIds.length} selected asset${assetIds.length === 1 ? "" : "s"}`
+    );
+  }
+
+  function groupSelectedAssets() {
+    const assetIds = selectedAssetIds.length > 0 ? selectedAssetIds : selectedAssetId ? [selectedAssetId] : [];
+
+    if (assetIds.length < 2) {
+      setStatus("Select at least two assets to group");
+      return;
+    }
+
+    if (hasLockedSelectedAsset(document, selectedAssets, assetIds)) {
+      setStatus("One or more selected asset layers are locked");
+      return;
+    }
+
+    const grouped = groupPlacedAssets(document, assetIds);
+    commitDocument(() => grouped.document, `Grouped ${assetIds.length} assets`);
+  }
+
+  function ungroupSelectedAssets() {
+    const assetIds = selectedAssetIds.length > 0 ? selectedAssetIds : selectedAssetId ? [selectedAssetId] : [];
+
+    if (assetIds.length === 0) {
+      return;
+    }
+
+    if (hasLockedSelectedAsset(document, selectedAssets, assetIds)) {
+      setStatus("One or more selected asset layers are locked");
+      return;
+    }
+
+    commitDocument((current) => ungroupPlacedAssets(current, assetIds), "Ungrouped selected assets");
+  }
+
+  function copySelectedAssets() {
+    const assetIds = selectedAssetIds.length > 0 ? selectedAssetIds : selectedAssetId ? [selectedAssetId] : [];
+
+    if (assetIds.length === 0) {
+      return;
+    }
+
+    const clipboard = createPlacedAssetClipboard(document, assetIds);
+    window.localStorage.setItem(CLIPBOARD_STORAGE_KEY, JSON.stringify(clipboard));
+    setStatus(`Copied ${clipboard.assets.length} selected asset${clipboard.assets.length === 1 ? "" : "s"}`);
+  }
+
+  function pasteAssetClipboard() {
+    const rawClipboard = window.localStorage.getItem(CLIPBOARD_STORAGE_KEY);
+
+    if (!rawClipboard) {
+      setStatus("No copied assets found");
+      return;
+    }
+
+    try {
+      const clipboard = JSON.parse(rawClipboard) as PlacedAssetClipboard;
+      const result = pastePlacedAssetClipboard(document, clipboard);
+      const lastPastedId = result.pastedIds.at(-1) ?? null;
+      commitDocument(() => result.document, `Pasted ${result.pastedIds.length} asset${result.pastedIds.length === 1 ? "" : "s"}`);
+      setSelectedAssetIds(result.pastedIds);
+      setSelectedAssetId(lastPastedId);
+      setSelectedElement(lastPastedId ? { id: lastPastedId, type: "asset" } : null);
+    } catch {
+      setStatus("Copied asset data is not valid");
+    }
+  }
+
+  function selectAllVisibleAssets() {
+    const assetIds = document.assets
+      .filter((asset) => isEditorLayerVisible(document, assetToLayerKind(asset.layer)))
+      .map((asset) => asset.id);
+    const lastAssetId = assetIds.at(-1) ?? null;
+
+    setSelectedAssetIds(assetIds);
+    setSelectedAssetId(lastAssetId);
+    setSelectedElement(lastAssetId ? { id: lastAssetId, type: "asset" } : null);
+    setStatus(`Selected ${assetIds.length} visible asset${assetIds.length === 1 ? "" : "s"}`);
+  }
+
+  function clearAssetSelection() {
+    setSelectedAssetIds([]);
+    setSelectedAssetId(null);
+    setSelectedElement(null);
+    setStatus("Asset selection cleared");
+  }
+
+  function updateSelectedAssetTransform(transform: Parameters<typeof updatePlacedAssetTransform>[2]) {
     if (!selectedAssetId) {
       return;
     }
 
-    setDocument((current) => deletePlacedAsset(current, selectedAssetId));
-    setSelectedAssetId(null);
-    setStatus("Deleted asset");
+    if (selectedAsset && isEditorLayerLocked(document, assetToLayerKind(selectedAsset.layer))) {
+      setStatus(`${layerLabel(assetToLayerKind(selectedAsset.layer))} layer is locked`);
+      return;
+    }
+
+    commitDocument((current) => updatePlacedAssetTransform(current, selectedAssetId, transform), "Updated asset transform");
+  }
+
+  function updateSelectedAssetLayer(layer: MapDocument["assets"][number]["layer"]) {
+    if (!selectedAssetId) {
+      return;
+    }
+
+    if (selectedAsset && isEditorLayerLocked(document, assetToLayerKind(selectedAsset.layer))) {
+      setStatus(`${layerLabel(assetToLayerKind(selectedAsset.layer))} layer is locked`);
+      return;
+    }
+
+    commitDocument((current) => updatePlacedAssetLayer(current, selectedAssetId, layer), "Moved asset to layer");
+  }
+
+  function updateLayer(layerKind: MapLayerKind, patch: Partial<Pick<MapLayer, "locked" | "opacity" | "visible">>) {
+    commitDocument((current) => updateMapLayer(current, layerKind, patch), "Updated layer");
+  }
+
+  function toggleGmLayerVisibility() {
+    updateLayer("gm-only", { visible: !isEditorLayerVisible(document, "gm-only") });
+  }
+
+  function updateSelectedLight(patch: Parameters<typeof updateLightSource>[2]) {
+    if (!selectedLight) {
+      return;
+    }
+
+    if (isEditorLayerLocked(document, "lighting")) {
+      setStatus("Lighting layer is locked");
+      return;
+    }
+
+    commitDocument((current) => updateLightSource(current, selectedLight.id, patch), "Updated light");
+  }
+
+  function addNoteAtHoverCell() {
+    const position = hoverCell ?? { x: 0, y: 0 };
+
+    if (isEditorLayerLocked(document, "notes")) {
+      setStatus("Notes layer is locked");
+      return;
+    }
+
+    commitDocument((current) => addMapNote(current, position, noteDraft), `Added note at ${position.x}, ${position.y}`);
+    setNoteDraft(DEFAULT_NOTE_TEXT);
+  }
+
+  function updateSelectedNote(patch: Partial<Pick<MapNote, "text" | "title">>) {
+    if (!selectedNote) {
+      return;
+    }
+
+    if (isEditorLayerLocked(document, "notes")) {
+      setStatus("Notes layer is locked");
+      return;
+    }
+
+    commitDocument((current) => updateMapNote(current, selectedNote.id, patch), "Updated note");
+  }
+
+  function deleteSelectedNote() {
+    if (!selectedNote) {
+      return;
+    }
+
+    if (isEditorLayerLocked(document, "notes")) {
+      setStatus("Notes layer is locked");
+      return;
+    }
+
+    commitDocument((current) => deleteMapNote(current, selectedNote.id), "Deleted note");
+    setSelectedElement(null);
+  }
+
+  function addInitiativeDraft() {
+    const name = initiativeDraft.name.trim();
+
+    if (!name) {
+      setStatus("Initiative entry needs a name");
+      return;
+    }
+
+    commitDocument(
+      (current) =>
+        addInitiativeEntry(current, {
+          hitPoints: parseOptionalInteger(initiativeDraft.hitPoints),
+          initiative: parseInteger(initiativeDraft.initiative, 10),
+          name,
+          side: initiativeDraft.side
+        }),
+      `Added ${name} to initiative`
+    );
+    setInitiativeDraft({ hitPoints: "", initiative: "10", name: "", side: "enemy" });
+  }
+
+  function damageInitiativeEntry(entry: InitiativeEntry, amount: number) {
+    commitDocument(
+      (current) => updateInitiativeEntry(current, entry.id, { hitPoints: Math.max(0, (entry.hitPoints ?? 0) - amount) }),
+      `Updated ${entry.name}`
+    );
+  }
+
+  function removeInitiativeEntry(entry: InitiativeEntry) {
+    commitDocument((current) => deleteInitiativeEntry(current, entry.id), `Removed ${entry.name}`);
   }
 
   function handleAutoFurnish() {
@@ -348,9 +821,9 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       styleTags: [mapTheme]
     });
 
-    setDocument(result.document);
+    commitDocument(() => ensureEditorLayers(result.document), `Auto-furnished ${result.summary.placedCount} assets, skipped ${result.summary.skippedCount}`);
     setSelectedAssetId(null);
-    setStatus(`Auto-furnished ${result.summary.placedCount} assets, skipped ${result.summary.skippedCount}`);
+    setSelectedAssetIds([]);
   }
 
   async function handleExport() {
@@ -467,7 +940,8 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
               ["paint-wall", "Wall"],
               ["paint-empty", "Erase"],
               ["door", "Door"],
-              ["light", "Light"]
+              ["light", "Light"],
+              ["note", "Note"]
             ].map(([tool, label]) => (
               <button
                 className={editorTool === tool ? "active" : ""}
@@ -480,6 +954,12 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
             ))}
           </div>
           <div className="editor-viewport-actions">
+            <button disabled={undoStack.length === 0} onClick={undo} type="button">
+              Undo
+            </button>
+            <button disabled={redoStack.length === 0} onClick={redo} type="button">
+              Redo
+            </button>
             <button
               onClick={() =>
                 setViewport((current) => ({ ...current, zoom: clamp(current.zoom - 0.15, MIN_ZOOM, MAX_ZOOM) }))
@@ -521,6 +1001,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
         </div>
         <footer className="editor-canvas-status">
           <span>Tool: {formatToolName(editorTool)}</span>
+          <span>Undo {undoStack.length} / Redo {redoStack.length}</span>
           <span>{hoverCell ? `Cell ${hoverCell.x}, ${hoverCell.y}` : "Cell -"}</span>
           <span>{document.width} x {document.height}</span>
         </footer>
@@ -538,12 +1019,24 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
             <dd>{selectedAsset?.assetId ?? "none"}</dd>
           </div>
           <div>
+            <dt>Selected Assets</dt>
+            <dd>{selectedAssetIds.length}</dd>
+          </div>
+          <div>
+            <dt>Asset Layer</dt>
+            <dd>{selectedAsset ? layerLabel(assetToLayerKind(selectedAsset.layer)) : "none"}</dd>
+          </div>
+          <div>
             <dt>Selected Door</dt>
             <dd>{selectedDoor?.id ?? "none"}</dd>
           </div>
           <div>
             <dt>Selected Light</dt>
             <dd>{selectedLight?.id ?? "none"}</dd>
+          </div>
+          <div>
+            <dt>Selected Note</dt>
+            <dd>{selectedNote?.title ?? "none"}</dd>
           </div>
           <div>
             <dt>Doors</dt>
@@ -554,6 +1047,291 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
             <dd>{document.plan?.walls.length ?? 0}</dd>
           </div>
         </dl>
+
+        <section className="detail-block editor-layer-controls">
+          <h3>Layers</h3>
+          <div className="editor-layer-list">
+            {editorLayers.map((layer) => (
+              <article key={layer.id}>
+                <header>
+                  <strong>{layer.name}</strong>
+                  <span>{Math.round(layer.opacity * 100)}%</span>
+                </header>
+                <div className="editor-layer-row">
+                  <label className="editor-checkbox">
+                    <input
+                      checked={layer.visible}
+                      onChange={(event) => updateLayer(layer.kind, { visible: event.target.checked })}
+                      type="checkbox"
+                    />
+                    <span>Visible</span>
+                  </label>
+                  <label className="editor-checkbox">
+                    <input
+                      checked={layer.locked}
+                      onChange={(event) => updateLayer(layer.kind, { locked: event.target.checked })}
+                      type="checkbox"
+                    />
+                    <span>Lock</span>
+                  </label>
+                </div>
+                <input
+                  aria-label={`${layer.name} opacity`}
+                  max={1}
+                  min={0}
+                  onChange={(event) => updateLayer(layer.kind, { opacity: Number(event.target.value) })}
+                  step={0.05}
+                  type="range"
+                  value={layer.opacity}
+                />
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {selectedAsset ? (
+          <section className="detail-block editor-transform-controls">
+            <h3>Asset Transform</h3>
+            <label>
+              <span>Layer</span>
+              <select
+                onChange={(event) => updateSelectedAssetLayer(event.target.value as MapDocument["assets"][number]["layer"])}
+                value={selectedAsset.layer}
+              >
+                <option value="floor">Floor</option>
+                <option value="wall">Wall</option>
+                <option value="object">Props</option>
+                <option value="lighting">Lighting</option>
+                <option value="annotation">GM Only</option>
+              </select>
+            </label>
+            <label>
+              <span>Rotation</span>
+              <input
+                max={359}
+                min={0}
+                onChange={(event) => updateSelectedAssetTransform({ rotation: Number(event.target.value) })}
+                step={1}
+                type="number"
+                value={Math.round(selectedAsset.rotation)}
+              />
+            </label>
+            <div className="editor-action-row">
+              <button
+                onClick={() => updateSelectedAssetTransform({ rotation: selectedAsset.rotation - 15 })}
+                type="button"
+              >
+                Rotate -15
+              </button>
+              <button
+                onClick={() => updateSelectedAssetTransform({ rotation: selectedAsset.rotation + 15 })}
+                type="button"
+              >
+                Rotate +15
+              </button>
+            </div>
+            <label>
+              <span>Scale</span>
+              <input
+                max={4}
+                min={0.25}
+                onChange={(event) => updateSelectedAssetTransform({ scale: Number(event.target.value) })}
+                step={0.05}
+                type="number"
+                value={selectedAsset.scale}
+              />
+            </label>
+            <div className="editor-action-row">
+              <button onClick={() => updateSelectedAssetTransform({ flipX: !selectedAsset.flipX })} type="button">
+                Flip H
+              </button>
+              <button onClick={() => updateSelectedAssetTransform({ flipY: !selectedAsset.flipY })} type="button">
+                Flip V
+              </button>
+              <button onClick={duplicateSelectedAsset} type="button">
+                Duplicate
+              </button>
+            </div>
+          </section>
+        ) : null}
+
+        <section className="detail-block editor-selection-controls">
+          <h3>Asset Selection</h3>
+          <div className="editor-action-row">
+            <button onClick={selectAllVisibleAssets} type="button">
+              Select Visible
+            </button>
+            <button disabled={selectedAssetIds.length === 0} onClick={clearAssetSelection} type="button">
+              Clear
+            </button>
+          </div>
+          <div className="editor-action-row">
+            <button disabled={selectedAssetIds.length === 0 && !selectedAssetId} onClick={copySelectedAssets} type="button">
+              Copy
+            </button>
+            <button onClick={pasteAssetClipboard} type="button">
+              Paste
+            </button>
+          </div>
+          <div className="editor-action-row">
+            <button disabled={selectedAssetIds.length < 2} onClick={groupSelectedAssets} type="button">
+              Group
+            </button>
+            <button disabled={selectedAssetIds.length === 0 && !selectedAssetId} onClick={ungroupSelectedAssets} type="button">
+              Ungroup
+            </button>
+          </div>
+        </section>
+
+        <section className="detail-block editor-light-controls">
+          <h3>Lighting Preview</h3>
+          <label className="editor-checkbox">
+            <input
+              checked={fogPreviewEnabled}
+              onChange={(event) => setFogPreviewEnabled(event.target.checked)}
+              type="checkbox"
+            />
+            <span>Fog Preview</span>
+          </label>
+          {selectedLight ? (
+            <>
+              <label>
+                <span>Radius</span>
+                <input
+                  max={20}
+                  min={1}
+                  onChange={(event) => updateSelectedLight({ radius: Number(event.target.value) })}
+                  step={0.5}
+                  type="number"
+                  value={selectedLight.radius}
+                />
+              </label>
+              <label>
+                <span>Intensity</span>
+                <input
+                  max={1}
+                  min={0}
+                  onChange={(event) => updateSelectedLight({ intensity: Number(event.target.value) })}
+                  step={0.05}
+                  type="number"
+                  value={selectedLight.intensity}
+                />
+              </label>
+              <label>
+                <span>Color</span>
+                <input
+                  onChange={(event) => updateSelectedLight({ color: event.target.value })}
+                  type="color"
+                  value={selectedLight.color}
+                />
+              </label>
+              <label className="editor-checkbox">
+                <input
+                  checked={selectedLight.flicker}
+                  onChange={(event) => updateSelectedLight({ flicker: event.target.checked })}
+                  type="checkbox"
+                />
+                <span>Flicker</span>
+              </label>
+            </>
+          ) : (
+            <p>{document.plan?.lights.length ?? 0} lights on this map.</p>
+          )}
+        </section>
+
+        <section className="detail-block editor-note-controls">
+          <h3>GM Notes</h3>
+          <label>
+            <span>Draft</span>
+            <textarea onChange={(event) => setNoteDraft(event.target.value)} value={noteDraft} />
+          </label>
+          <button onClick={addNoteAtHoverCell} type="button">
+            Add Note
+          </button>
+          {selectedNote ? (
+            <article className="editor-note-card">
+              <input
+                aria-label="Note title"
+                onChange={(event) => updateSelectedNote({ title: event.target.value })}
+                value={selectedNote.title}
+              />
+              <textarea onChange={(event) => updateSelectedNote({ text: event.target.value })} value={selectedNote.text} />
+              <button onClick={deleteSelectedNote} type="button">
+                Delete Note
+              </button>
+            </article>
+          ) : null}
+          <div className="editor-note-list">
+            {(document.plan?.gmNotes ?? []).map((note) => (
+              <button
+                className={selectedNote?.id === note.id ? "active" : ""}
+                key={note.id}
+                onClick={() => setSelectedElement({ id: note.id, type: "note" })}
+                type="button"
+              >
+                {note.title}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="detail-block editor-initiative-controls">
+          <h3>Initiative</h3>
+          <div className="editor-initiative-form">
+            <input
+              aria-label="Initiative name"
+              onChange={(event) => setInitiativeDraft((current) => ({ ...current, name: event.target.value }))}
+              placeholder="Name"
+              value={initiativeDraft.name}
+            />
+            <input
+              aria-label="Initiative value"
+              onChange={(event) => setInitiativeDraft((current) => ({ ...current, initiative: event.target.value }))}
+              type="number"
+              value={initiativeDraft.initiative}
+            />
+            <input
+              aria-label="Hit points"
+              onChange={(event) => setInitiativeDraft((current) => ({ ...current, hitPoints: event.target.value }))}
+              placeholder="HP"
+              type="number"
+              value={initiativeDraft.hitPoints}
+            />
+            <select
+              aria-label="Side"
+              onChange={(event) =>
+                setInitiativeDraft((current) => ({ ...current, side: event.target.value as InitiativeEntry["side"] }))
+              }
+              value={initiativeDraft.side}
+            >
+              <option value="enemy">Enemy</option>
+              <option value="player">Player</option>
+              <option value="neutral">Neutral</option>
+            </select>
+          </div>
+          <button onClick={addInitiativeDraft} type="button">
+            Add Turn
+          </button>
+          <div className="editor-initiative-list">
+            {(document.plan?.initiative ?? []).map((entry) => (
+              <article key={entry.id}>
+                <strong>{entry.initiative} - {entry.name}</strong>
+                <span>{entry.side}{entry.hitPoints === undefined ? "" : ` / ${entry.hitPoints} HP`}</span>
+                <div className="editor-action-row">
+                  <button onClick={() => damageInitiativeEntry(entry, 1)} type="button">
+                    -1 HP
+                  </button>
+                  <button onClick={() => damageInitiativeEntry(entry, 5)} type="button">
+                    -5 HP
+                  </button>
+                  <button onClick={() => removeInitiativeEntry(entry)} type="button">
+                    Remove
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
 
         <section className="detail-block asset-match-debug">
           <h3>Room Asset Matches</h3>
@@ -623,11 +1401,11 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
 
         <button
           className="save-correction"
-          disabled={!selectedAssetId}
+          disabled={selectedAssetIds.length === 0 && !selectedAssetId}
           onClick={deleteSelectedAsset}
           type="button"
         >
-          Delete Selected Asset
+          Delete Selected Asset{selectedAssetIds.length > 1 ? "s" : ""}
         </button>
 
         <section className="detail-block editor-furnish-controls">
@@ -816,10 +1594,15 @@ function drawMapCanvas(
     canvasSize: { height: number; width: number };
     document: MapDocument;
     hoverCell: { x: number; y: number } | null;
+    layers: MapLayer[];
+    marqueeSelection: { current: { x: number; y: number }; start: { x: number; y: number } } | null;
     selectedAssetId: string | null;
+    selectedAssetIds: string[];
     selectedDoor: DoorSegment | null;
     selectedLight: LightSource | null;
+    selectedNote: MapNote | null;
     selectedRoomId: string | null;
+    visibleCellKeys: string[];
     viewport: { offsetX: number; offsetY: number; zoom: number };
   }
 ) {
@@ -829,8 +1612,22 @@ function drawMapCanvas(
     return;
   }
 
-  const { document, hoverCell, selectedAssetId, selectedDoor, selectedLight, selectedRoomId, viewport } = input;
+  const {
+    document,
+    hoverCell,
+    layers,
+    marqueeSelection,
+    selectedAssetId,
+    selectedAssetIds,
+    selectedDoor,
+    selectedLight,
+    selectedNote,
+    selectedRoomId,
+    visibleCellKeys,
+    viewport
+  } = input;
   const tilesByCell = createTileLookup(document.tiles);
+  const layerState = createLayerState(layers);
 
   context.clearRect(0, 0, input.canvasSize.width, input.canvasSize.height);
   context.fillStyle = "#080a0b";
@@ -840,20 +1637,47 @@ function drawMapCanvas(
   context.translate(viewport.offsetX, viewport.offsetY);
   context.scale(viewport.zoom, viewport.zoom);
 
-  for (let y = 0; y < document.height; y += 1) {
-    for (let x = 0; x < document.width; x += 1) {
-      const tile = tilesByCell.get(cellKey(x, y));
-      context.fillStyle = getTileColor(tile?.kind ?? "empty");
-      context.fillRect(x * CANVAS_CELL_SIZE, y * CANVAS_CELL_SIZE, CANVAS_CELL_SIZE, CANVAS_CELL_SIZE);
+  drawLayer(context, layerState, "terrain", () => {
+    for (let y = 0; y < document.height; y += 1) {
+      for (let x = 0; x < document.width; x += 1) {
+        const tile = tilesByCell.get(cellKey(x, y));
+        const kind = tile?.kind ?? "empty";
+
+        if (kind === "wall" || kind === "door") {
+          continue;
+        }
+
+        context.fillStyle = getTileColor(kind);
+        context.fillRect(x * CANVAS_CELL_SIZE, y * CANVAS_CELL_SIZE, CANVAS_CELL_SIZE, CANVAS_CELL_SIZE);
+      }
     }
-  }
+  });
+
+  drawLayer(context, layerState, "walls", () => {
+    for (let y = 0; y < document.height; y += 1) {
+      for (let x = 0; x < document.width; x += 1) {
+        const tile = tilesByCell.get(cellKey(x, y));
+
+        if (tile?.kind !== "wall" && tile?.kind !== "door") {
+          continue;
+        }
+
+        context.fillStyle = getTileColor(tile.kind);
+        context.fillRect(x * CANVAS_CELL_SIZE, y * CANVAS_CELL_SIZE, CANVAS_CELL_SIZE, CANVAS_CELL_SIZE);
+      }
+    }
+  });
 
   drawGrid(context, document, viewport.zoom);
-  drawRooms(context, document.plan?.rooms ?? [], selectedRoomId);
-  drawWalls(context, document.plan?.walls ?? []);
-  drawDoors(context, document.plan?.doors ?? [], selectedDoor?.id ?? null);
-  drawLights(context, document.plan?.lights ?? [], selectedLight?.id ?? null);
-  drawPlacedAssets(context, document.assets, selectedAssetId);
+  drawLayer(context, layerState, "notes", () => drawRooms(context, document.plan?.rooms ?? [], selectedRoomId));
+  drawLayer(context, layerState, "walls", () => {
+    drawWalls(context, document.plan?.walls ?? []);
+    drawDoors(context, document.plan?.doors ?? [], selectedDoor?.id ?? null);
+  });
+  drawLayer(context, layerState, "lighting", () => drawLights(context, document.plan?.lights ?? [], selectedLight?.id ?? null));
+  drawPlacedAssets(context, document.assets, selectedAssetId, selectedAssetIds, layerState);
+  drawLayer(context, layerState, "notes", () => drawNotes(context, document.plan?.gmNotes ?? [], selectedNote?.id ?? null));
+  drawLayer(context, layerState, "lighting", () => drawFogPreview(context, document, visibleCellKeys));
 
   if (hoverCell) {
     context.strokeStyle = "rgba(244, 239, 231, 0.85)";
@@ -864,6 +1688,20 @@ function drawMapCanvas(
       CANVAS_CELL_SIZE - 2,
       CANVAS_CELL_SIZE - 2
     );
+  }
+
+  if (marqueeSelection) {
+    const bounds = createSelectionBounds(marqueeSelection.start, marqueeSelection.current);
+    context.strokeStyle = "rgba(215, 164, 71, 0.95)";
+    context.lineWidth = 2 / viewport.zoom;
+    context.setLineDash([6 / viewport.zoom, 4 / viewport.zoom]);
+    context.strokeRect(
+      bounds.minX * CANVAS_CELL_SIZE,
+      bounds.minY * CANVAS_CELL_SIZE,
+      (bounds.maxX - bounds.minX + 1) * CANVAS_CELL_SIZE,
+      (bounds.maxY - bounds.minY + 1) * CANVAS_CELL_SIZE
+    );
+    context.setLineDash([]);
   }
 
   context.restore();
@@ -934,6 +1772,7 @@ function drawLights(context: CanvasRenderingContext2D, lights: LightSource[], se
   for (const light of lights) {
     const x = light.position.x * CANVAS_CELL_SIZE;
     const y = light.position.y * CANVAS_CELL_SIZE;
+    const flickerScale = light.flicker ? 0.88 : 1;
     context.beginPath();
     context.fillStyle = light.id === selectedLightId ? "#f4efe7" : light.color;
     context.arc(x, y, CANVAS_CELL_SIZE * 0.28, 0, Math.PI * 2);
@@ -941,19 +1780,79 @@ function drawLights(context: CanvasRenderingContext2D, lights: LightSource[], se
     context.strokeStyle = "rgba(215, 164, 71, 0.25)";
     context.lineWidth = 1.5;
     context.beginPath();
-    context.arc(x, y, light.radius * CANVAS_CELL_SIZE, 0, Math.PI * 2);
+    context.arc(x, y, light.radius * CANVAS_CELL_SIZE * flickerScale, 0, Math.PI * 2);
     context.stroke();
   }
 }
 
-function drawPlacedAssets(context: CanvasRenderingContext2D, assets: MapDocument["assets"], selectedAssetId: string | null) {
+function drawNotes(context: CanvasRenderingContext2D, notes: MapNote[], selectedNoteId: string | null) {
+  for (const note of notes) {
+    const x = (note.position.x + 0.5) * CANVAS_CELL_SIZE;
+    const y = (note.position.y + 0.5) * CANVAS_CELL_SIZE;
+    context.save();
+    context.translate(x, y);
+    context.fillStyle = note.id === selectedNoteId ? "#f4efe7" : "#d7a447";
+    context.strokeStyle = "#5a3c18";
+    context.lineWidth = 1.5;
+    context.beginPath();
+    context.moveTo(0, -8);
+    context.lineTo(8, 6);
+    context.lineTo(-8, 6);
+    context.closePath();
+    context.fill();
+    context.stroke();
+    context.restore();
+  }
+}
+
+function drawFogPreview(context: CanvasRenderingContext2D, document: MapDocument, visibleCellKeys: string[]) {
+  if (visibleCellKeys.length === 0) {
+    return;
+  }
+
+  const visibleCells = new Set(visibleCellKeys);
+  context.save();
+  context.fillStyle = "rgba(0, 0, 0, 0.52)";
+
+  for (let y = 0; y < document.height; y += 1) {
+    for (let x = 0; x < document.width; x += 1) {
+      if (!visibleCells.has(cellKey(x, y))) {
+        context.fillRect(x * CANVAS_CELL_SIZE, y * CANVAS_CELL_SIZE, CANVAS_CELL_SIZE, CANVAS_CELL_SIZE);
+      }
+    }
+  }
+
+  context.restore();
+}
+
+function drawPlacedAssets(
+  context: CanvasRenderingContext2D,
+  assets: MapDocument["assets"],
+  selectedAssetId: string | null,
+  selectedAssetIds: string[],
+  layerState: Map<MapLayerKind, { opacity: number; visible: boolean }>
+) {
+  const selectedAssetSet = new Set(selectedAssetIds);
+
   for (const asset of assets) {
+    const layerKind = assetToLayerKind(asset.layer);
+    const state = layerState.get(layerKind);
+
+    if (state?.visible === false) {
+      continue;
+    }
+
     const x = (asset.position.x + 0.5) * CANVAS_CELL_SIZE;
     const y = (asset.position.y + 0.5) * CANVAS_CELL_SIZE;
     const radius = CANVAS_CELL_SIZE * 0.34 * asset.scale;
+    context.save();
+    context.globalAlpha *= state?.opacity ?? 1;
+    context.translate(x, y);
+    context.rotate((asset.rotation * Math.PI) / 180);
+    context.scale(asset.flipX ? -1 : 1, asset.flipY ? -1 : 1);
     context.beginPath();
-    context.fillStyle = asset.id === selectedAssetId ? "#d7a447" : "#78a890";
-    context.arc(x, y, radius, 0, Math.PI * 2);
+    context.fillStyle = asset.id === selectedAssetId || selectedAssetSet.has(asset.id) ? "#d7a447" : "#78a890";
+    context.arc(0, 0, radius, 0, Math.PI * 2);
     context.fill();
     context.strokeStyle = "rgba(244, 239, 231, 0.8)";
     context.lineWidth = 1.5;
@@ -962,8 +1861,31 @@ function drawPlacedAssets(context: CanvasRenderingContext2D, assets: MapDocument
     context.font = "700 10px Arial";
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.fillText(getAssetLabel(asset.assetId), x, y);
+    context.fillText(getAssetLabel(asset.assetId), 0, 0);
+    context.restore();
   }
+}
+
+function createLayerState(layers: MapLayer[]): Map<MapLayerKind, { opacity: number; visible: boolean }> {
+  return new Map(layers.map((layer) => [layer.kind, { opacity: layer.opacity, visible: layer.visible }]));
+}
+
+function drawLayer(
+  context: CanvasRenderingContext2D,
+  layerState: Map<MapLayerKind, { opacity: number; visible: boolean }>,
+  kind: MapLayerKind,
+  draw: () => void
+) {
+  const state = layerState.get(kind);
+
+  if (state?.visible === false) {
+    return;
+  }
+
+  context.save();
+  context.globalAlpha *= state?.opacity ?? 1;
+  draw();
+  context.restore();
 }
 
 function getTileColor(kind: string): string {
@@ -984,6 +1906,109 @@ function createToolStatus(tool: EditorTool, cell: { x: number; y: number }): str
   return `${formatToolName(tool)} at ${cell.x}, ${cell.y}`;
 }
 
+function isSelectionVisible(document: MapDocument, selection: NonNullable<EditorSelection>): boolean {
+  if (selection.type === "asset") {
+    const asset = document.assets.find((candidate) => candidate.id === selection.id);
+    return asset ? isEditorLayerVisible(document, assetToLayerKind(asset.layer)) : false;
+  }
+
+  if (selection.type === "door") {
+    return isEditorLayerVisible(document, "walls");
+  }
+
+  if (selection.type === "light") {
+    return isEditorLayerVisible(document, "lighting");
+  }
+
+  if (selection.type === "note") {
+    return isEditorLayerVisible(document, "notes");
+  }
+
+  return isEditorLayerVisible(document, "notes");
+}
+
+function createSelectionBounds(
+  start: { x: number; y: number },
+  current: { x: number; y: number }
+): { maxX: number; maxY: number; minX: number; minY: number } {
+  return {
+    maxX: Math.max(start.x, current.x),
+    maxY: Math.max(start.y, current.y),
+    minX: Math.min(start.x, current.x),
+    minY: Math.min(start.y, current.y)
+  };
+}
+
+function toggleSelection(selectedIds: string[], id: string): string[] {
+  return selectedIds.includes(id) ? selectedIds.filter((selectedId) => selectedId !== id) : [...selectedIds, id];
+}
+
+function hasLockedSelectedAsset(
+  document: MapDocument,
+  selectedAssets: MapDocument["assets"],
+  selectedAssetIds: string[]
+): boolean {
+  const selectedAssetSet = new Set(selectedAssetIds);
+  const assets = selectedAssets.length > 0 ? selectedAssets : document.assets.filter((asset) => selectedAssetSet.has(asset.id));
+  return assets.some((asset) => isEditorLayerLocked(document, assetToLayerKind(asset.layer)));
+}
+
+function isTextInputTarget(target: EventTarget | null): boolean {
+  return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement;
+}
+
+function toolToLayerKind(tool: EditorTool): MapLayerKind {
+  switch (tool) {
+    case "paint-floor":
+    case "paint-empty":
+      return "terrain";
+    case "paint-wall":
+    case "door":
+      return "walls";
+    case "light":
+      return "lighting";
+    case "note":
+      return "notes";
+    case "select":
+      return "props";
+  }
+}
+
+function assetToLayerKind(layer: MapDocument["assets"][number]["layer"]): MapLayerKind {
+  switch (layer) {
+    case "floor":
+      return "terrain";
+    case "wall":
+      return "walls";
+    case "lighting":
+      return "lighting";
+    case "annotation":
+      return "gm-only";
+    case "object":
+    default:
+      return "props";
+  }
+}
+
+function layerLabel(kind: MapLayerKind): string {
+  switch (kind) {
+    case "background":
+      return "Background";
+    case "terrain":
+      return "Terrain";
+    case "walls":
+      return "Walls";
+    case "props":
+      return "Props";
+    case "lighting":
+      return "Lighting";
+    case "gm-only":
+      return "GM Only";
+    case "notes":
+      return "Notes";
+  }
+}
+
 function formatToolName(tool: EditorTool): string {
   return tool
     .replace(/^paint-/u, "")
@@ -994,6 +2019,16 @@ function formatToolName(tool: EditorTool): string {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
+}
+
+function parseInteger(value: string, fallback: number): number {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function parseOptionalInteger(value: string): number | undefined {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 function getFileName(relativePath: string): string {

@@ -109,6 +109,7 @@ function createFoundryFixture() {
   const lights: LightSource[] = [
     {
       color: "#ffaa66",
+      flicker: false,
       id: "light-torch",
       intensity: 0.8,
       kind: "torch",
@@ -119,7 +120,9 @@ function createFoundryFixture() {
   const plan: MapPlan = {
     assetPlacements: [],
     doors,
+    gmNotes: [],
     id: "plan-foundry",
+    initiative: [],
     lights,
     name: "Foundry Plan",
     notes: [],

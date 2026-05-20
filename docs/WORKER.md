@@ -34,7 +34,15 @@ Expected response:
 
 ## Jobs
 
-Jobs are stored in memory for now. Restarting the worker clears them.
+Jobs are persisted locally in SQLite at:
+
+```txt
+~/.dm-instamap/jobs.db
+```
+
+Set `DM_INSTAMAP_JOBS_DB` to override the path during tests or local
+experiments. If the worker restarts while a job is running, that job is marked
+as failed on startup because the local process was interrupted.
 
 ```bash
 curl http://127.0.0.1:8000/jobs
@@ -54,10 +62,25 @@ Each job has:
 - `result`
 - `error`
 
-## Placeholder task endpoints
+## Task endpoints
 
-These endpoints create local jobs and return placeholder results. The current
-production asset/reference scanners still live in the pnpm CLI commands.
+These endpoints create local jobs and run local-first processing. They do not
+call external APIs.
+
+Asset and reference scans invoke the existing monorepo CLI commands via
+subprocess:
+
+- `pnpm assets:scan <folder>`
+- `pnpm references:scan <folder>`
+- `pnpm references:style` after a successful reference scan
+
+Image analysis invokes the local Sharp-based CLI:
+
+- `pnpm assets:analyze-image <image>`
+
+The result includes dimensions, format, transparency and sampled dominant
+colors. Python metadata parsing remains available internally as a lightweight
+fallback helper.
 
 ```bash
 curl -X POST http://127.0.0.1:8000/jobs/assets/scan \
@@ -73,5 +96,5 @@ curl -X POST http://127.0.0.1:8000/jobs/images/analyze \
   -d "{\"imagePath\":\"reference.png\"}"
 ```
 
-Future work can move the real scanner and image analysis pipeline behind these
-endpoints without changing the web app contract.
+The job payload captures command output, per-step results and exit codes so the
+web app can inspect failures without reading terminal logs.

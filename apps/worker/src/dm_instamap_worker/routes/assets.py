@@ -1,6 +1,6 @@
 from fastapi import APIRouter, BackgroundTasks, Depends
 
-from ..jobs import JobStore, run_placeholder_job
+from ..jobs import JobStore, run_asset_scan_job
 from ..models import AssetScanRequest, JobRecord
 from .dependencies import get_job_store
 
@@ -14,14 +14,5 @@ def create_asset_scan_job(
     store: JobStore = Depends(get_job_store),
 ) -> JobRecord:
     job = store.create_job("assets.scan", "Queued local asset scan.")
-    background_tasks.add_task(
-        run_placeholder_job,
-        store,
-        job.id,
-        {
-            "folder": payload.folder,
-            "scannedAssets": 0,
-            "note": "Placeholder worker job. Use pnpm assets:scan for the current real scanner.",
-        },
-    )
+    background_tasks.add_task(run_asset_scan_job, store, job.id, payload.folder)
     return job

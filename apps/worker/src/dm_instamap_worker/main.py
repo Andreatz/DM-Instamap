@@ -5,7 +5,7 @@ from .jobs import JobStore
 from .routes import assets_router, images_router, jobs_router, references_router
 
 
-def create_app() -> FastAPI:
+def create_app(job_store: JobStore | None = None) -> FastAPI:
     app = FastAPI(
         title="DM-Instamap Worker",
         summary="Local worker for heavy asset processing.",
@@ -16,7 +16,7 @@ def create_app() -> FastAPI:
     def health() -> dict[str, str]:
         return health_payload()
 
-    app.state.job_store = JobStore()
+    app.state.job_store = job_store or JobStore()
     app.include_router(jobs_router)
     app.include_router(assets_router)
     app.include_router(references_router)
