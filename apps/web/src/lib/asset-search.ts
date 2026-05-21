@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { AssetSearchResult } from "@dm-instamap/assets";
+import type { AssetSearchResult } from "@dm-instamap/assets/embeddings";
 import type { AssetBrowserEntry } from "./asset-browser";
 
 export type AssetSearchApiResult = AssetSearchResult & {

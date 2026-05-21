@@ -26,10 +26,12 @@
     "snapshots:list": "pnpm --filter @dm-instamap/web snapshots:list",
     "snapshots:restore": "pnpm --filter @dm-instamap/web snapshots:restore",
     "test": "pnpm -r --if-present test",
+    "test:e2e": "playwright test",
     "worker:dev": "pnpm --filter @dm-instamap/worker dev",
     "worker:install": "python -m pip install -r apps/worker/requirements-dev.txt"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@types/node": "^24.10.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",

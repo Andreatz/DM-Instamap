@@ -222,6 +222,7 @@ pnpm worker:install
 ```bash
 pnpm lint
 pnpm test
+pnpm test:e2e   # starts the local Next.js app and runs Playwright Chromium smoke tests
 pnpm build
 pnpm dev          # binds Next.js to 127.0.0.1
 pnpm worker:dev   # binds FastAPI to 127.0.0.1

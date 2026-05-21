@@ -3,7 +3,7 @@ import {
   resolveEmbeddingConfigFromEnv,
   searchAssetsByImage,
   searchAssetsByText
-} from "@dm-instamap/assets";
+} from "@dm-instamap/assets/embeddings";
 import { NextRequest, NextResponse } from "next/server";
 import { enrichAssetSearchResults, normalizeSearchLimit, resolveWorkspaceFilePath } from "@/lib/asset-search";
 import { findWorkspaceRoot, loadAssetManifest } from "@/lib/assets-manifest";

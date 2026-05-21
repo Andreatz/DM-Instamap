@@ -66,6 +66,10 @@ export type ImportGeneratedAssetOptions = {
   writeFileImpl?: typeof writeFile;
 };
 
+const DEFAULT_DATA_DIRECTORY = "data";
+const DEFAULT_GENERATED_ASSET_DIRECTORY = path.join("assets", "generated");
+const DEFAULT_WORKSPACE_GENERATED_ASSET_DIRECTORY = path.join("data", "assets", "generated");
+
 export function createReplicateImageGenerationProvider(config: ReplicateProviderConfig): ImageGenerationProvider {
   if (!config.apiToken) {
     throw new Error("createReplicateImageGenerationProvider: apiToken is required.");
@@ -254,17 +258,23 @@ export async function importGeneratedAssetToLibrary(
   options: ImportGeneratedAssetOptions
 ): Promise<GeneratedAssetMetadata> {
   const writer = options.writeFileImpl ?? writeFile;
-  const outputRoot = path.resolve(options.outputRoot ?? process.cwd());
-  const outputDir = path.resolve(outputRoot, options.outputDirectory ?? path.join("data", "assets", "generated"));
+  const outputRoot = resolveOutputRoot(options.outputRoot);
+  const relativeRoot = resolveRelativeRoot(options.outputRoot, outputRoot);
+  const outputDir = options.outputDirectory
+    ? path.resolve(/*turbopackIgnore: true*/ outputRoot, options.outputDirectory)
+    : path.resolve(
+        outputRoot,
+        options.outputRoot ? DEFAULT_WORKSPACE_GENERATED_ASSET_DIRECTORY : DEFAULT_GENERATED_ASSET_DIRECTORY
+      );
   const filename = buildAssetFilename({
     extension: extensionForContentType(options.result.contentType),
     hint: options.fileNameHint,
     prompt: options.request.prompt,
     seed: options.result.seed ?? options.request.seed
   });
-  const targetPath = path.join(outputDir, filename);
+  const targetPath = path.join(/*turbopackIgnore: true*/ outputDir, filename);
 
-  await mkdir(outputDir, { recursive: true });
+  await mkdir(/*turbopackIgnore: true*/ outputDir, { recursive: true });
   await writer(targetPath, options.result.data);
 
   return {
@@ -274,10 +284,18 @@ export async function importGeneratedAssetToLibrary(
     path: targetPath,
     prompt: options.request.prompt,
     provider: provider.id,
-    relativePath: path.relative(outputRoot, targetPath).split(path.sep).join("/"),
+    relativePath: path.relative(relativeRoot, targetPath).split(path.sep).join("/"),
     seed: options.result.seed ?? options.request.seed,
     styleTags: options.request.styleTags ?? []
   };
+}
+
+function resolveOutputRoot(outputRoot?: string): string {
+  return outputRoot ? path.resolve(outputRoot) : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
+}
+
+function resolveRelativeRoot(outputRoot: string | undefined, resolvedOutputRoot: string): string {
+  return outputRoot ? resolvedOutputRoot : resolvedOutputRoot;
 }
 
 type ReplicatePrediction = {

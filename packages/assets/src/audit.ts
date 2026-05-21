@@ -76,8 +76,10 @@ export type AssetAuditOptions = {
   outputRoot?: string;
 };
 
-const DEFAULT_AUDIT_PATH = path.join("data", "indexes", "asset-audit.json");
-const DEFAULT_MANIFEST_PATH = path.join("data", "indexes", "assets.manifest.json");
+const DEFAULT_DATA_DIRECTORY = "data";
+const DEFAULT_INDEX_DIRECTORY = "indexes";
+const DEFAULT_AUDIT_FILE = "asset-audit.json";
+const DEFAULT_MANIFEST_FILE = "assets.manifest.json";
 const LOW_QUALITY_THRESHOLD = 35;
 const REVIEW_QUEUE_LIMIT = 500;
 
@@ -184,9 +186,16 @@ export function buildAssetReviewQueue(
 }
 
 export async function auditAssets(options: AssetAuditOptions = {}): Promise<AssetAuditFile> {
-  const outputRoot = path.resolve(options.outputRoot ?? process.cwd());
-  const manifestPath = path.resolve(outputRoot, options.manifestPath ?? DEFAULT_MANIFEST_PATH);
-  const auditPath = path.resolve(outputRoot, options.auditPath ?? DEFAULT_AUDIT_PATH);
+  const outputRoot = options.outputRoot ? path.resolve(options.outputRoot) : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
+  const indexRoot = options.outputRoot
+    ? path.resolve(outputRoot, DEFAULT_DATA_DIRECTORY, DEFAULT_INDEX_DIRECTORY)
+    : path.resolve(outputRoot, DEFAULT_INDEX_DIRECTORY);
+  const manifestPath = options.manifestPath
+    ? path.resolve(outputRoot, options.manifestPath)
+    : path.join(indexRoot, DEFAULT_MANIFEST_FILE);
+  const auditPath = options.auditPath
+    ? path.resolve(outputRoot, options.auditPath)
+    : path.join(indexRoot, DEFAULT_AUDIT_FILE);
   const manifest = parseJsonFile(await readFile(manifestPath, "utf8")) as { assets?: unknown };
   const assets = Array.isArray(manifest.assets) ? (manifest.assets as AuditableAsset[]) : [];
   const duplicateGroups = findDuplicateGroups(assets);

@@ -1,12 +1,14 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import {
-  appendAssetToManifest,
   createImageGenerationProviderFromEnv,
-  importGeneratedAssetToLibrary,
+  importGeneratedAssetToLibrary
+} from "@dm-instamap/assets/image-generation";
+import {
+  appendAssetToManifest,
   scanSingleAsset,
   type AssetManifestEntry
-} from "@dm-instamap/assets";
+} from "@dm-instamap/assets/scanner";
 import { findWorkspaceRoot } from "@/lib/assets-manifest";
 
 type ExistingManifest = {

@@ -114,8 +114,10 @@ type NormalizedManifestAsset = {
   thumbnailPath: string | null;
 };
 
-const DEFAULT_MANIFEST_PATH = path.join("data", "indexes", "assets.manifest.json");
-const DEFAULT_EMBEDDINGS_PATH = path.join("data", "indexes", "asset-embeddings.json");
+const DEFAULT_DATA_DIRECTORY = "data";
+const DEFAULT_INDEX_DIRECTORY = "indexes";
+const DEFAULT_MANIFEST_FILE = "assets.manifest.json";
+const DEFAULT_EMBEDDINGS_FILE = "asset-embeddings.json";
 const LOCAL_PROVIDER_ID = "local-color-layout-v1";
 const COLOR_BINS = 12;
 const KIND_BINS = 12;
@@ -317,9 +319,14 @@ export function createLocalEmbeddingProvider(): EmbeddingProvider {
 }
 
 export async function generateAssetEmbeddings(options: AssetEmbeddingOptions = {}): Promise<AssetEmbeddingIndex> {
-  const outputRoot = path.resolve(options.outputRoot ?? process.cwd());
-  const manifestPath = path.resolve(outputRoot, options.manifestPath ?? DEFAULT_MANIFEST_PATH);
-  const embeddingsPath = path.resolve(outputRoot, options.embeddingsPath ?? DEFAULT_EMBEDDINGS_PATH);
+  const outputRoot = resolveOutputRoot(options.outputRoot);
+  const indexRoot = resolveIndexRoot(options.outputRoot);
+  const manifestPath = options.manifestPath
+    ? path.resolve(outputRoot, options.manifestPath)
+    : path.join(indexRoot, DEFAULT_MANIFEST_FILE);
+  const embeddingsPath = options.embeddingsPath
+    ? path.resolve(outputRoot, options.embeddingsPath)
+    : path.join(indexRoot, DEFAULT_EMBEDDINGS_FILE);
   const provider = options.provider ?? createLocalEmbeddingProvider();
   const manifest = parseJsonFile(await readFile(manifestPath, "utf8")) as ManifestFile;
   const assets = Array.isArray(manifest.assets)
@@ -426,8 +433,11 @@ export async function loadAssetEmbeddingIndex(options: {
   embeddingsPath?: string;
   outputRoot?: string;
 } = {}): Promise<AssetEmbeddingIndex | null> {
-  const outputRoot = path.resolve(options.outputRoot ?? process.cwd());
-  const embeddingsPath = path.resolve(outputRoot, options.embeddingsPath ?? DEFAULT_EMBEDDINGS_PATH);
+  const outputRoot = resolveOutputRoot(options.outputRoot);
+  const indexRoot = resolveIndexRoot(options.outputRoot);
+  const embeddingsPath = options.embeddingsPath
+    ? path.resolve(outputRoot, options.embeddingsPath)
+    : path.join(indexRoot, DEFAULT_EMBEDDINGS_FILE);
 
   try {
     return normalizeEmbeddingIndex(parseJsonFile(await readFile(embeddingsPath, "utf8")));
@@ -459,8 +469,9 @@ function rankVectors(
 }
 
 async function searchManifestByText(options: AssetTextSearchOptions): Promise<AssetSearchResult[]> {
-  const outputRoot = path.resolve(options.outputRoot ?? process.cwd());
-  const manifestPath = path.resolve(outputRoot, DEFAULT_MANIFEST_PATH);
+  const outputRoot = resolveOutputRoot(options.outputRoot);
+  const indexRoot = resolveIndexRoot(options.outputRoot);
+  const manifestPath = path.join(indexRoot, DEFAULT_MANIFEST_FILE);
 
   try {
     const manifest = parseJsonFile(await readFile(manifestPath, "utf8")) as ManifestFile;
@@ -748,6 +759,16 @@ function roundScore(value: number): number {
 
 function parseJsonFile(content: string): unknown {
   return JSON.parse(content.charCodeAt(0) === 0xfeff ? content.slice(1) : content);
+}
+
+function resolveOutputRoot(outputRoot?: string): string {
+  return outputRoot ? path.resolve(outputRoot) : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
+}
+
+function resolveIndexRoot(outputRoot?: string): string {
+  return outputRoot
+    ? path.resolve(outputRoot, DEFAULT_DATA_DIRECTORY, DEFAULT_INDEX_DIRECTORY)
+    : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY, DEFAULT_INDEX_DIRECTORY);
 }
 
 function tokenize(value: string): string[] {

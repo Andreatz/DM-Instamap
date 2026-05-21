@@ -74,6 +74,10 @@ const PRESET_RULES: Record<PackPreset, PackRule[]> = {
   "two-minute-tabletop": TWO_MINUTE_TABLETOP_RULES
 };
 
+const DEFAULT_DATA_DIRECTORY = "data";
+const DEFAULT_INDEX_DIRECTORY = "indexes";
+const DEFAULT_MANIFEST_FILE = "assets.manifest.json";
+
 export function listPackPresets(): readonly PackPreset[] {
   return PACK_PRESETS;
 }
@@ -94,8 +98,11 @@ export async function importAssetPack(options: PackImporterOptions): Promise<Pac
     ...manifest,
     assets: enrichment.entries
   };
-  const outputRoot = path.resolve(options.outputRoot ?? process.cwd());
-  const manifestPath = path.resolve(outputRoot, options.manifestPath ?? path.join("data", "indexes", "assets.manifest.json"));
+  const outputRoot = resolveOutputRoot(options.outputRoot);
+  const indexRoot = resolveIndexRoot(options.outputRoot);
+  const manifestPath = options.manifestPath
+    ? path.resolve(outputRoot, options.manifestPath)
+    : path.join(indexRoot, DEFAULT_MANIFEST_FILE);
 
   await mkdir(path.dirname(manifestPath), { recursive: true });
   await writeFile(manifestPath, `${JSON.stringify(enrichedManifest, null, 2)}\n`, "utf8");
@@ -155,6 +162,16 @@ export function applyPackRulesToEntry(
     reclassified,
     tagsAdded
   };
+}
+
+function resolveOutputRoot(outputRoot?: string): string {
+  return outputRoot ? path.resolve(outputRoot) : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
+}
+
+function resolveIndexRoot(outputRoot?: string): string {
+  return outputRoot
+    ? path.resolve(outputRoot, DEFAULT_DATA_DIRECTORY, DEFAULT_INDEX_DIRECTORY)
+    : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY, DEFAULT_INDEX_DIRECTORY);
 }
 
 function enrichManifestWithPackRules(

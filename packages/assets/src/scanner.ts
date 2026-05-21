@@ -63,16 +63,26 @@ export type AssetScannerOptions = {
   thumbnailSize?: number;
 };
 
-const DEFAULT_MANIFEST_PATH = path.join("data", "indexes", "assets.manifest.json");
-const DEFAULT_OVERRIDES_PATH = path.join("data", "indexes", "asset-overrides.json");
-const DEFAULT_PREVIEW_DIR = path.join("data", "previews", "assets");
+const DEFAULT_DATA_DIRECTORY = "data";
+const DEFAULT_INDEX_DIRECTORY = "indexes";
+const DEFAULT_PREVIEW_DIRECTORY = "previews";
+const DEFAULT_ASSET_PREVIEW_DIRECTORY = "assets";
+const DEFAULT_MANIFEST_FILE = "assets.manifest.json";
+const DEFAULT_OVERRIDES_FILE = "asset-overrides.json";
 
 export async function scanAssets(folder: string, options: AssetScannerOptions = {}): Promise<AssetManifest> {
   const sourceRoot = path.resolve(folder);
-  const outputRoot = path.resolve(options.outputRoot ?? process.cwd());
-  const manifestPath = path.resolve(outputRoot, options.manifestPath ?? DEFAULT_MANIFEST_PATH);
-  const overridesPath = path.resolve(outputRoot, options.overridesPath ?? DEFAULT_OVERRIDES_PATH);
-  const previewDir = path.resolve(outputRoot, options.previewDir ?? DEFAULT_PREVIEW_DIR);
+  const outputRoot = resolveOutputRoot(options.outputRoot);
+  const indexRoot = resolveIndexRoot(options.outputRoot);
+  const manifestPath = options.manifestPath
+    ? path.resolve(outputRoot, options.manifestPath)
+    : path.join(indexRoot, DEFAULT_MANIFEST_FILE);
+  const overridesPath = options.overridesPath
+    ? path.resolve(outputRoot, options.overridesPath)
+    : path.join(indexRoot, DEFAULT_OVERRIDES_FILE);
+  const previewDir = options.previewDir
+    ? path.resolve(outputRoot, options.previewDir)
+    : resolvePreviewDirectory(options.outputRoot, outputRoot);
   const thumbnailSize = options.thumbnailSize ?? 128;
 
   const files = await findAssetFiles(sourceRoot);
@@ -135,9 +145,14 @@ export async function scanSingleAsset(
   options: ScanSingleAssetOptions
 ): Promise<AssetManifestEntry> {
   const sourceRoot = path.resolve(options.sourceRoot);
-  const outputRoot = path.resolve(options.outputRoot ?? process.cwd());
-  const overridesPath = path.resolve(outputRoot, options.overridesPath ?? DEFAULT_OVERRIDES_PATH);
-  const previewDir = path.resolve(outputRoot, options.previewDir ?? DEFAULT_PREVIEW_DIR);
+  const outputRoot = resolveOutputRoot(options.outputRoot);
+  const indexRoot = resolveIndexRoot(options.outputRoot);
+  const overridesPath = options.overridesPath
+    ? path.resolve(outputRoot, options.overridesPath)
+    : path.join(indexRoot, DEFAULT_OVERRIDES_FILE);
+  const previewDir = options.previewDir
+    ? path.resolve(outputRoot, options.previewDir)
+    : resolvePreviewDirectory(options.outputRoot, outputRoot);
   const thumbnailSize = options.thumbnailSize ?? 128;
   const absolutePath = path.resolve(filePath);
   const relativePath = toPosixPath(path.relative(sourceRoot, absolutePath));
@@ -170,8 +185,11 @@ export async function appendAssetToManifest(
   asset: AssetManifestEntry,
   options: AppendAssetToManifestOptions = {}
 ): Promise<AppendAssetResult> {
-  const outputRoot = path.resolve(options.outputRoot ?? process.cwd());
-  const manifestPath = path.resolve(outputRoot, options.manifestPath ?? DEFAULT_MANIFEST_PATH);
+  const outputRoot = resolveOutputRoot(options.outputRoot);
+  const indexRoot = resolveIndexRoot(options.outputRoot);
+  const manifestPath = options.manifestPath
+    ? path.resolve(outputRoot, options.manifestPath)
+    : path.join(indexRoot, DEFAULT_MANIFEST_FILE);
   let existing: AssetManifest | null = null;
 
   try {
@@ -232,6 +250,27 @@ function createDuplicateLookup(
   }
 
   return lookup;
+}
+
+function resolveOutputRoot(outputRoot?: string): string {
+  return outputRoot ? path.resolve(outputRoot) : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
+}
+
+function resolveIndexRoot(outputRoot?: string): string {
+  return outputRoot
+    ? path.resolve(outputRoot, DEFAULT_DATA_DIRECTORY, DEFAULT_INDEX_DIRECTORY)
+    : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY, DEFAULT_INDEX_DIRECTORY);
+}
+
+function resolvePreviewDirectory(outputRoot: string | undefined, resolvedOutputRoot: string): string {
+  return outputRoot
+    ? path.resolve(
+        resolvedOutputRoot,
+        DEFAULT_DATA_DIRECTORY,
+        DEFAULT_PREVIEW_DIRECTORY,
+        DEFAULT_ASSET_PREVIEW_DIRECTORY
+      )
+    : path.resolve(resolvedOutputRoot, DEFAULT_PREVIEW_DIRECTORY, DEFAULT_ASSET_PREVIEW_DIRECTORY);
 }
 
 async function inspectAsset(input: {

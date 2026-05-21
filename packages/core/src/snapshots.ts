@@ -56,7 +56,9 @@ export type SnapshotsDirectoryOptions = {
   snapshotsRoot?: string;
 };
 
-const DEFAULT_SNAPSHOTS_ROOT = path.join("data", "projects");
+const DEFAULT_DATA_DIRECTORY = "data";
+const DEFAULT_PROJECTS_DIRECTORY = "projects";
+const DEFAULT_SNAPSHOTS_ROOT = path.join(DEFAULT_DATA_DIRECTORY, DEFAULT_PROJECTS_DIRECTORY);
 
 export function computeDocumentContentHash(document: MapDocument): string {
   const serialized = JSON.stringify(stableSerializeDocument(document));
@@ -150,8 +152,10 @@ export function diffSnapshots(left: SnapshotRecord, right: SnapshotRecord): Snap
 }
 
 export function resolveSnapshotsDirectory(options: SnapshotsDirectoryOptions): string {
-  const outputRoot = path.resolve(options.outputRoot ?? process.cwd());
-  const projectsRoot = path.resolve(outputRoot, options.snapshotsRoot ?? DEFAULT_SNAPSHOTS_ROOT);
+  const outputRoot = options.outputRoot ? path.resolve(options.outputRoot) : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
+  const projectsRoot = options.snapshotsRoot
+    ? path.resolve(outputRoot, options.snapshotsRoot)
+    : resolveDefaultProjectsRoot(options.outputRoot, outputRoot);
   return path.join(projectsRoot, options.projectId, "snapshots");
 }
 
@@ -314,6 +318,12 @@ export function restoreDeltaSnapshot(base: SnapshotRecord, delta: DeltaSnapshotR
 function buildSnapshotFileName(snapshot: SnapshotRecord): string {
   const timestamp = snapshot.createdAt.replace(/[:.]/gu, "-");
   return `${timestamp}__${snapshot.contentHash}.json`;
+}
+
+function resolveDefaultProjectsRoot(outputRoot: string | undefined, resolvedOutputRoot: string): string {
+  return outputRoot
+    ? path.resolve(resolvedOutputRoot, DEFAULT_SNAPSHOTS_ROOT)
+    : path.resolve(resolvedOutputRoot, DEFAULT_PROJECTS_DIRECTORY);
 }
 
 function arraysEqualByJson(left: unknown[], right: unknown[]): boolean {

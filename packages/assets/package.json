@@ -12,6 +12,18 @@
       "import": "./src/embeddings.ts",
       "types": "./src/embeddings.ts"
     },
+    "./image-generation": {
+      "import": "./src/image-generation.ts",
+      "types": "./src/image-generation.ts"
+    },
+    "./pack-importer": {
+      "import": "./src/pack-importer.ts",
+      "types": "./src/pack-importer.ts"
+    },
+    "./scanner": {
+      "import": "./src/scanner.ts",
+      "types": "./src/scanner.ts"
+    },
     "./matcher": {
       "import": "./src/matcher.ts",
       "types": "./src/matcher.ts"

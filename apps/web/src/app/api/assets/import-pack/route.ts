@@ -1,5 +1,5 @@
 import path from "node:path";
-import { importAssetPack, PACK_PRESETS, type PackPreset } from "@dm-instamap/assets";
+import { importAssetPack, PACK_PRESETS, type PackPreset } from "@dm-instamap/assets/pack-importer";
 import { findWorkspaceRoot } from "@/lib/assets-manifest";
 
 type ImportPackBody = {

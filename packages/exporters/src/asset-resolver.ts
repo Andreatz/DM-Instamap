@@ -30,7 +30,8 @@ type AssetManifest = {
   sourceRoot?: unknown;
 };
 
-const DEFAULT_MANIFEST_PATH = path.join("data", "indexes", "assets.manifest.json");
+const DEFAULT_DATA_DIRECTORY = "data";
+const DEFAULT_MANIFEST_PATH = path.join("indexes", "assets.manifest.json");
 
 export function createAssetManifestResolver(options: AssetManifestResolverOptions = {}): AssetResolver {
   let loaded: Promise<Map<string, RasterAssetSource>> | null = null;
@@ -45,10 +46,12 @@ export function createAssetManifestResolver(options: AssetManifestResolverOption
 }
 
 async function loadManifestAssets(options: AssetManifestResolverOptions): Promise<Map<string, RasterAssetSource>> {
-  const outputRoot = path.resolve(options.outputRoot ?? process.cwd());
+  const outputRoot = options.outputRoot
+    ? path.resolve(options.outputRoot)
+    : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
   const manifestPath = options.manifestPath
     ? path.resolve(outputRoot, options.manifestPath)
-    : path.join(/*turbopackIgnore: true*/ outputRoot, DEFAULT_MANIFEST_PATH);
+    : path.join(outputRoot, DEFAULT_MANIFEST_PATH);
   const raw = await readFile(manifestPath, "utf8");
   const manifest = JSON.parse(raw) as AssetManifest;
   const sourceRoot = readString(options.sourceRoot) || readString(manifest.sourceRoot) || path.dirname(manifestPath);

@@ -23,6 +23,15 @@ pnpm --filter @dm-instamap/generator lint
 pnpm --filter @dm-instamap/generator test
 pnpm --filter @dm-instamap/web lint
 pnpm --filter @dm-instamap/web test
+pnpm test:e2e
+```
+
+Playwright is configured in `playwright.config.ts`. It starts the local Next.js
+app on `127.0.0.1:3000` and runs Chromium-only smoke tests under
+`tests/e2e/`. Install the browser once with:
+
+```bash
+pnpm exec playwright install chromium
 ```
 
 ## UI smoke contract
@@ -42,9 +51,9 @@ flows and the unit/route tests that currently guard each one:
 - references review;
 - manual AI bridge.
 
-This is not a browser E2E replacement. It is a small CI-friendly contract that
-prevents fragile flows from becoming undocumented while Playwright/manual
-coverage is expanded.
+This does not replace manual VTT import checks. It is a small CI-friendly
+contract paired with Playwright smoke tests so fragile flows remain documented
+and browser-loadable.
 
 ## Manual reports
 
