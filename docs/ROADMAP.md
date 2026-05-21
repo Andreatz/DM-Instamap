@@ -38,8 +38,25 @@ Avanzamento Fase 1:
   immagine;
 - aggiunti test per path relativo valido, traversal, assoluto fuori workspace,
   path broad/system e path inesistente;
+- l'editor di progetto ora limita i gruppi asset passati al client per evitare
+  hydration lenta con librerie locali molto grandi; la ricerca asset resta
+  disponibile tramite API;
 - restano da allineare eventuali future route con input file-system e da
   consolidare la policy in un modulo condiviso tra web e worker.
+
+Avanzamento Fase 2:
+
+- Playwright ora copre un flusso editor reale: creazione progetto via API,
+  apertura editor, attesa idratazione client, modifica canvas, salvataggio,
+  verifica del documento salvato e export PNG;
+- Playwright copre snapshot create/diff/restore usando un progetto temporaneo e
+  verificando che il documento torni allo stato precedente;
+- Playwright copre export API per WEBP, dd2vtt e Session Pack, inclusi content
+  type, formato dd2vtt e ZIP valido;
+- aggiunto un marker `data-hydrated` all'editor per evitare click su markup SSR
+  prima che React abbia agganciato gli handler;
+- restano da coprire undo/redo esplicito, copy/paste asset, Foundry e import
+  pack fixture.
 
 | Area | Voto | Motivo |
 |---|---:|---|

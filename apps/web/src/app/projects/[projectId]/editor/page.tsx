@@ -5,6 +5,8 @@ import { loadAssetManifest } from "@/lib/assets-manifest";
 import { createFallbackPalette, type EditorPaletteAsset } from "@/lib/map-editor";
 import { ProjectNotFoundError, readProject } from "@/lib/projects";
 
+const EDITOR_ASSET_GROUP_LIMIT = 500;
+
 type ProjectEditorPageProps = {
   params: Promise<{
     projectId: string;
@@ -21,6 +23,7 @@ export default async function ProjectEditorPage({ params }: ProjectEditorPagePro
     loadAssetGroups()
   ]);
   const palette = createPalette(manifest.assets);
+  const editorGroups = groups.groups.slice(0, EDITOR_ASSET_GROUP_LIMIT);
 
   return (
     <main className="asset-page">
@@ -33,7 +36,7 @@ export default async function ProjectEditorPage({ params }: ProjectEditorPagePro
       </header>
 
       <MapEditor
-        assetGroups={groups.groups}
+        assetGroups={editorGroups}
         initialDocument={project.document}
         mapTheme={project.sourceRequest ?? "project"}
         palette={palette}

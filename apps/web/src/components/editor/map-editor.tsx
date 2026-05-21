@@ -109,6 +109,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
   });
   const [jsonText, setJsonText] = useState(() => serializeMapDocument(ensureEditorLayers(initialDocument)));
   const [status, setStatus] = useState("Pronto");
+  const [isHydrated, setIsHydrated] = useState(false);
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
   const [aiRequest, setAiRequest] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
@@ -141,6 +142,10 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
         : [],
     [assetGroups, mapTheme, selectedRoom]
   );
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   const commitDocument = useCallback(
     (updater: (current: MapDocument) => MapDocument, message?: string) => {
@@ -1093,7 +1098,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
   }
 
   return (
-    <section className="editor-shell" aria-label="Editor mappa">
+    <section className="editor-shell" aria-label="Editor mappa" data-hydrated={isHydrated ? "true" : "false"}>
       <aside className="asset-filters editor-sidebar">
         <h2>Asset</h2>
         <div className="editor-palette">

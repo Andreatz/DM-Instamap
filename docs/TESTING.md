@@ -27,8 +27,12 @@ pnpm test:e2e
 ```
 
 Playwright is configured in `playwright.config.ts`. It starts the local Next.js
-app on `127.0.0.1:3000` and runs Chromium-only smoke tests under
-`tests/e2e/`. Install the browser once with:
+app on `127.0.0.1:3000` and runs Chromium-only tests under `tests/e2e/`.
+The suite now includes both route/page smoke checks and a real editor flow that
+creates a project, opens the canvas editor, paints a cell, saves, verifies the
+saved document through the API, and exports a PNG. It also covers snapshot
+create/diff/restore through the project API and verifies WEBP, dd2vtt, and
+Session Pack export artifacts. Install the browser once with:
 
 ```bash
 pnpm exec playwright install chromium
@@ -52,8 +56,8 @@ flows and the unit/route tests that currently guard each one:
 - manual AI bridge.
 
 This does not replace manual VTT import checks. It is a small CI-friendly
-contract paired with Playwright smoke tests so fragile flows remain documented
-and browser-loadable.
+contract paired with Playwright smoke tests and the editor save/export E2E so
+fragile flows remain documented and browser-loadable.
 
 ## Manual reports
 
