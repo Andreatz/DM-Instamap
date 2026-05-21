@@ -1,11 +1,13 @@
 import JSZip from "jszip";
 import sharp from "sharp";
-import type { MapDocument, MapTile, PlacedAsset } from "@dm-instamap/core";
+import type { MapDocument, MapTile, PlacedAsset } from "@dm-instamap/core/browser";
+import type { AssetResolver, RasterAssetSource } from "./asset-resolver";
 
 export type RasterExportFormat = "png" | "webp";
 export type RasterExportLayer = "floor" | "walls" | "doors" | "props" | "lighting";
 
 export type RasterExportOptions = {
+  assetResolver?: AssetResolver;
   background?: "default" | "transparent";
   format: RasterExportFormat;
   includeGrid?: boolean;
@@ -21,6 +23,9 @@ export type RasterExportResult = {
   filename: string;
   format: RasterExportFormat;
   height: number;
+  missingAssets: string[];
+  usedAssets: string[];
+  warnings: string[];
   width: number;
 };
 
@@ -44,13 +49,23 @@ export async function exportMapDocumentRaster(
   const cellPixels = Math.max(8, Math.round(BASE_CELL_PIXELS * scale));
   const width = document.width * cellPixels;
   const height = document.height * cellPixels;
+  const assetRenderPlan = await resolveRasterAssets(document, {
+    assetResolver: options.assetResolver,
+    cellPixels,
+    layers: options.layers
+  });
   const svg = renderMapDocumentSvg(document, {
+    assetMarkers: !options.assetResolver,
     background: options.background ?? "default",
     cellPixels,
+    fallbackAssetIds: assetRenderPlan.missingPlacedAssetIds,
     includeGrid: options.includeGrid ?? true,
     layers: options.layers
   });
-  const pipeline = sharp(Buffer.from(svg)).resize(width, height, { fit: "fill" });
+  const base = await sharp(Buffer.from(svg)).resize(width, height, { fit: "fill" }).png().toBuffer();
+  const compositeInputs = await buildAssetCompositeInputs(assetRenderPlan, cellPixels);
+  const pipeline =
+    compositeInputs.length > 0 ? sharp(base).composite(compositeInputs.map((input) => input.composite)) : sharp(base);
   const buffer =
     format === "png"
       ? await pipeline.png().toBuffer()
@@ -62,6 +77,9 @@ export async function exportMapDocumentRaster(
     filename: `${slugify(document.name || document.id)}${options.filenameSuffix ?? ""}.${format}`,
     format,
     height,
+    missingAssets: unique(assetRenderPlan.missingAssets),
+    usedAssets: unique(compositeInputs.map((input) => input.assetId)),
+    warnings: assetRenderPlan.warnings,
     width
   };
 }
@@ -144,8 +162,10 @@ export async function exportMapDocumentRasterLayerBundle(
 export function renderMapDocumentSvg(
   document: MapDocument,
   options: {
+    assetMarkers?: boolean;
     background?: "default" | "transparent";
     cellPixels?: number;
+    fallbackAssetIds?: readonly string[];
     includeGrid?: boolean;
     layers?: readonly RasterExportLayer[];
   } = {}
@@ -154,6 +174,7 @@ export function renderMapDocumentSvg(
   const width = document.width * cellPixels;
   const height = document.height * cellPixels;
   const layers = new Set(options.layers ?? DEFAULT_LAYERS);
+  const fallbackAssetIds = new Set(options.fallbackAssetIds ?? []);
   const tileLookup = new Map(document.tiles.map((tile) => [cellKey(tile.x, tile.y), tile]));
   const parts: string[] = [`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`];
 
@@ -188,7 +209,7 @@ export function renderMapDocumentSvg(
   }
 
   for (const asset of document.assets) {
-    if (shouldRenderAsset(asset, layers)) {
+    if (((options.assetMarkers ?? true) || fallbackAssetIds.has(asset.id)) && shouldRenderAsset(asset, layers)) {
       parts.push(renderPlacedAsset(asset, cellPixels));
     }
   }
@@ -232,6 +253,120 @@ function renderPlacedAsset(asset: PlacedAsset, cellPixels: number): string {
     `<text x="0" y="${cellPixels * 0.13}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${Math.max(8, cellPixels * 0.42)}" font-weight="700" fill="#101416">${label}</text>`,
     "</g>"
   ].join("");
+}
+
+type AssetRenderPlan = {
+  assets: Array<{ asset: PlacedAsset; source: RasterAssetSource }>;
+  missingAssets: string[];
+  missingPlacedAssetIds: string[];
+  warnings: string[];
+};
+
+async function resolveRasterAssets(
+  document: MapDocument,
+  options: {
+    assetResolver?: AssetResolver;
+    cellPixels: number;
+    layers?: readonly RasterExportLayer[];
+  }
+): Promise<AssetRenderPlan> {
+  const layers = new Set(options.layers ?? DEFAULT_LAYERS);
+  const plan: AssetRenderPlan = {
+    assets: [],
+    missingAssets: [],
+    missingPlacedAssetIds: [],
+    warnings: []
+  };
+
+  if (!options.assetResolver) {
+    return plan;
+  }
+
+  for (const asset of document.assets) {
+    if (!shouldRenderAsset(asset, layers)) {
+      continue;
+    }
+
+    try {
+      const source = await options.assetResolver.resolveAsset(asset.assetId);
+
+      if (!source) {
+        plan.missingAssets.push(asset.assetId);
+        plan.missingPlacedAssetIds.push(asset.id);
+        plan.warnings.push(`Asset ${asset.assetId} non trovato dal resolver: uso marker di fallback.`);
+        continue;
+      }
+
+      plan.assets.push({ asset, source });
+    } catch (error) {
+      plan.missingAssets.push(asset.assetId);
+      plan.missingPlacedAssetIds.push(asset.id);
+      plan.warnings.push(
+        `Asset ${asset.assetId} non renderizzato: ${error instanceof Error ? error.message : "errore sconosciuto"}.`
+      );
+    }
+  }
+
+  return plan;
+}
+
+async function buildAssetCompositeInputs(
+  plan: AssetRenderPlan,
+  cellPixels: number
+): Promise<Array<{ assetId: string; composite: sharp.OverlayOptions }>> {
+  const inputs: Array<{ assetId: string; composite: sharp.OverlayOptions }> = [];
+
+  for (const entry of plan.assets) {
+    try {
+      const image = await renderAssetImage(entry.asset, entry.source, cellPixels);
+      const metadata = await sharp(image).metadata();
+      const width = metadata.width ?? cellPixels;
+      const height = metadata.height ?? cellPixels;
+      const centerX = entry.asset.position.x * cellPixels + cellPixels / 2;
+      const centerY = entry.asset.position.y * cellPixels + cellPixels / 2;
+
+      inputs.push({
+        assetId: entry.asset.assetId,
+        composite: {
+          input: image,
+          left: Math.round(centerX - width / 2),
+          top: Math.round(centerY - height / 2)
+        }
+      });
+    } catch (error) {
+      plan.missingAssets.push(entry.asset.assetId);
+      plan.missingPlacedAssetIds.push(entry.asset.id);
+      plan.warnings.push(
+        `Asset ${entry.asset.assetId} non renderizzato: ${error instanceof Error ? error.message : "errore sconosciuto"}.`
+      );
+    }
+  }
+
+  return inputs;
+}
+
+async function renderAssetImage(asset: PlacedAsset, source: RasterAssetSource, cellPixels: number): Promise<Buffer> {
+  const targetSize = Math.max(1, Math.round(cellPixels * asset.scale));
+  let pipeline = sharp(source.absolutePath).resize({
+    background: { alpha: 0, b: 0, g: 0, r: 0 },
+    fit: "contain",
+    height: targetSize,
+    width: targetSize
+  });
+
+  if (asset.flipX) {
+    pipeline = pipeline.flop();
+  }
+
+  if (asset.flipY) {
+    pipeline = pipeline.flip();
+  }
+
+  if (asset.rotation !== 0) {
+    pipeline = pipeline.rotate(asset.rotation, { background: { alpha: 0, b: 0, g: 0, r: 0 } });
+  }
+
+  return pipeline.png().toBuffer();
 }
 
 function renderLight(light: { color: string; intensity: number; position: { x: number; y: number }; radius: number }, cellPixels: number): string {
@@ -313,6 +448,10 @@ function normalizeWebpQuality(value: number | undefined): number {
   }
 
   return Math.round(Math.min(100, Math.max(1, value)));
+}
+
+function unique(values: string[]): string[] {
+  return [...new Set(values)];
 }
 
 function getAssetInitial(assetId: string): string {

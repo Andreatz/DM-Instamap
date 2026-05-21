@@ -1,6 +1,6 @@
 import {
   readSnapshotFromDirectory
-} from "@dm-instamap/core/snapshots";
+} from "@dm-instamap/core/server";
 import { findWorkspaceRoot } from "@/lib/assets-manifest";
 import { InvalidProjectIdError, ProjectNotFoundError, readProject, updateProject } from "@/lib/projects";
 

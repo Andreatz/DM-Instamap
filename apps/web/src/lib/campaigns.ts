@@ -1,6 +1,6 @@
 import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { CampaignSchema, createCampaign, type Campaign } from "@dm-instamap/core";
+import { CampaignSchema, createCampaign, type Campaign } from "@dm-instamap/core/server";
 import { findWorkspaceRoot } from "./assets-manifest";
 
 const CAMPAIGNS_DIR = path.join("data", "campaigns");

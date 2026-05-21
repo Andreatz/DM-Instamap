@@ -6,7 +6,7 @@ import {
   type MapPlan,
   type MapTile,
   type TileKind
-} from "@dm-instamap/core";
+} from "@dm-instamap/core/browser";
 
 export type ImportPlanMode = "new-project" | "update-project";
 

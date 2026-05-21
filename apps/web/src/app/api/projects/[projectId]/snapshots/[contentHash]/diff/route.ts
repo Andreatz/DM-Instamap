@@ -2,7 +2,7 @@ import {
   createMapSnapshot,
   diffSnapshots,
   readSnapshotFromDirectory
-} from "@dm-instamap/core/snapshots";
+} from "@dm-instamap/core/server";
 import { findWorkspaceRoot } from "@/lib/assets-manifest";
 import { InvalidProjectIdError, ProjectNotFoundError, readProject } from "@/lib/projects";
 

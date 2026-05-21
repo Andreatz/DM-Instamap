@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { MapDocumentSchema } from "@dm-instamap/core";
+import { migrateMapDocument } from "@dm-instamap/core";
 import { exportSessionPack, type SessionPackOptions } from "../session-pack";
 
 export type SessionPackCliOptions = SessionPackOptions & {
@@ -86,7 +86,7 @@ async function main(): Promise<void> {
   const outputRoot = process.env.INIT_CWD ?? process.cwd();
   const projectDir = path.join(outputRoot, "data", "projects", options.projectId);
   const raw = await readFile(path.join(projectDir, "map.dmimap.json"), "utf8");
-  const document = MapDocumentSchema.parse(JSON.parse(raw));
+  const document = migrateMapDocument(JSON.parse(raw));
   const result = await exportSessionPack(document, {
     description: options.description,
     imageFormat: options.imageFormat,

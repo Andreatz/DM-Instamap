@@ -1,613 +1,1308 @@
-# DM-Instamap - Roadmap unica
+# DM-Instamap — Roadmap correttiva + Manuale test end-to-end manuali
 
-Ultimo consolidamento: 2026-05-21.
+## Obiettivo del documento
 
-Questo file sostituisce e fonde la roadmap tecnica storica, il piano feature A-E per uso personale in 3-6 mesi e il consolidamento F-L post fase E.
+Questo documento serve a trasformare DM-Instamap da **MVP tecnico avanzato** a **tool personale affidabile per creare, modificare ed esportare mappe D&D realmente usabili al tavolo**.
 
-Da ora in poi esiste una sola fonte di verita per roadmap, stato e criteri di verifica: questo documento.
+La roadmap corregge i problemi emersi dall’analisi:
 
----
-
-## Contesto
-
-DM-Instamap e un generatore modulare local-first di mappe D&D. Il progetto deve generare mappe giocabili, modificabili e riesportabili usando asset locali, mappe di riferimento e un bridge opzionale verso ChatGPT o provider AI configurabili.
-
-Monorepo:
-
-- `apps/web`: editor visuale, UI, project manager, campagne, bridge AI.
-- `apps/worker`: worker Python FastAPI per job locali lunghi.
-- `packages/core`: schemi dati condivisi, snapshot, campagne, MapDocument.
-- `packages/assets`: scanner, classificazione, audit, gruppi, importer, embedding, image generation.
-- `packages/generator`: dungeon, building, city, cave, village, outdoor, multi-floor, auto-furnish.
-- `packages/exporters`: PNG, WEBP, dd2vtt, Foundry, Session Pack.
-- `packages/ai-bridge`: bridge manuale ChatGPT e orchestrazione AI opzionale.
-- `docs`: manuali e riferimento operativo.
-
-Scelta di prodotto:
-
-- Uso personale per un DM.
-- Niente distribuzione pubblica come obiettivo.
-- Niente cloud obbligatorio.
-- Niente API a pagamento obbligatorie.
-- Ogni output deve restare editabile.
-- Export futuri e presenti devono restare compatibili con PNG, WEBP, dd2vtt, Foundry VTT e formato locale.
+1. boundary confuso tra codice browser-safe e server-only;
+2. export raster ancora troppo simbolico e non pienamente asset-based;
+3. mancanza di migrazioni dati per `MapDocument`;
+4. sicurezza accettabile solo in locale, ma non abbastanza esplicitata;
+5. test end-to-end reali ancora da eseguire con asset, editor ed export VTT;
+6. qualità visiva/generativa ancora da validare con mappe reali;
+7. test UI parziali.
 
 ---
 
-## Principi obbligatori
+# PARTE 1 — Roadmap correttiva dettagliata
 
-### 1. Local-first
+## Regola generale
 
-Il progetto deve funzionare localmente. API e provider remoti sono ammessi solo come opzioni configurabili, mai come requisito.
-
-Accettabile:
-
-- analisi locale con Node/Python;
-- Sharp;
-- euristiche locali;
-- embedding locali o endpoint locali/remoti opzionali;
-- ChatGPT Bridge manuale via copia/incolla;
-- provider AI opzionali dietro env var.
-
-Non accettabile come requisito:
-
-- login obbligatorio;
-- database cloud obbligatorio;
-- upload remoto obbligatorio;
-- OpenAI/Anthropic/Replicate richiesti per usare il prodotto.
-
-### 2. Asset binari fuori da Git
-
-Non committare asset pesanti, mappe, immagini di pack o output generati.
-
-Percorsi locali previsti:
-
-```txt
-data/
-  assets/
-  indexes/
-  previews/
-  projects/
-  exports/
-  campaigns/
-```
-
-### 3. Sviluppo incrementale
-
-Tenere task piccoli. Ogni feature deve poter essere verificata con test o controllo manuale chiaro.
-
-Comandi base:
+Ogni fase deve chiudersi con:
 
 ```bash
 pnpm lint
 pnpm test
 pnpm build
-```
-
-Per il worker:
-
-```bash
-pnpm worker:install
-pnpm --filter @dm-instamap/worker lint
 pnpm --filter @dm-instamap/worker test
 ```
 
-### 4. Schemi stabili
+Una fase non è considerata completata se:
 
-`packages/core` e la fonte degli schemi principali. Ogni modifica a `MapDocument`, asset metadata, export, snapshot o campaign schema deve essere retrocompatibile oppure accompagnata da migrazione.
-
-### 5. Test per ogni feature
-
-Minimo richiesto:
-
-- unit test per funzioni pure;
-- fixture piccole;
-- test schema;
-- test edge case;
-- test import/export quando applicabile.
-
-### 6. UI tecnica ma chiara
-
-Ogni sezione UI deve avere stati empty/loading/error dove servono, feedback dopo salvataggio e testo comprensibile. La UI principale deve rimanere in italiano.
+- il comando `pnpm build` fallisce;
+- i test passano ma il flusso manuale principale non funziona;
+- la feature esiste solo come codice ma non è verificabile in UI;
+- l’export prodotto non può essere aperto/importato realmente.
 
 ---
 
-## Stato consolidato
+## Fase 0 — Congelamento, backup e baseline
 
-### Fasi legacy 1-10
+### Obiettivo
 
-La roadmap storica ha portato il progetto da prototipo tecnico a tool locale con UI, asset intelligence, generazione, editor ed export.
+Creare una base sicura prima di modificare il progetto.
 
-| Fase | Stato | Esito |
-| --- | --- | --- |
-| 1. Stabilizzazione tecnica | Completata | CI, `.env.example`, README, `.gitignore`, asset storage docs. |
-| 2. Worker Python reale | Completata | Job persistenti SQLite, subprocess CLI, cancellazione, progress. |
-| 3. Asset intelligence avanzata | Completata | Scan, preview, classificazione, audit, duplicati, quality score. |
-| 4. Reference Style DNA | Completata | Palette, mood, layout traits, grid detection base, prompt summary. |
-| 5. Project System locale | Completata | Progetti locali in `data/projects`, API e pagine progetto. |
-| 6. Editor visuale canvas | Completata | Canvas, paint tools, inspector, save/reopen, editing asset. |
-| 7. Generatore semantico/narrativo | Completata | Blueprint narrativi e tattici, room roles, generator pipeline. |
-| 8. AI bridge manuale avanzato | Completata | Prompt packet, import risposta, validazione, repair locale. |
-| 9. Export professionale | Completata | PNG, WEBP, dd2vtt, Foundry, player/GM map, dmimap. |
-| 10. UX finale guidata | Completata | Home, wizard nuova mappa, navigazione principale. |
+### Task
 
-### Novita storiche integrate
-
-| Novita | Stato | Esito |
-| --- | --- | --- |
-| Style DNA reference maps | Completata | DNA locale riusabile da generator e AI bridge. |
-| Generatore narrativo + tattico | Completata | Blueprint coerenti, ruoli tattici, stanze semantiche. |
-| Batch review intelligente | Completata | Code prioritarie per asset critici, duplicati, ignoti, bassa qualita. |
-| Local visual search | Completata | Ricerca testo/immagine locale con embedding opzionali. |
-| Auto-furnish avanzato | Completata | Regole wall/center/scatter/light, debug, vincoli anti-overlap. |
-
-### Fasi A-E: piano feature 3-6 mesi
-
-| Fase | Stato | Esito |
-| --- | --- | --- |
-| A. Pipeline reale | Completata | Worker reale, export PNG/WEBP, dd2vtt completo. |
-| B. Editor da DM serio | Completata | Layer, undo/redo, luci, fog preview, note GM, initiative tracker. |
-| C. Generator potenziato | Completata | Cave, village, outdoor, multi-floor, blueprint estesi, auto-furnish esteso. |
-| D. AI integrata opzionale | Completata | Provider Anthropic/OpenAI opzionali, embedding remoto, image generation. |
-| E. Quality of life | Completata | Pack importer, snapshot, session pack, Foundry journal, campagne. |
-
-### Fasi F-L: consolidamento post-E
-
-| Fase | Stato | Esito |
-| --- | --- | --- |
-| F. Integration fixes | Completata | AI auto con contesto, multi-floor completo, rescan asset generato, snapshot diff, Foundry notes, localizzazione UI. |
-| G. CLI surface | Completata | CLI import pack, generate asset, snapshots, AI smoke, session pack, campaigns. |
-| H. Worker offload | Completata | Job worker per import, generate, ai plan, session pack, proxy web e progress UI. |
-| I. Editor canvas integration | Completata | Snapshot toolbar, Session Pack quick export, AI drawer, Recently Generated palette. |
-| J. Documentazione | Completata | Docs generator, Foundry, worker, AI, image generation, snapshots, campaigns, importer. |
-| K. Test web | Completata/parziale | Route API e helper coperti; componenti React coperti indirettamente senza testing-library/jsdom. |
-| L. Polish | Parziale | L1/L4/L5 completati; L2 outdoor noise e L3 AI streaming rimandati. |
-
----
-
-## Dettaglio implementazione per fase
-
-### Fase A - Pipeline reale
-
-Stato: completata a livello repo/test automatici.
-
-- Worker con persistenza SQLite locale in `~/.dm-instamap/jobs.db`.
-- `assets/scan`, `references/scan`, `images/analyze` eseguiti via CLI/subprocess.
-- Export raster PNG/WEBP con MapDocument, walls, doors, props, lights, layer separati e qualita WEBP.
-- Export dd2vtt con immagine base64, walls/lights/portals, bounds porte e fallback line-of-sight dai tile wall.
-
-Verifica manuale ancora utile:
-
-- import reali in Foundry/Roll20;
-- apertura artefatti generati su mappe grandi.
-
-### Fase B - Editor da DM serio
-
-Stato: completata a livello repo/test automatici.
-
-- Layer document-level: background, terrain, walls, props, lighting, GM-only, notes.
-- Undo/redo, visibilita/lock/opacita, rotazione, scaling, flip, cambio layer, duplicazione.
-- Multi-selezione Ctrl/Shift, marquee selection, select visible, group/ungroup, copy/paste.
-- Luci con raggio/colore/intensita/flicker.
-- Fog-of-war preview grid-based con line-of-sight.
-- Note GM ancorate a celle, toggle GM-only, initiative tracker minimale.
-
-Verifica manuale ancora utile:
-
-- proiezione al tavolo;
-- comportamento con asset library ampia;
-- round-trip export Foundry/Roll20.
-
-### Fase C - Generator potenziato
-
-Stato: completata a livello repo/test automatici.
-
-- `generateCaveDungeon`: cellular automata + flood fill della regione piu grande.
-- `generateVillageMap`: subdivision blocks + porte automatiche.
-- `generateMultiFloorDungeon`: N piani con stairs link bidirezionali.
-- `generateOutdoorMap`: poisson-disc trees + fiume opzionale con bridges.
-- `MapGenerationBlueprint` esteso con `structure`, `scale`, `mood`, `hasWater`, `hasVegetation`, `ruinLevel`.
-- `createNarrativeBlueprint` riconosce cave/village/outdoor.
-- `generateMapFromBlueprint` sceglie l'algoritmo corretto.
-- Auto-furnish esteso a cave, village buildings, tavern, smithy, shrine, clearing.
-
-Verifica manuale ancora utile:
-
-- qualita visiva cave;
-- layout villaggi su scale grandi;
-- usabilita outdoor.
-
-### Fase D - AI integrata opzionale
-
-Stato: completata a livello repo/test automatici.
-
-- Provider HTTP diretti: `createAnthropicProvider`, `createOpenAiProvider`, `createCustomProvider`.
-- Config via `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`, `AI_BASE_URL`, `AI_MAX_TOKENS`.
-- Orchestrazione in `packages/ai-bridge/src/orchestration.ts`.
-- `generateMapPlanWithAi` con retry e repair prompt.
-- `generateNarrativeBlueprintWithAi`, `suggestAssetsForRoomWithAi`, `describeMapWithAi`.
-- Embedding provider remoto opzionale con fallback locale.
-- Image generation provider: Replicate, Automatic1111, custom test provider.
-- Import asset generato nella libreria locale.
-
-Verifica manuale ancora utile:
-
-- chiamate reali con chiavi Anthropic/OpenAI;
-- embedding service CLIP reale;
-- Replicate/Automatic1111 reali;
-- pipeline end-to-end generate asset -> library -> manifest -> editor.
-
-### Fase E - Quality of life
-
-Stato: completata a livello repo/test automatici.
-
-- `packages/assets/src/pack-importer.ts` con preset `forgotten-adventures`, `two-minute-tabletop`, `czepeku`, `generic`.
-- Snapshot MapDocument con `contentHash`, dedup, list/read/restore/diff.
-- Session Pack zip con mappe full/GM/player, note, description, initiative e manifest.
-- Foundry export con journal entries: Rooms, GM Notes, Plan Notes.
-- Campaign schema: `Campaign`, `CampaignMapLink`, `CampaignSession`.
-- UI per import pack, asset generate, campaigns, snapshots, export session pack, AI auto.
-
-Verifica manuale ancora utile:
-
-- workflow end-to-end con asset reali;
-- import Foundry/Roll20 reali;
-- chiamate AI e image generation reali.
-
-### Fase F - Integration fixes
-
-Stato: completata.
-
-- AI auto bridge riceve asset groups e references dalla server component e li invia a `/api/ai/plan`.
-- Multi-floor salva tutti i piani come progetti collegati con `relatedProjectIds`.
-- Asset generato aggiorna il manifest con scan parziale.
-- Snapshot diff API e UI.
-- Foundry scene notes collegate ai journal.
-- UI tradotta in italiano nelle sezioni residue: asset browser/review, gruppi asset, riferimenti, AI Bridge, editor, campagne, progetti, export, snapshot, worker status.
-
-### Fase G - CLI surface
-
-Stato: completata.
-
-Comandi disponibili:
+1. Creare un branch dedicato:
 
 ```bash
-pnpm assets:import-pack --root <path> --preset <preset> --default-tags a,b
-pnpm assets:generate --prompt "..." --classification prop --seed 123
-pnpm snapshots:create <projectId> --label <label>
-pnpm snapshots:list <projectId>
-pnpm snapshots:restore <projectId> <contentHash>
-pnpm ai:blueprint "crypt below cathedral"
-pnpm ai:plan "..."
-pnpm exports:session-pack <projectId> --scale 2 --output <path>
-pnpm campaigns:list
-pnpm campaigns:create --name "Whispering Woods" --tags a,b
+git checkout main
+git pull
+git checkout -b fix/maturity-roadmap
 ```
 
-### Fase H - Worker offload
+2. Salvare lo stato attuale:
 
-Stato: completata.
+```bash
+git status
+git log --oneline -5
+```
 
-- Job `assets/import-pack`.
-- Job `assets/generate`.
-- Job `ai/plan`.
-- Job `exports/session-pack`.
-- `apps/web/src/lib/worker-client.ts`.
-- Proxy web per job.
-- `useJob`.
-- `JobProgressBar`.
-- UI pack importer con toggle worker locale.
+3. Eseguire baseline tecnica:
 
-### Fase I - Editor canvas integration
+```bash
+pnpm install
+pnpm lint
+pnpm test
+pnpm build
+pnpm --filter @dm-instamap/worker test
+```
 
-Stato: completata.
+4. Salvare gli output in un file locale:
 
-- Pulsante Snapshot in toolbar editor e hotkey `Ctrl+Shift+S`.
-- Quick export Session Pack dall'editor.
-- Drawer AI Assist con descrizione mappa, suggerimenti asset e generazione asset.
-- Palette Recently Generated con drag-and-drop.
+```txt
+docs/manual-test-reports/baseline-YYYY-MM-DD.md
+```
 
-### Fase J - Documentazione
+### Output atteso
 
-Stato: completata.
+Un report con:
 
-Documenti aggiornati o creati:
+```txt
+Data:
+Commit:
+Sistema operativo:
+Node:
+pnpm:
+Python:
+pnpm lint: PASS/FAIL
+pnpm test: PASS/FAIL
+pnpm build: PASS/FAIL
+worker test: PASS/FAIL
+Problemi rilevati:
+```
 
-- `docs/GENERATOR.md`
-- `docs/FOUNDRY_EXPORT.md`
-- `docs/WORKER.md`
-- `docs/AI_BRIDGE.md`
-- `docs/IMAGE_GENERATION.md`
-- `docs/SNAPSHOTS.md`
-- `docs/CAMPAIGNS.md`
-- `docs/PACK_IMPORTER.md`
+### Definition of Done
 
-### Fase K - Test web
-
-Stato: completata/parziale.
-
-- Coperti helper web come bridge mappers e worker client.
-- Coperti endpoint API con mock filesystem/provider/worker.
-- Non introdotte dipendenze pesanti per testing-library + jsdom.
-- Componenti React veri restano coperti indirettamente da lib di supporto, route API e test esistenti.
-
-### Fase L - Polish
-
-Stato: parziale.
-
-Completato:
-
-- L1: API delta snapshot in `packages/core/src/snapshots.ts` (`computeMapDocumentDelta`, `applyMapDocumentDelta`, `createDeltaSnapshot`, `restoreDeltaSnapshot`).
-- L4: `POST /api/ai/describe` e `ProjectDescribeButton`.
-- L5: `/projects/[id]/floors` per progetti multi-floor collegati.
-
-Rimandato:
-
-- L2: outdoor con perlin/simplex noise + erosione.
-- L3: streaming SSE per provider AI.
+La baseline è documentata. Anche se qualcosa fallisce, deve essere scritto chiaramente cosa fallisce e con quale errore.
 
 ---
 
-## Prossime priorita
+## Fase 1 — Separazione server-only / browser-safe
 
-Questa e la parte viva della roadmap.
+### Problema da risolvere
 
-### P0 - Verifica manuale end-to-end
+Il progetto rischia errori di build Next perché alcuni moduli condivisi possono trascinare import Node-only, come filesystem e path, dentro codice client. Questo è pericoloso soprattutto con Next, Turbopack e componenti React client.
 
-Obiettivo: dimostrare che DM-Instamap e utile in una sessione reale.
+### Obiettivo
 
-- Importare un pack asset reale.
-- Eseguire scan, group, audit e batch review su libreria non banale.
-- Generare un dungeon, una caverna, un villaggio, una mappa outdoor e un multi-floor.
-- Salvare come progetto locale.
-- Aprire in editor, modificare, arredare, aggiungere note/luci/initiative.
-- Creare snapshot, diff e restore.
-- Esportare PNG/WEBP, dd2vtt, Foundry, Session Pack.
-- Importare davvero in Foundry e/o Roll20.
+Separare in modo netto:
 
-### P1 - Stabilita build Next
+```txt
+codice usabile nel browser
+codice usabile solo server/Node
+schemi puri condivisi
+```
 
-La build Next puo fallire per import client di moduli Node (`node:fs/promises`) tracciati da `packages/core/src/index.ts` e Turbopack. Non e un problema di prodotto visibile in dev/test, ma va risolto per avere build production pulita.
+### Nuova struttura consigliata
 
-Direzione consigliata:
+```txt
+packages/core/src/
+  schemas.ts
+  map-document.ts
+  campaign.ts
+  browser.ts
+  server.ts
+  snapshots.ts
+  snapshots.server.ts
+  index.ts
+```
 
-- separare entrypoint browser-safe e server-only in `packages/core`;
-- evitare che componenti client importino barrel che esportano moduli filesystem;
-- spostare snapshot/file helpers dietro entrypoint server-only.
+### Regola di import
 
-### P2 - Migrazioni dati
+Nei componenti client:
 
-Oggi `version: 1` e dichiarato, ma non c'e un sistema completo di migrazione documenti.
+```ts
+import type { MapDocument } from "@dm-instamap/core/browser";
+```
 
-Task:
+Nei route handler, CLI, worker bridge, export server:
 
-- `migrateMapDocument(input): MapDocument`;
-- fixture di versioni precedenti;
-- test di compatibilita;
-- documentare policy di breaking changes.
+```ts
+import { readSnapshotFromDirectory } from "@dm-instamap/core/server";
+```
 
-### P3 - Outdoor polish
+### Task tecnici
 
-Migliorare `generateOutdoorMap`:
+1. Spostare tutti gli schemi Zod puri in `schemas.ts`.
+2. Spostare funzioni che usano filesystem in entrypoint server-only.
+3. Evitare che `packages/core/src/index.ts` esporti funzioni che importano `node:fs`, `node:path`, `node:crypto` se quell’entrypoint è usato anche lato client.
+4. Aggiornare `package.json` di `@dm-instamap/core`:
 
-- fiumi piu naturali;
-- radure piu giocabili;
-- densita alberi piu controllabile;
-- punti tattici e percorsi leggibili.
+```json
+{
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./browser": {
+      "import": "./src/browser.ts",
+      "types": "./src/browser.ts"
+    },
+    "./server": {
+      "import": "./src/server.ts",
+      "types": "./src/server.ts"
+    }
+  }
+}
+```
 
-### P4 - AI streaming e UX lunga durata
+5. Cercare import pericolosi:
 
-Solo se l'uso reale mostra attrito:
+```bash
+grep -R "@dm-instamap/core" apps/web/src/components apps/web/src/app -n
+```
 
-- SSE provider Anthropic/OpenAI;
-- progressivo display in UI;
-- cancellazione richiesta;
-- storico raw response.
+Su PowerShell:
 
----
+```powershell
+Get-ChildItem apps/web/src -Recurse -Include *.ts,*.tsx | Select-String "@dm-instamap/core"
+```
 
-## Checklist maturita
+6. Correggere import nei componenti client.
 
-### Core
+### Test obbligatori
 
-- [x] Schemi Zod stabili.
-- [ ] Migrazioni versioni documento.
-- [x] Test schema.
-- [x] Snapshot full.
-- [x] Delta snapshot API.
-- [x] Campaign schema.
+```bash
+pnpm --filter @dm-instamap/core lint
+pnpm --filter @dm-instamap/web lint
+pnpm build
+```
 
-### Assets
+### Acceptance criteria
 
-- [x] Scan.
-- [x] Preview.
-- [x] Classification.
-- [x] Manual overrides.
-- [x] Audit.
-- [x] Duplicates.
-- [x] Quality score.
-- [x] Batch review.
-- [x] Local visual search.
-- [x] Pack importer.
-- [x] Image generation import.
+- `pnpm build` passa.
+- Nessun componente client importa funzioni server-only.
+- Gli schemi principali restano disponibili.
+- Snapshot/campaign/export continuano a funzionare lato server.
 
-### References
+### Priorità
 
-- [x] Scan.
-- [x] Preview.
-- [x] Map type.
-- [x] Review override.
-- [x] Style DNA.
-- [x] Grid detection base.
-- [x] Prompt summary.
-
-### Generator
-
-- [x] Simple dungeon.
-- [x] Narrative blueprint.
-- [x] Crypt/building/dungeon blueprint.
-- [x] Cave.
-- [x] Village.
-- [x] Outdoor.
-- [x] Multi-floor.
-- [x] Tactical roles.
-- [x] Auto-furnish advanced.
-- [ ] Outdoor polish con noise/erosione.
-
-### Web
-
-- [x] Home.
-- [x] Projects.
-- [x] New map wizard.
-- [x] Asset browser.
-- [x] Asset review.
-- [x] Asset group review.
-- [x] Reference browser/review.
-- [x] AI bridge manuale.
-- [x] AI auto workspace.
-- [x] Editor canvas.
-- [x] Campaign dashboard.
-- [x] Export page.
-- [x] Snapshot panel.
-- [x] UI italiana.
-
-### Worker
-
-- [x] Health.
-- [x] Jobs.
-- [x] SQLite persistence.
-- [x] Cancellation.
-- [x] Asset scan endpoint.
-- [x] Reference scan endpoint.
-- [x] Image analysis endpoint.
-- [x] Import pack job.
-- [x] Asset generation job.
-- [x] AI plan job.
-- [x] Session pack job.
-- [x] Web progress polling.
-
-### Export
-
-- [x] PNG.
-- [x] WEBP.
-- [x] dd2vtt.
-- [x] Foundry.
-- [x] Player safe map.
-- [x] GM map.
-- [x] dmimap.
-- [x] Session Pack.
-- [ ] Verifica manuale import Foundry/Roll20 su artefatti reali.
-
-### Quality
-
-- [x] CI.
-- [x] README.
-- [x] Roadmap unica.
-- [x] Docs feature.
-- [x] Tests.
-- [x] No generated data in Git.
-- [x] No external API requirement.
-- [ ] Build production Next pulita.
+**P0 — Critica.** Da fare prima di rifinire altre feature.
 
 ---
 
-## File critici
+## Fase 2 — Export raster realmente asset-based
 
-- Schemi dati: `packages/core/src/`
-- Snapshot: `packages/core/src/snapshots.ts`
-- Campaign schema: `packages/core/src/campaign.ts`
-- Worker jobs: `apps/worker/src/dm_instamap_worker/jobs.py`
-- Worker models: `apps/worker/src/dm_instamap_worker/models.py`
-- Asset scanner: `packages/assets/src/scanner.ts`
-- Asset audit: `packages/assets/src/audit.ts`
-- Asset groups: `packages/assets/src/groups.ts`
-- Pack importer: `packages/assets/src/pack-importer.ts`
-- Reference Style DNA: `packages/assets/src/reference-style.ts`
-- Generator: `packages/generator/src/`
-- Auto-furnish: `packages/generator/src/furnishing.ts`
-- Editor web: `apps/web/src/components/editor/map-editor.tsx`
-- Project storage: `apps/web/src/lib/projects.ts`
-- AI bridge: `packages/ai-bridge/src/`
-- Exporters: `packages/exporters/src/`
+### Problema da risolvere
+
+L’export PNG/WEBP deve comporre realmente gli asset grafici, non rappresentarli con simboli, cerchi o iniziali.
+
+### Obiettivo
+
+Quando un asset è piazzato nella mappa, l’export deve renderizzare la sua immagine reale nella posizione corretta.
+
+### Nuovo comportamento atteso
+
+Un `PlacedAsset` con:
+
+```ts
+{
+  assetId: "asset_abc...",
+  position: { x: 10, y: 6 },
+  rotation: 45,
+  scale: 1.2,
+  flipX: false,
+  flipY: true
+}
+```
+
+deve diventare nell’export:
+
+```txt
+immagine reale caricata dal manifest
+scalata
+ruotata
+flippata se necessario
+posizionata sul layer corretto
+```
+
+### Modello dati consigliato
+
+Creare un resolver:
+
+```ts
+export type AssetResolver = {
+  resolveAssetPath(assetId: string): Promise<string | null>;
+};
+```
+
+Oppure:
+
+```ts
+export type RasterAssetSource = {
+  assetId: string;
+  absolutePath: string;
+  width?: number | null;
+  height?: number | null;
+};
+```
+
+L’export non dovrebbe leggere direttamente manifest globali senza controllo. Meglio passargli un resolver dal layer web/server.
+
+### Task tecnici
+
+1. Creare `packages/exporters/src/asset-resolver.ts`.
+2. Creare funzione per leggere `data/indexes/assets.manifest.json`.
+3. Collegare `assetId` a `relativePath`/`sourceRoot`.
+4. Usare Sharp composite per inserire asset nel raster.
+5. Supportare almeno:
+   - PNG;
+   - WEBP;
+   - trasparenza;
+   - scale;
+   - rotation base;
+   - flipX/flipY;
+   - layer order.
+6. Se un asset manca, renderizzare un marker di fallback ma aggiungere warning nel risultato export.
+
+### Risultato export consigliato
+
+```ts
+export type RasterExportResult = {
+  buffer: Buffer;
+  filename: string;
+  warnings: string[];
+  usedAssets: string[];
+  missingAssets: string[];
+};
+```
+
+### Test automatici minimi
+
+Creare fixture piccole:
+
+```txt
+packages/exporters/test-fixtures/
+  floor.png
+  chair.png
+  torch.webp
+```
+
+Testare:
+
+1. export con asset esistente;
+2. export con asset mancante;
+3. export con flip;
+4. export con scale;
+5. export con layer spento;
+6. export player-safe senza asset GM-only.
+
+### Test manuale obbligatorio
+
+Creare una mappa con 5 asset veri:
+
+- pavimento;
+- muro/porta;
+- tavolo;
+- luce/torcia;
+- oggetto scenico.
+
+Esportare PNG e verificare visivamente che gli asset compaiano davvero.
+
+### Acceptance criteria
+
+- PNG/WEBP mostrano asset reali.
+- Gli asset mancanti sono riportati come warning, non causano crash.
+- Export player/GM rispettano visibilità e layer.
+- Il file può essere aperto da visualizzatore immagini standard.
+
+### Priorità
+
+**P0 — Critica.** Senza questa fase il tool genera struttura, ma non ancora mappe belle.
 
 ---
 
-## Pattern da riusare
+## Fase 3 — Migrazioni dati `MapDocument`
 
-- Zod schemas in `packages/core`.
-- `MapDocument` come source of truth editabile.
-- Manifest asset locale come base di classificazione/search.
-- Override manuali separati dal manifest generato.
-- `scanSingleAsset` + append manifest per aggiornamenti incrementali.
-- `diffSnapshots` e snapshot helpers per versioning.
-- CLI pnpm come interfaccia stabile tra web, worker e package.
-- UI locale con feedback esplicito invece di operazioni mute.
+### Problema da risolvere
+
+Esiste `version: 1`, ma manca una pipeline di migrazione. Appena cambi lo schema, rischi di rompere progetti vecchi.
+
+### Obiettivo
+
+Ogni documento salvato deve poter essere letto anche dopo modifiche future allo schema.
+
+### API consigliata
+
+```ts
+export function migrateMapDocument(input: unknown): MapDocument {
+  // 1. riconosci versione
+  // 2. applica migrazioni incrementali
+  // 3. valida con MapDocumentSchema
+}
+```
+
+### Struttura consigliata
+
+```txt
+packages/core/src/migrations/
+  index.ts
+  v0-to-v1.ts
+  v1-to-v2.ts
+  fixtures/
+    document-v1-basic.json
+    document-v1-with-assets.json
+    document-v1-with-plan.json
+```
+
+### Task tecnici
+
+1. Creare `migrateMapDocument`.
+2. Usarla in `readProject` al posto di `MapDocumentSchema.parse` diretto.
+3. Usarla negli import `.dmimap.json`.
+4. Aggiungere fixture di documenti vecchi.
+5. Aggiungere test di compatibilità.
+6. Documentare regola: mai modificare schema senza migrazione.
+
+### Acceptance criteria
+
+- Un documento vecchio viene letto e aggiornato in memoria.
+- Un documento corrotto produce errore chiaro.
+- Un documento con campi sconosciuti non manda in crash l’app senza messaggio comprensibile.
+- `readProject` non rompe vecchie mappe.
+
+### Priorità
+
+**P1 — Alta.** Da fare subito dopo export asset-based.
 
 ---
 
-## Verifica consigliata
+## Fase 4 — Hardening sicurezza locale
 
-### Automatica
+### Problema da risolvere
+
+Il progetto è sicuro solo se resta locale. API web e worker non sono pensati per esposizione pubblica.
+
+### Obiettivo
+
+Rendere impossibile o molto evidente l’uso sbagliato su internet.
+
+### Task tecnici
+
+1. Aggiungere avviso forte nel README:
+
+```txt
+DM-Instamap non include autenticazione. Non esporre su internet. Usare solo localhost o rete locale fidata.
+```
+
+2. Far partire Next preferibilmente su localhost.
+3. Far partire worker preferibilmente su localhost.
+4. Aggiungere controllo opzionale:
+
+```env
+DM_INSTAMAP_ALLOW_REMOTE=false
+```
+
+5. Se host non è localhost e `ALLOW_REMOTE` non è true, mostrare errore.
+6. Validare path ricevuti dal worker:
+   - path assoluti ammessi solo se locali;
+   - niente path traversal;
+   - niente cartelle di sistema;
+   - warning se la cartella è troppo ampia.
+
+### Acceptance criteria
+
+- README chiarisce il rischio.
+- Il worker non viene trattato come servizio pubblico.
+- Le route che cancellano/scrivono dati sono documentate come locali.
+- Nessun comando automatico suggerisce deploy pubblico.
+
+### Priorità
+
+**P1 — Alta.** Per uso personale è sufficiente, ma deve essere esplicito.
+
+---
+
+## Fase 5 — Test end-to-end manuali obbligatori
+
+### Problema da risolvere
+
+Il progetto ha tanti moduli, ma la domanda vera è:
+
+```txt
+Riesco a creare una mappa utile per la sessione di domani?
+```
+
+### Obiettivo
+
+Creare una procedura ripetibile che verifichi il flusso reale.
+
+### Task
+
+1. Creare cartella report:
+
+```txt
+docs/manual-test-reports/
+```
+
+2. Creare template:
+
+```txt
+docs/manual-test-reports/TEMPLATE.md
+```
+
+3. Eseguire test end-to-end su:
+   - dungeon semplice;
+   - caverna;
+   - villaggio;
+   - outdoor;
+   - multi-floor;
+   - export Foundry;
+   - export dd2vtt;
+   - Session Pack.
+
+### Acceptance criteria
+
+- Ogni test produce un report.
+- Ogni fallimento ha screenshot o descrizione.
+- Ogni export viene aperto/importato realmente.
+- Ogni bug diventa issue/task.
+
+### Priorità
+
+**P0/P1 — Obbligatoria.** Non è una fase “nice to have”. È la prova che il progetto serve davvero.
+
+---
+
+## Fase 6 — Miglioramento qualità generativa
+
+### Problema da risolvere
+
+Il generatore può produrre layout tecnicamente validi ma non sempre belli o tatticamente interessanti.
+
+### Obiettivo
+
+Migliorare la qualità delle mappe generate.
+
+### Task
+
+1. Aggiungere scoring qualità mappa:
+
+```txt
+connettività
+spazi troppo stretti
+stanze inutili
+percorsi leggibili
+coperture tattiche
+linee di vista
+punti di interesse
+```
+
+2. Aggiungere debug overlay in editor/generator preview.
+3. Migliorare outdoor:
+   - fiumi più naturali;
+   - radure giocabili;
+   - densità alberi controllabile;
+   - percorsi leggibili.
+4. Migliorare cave:
+   - evitare blob casuali;
+   - garantire entrata/uscita;
+   - aggiungere camere principali.
+5. Migliorare villaggi:
+   - strade;
+   - piazza centrale;
+   - edifici funzionali;
+   - accessi chiari.
+
+### Acceptance criteria
+
+Per ogni tipo mappa, su 10 generazioni random almeno 7 devono essere giudicate “usabili con modifiche minime”.
+
+### Priorità
+
+**P2 — Media.** Dopo aver stabilizzato export e build.
+
+---
+
+## Fase 7 — Test UI mirati
+
+### Problema da risolvere
+
+I test UI veri sono parziali.
+
+### Obiettivo
+
+Coprire i flussi più fragili senza appesantire troppo il progetto.
+
+### Test consigliati
+
+Usare Playwright o test leggeri su route principali.
+
+Flussi minimi:
+
+1. home carica;
+2. crea progetto da wizard;
+3. apre editor;
+4. salva documento;
+5. riapre progetto;
+6. crea snapshot;
+7. esporta session pack;
+8. apre pagina campaign;
+9. asset browser non crasha senza manifest;
+10. AI bridge manuale genera prompt packet.
+
+### Acceptance criteria
+
+- Almeno 8 flussi principali coperti.
+- I test non richiedono API esterne.
+- I test possono girare in CI.
+
+### Priorità
+
+**P2 — Media.** Utile dopo che il flusso manuale è stabile.
+
+---
+
+# PARTE 2 — Manuale dettagliato test end-to-end manuali obbligatori
+
+## 1. Scopo dei test manuali
+
+Questi test servono a rispondere a 5 domande:
+
+1. Posso installare il progetto da zero?
+2. Posso importare asset reali?
+3. Posso creare e modificare una mappa?
+4. Posso esportarla in formati realmente utili?
+5. Posso riaprire tutto senza perdere dati?
+
+Se la risposta è sì, DM-Instamap è utile.
+
+Se la risposta è no, bisogna correggere prima di aggiungere nuove feature.
+
+---
+
+## 2. Preparazione ambiente
+
+### Requisiti
+
+Verificare:
+
+```bash
+node -v
+pnpm -v
+python --version
+```
+
+Versioni consigliate:
+
+```txt
+Node.js 24+
+pnpm 10+
+Python 3.12+
+```
+
+### Installazione pulita
+
+Da root repository:
+
+```bash
+pnpm install
+pnpm worker:install
+```
+
+### Baseline tecnica
 
 ```bash
 pnpm lint
 pnpm test
-pnpm --filter @dm-instamap/web lint
-pnpm --filter @dm-instamap/web test
+pnpm build
 pnpm --filter @dm-instamap/worker test
 ```
 
-### Manuale
+### Esito atteso
 
-1. Avviare worker e app web.
-2. Importare un pack asset locale.
-3. Generare gruppi e audit.
-4. Revisionare qualche gruppo e asset.
-5. Generare una mappa da wizard e una da generator preview.
-6. Modificare in editor.
-7. Usare snapshot, restore e diff.
-8. Esportare Session Pack.
-9. Esportare Foundry e dd2vtt.
-10. Importare gli artefatti in VTT reali.
+Tutti i comandi dovrebbero passare.
 
----
-
-## Definizione di progetto maturo
-
-DM-Instamap puo considerarsi maturo quando:
-
-- puoi creare una nuova mappa da wizard;
-- puoi scegliere asset e reference;
-- puoi generare una bozza coerente;
-- puoi modificarla in editor canvas;
-- puoi arredarla automaticamente;
-- puoi correggere asset senza controllarli tutti uno per uno;
-- puoi usare il ChatGPT manual bridge senza API;
-- puoi usare provider AI opzionali quando configurati;
-- puoi esportare player map, GM map, Foundry, dd2vtt, PNG, WEBP e Session Pack;
-- puoi riaprire progetti salvati;
-- puoi gestire campagne locali;
-- test e CI sono verdi;
-- non c'e dipendenza obbligatoria da servizi esterni.
-
----
-
-## Nota finale
-
-DM-Instamap non deve diventare un generatore magico e fragile.
-
-La strategia corretta resta:
+Se fallisce `pnpm build`, registrare:
 
 ```txt
-Asset locali analizzati bene
-+ Reference Style DNA
-+ Blueprint narrativo
-+ Generatore geometrico controllabile
-+ Editor manuale
-+ Auto-furnish
-+ Export professionale
-+ ChatGPT Bridge opzionale
-= Tool realmente utile per un DM
+Comando fallito:
+Errore completo:
+File citati nello stacktrace:
+È legato a client/server import?
 ```
 
-Ogni mappa generata deve restare correggibile, editabile e riesportabile.
+---
+
+## 3. Preparazione dati test
+
+Creare una cartella fuori da Git:
+
+```bash
+mkdir -p local-assets/e2e-basic
+mkdir -p local-references/e2e-basic
+```
+
+Su PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force local-assets/e2e-basic
+New-Item -ItemType Directory -Force local-references/e2e-basic
+```
+
+Inserire almeno:
+
+```txt
+local-assets/e2e-basic/
+  floor-stone.png
+  wall-stone.png
+  door-wood.png
+  table.png
+  torch.png
+  chest.png
+  statue.png
+
+local-references/e2e-basic/
+  reference-crypt.png
+  reference-cave.png
+```
+
+Gli asset possono essere piccoli. Lo scopo non è la bellezza massima, ma verificare che la pipeline funzioni.
+
+---
+
+## 4. Avvio app e worker
+
+Aprire due terminali.
+
+### Terminale 1 — Worker
+
+```bash
+pnpm worker:dev
+```
+
+Esito atteso:
+
+```txt
+Uvicorn running on http://127.0.0.1:8000
+```
+
+Verifica:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+Su PowerShell:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/health
+```
+
+### Terminale 2 — Web app
+
+```bash
+pnpm dev
+```
+
+Aprire:
+
+```txt
+http://localhost:3000
+```
+
+Esito atteso:
+
+- home visibile;
+- nessun crash;
+- navigazione principale presente;
+- testi in italiano.
+
+---
+
+## 5. Test E2E-01 — Import asset locali
+
+### Obiettivo
+
+Verificare che il tool legga asset reali e generi manifest/previews.
+
+### Procedura CLI
+
+```bash
+pnpm assets:scan local-assets/e2e-basic
+pnpm assets:group
+pnpm assets:audit
+```
+
+### Procedura UI
+
+1. Aprire `/assets`.
+2. Verificare che gli asset appaiano.
+3. Aprire `/asset-groups`.
+4. Verificare che i gruppi siano visibili.
+5. Aprire `/assets/review/batches`.
+6. Verificare eventuali warning.
+
+### Risultati attesi
+
+- `data/indexes/assets.manifest.json` esiste.
+- `data/previews/assets/` contiene thumbnails.
+- Gli asset non vengono duplicati inutilmente.
+- Gli errori sono leggibili.
+
+### Fallimento critico se
+
+- lo scan crasha;
+- il manifest non viene scritto;
+- la UI asset non carica;
+- i path generati sono sbagliati.
+
+---
+
+## 6. Test E2E-02 — Import reference maps e Style DNA
+
+### Procedura
+
+```bash
+pnpm references:scan local-references/e2e-basic
+pnpm references:style
+```
+
+Poi aprire:
+
+```txt
+/references
+/references/review
+```
+
+### Risultati attesi
+
+- le mappe di riferimento compaiono;
+- viene generato un riassunto stile;
+- non serve nessuna API esterna;
+- eventuali dati mancanti sono gestiti senza crash.
+
+### Fallimento critico se
+
+- `references:style` fallisce su immagini valide;
+- la pagina references va in errore;
+- il sistema pretende una chiave API.
+
+---
+
+## 7. Test E2E-03 — Creazione mappa da wizard
+
+### Procedura
+
+1. Aprire `/projects/new`.
+2. Inserire descrizione:
+
+```txt
+Una cripta sotto una cattedrale. I morti non sono ostili ma prigionieri. Deve avere ingresso, sala centrale, cappella allagata, stanza segreta e uscita nascosta.
+```
+
+3. Scegliere tipo mappa: dungeon/crypt.
+4. Selezionare asset group disponibili.
+5. Selezionare reference map.
+6. Generare progetto.
+
+### Risultati attesi
+
+- viene creato un progetto;
+- si viene reindirizzati alla pagina progetto o editor;
+- la mappa ha stanze coerenti;
+- esiste un file:
+
+```txt
+data/projects/<project-id>/project.json
+data/projects/<project-id>/map.dmimap.json
+```
+
+### Fallimento critico se
+
+- il wizard non crea il progetto;
+- il progetto non si apre;
+- il file `map.dmimap.json` è invalido;
+- la generazione produce una mappa vuota.
+
+---
+
+## 8. Test E2E-04 — Editor canvas
+
+### Procedura
+
+1. Aprire il progetto creato.
+2. Entrare in editor.
+3. Eseguire queste azioni:
+   - pan;
+   - zoom;
+   - paint floor;
+   - paint wall;
+   - erase;
+   - aggiungi porta;
+   - aggiungi luce;
+   - piazza almeno 3 asset;
+   - ruota un asset;
+   - scala un asset;
+   - flip di un asset;
+   - aggiungi nota GM;
+   - undo;
+   - redo;
+   - salva.
+4. Chiudere pagina.
+5. Riaprire progetto.
+
+### Risultati attesi
+
+- le modifiche restano salvate;
+- undo/redo non corrompe la mappa;
+- gli asset piazzati restano nella posizione corretta;
+- note/luci sono ancora presenti dopo riapertura.
+
+### Fallimento critico se
+
+- il salvataggio perde dati;
+- dopo riapertura la mappa cambia;
+- editor crasha dopo undo/redo;
+- asset/luci/note spariscono.
+
+---
+
+## 9. Test E2E-05 — Snapshot, diff e restore
+
+### Procedura
+
+1. Aprire il progetto.
+2. Creare snapshot con label:
+
+```txt
+before-manual-edit
+```
+
+3. Modificare la mappa.
+4. Creare secondo snapshot:
+
+```txt
+after-manual-edit
+```
+
+5. Aprire diff.
+6. Ripristinare il primo snapshot.
+7. Riaprire editor.
+
+### Risultati attesi
+
+- snapshot creati senza duplicati inutili;
+- diff mostra campi cambiati;
+- restore riporta davvero la mappa allo stato precedente;
+- nessun crash su reload.
+
+### Fallimento critico se
+
+- snapshot non leggibili;
+- restore corrompe `map.dmimap.json`;
+- diff è vuoto quando ci sono modifiche evidenti.
+
+---
+
+## 10. Test E2E-06 — Export PNG/WEBP
+
+### Procedura
+
+1. Aprire pagina export progetto.
+2. Esportare:
+   - PNG GM;
+   - PNG player;
+   - WEBP GM;
+   - WEBP player.
+3. Aprire i file esportati con visualizzatore immagini.
+
+### Risultati attesi
+
+- i file si aprono;
+- dimensioni corrette;
+- player map non mostra note/elementi GM-only;
+- GM map mostra tutto;
+- se implementata Fase 2, gli asset reali compaiono nell’immagine.
+
+### Fallimento critico se
+
+- export genera file illeggibile;
+- player map mostra segreti;
+- asset reali non compaiono dopo la Fase 2;
+- luci/layer causano crash.
+
+---
+
+## 11. Test E2E-07 — Export dd2vtt
+
+### Procedura
+
+1. Esportare formato dd2vtt.
+2. Aprire il file JSON.
+3. Verificare che contenga:
+   - immagine embedded o riferimento valido;
+   - walls;
+   - doors/portals;
+   - lights se presenti;
+   - dimensioni mappa.
+4. Importare in un VTT compatibile o plugin Universal VTT.
+
+### Risultati attesi
+
+- il file JSON è valido;
+- il VTT importa la scena;
+- muri e porte sono coerenti;
+- la scala griglia è sensata.
+
+### Fallimento critico se
+
+- JSON invalido;
+- import VTT fallisce;
+- muri completamente sballati;
+- porte fuori posizione.
+
+---
+
+## 12. Test E2E-08 — Export Foundry VTT
+
+### Procedura
+
+1. Esportare Foundry module zip.
+2. Aprire Foundry.
+3. Installare/importare il modulo.
+4. Aprire la scena generata.
+5. Verificare:
+   - mappa visibile;
+   - muri presenti;
+   - porte presenti;
+   - luci presenti;
+   - journal entries presenti se abilitate;
+   - note GM non visibili ai player.
+
+### Risultati attesi
+
+- modulo installabile;
+- scena apribile;
+- griglia coerente;
+- muri/porte/luci accettabili;
+- journal leggibili.
+
+### Fallimento critico se
+
+- Foundry rifiuta il modulo;
+- scena non appare;
+- immagine mancante;
+- muri/luci inutilizzabili;
+- dati GM finiscono lato player.
+
+---
+
+## 13. Test E2E-09 — Session Pack
+
+### Procedura CLI
+
+```bash
+pnpm exports:session-pack <project-id> --scale 2 --include-initiative
+```
+
+Oppure da UI usare quick export Session Pack.
+
+### Verificare zip
+
+Lo zip dovrebbe contenere:
+
+```txt
+manifest.json
+map-full.png o .webp
+map-gm.png o .webp
+map-player.png o .webp
+gm-notes.md
+plan-notes.md
+initiative.json o .md
+```
+
+### Risultati attesi
+
+- zip apribile;
+- manifest coerente;
+- mappe presenti;
+- note leggibili;
+- player map sicura.
+
+### Fallimento critico se
+
+- zip corrotto;
+- manifest assente;
+- mappe mancanti;
+- contenuti GM appaiono nella player map.
+
+---
+
+## 14. Test E2E-10 — Multi-floor
+
+### Procedura
+
+1. Aprire `/generate`.
+2. Scegliere multi-floor.
+3. Generare almeno 3 piani.
+4. Salvare come progetti collegati.
+5. Aprire pagina floors del progetto.
+6. Aprire ogni piano.
+7. Verificare scale/stairs link.
+
+### Risultati attesi
+
+- ogni piano è progetto separato;
+- `relatedProjectIds` collega gli altri piani;
+- la pagina floors mostra tutti;
+- ogni mappa è apribile/esportabile.
+
+### Fallimento critico se
+
+- alcuni piani non vengono salvati;
+- link tra piani rotti;
+- export funziona solo sul primo piano.
+
+---
+
+## 15. Test E2E-11 — AI Bridge manuale senza API
+
+### Procedura
+
+1. Aprire `/ai-bridge`.
+2. Inserire prompt:
+
+```txt
+Crea una cripta sotto una cattedrale dove i morti non sono ostili ma prigionieri. Usa asset locali disponibili e mantieni la mappa editabile.
+```
+
+3. Generare prompt packet.
+4. Copiarlo in ChatGPT.
+5. Incollare risposta JSON nel bridge.
+6. Validare.
+7. Importare come progetto.
+
+### Risultati attesi
+
+- il prompt packet contiene asset disponibili;
+- la validazione intercetta errori JSON;
+- repair locale aiuta a correggere problemi comuni;
+- il progetto importato si apre in editor.
+
+### Fallimento critico se
+
+- il bridge inventa asset inesistenti senza avviso;
+- JSON valido ma semantica rotta;
+- import crea progetto inutilizzabile.
+
+---
+
+## 16. Test E2E-12 — Worker jobs lunghi
+
+### Procedura
+
+Da UI, dove disponibile, usare worker per:
+
+- import pack;
+- asset generate;
+- AI plan opzionale;
+- session pack.
+
+Oppure via API worker:
+
+```bash
+curl -X POST http://127.0.0.1:8000/jobs/assets/scan \
+  -H "Content-Type: application/json" \
+  -d '{"folder":"local-assets/e2e-basic"}'
+```
+
+Poi controllare job:
+
+```bash
+curl http://127.0.0.1:8000/jobs
+```
+
+### Risultati attesi
+
+- job passa da queued a running a completed;
+- progress visibile;
+- in caso errore, stdout/stderr sono utili;
+- cancel funziona per job lunghi.
+
+### Fallimento critico se
+
+- job resta bloccato;
+- errore senza messaggio;
+- cancellazione non termina subprocess;
+- worker perde stato al restart senza indicarlo.
+
+---
+
+# Template report manuale
+
+Creare file:
+
+```txt
+docs/manual-test-reports/e2e-YYYY-MM-DD.md
+```
+
+Contenuto:
+
+```md
+# DM-Instamap Manual E2E Report
+
+## Ambiente
+
+- Data:
+- Commit:
+- OS:
+- Node:
+- pnpm:
+- Python:
+- Browser:
+- Foundry/Roll20 version:
+
+## Baseline
+
+| Comando | Esito | Note |
+|---|---|---|
+| pnpm lint | PASS/FAIL | |
+| pnpm test | PASS/FAIL | |
+| pnpm build | PASS/FAIL | |
+| worker test | PASS/FAIL | |
+
+## Asset usati
+
+- Pack/cartella:
+- Numero asset:
+- Formati:
+- Reference maps:
+
+## Test
+
+| ID | Nome | Esito | Bug aperto | Note |
+|---|---|---|---|---|
+| E2E-01 | Import asset | PASS/FAIL | | |
+| E2E-02 | References | PASS/FAIL | | |
+| E2E-03 | Wizard | PASS/FAIL | | |
+| E2E-04 | Editor | PASS/FAIL | | |
+| E2E-05 | Snapshot | PASS/FAIL | | |
+| E2E-06 | PNG/WEBP | PASS/FAIL | | |
+| E2E-07 | dd2vtt | PASS/FAIL | | |
+| E2E-08 | Foundry | PASS/FAIL | | |
+| E2E-09 | Session Pack | PASS/FAIL | | |
+| E2E-10 | Multi-floor | PASS/FAIL | | |
+| E2E-11 | AI manual bridge | PASS/FAIL | | |
+| E2E-12 | Worker jobs | PASS/FAIL | | |
+
+## Bug critici
+
+### Bug 1
+
+- Descrizione:
+- Passi per riprodurre:
+- Risultato atteso:
+- Risultato ottenuto:
+- Log:
+- Screenshot:
+- Priorità:
+
+## Giudizio finale
+
+La build è utilizzabile per una sessione reale? Sì/No
+
+Motivo:
+```
+
+---
+
+# Ordine consigliato di esecuzione
+
+Non fare tutto insieme. L’ordine migliore è:
+
+```txt
+Giorno 1
+- Fase 0 baseline
+- E2E-01 asset
+- E2E-02 references
+- E2E-03 wizard
+
+Giorno 2
+- E2E-04 editor
+- E2E-05 snapshot
+- E2E-06 PNG/WEBP
+
+Giorno 3
+- E2E-07 dd2vtt
+- E2E-08 Foundry
+- E2E-09 Session Pack
+
+Giorno 4
+- E2E-10 multi-floor
+- E2E-11 AI bridge manuale
+- E2E-12 worker jobs
+```
+
+---
+
+# Criterio finale di maturità
+
+DM-Instamap può essere considerato pronto per uso personale serio quando:
+
+- `pnpm lint`, `pnpm test`, `pnpm build` passano;
+- almeno una mappa viene creata da wizard;
+- almeno una mappa viene modificata in editor e riaperta correttamente;
+- snapshot/diff/restore funzionano;
+- export PNG/WEBP mostra asset reali;
+- export Foundry viene importato davvero;
+- export dd2vtt viene importato davvero;
+- Session Pack produce zip completo;
+- AI manual bridge funziona senza API;
+- worker gestisce job lunghi senza bloccare la UI;
+- nessun dato GM finisce nella player map;
+- il tool resta chiaramente locale e non esposto online.
+
+---
+
+# Priorità sintetica
+
+| Priorità | Intervento | Perché |
+|---|---|---|
+| P0 | Separare browser/server entrypoints | Stabilizza build Next |
+| P0 | Export raster asset-based | Rende le mappe davvero usabili |
+| P0 | Test E2E manuali | Dimostra utilità reale |
+| P1 | Migrazioni MapDocument | Protegge mappe future/vecchie |
+| P1 | Sicurezza locale esplicita | Evita uso pericoloso online |
+| P2 | Miglioramento generator | Aumenta qualità delle mappe |
+| P2 | Test UI mirati | Riduce regressioni |
+
+---
+
+# Conclusione operativa
+
+Non aggiungere nuove feature finché non sono chiuse queste tre cose:
+
+```txt
+1. pnpm build stabile
+2. export con asset reali
+3. almeno un test manuale completo Foundry/dd2vtt superato
+```
+
+Dopo questi tre punti, DM-Instamap smette di essere solo un progetto tecnicamente ambizioso e diventa un tool personale davvero utilizzabile per preparare sessioni D&D.
+

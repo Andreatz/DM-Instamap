@@ -3,7 +3,7 @@ import {
   listSnapshotsInDirectory,
   restoreSnapshotFromDirectory,
   writeSnapshotToDirectory
-} from "@dm-instamap/core/snapshots";
+} from "@dm-instamap/core/server";
 import { pathToFileURL } from "node:url";
 import { readProject, updateProject } from "../projects";
 

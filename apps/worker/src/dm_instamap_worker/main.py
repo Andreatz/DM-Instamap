@@ -10,6 +10,7 @@ from .routes import (
     jobs_router,
     references_router,
 )
+from .security import reject_remote_requests
 
 
 def create_app(job_store: JobStore | None = None) -> FastAPI:
@@ -23,6 +24,7 @@ def create_app(job_store: JobStore | None = None) -> FastAPI:
     def health() -> dict[str, str]:
         return health_payload()
 
+    app.middleware("http")(reject_remote_requests)
     app.state.job_store = job_store or JobStore()
     app.include_router(jobs_router)
     app.include_router(assets_router)

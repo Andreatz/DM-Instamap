@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DragEvent, PointerEvent, WheelEvent } from "react";
-import type { DoorSegment, InitiativeEntry, LightSource, MapDocument, MapLayer, MapLayerKind, MapNote, MapTile, RoomNode, WallSegment } from "@dm-instamap/core";
+import type { DoorSegment, InitiativeEntry, LightSource, MapDocument, MapLayer, MapLayerKind, MapNote, MapTile, RoomNode, WallSegment } from "@dm-instamap/core/browser";
 import { matchAssetGroupsForRoom, type MatchableAssetGroup } from "@dm-instamap/assets/matcher";
 import { autoFurnishMap, type FurnishingAsset, type FurnishingDensity } from "@dm-instamap/generator";
 import {

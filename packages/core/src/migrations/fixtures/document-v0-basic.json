@@ -1,0 +1,14 @@
+{
+  "height": 2,
+  "id": "document-v0-basic",
+  "name": "Document V0 Basic",
+  "tiles": [
+    {
+      "id": "tile-0-0",
+      "kind": "floor",
+      "x": 0,
+      "y": 0
+    }
+  ],
+  "width": 2
+}

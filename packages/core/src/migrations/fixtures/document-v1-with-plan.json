@@ -1,0 +1,50 @@
+{
+  "editable": true,
+  "grid": {
+    "cellSize": 5,
+    "height": 4,
+    "origin": {
+      "x": 0,
+      "y": 0
+    },
+    "pixelsPerCell": 70,
+    "type": "square",
+    "unit": "ft",
+    "width": 4
+  },
+  "height": 4,
+  "id": "document-v1-with-plan",
+  "name": "Document V1 With Plan",
+  "plan": {
+    "assetPlacements": [],
+    "doors": [],
+    "gmNotes": [],
+    "id": "plan-1",
+    "initiative": [],
+    "lights": [],
+    "name": "Plan 1",
+    "notes": [
+      "fixture"
+    ],
+    "requestId": "request-1",
+    "rooms": [
+      {
+        "bounds": {
+          "height": 2,
+          "width": 2,
+          "x": 1,
+          "y": 1
+        },
+        "connections": [],
+        "id": "room-1",
+        "kind": "room",
+        "label": "Room 1",
+        "tags": []
+      }
+    ],
+    "walls": []
+  },
+  "tiles": [],
+  "version": 1,
+  "width": 4
+}

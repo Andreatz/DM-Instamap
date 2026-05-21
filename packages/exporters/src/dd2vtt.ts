@@ -9,7 +9,8 @@ import {
   type MapTile,
   type Point,
   type WallSegment
-} from "@dm-instamap/core";
+} from "@dm-instamap/core/browser";
+import type { AssetResolver } from "./asset-resolver";
 import { exportMapDocumentRaster } from "./raster";
 
 export type Dd2VttImportOptions = {
@@ -34,6 +35,7 @@ export type Dd2VttImportResult = {
 };
 
 export type Dd2VttExportOptions = {
+  assetResolver?: AssetResolver;
   embedImage?: boolean;
   imageFormat?: "png" | "webp";
   includeGrid?: boolean;
@@ -162,6 +164,7 @@ export async function exportMapDocumentDd2Vtt(
 
   if (options.embedImage ?? true) {
     const image = await exportMapDocumentRaster(document, {
+      assetResolver: options.assetResolver,
       format: options.imageFormat ?? "png",
       includeGrid: options.includeGrid ?? false,
       scale: options.scale ?? 1

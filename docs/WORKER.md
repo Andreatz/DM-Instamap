@@ -16,6 +16,18 @@ The API starts on:
 http://127.0.0.1:8000
 ```
 
+The worker is local-only by default and has no authentication layer. Requests
+with non-local host headers are rejected unless `DM_INSTAMAP_ALLOW_REMOTE=true`
+is set deliberately. Do not bind it to a public interface or expose it on the
+internet.
+
+Path payloads are validated before jobs are queued:
+
+- relative paths must resolve inside the DM-Instamap workspace;
+- broad/system folders such as a drive root, home directory, Windows system
+  folders, or Unix system folders are rejected;
+- image analysis paths must exist before the job starts.
+
 ## Health
 
 ```bash
@@ -129,4 +141,5 @@ Configure the worker base URL on the web side with:
 
 ```bash
 DM_INSTAMAP_WORKER_URL=http://127.0.0.1:8000
+DM_INSTAMAP_ALLOW_REMOTE=false
 ```

@@ -1,5 +1,6 @@
 import {
   MapDocumentSchema,
+  migrateMapDocument,
   type InitiativeEntry,
   type LightSource,
   type MapDocument,
@@ -9,7 +10,7 @@ import {
   type PlacedAsset,
   type RoomNode,
   type TileKind
-} from "@dm-instamap/core";
+} from "@dm-instamap/core/browser";
 
 export type EditorPaletteAsset = {
   id: string;
@@ -675,7 +676,7 @@ export function parseMapDocumentJson(value: string): MapDocument {
     throw new Error("JSON is not an editable MapDocument.");
   }
 
-  return ensureEditorLayers(MapDocumentSchema.parse(parsed));
+  return ensureEditorLayers(migrateMapDocument(parsed));
 }
 
 export function createFallbackPalette(): EditorPaletteAsset[] {

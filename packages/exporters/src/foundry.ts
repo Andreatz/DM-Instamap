@@ -6,11 +6,13 @@ import type {
   MapNote,
   RoomNode,
   WallSegment
-} from "@dm-instamap/core";
+} from "@dm-instamap/core/browser";
+import type { AssetResolver } from "./asset-resolver";
 import { exportMapDocumentRaster, type RasterExportFormat } from "./raster";
 
 export type FoundryExportOptions = {
   author?: string;
+  assetResolver?: AssetResolver;
   description?: string;
   imageFormat?: RasterExportFormat;
   includeGridInImage?: boolean;
@@ -137,6 +139,7 @@ export async function exportFoundryModule(
   const sceneSlug = slugify(options.sceneId ?? options.moduleId ?? document.id);
   const imageFormat = options.imageFormat ?? "webp";
   const image = await exportMapDocumentRaster(document, {
+    assetResolver: options.assetResolver,
     format: imageFormat,
     includeGrid: options.includeGridInImage ?? false,
     scale: options.scale ?? 1

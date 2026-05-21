@@ -1,4 +1,8 @@
+import { mkdtemp } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import JSZip from "jszip";
+import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 import { createMapDocument, type DoorSegment, type LightSource, type MapPlan, type PlacedAsset, type WallSegment } from "@dm-instamap/core";
 import {
@@ -25,8 +29,100 @@ describe("exportMapDocumentRaster", () => {
 
     expect(result.contentType).toBe("image/png");
     expect(result.filename).toBe("export-fixture.png");
+    expect(result.missingAssets).toEqual([]);
+    expect(result.usedAssets).toEqual([]);
+    expect(result.warnings).toEqual([]);
     expect(result.width).toBe(3 * 28);
     expect(result.buffer.subarray(0, 8)).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  });
+
+  it("composites real asset artwork when an asset resolver is provided", async () => {
+    const fixture = await createImageFixture({ color: { alpha: 1, b: 20, g: 30, r: 220 }, name: "table.png" });
+    const result = await exportMapDocumentRaster(createExportFixture(), {
+      assetResolver: {
+        resolveAsset: (assetId) => (assetId === "asset-table" ? { absolutePath: fixture, assetId } : null)
+      },
+      format: "png",
+      includeGrid: false,
+      scale: 1
+    });
+    const centerPixel = await readPixel(result.buffer, 42, 42);
+
+    expect(result.usedAssets).toEqual(["asset-table"]);
+    expect(result.missingAssets).toEqual([]);
+    expect(centerPixel.r).toBeGreaterThan(180);
+    expect(centerPixel.g).toBeLessThan(80);
+  });
+
+  it("falls back to a marker and warning when a placed asset cannot be resolved", async () => {
+    const result = await exportMapDocumentRaster(createExportFixture(), {
+      assetResolver: {
+        resolveAsset: () => null
+      },
+      format: "png",
+      includeGrid: false,
+      scale: 1
+    });
+
+    expect(result.usedAssets).toEqual([]);
+    expect(result.missingAssets).toEqual(["asset-table"]);
+    expect(result.warnings[0]).toContain("Asset asset-table non trovato");
+  });
+
+  it("applies flip transforms to resolved asset artwork", async () => {
+    const fixture = await createTwoToneFixture();
+    const map = {
+      ...createMapDocument({
+        height: 1,
+        id: "flip-export",
+        name: "Flip Export",
+        tiles: [{ id: "tile-0-0", kind: "floor" as const, x: 0, y: 0 }],
+        width: 1
+      }),
+      assets: [
+        {
+          assetId: "asset-banner",
+          flipX: true,
+          flipY: false,
+          id: "placed-banner",
+          layer: "object" as const,
+          locked: false,
+          position: { x: 0, y: 0 },
+          rotation: 0,
+          scale: 1,
+          tags: []
+        }
+      ]
+    };
+    const result = await exportMapDocumentRaster(map, {
+      assetResolver: {
+        resolveAsset: (assetId) => ({ absolutePath: fixture, assetId })
+      },
+      format: "png",
+      includeGrid: false,
+      scale: 1
+    });
+    const leftPixel = await readPixel(result.buffer, 8, 14);
+    const rightPixel = await readPixel(result.buffer, 20, 14);
+
+    expect(leftPixel.b).toBeGreaterThan(180);
+    expect(rightPixel.r).toBeGreaterThan(180);
+  });
+
+  it("does not resolve assets hidden by the requested layer filter", async () => {
+    const result = await exportMapDocumentRaster(createExportFixture(), {
+      assetResolver: {
+        resolveAsset: (assetId) => ({ absolutePath: `missing-${assetId}.png`, assetId })
+      },
+      format: "png",
+      includeGrid: false,
+      layers: ["floor"],
+      scale: 1
+    });
+
+    expect(result.usedAssets).toEqual([]);
+    expect(result.missingAssets).toEqual([]);
+    expect(result.warnings).toEqual([]);
   });
 
   it("exports a MapDocument to WEBP at the requested scale", async () => {
@@ -217,5 +313,79 @@ function createLayeredExportFixture() {
   return {
     ...map,
     assets: [table]
+  };
+}
+
+async function createImageFixture(input: {
+  color: { alpha: number; b: number; g: number; r: number };
+  name: string;
+}): Promise<string> {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "dm-export-asset-"));
+  const filePath = path.join(directory, input.name);
+  await sharp({
+    create: {
+      background: input.color,
+      channels: 4,
+      height: 12,
+      width: 12
+    }
+  })
+    .png()
+    .toFile(filePath);
+  return filePath;
+}
+
+async function createTwoToneFixture(): Promise<string> {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "dm-export-flip-"));
+  const filePath = path.join(directory, "banner.png");
+  const left = await sharp({
+    create: {
+      background: { alpha: 1, b: 0, g: 0, r: 230 },
+      channels: 4,
+      height: 12,
+      width: 6
+    }
+  })
+    .png()
+    .toBuffer();
+  const right = await sharp({
+    create: {
+      background: { alpha: 1, b: 230, g: 0, r: 0 },
+      channels: 4,
+      height: 12,
+      width: 6
+    }
+  })
+    .png()
+    .toBuffer();
+
+  await sharp({
+    create: {
+      background: { alpha: 0, b: 0, g: 0, r: 0 },
+      channels: 4,
+      height: 12,
+      width: 12
+    }
+  })
+    .composite([
+      { input: left, left: 0, top: 0 },
+      { input: right, left: 6, top: 0 }
+    ])
+    .png()
+    .toFile(filePath);
+
+  return filePath;
+}
+
+async function readPixel(buffer: Buffer, x: number, y: number): Promise<{ b: number; g: number; r: number }> {
+  const image = sharp(buffer);
+  const metadata = await image.metadata();
+  const width = metadata.width ?? 0;
+  const raw = await image.raw().toBuffer();
+  const offset = (y * width + x) * 4;
+  return {
+    r: raw[offset] ?? 0,
+    g: raw[offset + 1] ?? 0,
+    b: raw[offset + 2] ?? 0
   };
 }

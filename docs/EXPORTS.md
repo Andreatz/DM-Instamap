@@ -21,9 +21,20 @@ The first raster export pipeline lives in `packages/exporters`.
 - `background`: `default` or `transparent`
 - `scale`: output resolution multiplier from `0.5` to `4`
 - `webpQuality`: WEBP quality from `1` to `100`
+- `assetResolver`: optional local resolver that maps placed `assetId` values
+  to absolute image paths for Sharp compositing
 
-The current renderer draws map tiles, doors, and placed asset markers from the
-editable `MapDocument`. It does not embed original asset artwork yet.
+The renderer draws map tiles and doors from the editable `MapDocument`. When an
+`assetResolver` is provided, placed assets are rendered from their original PNG
+or WEBP artwork with scale, rotation, `flipX`, `flipY`, transparency, and layer
+filtering. Missing assets do not crash the export: the renderer keeps a marker
+fallback and returns `warnings`, `usedAssets`, and `missingAssets` in the raster
+result.
+
+`createAssetManifestResolver` reads `data/indexes/assets.manifest.json` and
+resolves each manifest `relativePath` against its `sourceRoot`. The web export
+routes use it for local PNG/WEBP exports so generated files can contain real
+local asset artwork instead of symbolic circles.
 
 `exportMapDocumentRasterLayers` exports VTT-friendly transparent layer images
 for floor, walls, doors, props, and lighting. This is the current basis for

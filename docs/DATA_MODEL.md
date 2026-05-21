@@ -4,6 +4,26 @@ DM-Instamap stores maps as editable local documents. The TypeScript types in
 `packages/core` are inferred from Zod schemas, so runtime validation and compile
 time types stay aligned.
 
+## Core entrypoint rule
+
+Browser code must import map and campaign types from
+`@dm-instamap/core/browser`. Node-only code such as route handlers, CLIs, and
+snapshot/project persistence can import from `@dm-instamap/core/server`.
+The server entrypoint includes filesystem-backed snapshot helpers; the browser
+entrypoint intentionally does not.
+
+## MapDocument migrations
+
+Read/import paths must use `migrateMapDocument(input)` instead of parsing
+unknown JSON with `MapDocumentSchema.parse` directly. The current schema version
+is `version: 1`; legacy documents without a version are treated as v0 and
+upgraded with default editable fields, grid defaults, layers, tiles, and asset
+arrays before validation. `.dmimap.json` export payloads are unwrapped and then
+migrated through the same path.
+
+Future schema changes require a new incremental migration and fixture before
+saved projects are considered compatible.
+
 ## AssetMetadata
 
 Describes one local asset discovered by the scanner, such as a tile, prop, wall,

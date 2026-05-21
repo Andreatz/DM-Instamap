@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { MapDocument } from "@dm-instamap/core";
+import type { MapDocument } from "@dm-instamap/core/browser";
 
 type ExportFormat = "png" | "webp" | "dd2vtt" | "foundry" | "dmimap" | "session-pack";
 type ExportMode = "player" | "gm" | "clean";

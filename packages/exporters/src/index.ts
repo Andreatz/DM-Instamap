@@ -55,6 +55,13 @@ export {
   type DmImapExportResult
 } from "./dmimap";
 
+export {
+  createAssetManifestResolver,
+  type AssetManifestResolverOptions,
+  type AssetResolver,
+  type RasterAssetSource
+} from "./asset-resolver";
+
 export type ExportFormat = "png" | "webp" | "dd2vtt" | "foundry" | "dmimap";
 
 export function listSupportedExportFormats(): ExportFormat[] {

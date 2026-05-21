@@ -77,7 +77,7 @@ class WorkerJobTests(unittest.TestCase):
         self.assertEqual(payload["type"], "assets.scan")
         self.assertEqual(payload["status"], "completed")
         self.assertEqual(payload["progress"], 100)
-        self.assertEqual(payload["result"]["folder"], "local-assets")
+        self.assertTrue(payload["result"]["folder"].endswith("local-assets"))
         self.assertIn("Scanned", payload["result"]["stdout"])
 
     def test_reference_scan_job_completes_with_local_runner_result(self) -> None:
@@ -90,7 +90,7 @@ class WorkerJobTests(unittest.TestCase):
 
         self.assertEqual(payload["type"], "references.scan")
         self.assertEqual(payload["status"], "completed")
-        self.assertEqual(payload["result"]["folder"], "local-references")
+        self.assertTrue(payload["result"]["folder"].endswith("local-references"))
 
     def test_image_analysis_job_reads_local_png_metadata(self) -> None:
         image_path = pathlib.Path(self.temp_dir.name) / "map.png"
@@ -130,8 +130,21 @@ class WorkerJobTests(unittest.TestCase):
         payload = self.client.get(f"/jobs/{created.json()['id']}").json()
         self.assertEqual(payload["type"], "assets.import-pack")
         self.assertEqual(payload["status"], "completed")
+        self.assertTrue(payload["result"]["root"].endswith(str(pathlib.Path("packs") / "fa")))
         self.assertEqual(payload["result"]["preset"], "forgotten-adventures")
         self.assertEqual(payload["result"]["defaultTags"], ["fa", "dungeon"])
+
+    def test_rejects_path_traversal_for_scan_jobs(self) -> None:
+        response = self.client.post("/jobs/assets/scan", json={"folder": "../../"})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Relative paths must stay inside", response.text)
+
+    def test_rejects_remote_host_without_explicit_opt_in(self) -> None:
+        response = self.client.get("/health", headers={"host": "dm-instamap.example.com"})
+
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("non include autenticazione", response.text)
 
     def test_asset_generate_job_uses_local_runner(self) -> None:
         def complete(store: JobStore, job_id: str, **kwargs) -> None:  # noqa: ANN003

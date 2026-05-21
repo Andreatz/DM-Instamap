@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { MapPlan } from "@dm-instamap/core";
+import type { MapPlan } from "@dm-instamap/core/browser";
 import type { AssetGroupView } from "@/lib/asset-groups";
 import type { ReferenceMapView } from "@/lib/references";
 import { toBridgeAssetGroup, toBridgeReference } from "@/lib/bridge-mappers";

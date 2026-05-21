@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Campaign, CampaignMapLink, CampaignSession } from "@dm-instamap/core";
+import type { Campaign, CampaignMapLink, CampaignSession } from "@dm-instamap/core/browser";
 
 type CampaignEditorProps = {
   campaign: Campaign;

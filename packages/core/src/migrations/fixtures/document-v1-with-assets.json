@@ -1,0 +1,40 @@
+{
+  "assets": [
+    {
+      "assetId": "asset-table",
+      "flipX": false,
+      "flipY": true,
+      "id": "placed-table",
+      "layer": "object",
+      "locked": false,
+      "position": {
+        "x": 1,
+        "y": 1
+      },
+      "rotation": 45,
+      "scale": 1.2,
+      "tags": [
+        "table"
+      ]
+    }
+  ],
+  "editable": true,
+  "grid": {
+    "cellSize": 5,
+    "height": 3,
+    "origin": {
+      "x": 0,
+      "y": 0
+    },
+    "pixelsPerCell": 70,
+    "type": "square",
+    "unit": "ft",
+    "width": 3
+  },
+  "height": 3,
+  "id": "document-v1-with-assets",
+  "name": "Document V1 With Assets",
+  "tiles": [],
+  "version": 1,
+  "width": 3
+}

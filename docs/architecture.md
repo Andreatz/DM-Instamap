@@ -15,7 +15,10 @@ DM-Instamap is organized as a local-first monorepo.
 ## Packages
 
 - `packages/core` owns shared map document types, snapshot records (full +
-  delta), and campaign schemas. Pure TypeScript + Zod.
+  delta), and campaign schemas. Browser-safe consumers import pure schemas and
+  types from `@dm-instamap/core/browser`; route handlers, CLIs, and other
+  Node-only modules import snapshot filesystem helpers from
+  `@dm-instamap/core/server`.
 - `packages/assets` owns local asset scanning, classification, audit,
   reference Style DNA, embeddings (local + remote), the pack importer (E1),
   the image-generation providers (D3), and the partial-rescan helpers
@@ -53,6 +56,9 @@ DM-Instamap is organized as a local-first monorepo.
   zip-based Session Pack.
 - Web routes prefer to call the same code path as the workspace CLIs (G1–G6),
   so behaviour stays identical between UI and terminal usage.
+- Client React components must not import `@dm-instamap/core` directly. Use
+  `@dm-instamap/core/browser` so Node-only snapshot helpers cannot be pulled
+  into browser bundles by accident.
 - Heavy or long-running tasks (`assets/import-pack`, `assets/generate`,
   `ai/plan`, `exports/session-pack`) opt-in to the worker via the
   `useJob`/`JobProgressBar` pair instead of holding a Next.js request open.

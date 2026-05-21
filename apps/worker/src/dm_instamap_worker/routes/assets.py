@@ -1,11 +1,13 @@
 from fastapi import APIRouter, BackgroundTasks, Depends
 
 from ..jobs import (
+    find_repo_root,
     JobStore,
     run_asset_generate_job,
     run_asset_import_pack_job,
     run_asset_scan_job,
 )
+from ..security import validate_local_path
 from ..models import (
     AssetGenerateRequest,
     AssetImportPackRequest,
@@ -23,8 +25,9 @@ def create_asset_scan_job(
     background_tasks: BackgroundTasks,
     store: JobStore = Depends(get_job_store),
 ) -> JobRecord:
+    folder = validate_local_path(payload.folder, repo_root=find_repo_root())
     job = store.create_job("assets.scan", "Queued local asset scan.")
-    background_tasks.add_task(run_asset_scan_job, store, job.id, payload.folder)
+    background_tasks.add_task(run_asset_scan_job, store, job.id, folder)
     return job
 
 
@@ -34,12 +37,13 @@ def create_asset_import_pack_job(
     background_tasks: BackgroundTasks,
     store: JobStore = Depends(get_job_store),
 ) -> JobRecord:
+    root = validate_local_path(payload.root, repo_root=find_repo_root())
     job = store.create_job("assets.import-pack", "Queued asset pack import.")
     background_tasks.add_task(
         run_asset_import_pack_job,
         store,
         job.id,
-        root=payload.root,
+        root=root,
         preset=payload.preset,
         default_tags=payload.defaultTags,
     )
@@ -52,6 +56,11 @@ def create_asset_generate_job(
     background_tasks: BackgroundTasks,
     store: JobStore = Depends(get_job_store),
 ) -> JobRecord:
+    output_directory = (
+        validate_local_path(payload.outputDirectory, repo_root=find_repo_root())
+        if payload.outputDirectory
+        else payload.outputDirectory
+    )
     job = store.create_job("assets.generate", "Queued asset generation.")
     background_tasks.add_task(
         run_asset_generate_job,
@@ -64,6 +73,6 @@ def create_asset_generate_job(
         style_tags=payload.styleTags,
         negative_prompt=payload.negativePrompt,
         file_name_hint=payload.fileNameHint,
-        output_directory=payload.outputDirectory,
+        output_directory=output_directory,
     )
     return job

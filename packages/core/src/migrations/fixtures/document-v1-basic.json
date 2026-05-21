@@ -1,0 +1,28 @@
+{
+  "editable": true,
+  "grid": {
+    "cellSize": 5,
+    "height": 2,
+    "origin": {
+      "x": 0,
+      "y": 0
+    },
+    "pixelsPerCell": 70,
+    "type": "square",
+    "unit": "ft",
+    "width": 2
+  },
+  "height": 2,
+  "id": "document-v1-basic",
+  "name": "Document V1 Basic",
+  "tiles": [
+    {
+      "id": "tile-0-0",
+      "kind": "floor",
+      "x": 0,
+      "y": 0
+    }
+  ],
+  "version": 1,
+  "width": 2
+}

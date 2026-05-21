@@ -44,9 +44,15 @@ DELETE /api/projects/[projectId]
 POST   /api/projects/multi-floor
 ```
 
-Project ids are slugged and validated before filesystem access. Project reads
-and writes validate `MapDocument` with Zod, and writes use a temporary file plus
+Project ids are slugged and validated before filesystem access. Project reads,
+writes, and `.dmimap.json` imports pass through `migrateMapDocument` before Zod
+validation, so older editable map documents can be upgraded in memory instead
+of breaking immediately after schema changes. Writes use a temporary file plus
 rename to avoid partial JSON files.
+
+Rule for future schema work: never change `MapDocumentSchema` in a way that
+breaks old saved projects without adding an incremental migration and fixture
+under `packages/core/src/migrations/fixtures/`.
 
 ### Multi-floor
 

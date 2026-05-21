@@ -1,4 +1,4 @@
-import { MapDocumentSchema, type MapDocument } from "@dm-instamap/core";
+import { migrateMapDocument, type MapDocument } from "@dm-instamap/core/browser";
 import { applyVisibilityMode, type MapVisibilityMode } from "./visibility";
 
 export type DmImapExportOptions = {
@@ -24,7 +24,7 @@ export const DMIMAP_FORMAT_VERSION = 1 as const;
 
 export function exportDmImap(document: MapDocument, options: DmImapExportOptions = {}): DmImapExportResult {
   const mode: MapVisibilityMode = options.mode ?? "gm";
-  const visibleDocument = applyVisibilityMode(MapDocumentSchema.parse(document), mode);
+  const visibleDocument = applyVisibilityMode(migrateMapDocument(document), mode);
   const payload: DmImapExportPayload = {
     document: visibleDocument,
     exportedAt: new Date().toISOString(),

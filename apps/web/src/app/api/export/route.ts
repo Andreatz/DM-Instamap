@@ -1,6 +1,7 @@
-import { MapDocumentSchema, type MapDocument } from "@dm-instamap/core";
+import { migrateMapDocument, type MapDocument } from "@dm-instamap/core/server";
 import {
   applyVisibilityMode,
+  createAssetManifestResolver,
   exportDmImap,
   exportFoundryModule,
   exportMapDocumentDd2Vtt,
@@ -34,7 +35,7 @@ const VALID_MODES = new Set<MapVisibilityMode>(["player", "gm", "clean"]);
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as ExportRequest;
-    const baseDocument = MapDocumentSchema.parse(body.document);
+    const baseDocument = migrateMapDocument(body.document);
     const format = parseFormat(body.format);
 
     if (!format) {
@@ -47,10 +48,12 @@ export async function POST(request: Request) {
     const scale = typeof body.scale === "number" ? body.scale : 1;
     const splitLayers = typeof body.splitLayers === "boolean" ? body.splitLayers : false;
     const webpQuality = typeof body.webpQuality === "number" ? body.webpQuality : undefined;
+    const assetResolver = createAssetManifestResolver();
 
     if (RASTER_FORMATS.has(format)) {
       if (splitLayers) {
         const result = await exportMapDocumentRasterLayerBundle(document, {
+          assetResolver,
           format: format as RasterExportFormat,
           includeGrid,
           scale,
@@ -67,6 +70,7 @@ export async function POST(request: Request) {
       }
 
       const result = await exportMapDocumentRaster(document, {
+        assetResolver,
         format: format as RasterExportFormat,
         includeGrid,
         scale,
@@ -84,6 +88,7 @@ export async function POST(request: Request) {
 
     if (format === "dd2vtt") {
       const result = await exportMapDocumentDd2Vtt(document, {
+        assetResolver,
         embedImage: true,
         imageFormat: "png",
         includeGrid,
@@ -102,6 +107,7 @@ export async function POST(request: Request) {
     if (format === "foundry") {
       const includeJournals = typeof body.includeJournals === "boolean" ? body.includeJournals : true;
       const result = await exportFoundryModule(document, {
+        assetResolver,
         imageFormat: "webp",
         includeGridInImage: includeGrid,
         includeJournals,
@@ -121,6 +127,7 @@ export async function POST(request: Request) {
       const description = typeof body.description === "string" ? body.description : undefined;
       const includeInitiative = typeof body.includeInitiative === "boolean" ? body.includeInitiative : true;
       const result = await exportSessionPack(document, {
+        assetResolver,
         description,
         imageFormat: "png",
         includeGrid,

@@ -8,6 +8,13 @@ optional: the manual ChatGPT bridge still works, but provider-backed automation
 (Anthropic / OpenAI / Replicate / Automatic1111) is wired up when you supply
 keys via environment variables.
 
+## Local-only security
+
+DM-Instamap does not include authentication. Do not expose the web app or the
+worker on the public internet. Use `localhost`, `127.0.0.1`, or a trusted local
+network only. By default, web and worker requests with non-local host headers
+are rejected unless `DM_INSTAMAP_ALLOW_REMOTE=true` is set deliberately.
+
 The unified [docs/ROADMAP.md](docs/ROADMAP.md) now consolidates the historical
 roadmap, phases A-E, and the post-E consolidation phases F-L. Those phases are
 closed at the repo/test-automatic level (integration fixes F, CLI surface G,
@@ -198,6 +205,7 @@ IMAGE_GEN_BASE_URL=http://127.0.0.1:7860
 # Worker offload (H5)
 DM_INSTAMAP_WORKER_URL=http://127.0.0.1:8000
 DM_INSTAMAP_JOBS_DB=                   # override worker SQLite path
+DM_INSTAMAP_ALLOW_REMOTE=false         # keep false unless you knowingly allow trusted LAN access
 ```
 
 Install Python worker runtime dependencies when you want to run the worker:
@@ -212,8 +220,8 @@ pnpm worker:install
 pnpm lint
 pnpm test
 pnpm build
-pnpm dev
-pnpm worker:dev
+pnpm dev          # binds Next.js to 127.0.0.1
+pnpm worker:dev   # binds FastAPI to 127.0.0.1
 ```
 
 Asset and reference commands:
@@ -360,6 +368,10 @@ On the web side, configure `DM_INSTAMAP_WORKER_URL` (defaults to
 `http://127.0.0.1:8000`); the `useJob` React hook and `JobProgressBar`
 component poll job status via `/api/jobs/[jobId]`. See
 [docs/WORKER.md](docs/WORKER.md).
+
+Worker job payloads that contain paths are validated before subprocesses start:
+relative paths must stay inside the workspace, and broad/system folders are
+rejected.
 
 ## Exports
 

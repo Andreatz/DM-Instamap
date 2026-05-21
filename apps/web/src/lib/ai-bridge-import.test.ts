@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MapPlanSchema, createMapDocument } from "@dm-instamap/core";
+import { MapPlanSchema, createMapDocument } from "@dm-instamap/core/browser";
 import { convertPlanToMapDocument, inferDimensionsFromPlan } from "./ai-bridge-import";
 
 const samplePlan = MapPlanSchema.parse({

@@ -12,7 +12,7 @@ import {
   generateVillageMap,
   type MapGenerationBlueprint
 } from "@dm-instamap/generator";
-import type { MapDocument } from "@dm-instamap/core";
+import type { MapDocument } from "@dm-instamap/core/browser";
 import { parseRequiredRooms } from "./generator-form";
 
 type GeneratorMode =

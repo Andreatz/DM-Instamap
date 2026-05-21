@@ -1,6 +1,6 @@
 import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { MapDocumentSchema, type MapDocument } from "@dm-instamap/core";
+import { MapDocumentSchema, migrateMapDocument, type MapDocument } from "@dm-instamap/core/server";
 import { generateDungeon } from "@dm-instamap/generator";
 import { z } from "zod";
 import { findWorkspaceRoot } from "./assets-manifest";
@@ -217,7 +217,7 @@ export async function readProject(
       readFile(path.join(projectDir, PROJECT_MAP_FILE), "utf8")
     ]);
     const metadata = ProjectMetadataSchema.parse(parseJsonFileContent(metadataRaw));
-    const document = MapDocumentSchema.parse(parseJsonFileContent(documentRaw));
+    const document = migrateMapDocument(parseJsonFileContent(documentRaw));
 
     return DmInstamapProjectSchema.parse({
       ...metadata,
@@ -239,7 +239,7 @@ export async function updateProject(
 ): Promise<DmInstamapProject> {
   const current = await readProject(projectId, options);
   const now = new Date().toISOString();
-  const document = input.document === undefined ? current.document : MapDocumentSchema.parse(input.document);
+  const document = input.document === undefined ? current.document : migrateMapDocument(input.document);
   const project = DmInstamapProjectSchema.parse({
     ...current,
     document,
@@ -413,7 +413,7 @@ async function getProjectDir(projectId: string, options: { outputRoot?: string }
 
 function createProjectDocument(input: CreateProjectInput): MapDocument {
   if (input.document !== undefined) {
-    return MapDocumentSchema.parse(input.document);
+    return migrateMapDocument(input.document);
   }
 
   const theme = readString(input.theme) || "crypt";

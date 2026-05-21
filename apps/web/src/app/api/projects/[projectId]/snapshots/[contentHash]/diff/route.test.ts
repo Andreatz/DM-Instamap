@@ -5,7 +5,7 @@ import {
   vi,
   beforeEach } from "vitest";
 
-vi.mock("@dm-instamap/core/snapshots",
+vi.mock("@dm-instamap/core/server",
   () => ({
   createMapSnapshot: vi.fn(),
   diffSnapshots: vi.fn(),
@@ -30,11 +30,11 @@ vi.mock("@/lib/projects",
 
 import { GET } from "./route";
 import { createMapSnapshot
-} from "@dm-instamap/core/snapshots";
+} from "@dm-instamap/core/server";
 import {
   diffSnapshots,
   readSnapshotFromDirectory
-} from "@dm-instamap/core/snapshots";
+} from "@dm-instamap/core/server";
 import { readProject } from "@/lib/projects";
 
 const readProjectMock = readProject as unknown as ReturnType<typeof vi.fn>;

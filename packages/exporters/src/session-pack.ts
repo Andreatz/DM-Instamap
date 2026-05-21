@@ -1,9 +1,11 @@
 import JSZip from "jszip";
-import type { MapDocument } from "@dm-instamap/core";
+import type { MapDocument } from "@dm-instamap/core/browser";
+import type { AssetResolver } from "./asset-resolver";
 import { exportMapDocumentRaster, type RasterExportFormat } from "./raster";
 import { applyVisibilityMode } from "./visibility";
 
 export type SessionPackOptions = {
+  assetResolver?: AssetResolver;
   description?: string;
   filenameSuffix?: string;
   imageFormat?: RasterExportFormat;
@@ -34,16 +36,19 @@ export async function exportSessionPack(
   const slug = slugify(document.name || document.id);
 
   const fullImage = await exportMapDocumentRaster(document, {
+    assetResolver: options.assetResolver,
     format,
     includeGrid,
     scale
   });
   const gmImage = await exportMapDocumentRaster(applyVisibilityMode(document, "gm"), {
+    assetResolver: options.assetResolver,
     format,
     includeGrid,
     scale
   });
   const playerImage = await exportMapDocumentRaster(applyVisibilityMode(document, "player"), {
+    assetResolver: options.assetResolver,
     format,
     includeGrid,
     scale

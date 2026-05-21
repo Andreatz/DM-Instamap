@@ -401,3 +401,8 @@ export function createMapDocument(input: {
 }
 
 export { CampaignSchema, createCampaign, type Campaign, type CampaignSession, type CampaignMapLink } from "./campaign";
+export {
+  CURRENT_MAP_DOCUMENT_VERSION,
+  MapDocumentMigrationError,
+  migrateMapDocument
+} from "./migrations";
