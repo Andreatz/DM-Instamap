@@ -11,25 +11,25 @@ export default async function ProjectsPage() {
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>Projects</h1>
-          <p>Local editable maps stored in data/projects.</p>
+          <h1>Progetti</h1>
+          <p>Mappe modificabili locali salvate in data/projects.</p>
         </div>
         <dl>
           <div>
-            <dt>Projects</dt>
+            <dt>Progetti</dt>
             <dd>{projects.length}</dd>
           </div>
         </dl>
       </header>
 
       <section className="group-toolbar">
-        <Link href="/projects/new">Create New Project</Link>
+        <Link href="/projects/new">Crea nuovo progetto</Link>
       </section>
 
       {projects.length === 0 ? (
         <section className="asset-empty">
-          <h2>No Projects Yet</h2>
-          <p>Create a local project to save, reopen, edit, and export a MapDocument.</p>
+          <h2>Nessun progetto</h2>
+          <p>Crea un progetto locale per salvare, riaprire, modificare ed esportare un MapDocument.</p>
         </section>
       ) : (
         <section className="reference-grid">
@@ -42,18 +42,18 @@ export default async function ProjectsPage() {
                 </div>
                 <dl>
                   <div>
-                    <dt>Rooms</dt>
+                    <dt>Stanze</dt>
                     <dd>{project.roomCount}</dd>
                   </div>
                   <div>
-                    <dt>Updated</dt>
+                    <dt>Aggiornato</dt>
                     <dd>{new Date(project.updatedAt).toLocaleString()}</dd>
                   </div>
                 </dl>
                 <div className="tag-list">
-                  <Link href={`/projects/${project.id}`}>Open</Link>
+                  <Link href={`/projects/${project.id}`}>Apri</Link>
                   <Link href={`/projects/${project.id}/editor`}>Editor</Link>
-                  <Link href={`/projects/${project.id}/export`}>Export</Link>
+                  <Link href={`/projects/${project.id}/export`}>Esporta</Link>
                 </div>
               </div>
             </article>

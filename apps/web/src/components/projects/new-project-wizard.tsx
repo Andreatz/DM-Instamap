@@ -8,11 +8,11 @@ import type { ReferenceMapView } from "@/lib/references";
 type WizardStep = "describe" | "kind" | "style" | "assets" | "review";
 
 const STEPS: Array<{ id: WizardStep; label: string }> = [
-  { id: "describe", label: "1. Describe" },
-  { id: "kind", label: "2. Map Kind" },
-  { id: "style", label: "3. Style" },
-  { id: "assets", label: "4. Assets" },
-  { id: "review", label: "5. Generate" }
+  { id: "describe", label: "1. Descrivi" },
+  { id: "kind", label: "2. Tipo di mappa" },
+  { id: "style", label: "3. Stile" },
+  { id: "assets", label: "4. Asset" },
+  { id: "review", label: "5. Genera" }
 ];
 
 type MapKind = "dungeon" | "building" | "city";
@@ -31,11 +31,11 @@ type NewProjectWizardProps = {
 export function NewProjectWizard({ assetGroups, references }: NewProjectWizardProps) {
   const router = useRouter();
   const [step, setStep] = useState<WizardStep>("describe");
-  const [name, setName] = useState("Crypt Under The Cathedral");
+  const [name, setName] = useState("Cripta sotto la cattedrale");
   const [sourceRequest, setSourceRequest] = useState(
-    "A crypt below a cathedral with bound non-hostile undead."
+    "Una cripta sotto una cattedrale con non-morti prigionieri ma non ostili."
   );
-  const [theme, setTheme] = useState("crypt");
+  const [theme, setTheme] = useState("cripta");
   const [requiredRooms, setRequiredRooms] = useState("chapel, prison, reliquary, boss");
   const [mapKind, setMapKind] = useState<MapKind>("dungeon");
   const [widthCells, setWidthCells] = useState(52);
@@ -43,7 +43,7 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
   const [roomCount, setRoomCount] = useState(8);
   const [selectedReferenceIds, setSelectedReferenceIds] = useState<string[]>([]);
   const [selectedAssetGroupIds, setSelectedAssetGroupIds] = useState<string[]>([]);
-  const [status, setStatus] = useState("Step 1: describe the map you want.");
+  const [status, setStatus] = useState("Step 1: descrivi la mappa che vuoi creare.");
   const [busy, setBusy] = useState(false);
   const stepIndex = STEPS.findIndex((entry) => entry.id === step);
   const selectedReferences = useMemo(
@@ -87,7 +87,7 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
 
   async function generate() {
     setBusy(true);
-    setStatus("Generating project from blueprint");
+    setStatus("Generazione del progetto dal blueprint…");
 
     try {
       const response = await fetch("/api/projects", {
@@ -108,24 +108,24 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
       const payload = (await response.json()) as CreateProjectResponse;
 
       if (!response.ok || !payload.project) {
-        throw new Error(payload.error ?? "Could not create project.");
+        throw new Error(payload.error ?? "Impossibile creare il progetto.");
       }
 
-      setStatus("Project created. Opening editor.");
+      setStatus("Progetto creato. Apertura dell'editor…");
       router.push(`/projects/${payload.project.id}/editor`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Could not create project.");
+      setStatus(error instanceof Error ? error.message : "Impossibile creare il progetto.");
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <section className="wizard-shell" aria-label="New project wizard">
+    <section className="wizard-shell" aria-label="Wizard nuovo progetto">
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>New Map Wizard</h1>
+          <h1>Wizard nuova mappa</h1>
           <p>{status}</p>
         </div>
       </header>
@@ -145,13 +145,13 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
       <section className="wizard-step">
         {step === "describe" ? (
           <>
-            <h2>Describe the Map</h2>
+            <h2>Descrivi la mappa</h2>
             <label className="field">
-              <span>Project Name</span>
+              <span>Nome del progetto</span>
               <input onChange={(event) => setName(event.target.value)} required value={name} />
             </label>
             <label className="field">
-              <span>Source Request</span>
+              <span>Testo della richiesta</span>
               <textarea
                 onChange={(event) => setSourceRequest(event.target.value)}
                 rows={5}
@@ -159,7 +159,7 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
               />
             </label>
             <label className="field">
-              <span>Required Rooms (comma separated)</span>
+              <span>Stanze richieste (separate da virgola)</span>
               <input onChange={(event) => setRequiredRooms(event.target.value)} value={requiredRooms} />
             </label>
           </>
@@ -167,21 +167,21 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
 
         {step === "kind" ? (
           <>
-            <h2>Map Kind</h2>
+            <h2>Tipo di mappa</h2>
             <label className="field">
-              <span>Type</span>
+              <span>Tipo</span>
               <select onChange={(event) => setMapKind(event.target.value as MapKind)} value={mapKind}>
                 <option value="dungeon">Dungeon</option>
-                <option value="building">Building</option>
-                <option value="city">City</option>
+                <option value="building">Edificio</option>
+                <option value="city">Città</option>
               </select>
             </label>
             <label className="field">
-              <span>Theme</span>
+              <span>Tema</span>
               <input onChange={(event) => setTheme(event.target.value)} value={theme} />
             </label>
             <label className="field">
-              <span>Width Cells</span>
+              <span>Larghezza (celle)</span>
               <input
                 max="96"
                 min="12"
@@ -191,7 +191,7 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
               />
             </label>
             <label className="field">
-              <span>Height Cells</span>
+              <span>Altezza (celle)</span>
               <input
                 max="96"
                 min="12"
@@ -201,7 +201,7 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
               />
             </label>
             <label className="field">
-              <span>Room Count</span>
+              <span>Numero stanze</span>
               <input
                 max="24"
                 min="1"
@@ -215,10 +215,12 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
 
         {step === "style" ? (
           <>
-            <h2>Reference Style</h2>
-            <p className="muted">Optional. Pick one or more reference maps whose style DNA should guide the prompt.</p>
+            <h2>Stile di riferimento</h2>
+            <p className="muted">
+              Opzionale. Seleziona una o più mappe di riferimento il cui Style DNA dovrebbe guidare il prompt.
+            </p>
             {references.length === 0 ? (
-              <p>No reference maps indexed yet. Run `pnpm references:scan` first.</p>
+              <p>Nessuna mappa di riferimento indicizzata. Esegui prima `pnpm references:scan`.</p>
             ) : (
               <ul style={{ display: "grid", gap: "6px", listStyle: "none", padding: 0 }}>
                 {references.map((reference) => (
@@ -243,10 +245,12 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
 
         {step === "assets" ? (
           <>
-            <h2>Asset Groups</h2>
-            <p className="muted">Optional. Restrict which asset groups should be considered by the generator.</p>
+            <h2>Gruppi di asset</h2>
+            <p className="muted">
+              Opzionale. Restringi quali gruppi di asset il generatore dovrebbe considerare.
+            </p>
             {assetGroups.length === 0 ? (
-              <p>No asset groups available. Run `pnpm assets:group` first.</p>
+              <p>Nessun gruppo di asset disponibile. Esegui prima `pnpm assets:group`.</p>
             ) : (
               <ul style={{ display: "grid", gap: "6px", listStyle: "none", padding: 0 }}>
                 {assetGroups.slice(0, 60).map((group) => (
@@ -258,7 +262,7 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
                         type="checkbox"
                       />
                       <span>
-                        {group.name} <span className="muted">- {group.kind}, {group.assetCount} assets</span>
+                        {group.name} <span className="muted">- {group.kind}, {group.assetCount} asset</span>
                       </span>
                     </label>
                   </li>
@@ -270,38 +274,38 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
 
         {step === "review" ? (
           <>
-            <h2>Review & Generate</h2>
+            <h2>Riepilogo e generazione</h2>
             <dl style={{ display: "grid", gap: "6px" }}>
               <div>
-                <dt>Name</dt>
+                <dt>Nome</dt>
                 <dd>{name}</dd>
               </div>
               <div>
-                <dt>Kind</dt>
+                <dt>Tipo</dt>
                 <dd>
                   {mapKind} - {theme}
                 </dd>
               </div>
               <div>
-                <dt>Size</dt>
+                <dt>Dimensioni</dt>
                 <dd>
-                  {widthCells} x {heightCells} cells, {roomCount} rooms
+                  {widthCells} x {heightCells} celle, {roomCount} stanze
                 </dd>
               </div>
               <div>
-                <dt>Required rooms</dt>
-                <dd>{requiredRooms || "(none)"}</dd>
+                <dt>Stanze richieste</dt>
+                <dd>{requiredRooms || "(nessuna)"}</dd>
               </div>
               <div>
-                <dt>References selected</dt>
-                <dd>{selectedReferences.length || "(none)"}</dd>
+                <dt>Riferimenti selezionati</dt>
+                <dd>{selectedReferences.length || "(nessuno)"}</dd>
               </div>
               <div>
-                <dt>Asset groups selected</dt>
-                <dd>{selectedGroups.length || "(none)"}</dd>
+                <dt>Gruppi di asset selezionati</dt>
+                <dd>{selectedGroups.length || "(nessuno)"}</dd>
               </div>
               <div>
-                <dt>Source request</dt>
+                <dt>Testo della richiesta</dt>
                 <dd>{sourceRequest}</dd>
               </div>
             </dl>
@@ -311,15 +315,15 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
 
       <section className="wizard-actions">
         <button className="secondary" disabled={stepIndex === 0 || busy} onClick={goBack} type="button">
-          Back
+          Indietro
         </button>
         {step === "review" ? (
           <button disabled={busy} onClick={generate} type="button">
-            {busy ? "Generating..." : "Generate Project"}
+            {busy ? "Generazione…" : "Genera progetto"}
           </button>
         ) : (
           <button disabled={busy} onClick={goNext} type="button">
-            Next
+            Avanti
           </button>
         )}
       </section>

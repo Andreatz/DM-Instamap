@@ -23,36 +23,36 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         <div>
           <strong>DM-Instamap</strong>
           <h1>{project.name}</h1>
-          <p>{project.sourceRequest ?? "Local editable project."}</p>
+          <p>{project.sourceRequest ?? "Progetto locale modificabile."}</p>
         </div>
         <dl>
           <div>
-            <dt>Grid</dt>
+            <dt>Griglia</dt>
             <dd>{project.document.width} x {project.document.height}</dd>
           </div>
           <div>
-            <dt>Rooms</dt>
+            <dt>Stanze</dt>
             <dd>{project.document.plan?.rooms.length ?? 0}</dd>
           </div>
         </dl>
       </header>
 
       <section className="group-toolbar">
-        <Link href={`/projects/${project.id}/editor`}>Open Editor</Link>
-        <Link href={`/projects/${project.id}/export`}>Export</Link>
-        <Link href="/projects">All Projects</Link>
+        <Link href={`/projects/${project.id}/editor`}>Apri editor</Link>
+        <Link href={`/projects/${project.id}/export`}>Esporta</Link>
+        <Link href="/projects">Tutti i progetti</Link>
       </section>
 
       <section className="asset-details">
-        <h2>Project Files</h2>
-        <p>Stored locally under data/projects/{project.id}.</p>
+        <h2>File del progetto</h2>
+        <p>Salvati localmente in data/projects/{project.id}.</p>
         <dl>
           <div>
-            <dt>Created</dt>
+            <dt>Creato</dt>
             <dd>{new Date(project.createdAt).toLocaleString()}</dd>
           </div>
           <div>
-            <dt>Updated</dt>
+            <dt>Aggiornato</dt>
             <dd>{new Date(project.updatedAt).toLocaleString()}</dd>
           </div>
         </dl>
@@ -60,10 +60,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
       {project.relatedProjectIds.length > 0 ? (
         <section className="asset-details">
-          <h2>Linked Floors</h2>
-          <p>This project is linked with {project.relatedProjectIds.length} other floor(s) from the same dungeon.</p>
+          <h2>Piani collegati</h2>
+          <p>Questo progetto è collegato a {project.relatedProjectIds.length} altro/i piano/i dello stesso dungeon.</p>
           <p>
-            <Link href={`/projects/${project.id}/floors`}>Open Floors Overview</Link>
+            <Link href={`/projects/${project.id}/floors`}>Apri panoramica piani</Link>
           </p>
           <ul>
             {project.relatedProjectIds.map((relatedId) => (
@@ -88,8 +88,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       <ProjectSnapshotsPanel projectId={project.id} />
 
       <section className="asset-details">
-        <h2>Project Actions</h2>
-        <p>Deleting a project removes its local folder from data/projects.</p>
+        <h2>Azioni progetto</h2>
+        <p>L'eliminazione di un progetto rimuove la cartella locale da data/projects.</p>
         <DeleteProjectButton projectId={project.id} projectName={project.name} />
       </section>
     </main>

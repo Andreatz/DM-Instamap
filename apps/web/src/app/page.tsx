@@ -17,38 +17,42 @@ export default async function Home() {
     <main className="home-shell">
       <section className="home-hero">
         <strong>DM-Instamap</strong>
-        <h1>Plan your next session, locally.</h1>
+        <h1>Prepara la prossima sessione, in locale.</h1>
         <p>
-          Build editable D&amp;D maps from your own asset library, with reference style DNA, narrative blueprints,
-          auto-furnish, and player-safe exports. No cloud, no login, no API required.
+          Crea mappe D&amp;D modificabili a partire dalla tua libreria di asset, con Style DNA dei riferimenti,
+          blueprint narrativi, arredamento automatico ed export per i giocatori o per il DM. Niente cloud, niente
+          login, nessuna API richiesta.
         </p>
         <div className="home-status">
-          <span className="pill">{assetGroups.groupCount} asset groups</span>
-          <span className="pill">{references.references.length} reference maps</span>
-          <span className="pill">{projects.length} saved projects</span>
+          <span className="pill">{assetGroups.groupCount} gruppi di asset</span>
+          <span className="pill">{references.references.length} mappe di riferimento</span>
+          <span className="pill">{projects.length} progetti salvati</span>
         </div>
         <div className="home-actions">
-          <Link href="/projects/new">Start a New Map</Link>
+          <Link href="/projects/new">Crea una Nuova Mappa</Link>
           <Link className="secondary" href="/ai-bridge">
-            Use ChatGPT Bridge
+            Usa il ChatGPT Bridge
           </Link>
           <Link className="secondary" href="/projects">
-            Open Projects
+            Apri Progetti
           </Link>
         </div>
       </section>
 
       <section className="home-grid">
         <section className="home-card">
-          <h2>Recent Projects</h2>
+          <h2>Progetti recenti</h2>
           {recentProjects.length === 0 ? (
-            <p className="muted">No saved projects yet. The wizard creates one for you.</p>
+            <p className="muted">Nessun progetto salvato. Il wizard ne crea uno per te.</p>
           ) : (
             <ul>
               {recentProjects.map((project) => (
                 <li key={project.id}>
                   <Link href={`/projects/${project.id}`}>
-                    {project.name} <span className="muted">- {project.size.width}x{project.size.height}, {project.roomCount} rooms</span>
+                    {project.name}{" "}
+                    <span className="muted">
+                      - {project.size.width}x{project.size.height}, {project.roomCount} stanze
+                    </span>
                   </Link>
                 </li>
               ))}
@@ -57,79 +61,79 @@ export default async function Home() {
         </section>
 
         <section className="home-card">
-          <h2>Asset Library</h2>
-          <p className="muted">{assetGroups.groupCount} groups indexed from local folders.</p>
+          <h2>Libreria asset</h2>
+          <p className="muted">{assetGroups.groupCount} gruppi indicizzati da cartelle locali.</p>
           <ul>
             <li>
-              <Link href="/assets">Browse Asset Library</Link>
+              <Link href="/assets">Sfoglia la libreria asset</Link>
             </li>
             <li>
-              <Link href="/asset-groups">Browse Asset Groups</Link>
+              <Link href="/asset-groups">Sfoglia i gruppi di asset</Link>
             </li>
             <li>
-              <Link href="/assets/review">Asset Review Queue</Link>
+              <Link href="/assets/review">Coda di revisione asset</Link>
             </li>
             <li>
-              <Link href="/assets/review/batches">Batch Review (Critical / High / Duplicates)</Link>
+              <Link href="/assets/review/batches">Revisione a lotti (critici / alti / duplicati)</Link>
             </li>
             <li>
-              <Link href="/assets/import-pack">Import Asset Pack</Link>
+              <Link href="/assets/import-pack">Importa pacchetto di asset</Link>
             </li>
             <li>
-              <Link href="/assets/generate">Generate Asset from Prompt</Link>
+              <Link href="/assets/generate">Genera asset da prompt</Link>
             </li>
           </ul>
         </section>
 
         <section className="home-card">
-          <h2>Campaigns</h2>
-          <p className="muted">Group maps and log sessions.</p>
+          <h2>Campagne</h2>
+          <p className="muted">Raggruppa le mappe e annota le sessioni.</p>
           <ul>
             <li>
-              <Link href="/campaigns">All Campaigns</Link>
+              <Link href="/campaigns">Tutte le campagne</Link>
             </li>
           </ul>
         </section>
 
         <section className="home-card">
-          <h2>References</h2>
-          <p className="muted">{references.references.length} reference maps available.</p>
+          <h2>Riferimenti</h2>
+          <p className="muted">{references.references.length} mappe di riferimento disponibili.</p>
           <ul>
             <li>
-              <Link href="/references">View Reference Maps</Link>
+              <Link href="/references">Visualizza mappe di riferimento</Link>
             </li>
             <li>
-              <Link href="/references/review">Reference Review</Link>
+              <Link href="/references/review">Revisione riferimenti</Link>
             </li>
           </ul>
         </section>
 
         <section className="home-card">
-          <h2>Workflows</h2>
+          <h2>Flussi di lavoro</h2>
           <ul>
             <li>
-              <Link href="/projects/new">Wizard: Create New Map</Link>
+              <Link href="/projects/new">Wizard: crea una nuova mappa</Link>
             </li>
             <li>
-              <Link href="/generate">Quick Generator Preview (cave / village / outdoor / multi-floor)</Link>
+              <Link href="/generate">Anteprima rapida del generatore (cave / villaggio / outdoor / multipiano)</Link>
             </li>
             <li>
-              <Link href="/ai-bridge">AI Bridge (auto + manual)</Link>
+              <Link href="/ai-bridge">AI Bridge (automatico + manuale)</Link>
             </li>
             <li>
-              <Link href="/assets/import-pack">Import Asset Pack</Link>
+              <Link href="/assets/import-pack">Importa pacchetto di asset</Link>
             </li>
           </ul>
         </section>
 
         <section className="home-card">
-          <h2>How It Works</h2>
+          <h2>Come funziona</h2>
           <ol>
-            <li>Index local assets and references.</li>
-            <li>Generate a blueprint or paste a ChatGPT plan.</li>
-            <li>Edit the map in the canvas.</li>
-            <li>Auto-furnish and review.</li>
-            <li>Export Player or GM map.</li>
+            <li>Indicizza asset e riferimenti locali.</li>
+            <li>Genera un blueprint oppure incolla un piano di ChatGPT.</li>
+            <li>Modifica la mappa nel canvas.</li>
+            <li>Arreda automaticamente e revisiona.</li>
+            <li>Esporta la mappa per i giocatori o per il DM.</li>
           </ol>
         </section>
       </section>

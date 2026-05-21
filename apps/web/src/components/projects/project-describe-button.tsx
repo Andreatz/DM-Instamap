@@ -21,7 +21,7 @@ export function ProjectDescribeButton({ mapName, rooms, theme }: ProjectDescribe
 
   async function describe() {
     setBusy(true);
-    setStatus("Calling AI provider…");
+    setStatus("Chiamata al provider AI…");
     setDescription("");
 
     try {
@@ -38,13 +38,13 @@ export function ProjectDescribeButton({ mapName, rooms, theme }: ProjectDescribe
       };
 
       if (!response.ok || !payload.ok || !payload.description) {
-        throw new Error(payload.error ?? payload.errors?.join("; ") ?? "Description failed.");
+        throw new Error(payload.error ?? payload.errors?.join("; ") ?? "Descrizione fallita.");
       }
 
       setDescription(payload.description);
-      setStatus("Description ready.");
+      setStatus("Descrizione pronta.");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Description failed.");
+      setStatus(error instanceof Error ? error.message : "Descrizione fallita.");
     } finally {
       setBusy(false);
     }
@@ -52,13 +52,13 @@ export function ProjectDescribeButton({ mapName, rooms, theme }: ProjectDescribe
 
   return (
     <section className="asset-details">
-      <h2>AI Description (L4)</h2>
+      <h2>Descrizione AI (L4)</h2>
       <p className="muted">
-        Asks the configured AI provider for a narrative description of this map. Requires <code>AI_PROVIDER</code> and{" "}
-        <code>AI_API_KEY</code>.
+        Chiede al provider AI configurato una descrizione narrativa di questa mappa. Richiede <code>AI_PROVIDER</code>{" "}
+        e <code>AI_API_KEY</code>.
       </p>
       <button className="save-correction" disabled={busy} onClick={() => void describe()} type="button">
-        {busy ? "Working…" : "Describe Map with AI"}
+        {busy ? "In corso…" : "Descrivi la mappa con l'AI"}
       </button>
       {status ? <p className="muted">{status}</p> : null}
       {description ? <p>{description}</p> : null}

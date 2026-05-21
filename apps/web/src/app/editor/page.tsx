@@ -28,8 +28,8 @@ export default async function EditorPage() {
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>Map Editor</h1>
-          <p>Rooms, doors, walls, placed assets, and local MapDocument JSON.</p>
+          <h1>Editor mappa</h1>
+          <p>Stanze, porte, muri, asset piazzati e JSON del MapDocument locale.</p>
         </div>
       </header>
 

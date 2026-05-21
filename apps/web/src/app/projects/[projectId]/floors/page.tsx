@@ -24,12 +24,12 @@ export default async function ProjectFloorsPage({ params }: FloorsPageProps) {
         <header className="asset-hero">
           <div>
             <strong>DM-Instamap</strong>
-            <h1>{project.name} — Floors</h1>
-            <p>This project is not linked to any other floors.</p>
+            <h1>{project.name} — Piani</h1>
+            <p>Questo progetto non è collegato ad altri piani.</p>
           </div>
         </header>
         <section className="group-toolbar">
-          <Link href={`/projects/${project.id}`}>Back to project</Link>
+          <Link href={`/projects/${project.id}`}>Torna al progetto</Link>
         </section>
       </main>
     );
@@ -53,26 +53,26 @@ export default async function ProjectFloorsPage({ params }: FloorsPageProps) {
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>{project.name} — Floors</h1>
+          <h1>{project.name} — Piani</h1>
           <p>
-            Multi-floor dungeon with {floors.length} linked projects. Each tab below opens the matching project; use it
-            during a session to jump between floors.
+            Dungeon multipiano con {floors.length} progetti collegati. Ogni scheda apre il progetto corrispondente;
+            usali durante la sessione per saltare tra i piani.
           </p>
         </div>
         <dl>
           <div>
-            <dt>Floors</dt>
+            <dt>Piani</dt>
             <dd>{floors.length}</dd>
           </div>
           <div>
-            <dt>Total rooms</dt>
+            <dt>Stanze totali</dt>
             <dd>{floors.reduce((sum, floor) => sum + (floor.document.plan?.rooms.length ?? 0), 0)}</dd>
           </div>
         </dl>
       </header>
 
       <section className="group-toolbar">
-        <Link href={`/projects/${project.id}`}>Back to project</Link>
+        <Link href={`/projects/${project.id}`}>Torna al progetto</Link>
       </section>
 
       <section className="reference-grid">
@@ -80,7 +80,7 @@ export default async function ProjectFloorsPage({ params }: FloorsPageProps) {
           <article className="reference-card" key={floor.id}>
             <div className="reference-card-body">
               <div className="group-title-row">
-                <h2>Floor {index + 1}</h2>
+                <h2>Piano {index + 1}</h2>
                 <span>
                   {floor.document.width} x {floor.document.height}
                 </span>
@@ -88,23 +88,23 @@ export default async function ProjectFloorsPage({ params }: FloorsPageProps) {
               <p className="muted">{floor.name}</p>
               <dl>
                 <div>
-                  <dt>Rooms</dt>
+                  <dt>Stanze</dt>
                   <dd>{floor.document.plan?.rooms.length ?? 0}</dd>
                 </div>
                 <div>
-                  <dt>Doors</dt>
+                  <dt>Porte</dt>
                   <dd>{floor.document.plan?.doors.length ?? 0}</dd>
                 </div>
                 <div>
-                  <dt>Lights</dt>
+                  <dt>Luci</dt>
                   <dd>{floor.document.plan?.lights.length ?? 0}</dd>
                 </div>
               </dl>
               <FloorMinimap floor={floor} />
               <div className="tag-list">
-                <Link href={`/projects/${floor.id}`}>Open</Link>
+                <Link href={`/projects/${floor.id}`}>Apri</Link>
                 <Link href={`/projects/${floor.id}/editor`}>Editor</Link>
-                <Link href={`/projects/${floor.id}/export`}>Export</Link>
+                <Link href={`/projects/${floor.id}/export`}>Esporta</Link>
               </div>
             </div>
           </article>
@@ -125,10 +125,10 @@ function FloorMinimap({ floor }: { floor: DmInstamapProject }) {
   const wallRatio = Math.round((wallCount / totalCells) * 100);
 
   return (
-    <div className="manifest-note" aria-label="Floor minimap stats">
-      <span className="pill">grid {width}×{height}</span>
-      <span className="pill">floor {floorRatio}%</span>
-      <span className="pill">wall {wallRatio}%</span>
+    <div className="manifest-note" aria-label="Statistiche minimap piano">
+      <span className="pill">griglia {width}×{height}</span>
+      <span className="pill">pavimento {floorRatio}%</span>
+      <span className="pill">muri {wallRatio}%</span>
     </div>
   );
 }

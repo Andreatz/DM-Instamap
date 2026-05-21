@@ -6,8 +6,8 @@ export default function GeneratePage() {
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>Generate Dungeon</h1>
-          <p>Procedural rectangular rooms, corridors, doors, and walls.</p>
+          <h1>Genera dungeon</h1>
+          <p>Stanze rettangolari, corridoi, porte e muri procedurali.</p>
         </div>
       </header>
 

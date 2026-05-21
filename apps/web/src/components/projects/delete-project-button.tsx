@@ -13,7 +13,9 @@ export function DeleteProjectButton({ projectId, projectName }: DeleteProjectBut
   const [status, setStatus] = useState<"idle" | "deleting" | "error">("idle");
 
   async function deleteProject() {
-    const confirmed = window.confirm(`Delete project "${projectName}"? This removes its local project folder.`);
+    const confirmed = window.confirm(
+      `Eliminare il progetto "${projectName}"? L'operazione rimuove la cartella locale del progetto.`
+    );
 
     if (!confirmed) {
       return;
@@ -27,7 +29,7 @@ export function DeleteProjectButton({ projectId, projectName }: DeleteProjectBut
       });
 
       if (!response.ok) {
-        throw new Error("Project delete failed.");
+        throw new Error("Eliminazione del progetto fallita.");
       }
 
       router.push("/projects");
@@ -40,9 +42,11 @@ export function DeleteProjectButton({ projectId, projectName }: DeleteProjectBut
   return (
     <div className="project-danger-zone">
       <button disabled={status === "deleting"} onClick={deleteProject} type="button">
-        {status === "deleting" ? "Deleting..." : "Delete Project"}
+        {status === "deleting" ? "Eliminazione…" : "Elimina progetto"}
       </button>
-      {status === "error" ? <p>Could not delete this project. Check that the local files are writable.</p> : null}
+      {status === "error" ? (
+        <p>Impossibile eliminare il progetto. Verifica che i file locali siano scrivibili.</p>
+      ) : null}
     </div>
   );
 }

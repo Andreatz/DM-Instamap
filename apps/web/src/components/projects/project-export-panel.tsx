@@ -7,13 +7,13 @@ type ExportFormat = "png" | "webp" | "dd2vtt" | "foundry" | "dmimap" | "session-
 type ExportMode = "player" | "gm" | "clean";
 
 const FORMAT_OPTIONS: Array<{ description: string; extension: string; label: string; value: ExportFormat }> = [
-  { description: "Raster image suitable for screens and print.", extension: "png", label: "PNG", value: "png" },
-  { description: "Compressed image for the web.", extension: "webp", label: "WEBP", value: "webp" },
-  { description: "Universal VTT (Foundry, Roll20 import).", extension: "dd2vtt", label: "dd2vtt", value: "dd2vtt" },
-  { description: "Installable Foundry module ZIP.", extension: "zip", label: "Foundry Module", value: "foundry" },
-  { description: "Proprietary editable JSON.", extension: "dmimap.json", label: "dmimap", value: "dmimap" },
+  { description: "Immagine raster per schermo e stampa.", extension: "png", label: "PNG", value: "png" },
+  { description: "Immagine compressa per il web.", extension: "webp", label: "WEBP", value: "webp" },
+  { description: "Universal VTT (import in Foundry, Roll20).", extension: "dd2vtt", label: "dd2vtt", value: "dd2vtt" },
+  { description: "Modulo Foundry installabile (ZIP).", extension: "zip", label: "Modulo Foundry", value: "foundry" },
+  { description: "JSON modificabile proprietario.", extension: "dmimap.json", label: "dmimap", value: "dmimap" },
   {
-    description: "All-in-one ZIP: full / GM / player maps, GM notes, initiative, manifest.",
+    description: "ZIP completo: mappe full / GM / giocatore, note GM, iniziativa, manifest.",
     extension: "zip",
     label: "Session Pack",
     value: "session-pack"
@@ -21,9 +21,9 @@ const FORMAT_OPTIONS: Array<{ description: string; extension: string; label: str
 ];
 
 const MODE_OPTIONS: Array<{ description: string; label: string; value: ExportMode }> = [
-  { description: "Hides secret rooms, traps, GM notes and annotations.", label: "Player Safe", value: "player" },
-  { description: "Everything visible (use for your own reference).", label: "Game Master", value: "gm" },
-  { description: "Like player safe but also strips notes and lighting.", label: "Clean", value: "clean" }
+  { description: "Nasconde stanze segrete, trappole, note GM e annotazioni.", label: "Sicuro per i giocatori", value: "player" },
+  { description: "Tutto visibile (per il riferimento personale del DM).", label: "Game Master", value: "gm" },
+  { description: "Come la modalità giocatore, ma rimuove anche note e luci.", label: "Pulito", value: "clean" }
 ];
 
 type ProjectExportPanelProps = {
@@ -41,13 +41,13 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
   const [includeJournals, setIncludeJournals] = useState(true);
   const [includeInitiative, setIncludeInitiative] = useState(true);
   const [sessionDescription, setSessionDescription] = useState("");
-  const [status, setStatus] = useState("Ready to export");
+  const [status, setStatus] = useState("Pronto per l'export");
   const supportsRasterOptions =
     format === "png" || format === "webp" || format === "dd2vtt" || format === "foundry" || format === "session-pack";
   const supportsSplitLayers = format === "png" || format === "webp";
 
   async function exportProject() {
-    setStatus(`Exporting ${format.toUpperCase()} (${mode} mode)`);
+    setStatus(`Esportazione ${format.toUpperCase()} (modalità ${mode})…`);
 
     try {
       const endpoint = projectId ? `/api/projects/${projectId}/export` : "/api/export";
@@ -72,7 +72,7 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
 
       if (!response.ok) {
         const error = (await response.json()) as { error?: string };
-        throw new Error(error.error ?? "Export failed.");
+        throw new Error(error.error ?? "Esportazione fallita.");
       }
 
       const blob = await response.blob();
@@ -83,19 +83,19 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
       link.download = buildDownloadName(document.name, extension, mode, format);
       link.click();
       URL.revokeObjectURL(url);
-      setStatus("Export complete");
+      setStatus("Export completato");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Export failed.");
+      setStatus(error instanceof Error ? error.message : "Esportazione fallita.");
     }
   }
 
   return (
     <section className="asset-details">
-      <h2>Export Project</h2>
-      <p className="muted">Choose what to share and how.</p>
+      <h2>Esporta progetto</h2>
+      <p className="muted">Scegli cosa esportare e in quale modalità.</p>
 
       <label className="field">
-        <span>Format</span>
+        <span>Formato</span>
         <select onChange={(event) => setFormat(event.target.value as ExportFormat)} value={format}>
           {FORMAT_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -107,7 +107,7 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
       </label>
 
       <label className="field">
-        <span>Mode</span>
+        <span>Modalità</span>
         <select onChange={(event) => setMode(event.target.value as ExportMode)} value={mode}>
           {MODE_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -121,7 +121,7 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
       {supportsRasterOptions ? (
         <>
           <label className="field">
-            <span>Scale</span>
+            <span>Scala</span>
             <select onChange={(event) => setScale(Number(event.target.value))} value={scale}>
               <option value={1}>1x</option>
               <option value={2}>2x</option>
@@ -131,11 +131,11 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
           </label>
           <label className="editor-checkbox">
             <input checked={includeGrid} onChange={(event) => setIncludeGrid(event.target.checked)} type="checkbox" />
-            <span>Include grid</span>
+            <span>Includi griglia</span>
           </label>
           {format === "webp" ? (
             <label className="field">
-              <span>WEBP quality</span>
+              <span>Qualità WEBP</span>
               <select onChange={(event) => setWebpQuality(Number(event.target.value))} value={webpQuality}>
                 <option value={70}>70</option>
                 <option value={82}>82</option>
@@ -147,7 +147,7 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
           {supportsSplitLayers ? (
             <label className="editor-checkbox">
               <input checked={splitLayers} onChange={(event) => setSplitLayers(event.target.checked)} type="checkbox" />
-              <span>Export layer ZIP</span>
+              <span>Esporta ZIP per layer</span>
             </label>
           ) : null}
         </>
@@ -160,7 +160,7 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
             onChange={(event) => setIncludeJournals(event.target.checked)}
             type="checkbox"
           />
-          <span>Include journal entries (rooms, GM notes, plan notes)</span>
+          <span>Includi journal entries (stanze, note GM, note di piano)</span>
         </label>
       ) : null}
 
@@ -172,13 +172,13 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
               onChange={(event) => setIncludeInitiative(event.target.checked)}
               type="checkbox"
             />
-            <span>Include initiative.json</span>
+            <span>Includi initiative.json</span>
           </label>
           <label className="field">
-            <span>Description for the DM</span>
+            <span>Descrizione per il DM</span>
             <textarea
               onChange={(event) => setSessionDescription(event.target.value)}
-              placeholder="Optional narrative description to ship inside the pack."
+              placeholder="Descrizione narrativa facoltativa da includere nel pack."
               rows={3}
               value={sessionDescription}
             />
@@ -187,7 +187,7 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
       ) : null}
 
       <button className="save-correction" onClick={exportProject} type="button">
-        Export
+        Esporta
       </button>
       <p>{status}</p>
     </section>

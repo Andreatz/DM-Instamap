@@ -19,8 +19,8 @@ export default async function ProjectExportPage({ params }: ProjectExportPagePro
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>{project.name} Export</h1>
-          <p>Export the current saved MapDocument.</p>
+          <h1>Esporta — {project.name}</h1>
+          <p>Esporta il MapDocument attualmente salvato.</p>
         </div>
       </header>
 

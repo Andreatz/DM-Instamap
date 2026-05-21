@@ -169,7 +169,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       const previous = history.at(-1);
 
       if (!previous) {
-        setStatus("Nothing to undo");
+        setStatus("Nessuna azione da annullare");
         return history;
       }
 

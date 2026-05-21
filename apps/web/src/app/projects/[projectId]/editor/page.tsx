@@ -27,8 +27,8 @@ export default async function ProjectEditorPage({ params }: ProjectEditorPagePro
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>{project.name} Editor</h1>
-          <p>Editing local project {project.id}.</p>
+          <h1>Editor — {project.name}</h1>
+          <p>Modifica del progetto locale {project.id}.</p>
         </div>
       </header>
 

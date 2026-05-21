@@ -14,18 +14,20 @@ type CreateProjectResponse = {
 
 export function NewProjectForm() {
   const router = useRouter();
-  const [name, setName] = useState("Crypt Under The Cathedral");
-  const [sourceRequest, setSourceRequest] = useState("A crypt below a cathedral with bound non-hostile undead.");
-  const [theme, setTheme] = useState("crypt");
+  const [name, setName] = useState("Cripta sotto la cattedrale");
+  const [sourceRequest, setSourceRequest] = useState(
+    "Una cripta sotto una cattedrale con non-morti prigionieri ma non ostili."
+  );
+  const [theme, setTheme] = useState("cripta");
   const [requiredRooms, setRequiredRooms] = useState("chapel, prison, reliquary, boss");
   const [widthCells, setWidthCells] = useState(52);
   const [heightCells, setHeightCells] = useState(36);
   const [roomCount, setRoomCount] = useState(8);
-  const [status, setStatus] = useState("Ready to create a local project");
+  const [status, setStatus] = useState("Pronto a creare un progetto locale");
 
   async function createLocalProject(event: FormEvent) {
     event.preventDefault();
-    setStatus("Creating project");
+    setStatus("Creazione progetto…");
 
     try {
       const response = await fetch("/api/projects", {
@@ -46,30 +48,30 @@ export function NewProjectForm() {
       const payload = (await response.json()) as CreateProjectResponse;
 
       if (!response.ok || !payload.project) {
-        throw new Error(payload.error ?? "Could not create project.");
+        throw new Error(payload.error ?? "Impossibile creare il progetto.");
       }
 
-      setStatus("Project created");
+      setStatus("Progetto creato");
       router.push(`/projects/${payload.project.id}`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Could not create project.");
+      setStatus(error instanceof Error ? error.message : "Impossibile creare il progetto.");
     }
   }
 
   return (
     <form className="asset-browser" onSubmit={createLocalProject}>
       <aside className="asset-filters">
-        <h2>New Map</h2>
+        <h2>Nuova mappa</h2>
         <label className="field">
-          <span>Name</span>
+          <span>Nome</span>
           <input onChange={(event) => setName(event.target.value)} required value={name} />
         </label>
         <label className="field">
-          <span>Theme</span>
+          <span>Tema</span>
           <input onChange={(event) => setTheme(event.target.value)} value={theme} />
         </label>
         <label className="field">
-          <span>Width Cells</span>
+          <span>Larghezza (celle)</span>
           <input
             max="96"
             min="12"
@@ -79,7 +81,7 @@ export function NewProjectForm() {
           />
         </label>
         <label className="field">
-          <span>Height Cells</span>
+          <span>Altezza (celle)</span>
           <input
             max="96"
             min="12"
@@ -89,7 +91,7 @@ export function NewProjectForm() {
           />
         </label>
         <label className="field">
-          <span>Room Count</span>
+          <span>Numero stanze</span>
           <input
             max="24"
             min="1"
@@ -102,9 +104,9 @@ export function NewProjectForm() {
 
       <section className="asset-results">
         <section className="asset-details">
-          <h2>Request</h2>
+          <h2>Richiesta</h2>
           <label className="field">
-            <span>Source Request</span>
+            <span>Testo della richiesta</span>
             <textarea
               onChange={(event) => setSourceRequest(event.target.value)}
               rows={6}
@@ -112,7 +114,7 @@ export function NewProjectForm() {
             />
           </label>
           <label className="field">
-            <span>Required Rooms</span>
+            <span>Stanze richieste</span>
             <textarea
               onChange={(event) => setRequiredRooms(event.target.value)}
               rows={3}
@@ -120,7 +122,7 @@ export function NewProjectForm() {
             />
           </label>
           <button className="save-correction" type="submit">
-            Create Project
+            Crea progetto
           </button>
           <p>{status}</p>
         </section>

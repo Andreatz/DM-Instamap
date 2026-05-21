@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "DM-Instamap",
-  description: "Local-first modular map generator for D&D."
+  description: "Generatore modulare di mappe per D&D, locale e modulare."
 };
 
 type RootLayoutProps = {
@@ -13,7 +13,7 @@ type RootLayoutProps = {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en">
+    <html lang="it">
       <body>
         <SiteHeader />
         {children}
