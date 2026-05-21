@@ -1,27 +1,40 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import {
+  describe,
+  expect,
+  it,
+  vi,
+  beforeEach } from "vitest";
 
-vi.mock("@dm-instamap/core", () => ({
+vi.mock("@dm-instamap/core/snapshots",
+  () => ({
   createMapSnapshot: vi.fn(),
   diffSnapshots: vi.fn(),
   readSnapshotFromDirectory: vi.fn()
 }));
 
-vi.mock("@/lib/assets-manifest", () => ({
+vi.mock("@/lib/assets-manifest",
+  () => ({
   findWorkspaceRoot: vi.fn().mockResolvedValue("/tmp/workspace")
 }));
 
-vi.mock("@/lib/projects", () => {
+vi.mock("@/lib/projects",
+  () => {
   class FakeProjectNotFoundError extends Error {}
   class FakeInvalidProjectIdError extends Error {}
   return {
     InvalidProjectIdError: FakeInvalidProjectIdError,
-    ProjectNotFoundError: FakeProjectNotFoundError,
-    readProject: vi.fn()
+  ProjectNotFoundError: FakeProjectNotFoundError,
+  readProject: vi.fn()
   };
 });
 
 import { GET } from "./route";
-import { createMapSnapshot, diffSnapshots, readSnapshotFromDirectory } from "@dm-instamap/core";
+import { createMapSnapshot
+} from "@dm-instamap/core/snapshots";
+import {
+  diffSnapshots,
+  readSnapshotFromDirectory
+} from "@dm-instamap/core/snapshots";
 import { readProject } from "@/lib/projects";
 
 const readProjectMock = readProject as unknown as ReturnType<typeof vi.fn>;
@@ -125,3 +138,5 @@ describe("GET /api/projects/[id]/snapshots/[hash]/diff", () => {
     expect(body.error).toMatch(/Snapshot not found/);
   });
 });
+
+

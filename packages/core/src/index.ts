@@ -400,30 +400,4 @@ export function createMapDocument(input: {
   });
 }
 
-export {
-  applyMapDocumentDelta,
-  computeDocumentContentHash,
-  computeMapDocumentDelta,
-  createDeltaSnapshot,
-  createMapSnapshot,
-  DeltaSnapshotRecordSchema,
-  diffSnapshots,
-  listSnapshotsInDirectory,
-  readSnapshotFromDirectory,
-  resolveSnapshotsDirectory,
-  restoreDeltaSnapshot,
-  restoreSnapshotFromDirectory,
-  SnapshotMetadataSchema,
-  SnapshotRecordSchema,
-  writeSnapshotToDirectory,
-  type CreateSnapshotInput,
-  type DeltaSnapshotRecord,
-  type MapDocumentDelta,
-  type SnapshotDiff,
-  type SnapshotDiffField,
-  type SnapshotMetadata,
-  type SnapshotRecord,
-  type SnapshotsDirectoryOptions
-} from "./snapshots";
-
 export { CampaignSchema, createCampaign, type Campaign, type CampaignSession, type CampaignMapLink } from "./campaign";

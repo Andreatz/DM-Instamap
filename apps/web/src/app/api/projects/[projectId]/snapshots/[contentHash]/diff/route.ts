@@ -1,4 +1,8 @@
-import { createMapSnapshot, diffSnapshots, readSnapshotFromDirectory } from "@dm-instamap/core";
+import {
+  createMapSnapshot,
+  diffSnapshots,
+  readSnapshotFromDirectory
+} from "@dm-instamap/core/snapshots";
 import { findWorkspaceRoot } from "@/lib/assets-manifest";
 import { InvalidProjectIdError, ProjectNotFoundError, readProject } from "@/lib/projects";
 
@@ -55,3 +59,5 @@ export async function GET(request: Request, context: RouteContext) {
     return Response.json({ error: message, ok: false }, { status: 500 });
   }
 }
+
+

@@ -2,12 +2,12 @@ import { mkdtemp, readdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { createMapDocument } from "../src";
 import {
   applyMapDocumentDelta,
   computeDocumentContentHash,
   computeMapDocumentDelta,
   createDeltaSnapshot,
-  createMapDocument,
   createMapSnapshot,
   diffSnapshots,
   listSnapshotsInDirectory,
@@ -15,7 +15,7 @@ import {
   restoreDeltaSnapshot,
   restoreSnapshotFromDirectory,
   writeSnapshotToDirectory
-} from "../src";
+} from "../src/snapshots";
 
 function buildDocument(overrides: { id?: string; name?: string; width?: number } = {}) {
   return createMapDocument({
