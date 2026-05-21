@@ -12,6 +12,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "lint": "tsc -p tsconfig.json --noEmit",
+    "session-pack": "tsx src/cli/session-pack.ts",
     "test": "vitest run"
   },
   "dependencies": {

@@ -10,8 +10,10 @@
     }
   },
   "scripts": {
+    "blueprint": "tsx src/cli/blueprint.ts",
     "build": "tsc -p tsconfig.build.json",
     "lint": "tsc -p tsconfig.json --noEmit",
+    "plan": "tsx src/cli/plan.ts",
     "test": "vitest run"
   },
   "dependencies": {

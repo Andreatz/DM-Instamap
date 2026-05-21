@@ -47,3 +47,24 @@ rename to avoid partial JSON files.
 - There is no external database.
 - Project thumbnails are prepared as folders but not generated yet.
 - Export history is not tracked yet; exports remain explicit output actions.
+
+## Snapshot CLI
+
+```bash
+pnpm snapshots:create <projectId> --label "before boss room"
+pnpm snapshots:list <projectId>
+pnpm snapshots:restore <projectId> <contentHash>
+```
+
+Snapshots are stored under `data/projects/<projectId>/snapshots/` and restore
+replaces the saved `map.dmimap.json` through the same validated project writer
+used by the web app.
+
+## Campaign CLI
+
+```bash
+pnpm campaigns:list
+pnpm campaigns:create --name "Whispering Woods" --tags fey,local
+```
+
+Campaigns remain local JSON files under `data/campaigns/<campaignId>/`.

@@ -25,6 +25,28 @@ Manifest entries are enriched with local audit hints when possible:
 - `duplicateConfidence`
 - `reviewPriority`
 
+## Import Pack Command
+
+```bash
+pnpm assets:import-pack --root ./local-assets/fa --preset forgotten-adventures --default-tags owned,reviewed
+```
+
+The importer scans a local asset pack, applies filename/folder preset rules,
+and writes the enriched manifest back to `data/indexes/assets.manifest.json`.
+Supported presets are `forgotten-adventures`, `two-minute-tabletop`, `czepeku`,
+and `generic`.
+
+## Generate Asset Command
+
+```bash
+pnpm assets:generate --prompt "mossy stone altar" --classification prop --seed 42 --style-tags crypt,moss
+```
+
+This command uses the optional image generation provider configured through
+`IMAGE_GEN_*` environment variables. Generated files are imported into the local
+library and appended to the manifest with a single-file rescan. No generated
+asset is required at runtime from an external service.
+
 ## Classification
 
 Each manifest entry includes:

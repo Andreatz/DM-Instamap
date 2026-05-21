@@ -73,6 +73,15 @@ Obiettivo: chiudere i bug che rendono visibilmente "rotte" feature che il ROADMA
 
 Obiettivo: rendere ogni feature pilotabile da script senza avviare Next.
 
+### Stato implementazione (2026-05-21)
+
+- G1 chiuso: `pnpm assets:import-pack --root <path> --preset <preset> --default-tags a,b` riusa `importAssetPack`, stampa il summary e scrive su disco il manifest arricchito con tag/reclassification del preset.
+- G2 chiuso: `pnpm assets:generate --prompt "..." --classification prop --seed N --style-tags a,b` legge `IMAGE_GEN_*`, genera l'asset, lo importa in `data/assets/generated/` e aggiorna il manifest con scan parziale.
+- G3 chiuso: `pnpm snapshots:create <projectId>`, `pnpm snapshots:list <projectId>`, `pnpm snapshots:restore <projectId> <contentHash>` operano sui progetti locali in `data/projects`.
+- G4 chiuso: `pnpm ai:blueprint "..."` e `pnpm ai:plan "..."` leggono `AI_*`; `ai:plan` carica asset groups e reference/style DNA locali da `data/indexes`.
+- G5 chiuso: `pnpm exports:session-pack <projectId> --scale 2 --include-initiative --description "..." --output <path>` produce uno zip session pack dal `MapDocument` salvato.
+- G6 chiuso: `pnpm campaigns:list` e `pnpm campaigns:create --name "..." --tags a,b` gestiscono le campagne locali.
+
 ### G1. `pnpm assets:import-pack`
 
 - File: `packages/assets/src/cli/import-pack.ts`, registrare in [packages/assets/package.json](packages/assets/package.json).

@@ -1,3 +1,4 @@
+import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { scanAssets, type AssetManifest, type AssetManifestEntry } from "./scanner";
 import type { AssetClassification } from "./classifier";
@@ -89,13 +90,19 @@ export async function importAssetPack(options: PackImporterOptions): Promise<Pac
     ...(options.thumbnailSize ? { thumbnailSize: options.thumbnailSize } : {})
   });
   const enrichment = enrichManifestWithPackRules(manifest, options.preset, options.defaultTags ?? []);
+  const enrichedManifest: AssetManifest = {
+    ...manifest,
+    assets: enrichment.entries
+  };
+  const outputRoot = path.resolve(options.outputRoot ?? process.cwd());
+  const manifestPath = path.resolve(outputRoot, options.manifestPath ?? path.join("data", "indexes", "assets.manifest.json"));
+
+  await mkdir(path.dirname(manifestPath), { recursive: true });
+  await writeFile(manifestPath, `${JSON.stringify(enrichedManifest, null, 2)}\n`, "utf8");
 
   return {
     added: enrichment.entries,
-    manifest: {
-      ...manifest,
-      assets: enrichment.entries
-    },
+    manifest: enrichedManifest,
     preset: options.preset,
     presetTagsApplied: enrichment.tagsApplied,
     reclassifiedCount: enrichment.reclassifiedCount

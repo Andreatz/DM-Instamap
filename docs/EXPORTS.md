@@ -57,3 +57,13 @@ walls, the exporter derives line-of-sight segments from wall tiles.
 `exportFoundryModule` creates a zip module with `module.json`, scene data, a
 scene pack file, and the rendered map image. Walls, doors, lights, and grid
 settings are converted from the editable `MapDocument`.
+
+## Session Pack CLI
+
+```bash
+pnpm exports:session-pack <projectId> --scale 2 --include-initiative --description "Session notes"
+```
+
+The command reads `data/projects/<projectId>/map.dmimap.json` and writes a zip
+under `data/projects/<projectId>/exports/` by default. Use `--output <path>` to
+choose a file or directory. Supported image formats are `png` and `webp`.

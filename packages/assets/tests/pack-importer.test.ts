@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import sharp from "sharp";
@@ -96,5 +96,11 @@ describe("importAssetPack", () => {
     expect(result.added[0]?.tags).toEqual(expect.arrayContaining(["forgotten-adventures", "walls"]));
     expect(result.presetTagsApplied).toBeGreaterThan(0);
     expect(result.reclassifiedCount).toBeGreaterThanOrEqual(0);
+
+    const manifest = JSON.parse(await readFile(path.join(tempRoot, "data", "indexes", "assets.manifest.json"), "utf8")) as {
+      assets: Array<{ classification: string; tags: string[] }>;
+    };
+    expect(manifest.assets[0]?.classification).toBe("wall");
+    expect(manifest.assets[0]?.tags).toEqual(expect.arrayContaining(["forgotten-adventures", "walls"]));
   });
 });

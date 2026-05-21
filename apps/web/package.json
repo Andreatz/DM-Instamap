@@ -4,8 +4,13 @@
   "private": true,
   "scripts": {
     "build": "next build",
+    "campaigns:create": "tsx src/lib/cli/campaigns.ts create",
+    "campaigns:list": "tsx src/lib/cli/campaigns.ts list",
     "dev": "next dev",
     "lint": "tsc -p tsconfig.json --noEmit",
+    "snapshots:create": "tsx src/lib/cli/snapshots.ts create",
+    "snapshots:list": "tsx src/lib/cli/snapshots.ts list",
+    "snapshots:restore": "tsx src/lib/cli/snapshots.ts restore",
     "test": "vitest run"
   },
   "dependencies": {
