@@ -22,6 +22,7 @@
     "lint": "pnpm -r --if-present lint",
     "references:scan": "pnpm --filter @dm-instamap/assets references:scan",
     "references:style": "pnpm --filter @dm-instamap/assets run references:style",
+    "repo:audit": "node scripts/audit-versioned-assets.mjs",
     "snapshots:create": "pnpm --filter @dm-instamap/web snapshots:create",
     "snapshots:list": "pnpm --filter @dm-instamap/web snapshots:list",
     "snapshots:restore": "pnpm --filter @dm-instamap/web snapshots:restore",

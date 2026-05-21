@@ -1,11 +1,12 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import path from "node:path";
 
-vi.mock("@/lib/worker-client", () => ({
+vi.mock("../../../../../lib/worker-client", () => ({
   postWorkerJob: vi.fn()
 }));
 
 import { POST } from "./route";
-import { postWorkerJob } from "@/lib/worker-client";
+import { postWorkerJob } from "../../../../../lib/worker-client";
 
 const postWorkerJobMock = postWorkerJob as unknown as ReturnType<typeof vi.fn>;
 
@@ -46,7 +47,7 @@ describe("POST /api/jobs/assets/import-pack", () => {
         body: JSON.stringify({
           defaultTags: ["fa", 42, "imported"],
           preset: "forgotten-adventures",
-          root: "./local-assets/fa"
+          root: "."
         }),
         headers: { "Content-Type": "application/json" },
         method: "POST"
@@ -57,8 +58,23 @@ describe("POST /api/jobs/assets/import-pack", () => {
     expect(postWorkerJobMock).toHaveBeenCalledWith("/jobs/assets/import-pack", {
       defaultTags: ["fa", "imported"],
       preset: "forgotten-adventures",
-      root: "./local-assets/fa"
+      root: expect.any(String)
     });
+    const forwarded = postWorkerJobMock.mock.calls[0]?.[1] as { root: string };
+    expect(path.isAbsolute(forwarded.root)).toBe(true);
+  });
+
+  it("rejects path traversal before contacting the worker", async () => {
+    const response = await POST(
+      new Request("http://test/api/jobs/assets/import-pack", {
+        body: JSON.stringify({ root: "../outside-pack" }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST"
+      })
+    );
+
+    expect(response.status).toBe(400);
+    expect(postWorkerJobMock).not.toHaveBeenCalled();
   });
 
   it("returns 502 when the worker is unreachable", async () => {
@@ -66,7 +82,7 @@ describe("POST /api/jobs/assets/import-pack", () => {
 
     const response = await POST(
       new Request("http://test/api/jobs/assets/import-pack", {
-        body: JSON.stringify({ root: "./packs/fa" }),
+        body: JSON.stringify({ root: "." }),
         headers: { "Content-Type": "application/json" },
         method: "POST"
       })

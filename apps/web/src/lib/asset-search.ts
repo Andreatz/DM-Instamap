@@ -1,6 +1,6 @@
-import path from "node:path";
 import type { AssetSearchResult } from "@dm-instamap/assets/embeddings";
 import type { AssetBrowserEntry } from "./asset-browser";
+import { validateLocalPath } from "./local-paths";
 
 export type AssetSearchApiResult = AssetSearchResult & {
   classification: string;
@@ -35,20 +35,9 @@ export function enrichAssetSearchResults(
 }
 
 export function resolveWorkspaceFilePath(workspaceRoot: string, inputPath: string): string {
-  const trimmed = inputPath.trim();
-
-  if (!trimmed) {
-    throw new Error("imagePath is required.");
-  }
-
-  const resolved = path.isAbsolute(trimmed)
-    ? path.resolve(trimmed)
-    : path.resolve(workspaceRoot, trimmed);
-  const relative = path.relative(workspaceRoot, resolved);
-
-  if (relative.startsWith("..") || path.isAbsolute(relative)) {
-    throw new Error("imagePath must stay inside the DM-Instamap workspace.");
-  }
-
-  return resolved;
+  return validateLocalPath({
+    inputPath,
+    label: "imagePath",
+    workspaceRoot
+  });
 }

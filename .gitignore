@@ -13,6 +13,8 @@ test-results/
 *.tsbuildinfo
 
 # Heavy local asset sources
+data/indexes/
+data/previews/
 data/raw-assets/
 local-assets/
 assets-local/

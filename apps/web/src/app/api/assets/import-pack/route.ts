@@ -1,6 +1,6 @@
-import path from "node:path";
 import { importAssetPack, PACK_PRESETS, type PackPreset } from "@dm-instamap/assets/pack-importer";
-import { findWorkspaceRoot } from "@/lib/assets-manifest";
+import { findWorkspaceRoot } from "../../../../lib/assets-manifest";
+import { LocalPathValidationError, validateLocalPath } from "../../../../lib/local-paths";
 
 type ImportPackBody = {
   assetRoot?: unknown;
@@ -34,7 +34,13 @@ export async function POST(request: Request) {
       ? body.defaultTags.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
       : [];
     const workspaceRoot = await findWorkspaceRoot(process.cwd());
-    const resolvedAssetRoot = path.isAbsolute(assetRoot) ? assetRoot : path.resolve(workspaceRoot, assetRoot);
+    const resolvedAssetRoot = validateLocalPath({
+      allowAbsoluteOutsideWorkspace: true,
+      inputPath: assetRoot,
+      label: "assetRoot",
+      mustExist: true,
+      workspaceRoot
+    });
     const result = await importAssetPack({
       assetRoot: resolvedAssetRoot,
       defaultTags,
@@ -55,6 +61,6 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not import asset pack.";
-    return Response.json({ error: message, ok: false }, { status: 500 });
+    return Response.json({ error: message, ok: false }, { status: error instanceof LocalPathValidationError ? 400 : 500 });
   }
 }

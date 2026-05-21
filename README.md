@@ -15,13 +15,18 @@ worker on the public internet. Use `localhost`, `127.0.0.1`, or a trusted local
 network only. By default, web and worker requests with non-local host headers
 are rejected unless `DM_INSTAMAP_ALLOW_REMOTE=true` is set deliberately.
 
-The unified [docs/ROADMAP.md](docs/ROADMAP.md) now consolidates the historical
-roadmap, phases A-E, and the post-E consolidation phases F-L. Those phases are
-closed at the repo/test-automatic level (integration fixes F, CLI surface G,
-worker offload H, editor canvas integration I, documentation J, web tests K,
-polish L1/L4/L5).
-Remaining work is manual verification with real VTT imports, real provider
-keys, and large asset packs.
+The current [docs/ROADMAP.md](docs/ROADMAP.md) is a post-baseline critical
+review and improvement plan. It scores the project at **7.2/10**: strong
+local-first foundations, broad feature coverage, and positive manual E2E
+results, but with important follow-up work around repository hygiene, path
+validation, deeper Playwright coverage, editor modularity, generator quality,
+and VTT export fidelity.
+
+The latest manual E2E baseline is documented in
+[docs/manual-test-reports/baseline-2026-05-21.md](docs/manual-test-reports/baseline-2026-05-21.md):
+E2E-01 through E2E-12 passed, including asset import, references, wizard,
+editor, snapshots, PNG/WEBP, dd2vtt, Foundry, Session Pack, multi-floor,
+manual AI bridge, and worker jobs.
 
 ## Current capabilities
 
@@ -230,6 +235,11 @@ pnpm worker:dev   # binds FastAPI to 127.0.0.1
 
 Testing details and the lightweight UI smoke-flow contract live in
 [docs/TESTING.md](docs/TESTING.md).
+
+Local runtime data policy lives in [docs/LOCAL_DATA.md](docs/LOCAL_DATA.md).
+Before committing, run `pnpm repo:audit` to catch generated previews, indexes,
+local projects, exports, or large unintended binary assets that slipped back
+into Git.
 
 Asset and reference commands:
 
