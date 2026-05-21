@@ -24,8 +24,8 @@ export default async function ProjectFloorsPage({ params }: FloorsPageProps) {
         <header className="asset-hero">
           <div>
             <strong>DM-Instamap</strong>
-            <h1>{project.name} — Piani</h1>
-            <p>Questo progetto non è collegato ad altri piani.</p>
+            <h1>{project.name} - Piani</h1>
+            <p>Questo progetto non e collegato ad altri piani.</p>
           </div>
         </header>
         <section className="group-toolbar">
@@ -53,7 +53,7 @@ export default async function ProjectFloorsPage({ params }: FloorsPageProps) {
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>{project.name} — Piani</h1>
+          <h1>{project.name} - Piani</h1>
           <p>
             Dungeon multipiano con {floors.length} progetti collegati. Ogni scheda apre il progetto corrispondente;
             usali durante la sessione per saltare tra i piani.
@@ -126,7 +126,7 @@ function FloorMinimap({ floor }: { floor: DmInstamapProject }) {
 
   return (
     <div className="manifest-note" aria-label="Statistiche minimap piano">
-      <span className="pill">griglia {width}×{height}</span>
+      <span className="pill">griglia {width}x{height}</span>
       <span className="pill">pavimento {floorRatio}%</span>
       <span className="pill">muri {wallRatio}%</span>
     </div>

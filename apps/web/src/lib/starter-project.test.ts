@@ -7,6 +7,6 @@ describe("createStarterProject", () => {
 
     expect(project.map.editable).toBe(true);
     expect(project.map.tiles.length).toBeGreaterThan(0);
-    expect(project.modules).toContain("Simple dungeon generator");
+    expect(project.modules).toContain("Generatore dungeon semplice");
   });
 });

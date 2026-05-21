@@ -7,6 +7,7 @@ import {
   buildReferenceCorrectionFromDraft,
   createReferenceReviewDraft,
   filterReferenceReviewQueue,
+  formatReferenceMapType,
   findReferenceOverride,
   type ReferenceCorrection,
   type ReferenceOverridesFile,
@@ -83,7 +84,7 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
       });
 
       if (!response.ok) {
-        throw new Error("Reference override save failed.");
+        throw new Error("Salvataggio override riferimento fallito.");
       }
 
       const correction = buildReferenceCorrectionFromDraft(draft);
@@ -102,8 +103,8 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
   if (!reference || !draft) {
     return (
       <section className="asset-empty">
-        <h2>No References To Review</h2>
-        <p>Disable filters or scan reference maps first.</p>
+        <h2>Nessun riferimento da revisionare</h2>
+        <p>Disattiva i filtri oppure indicizza prima le mappe di riferimento.</p>
       </section>
     );
   }
@@ -112,10 +113,10 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
   const currentOverride = findReferenceOverride(overrides, reference);
 
   return (
-    <section className="review-shell" aria-label="Reference review">
+    <section className="review-shell" aria-label="Revisione riferimenti">
       <aside className="asset-filters review-sidebar">
         <div className="filter-header">
-          <h2>Review Queue</h2>
+          <h2>Coda revisione</h2>
           <span>
             {index + 1} / {queue.length}
           </span>
@@ -127,7 +128,7 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
             onChange={(event) => setUnknownOnly(event.target.checked)}
             type="checkbox"
           />
-          <span>Unknown type only</span>
+          <span>Solo tipo sconosciuto</span>
         </label>
 
         <label className="check-field">
@@ -136,22 +137,22 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
             onChange={(event) => setLowConfidenceOnly(event.target.checked)}
             type="checkbox"
           />
-          <span>Low confidence only</span>
+          <span>Solo bassa affidabilita</span>
         </label>
 
         <div className="review-nav">
           <button type="button" onClick={() => move(-1)}>
-            Previous
+            Precedente
           </button>
           <button type="button" onClick={() => move(1)}>
-            Next
+            Successivo
           </button>
         </div>
 
         <div className="manifest-note">
-          <span>{queue.length} in queue</span>
-          <span>{Object.keys(overrides.overrides).length} saved corrections</span>
-          {currentOverride ? <span>Current reference has an override</span> : <span>No override yet</span>}
+          <span>{queue.length} in coda</span>
+          <span>{Object.keys(overrides.overrides).length} correzioni salvate</span>
+          {currentOverride ? <span>Questo riferimento ha gia un override</span> : <span>Nessun override</span>}
         </div>
       </aside>
 
@@ -163,21 +164,21 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
           <h2>{getFileName(reference.path)}</h2>
           <dl>
             <div>
-              <dt>Guessed Type</dt>
-              <dd>{reference.mapType}</dd>
+              <dt>Tipo rilevato</dt>
+              <dd>{formatReferenceMapType(reference.mapType)}</dd>
             </div>
             <div>
-              <dt>Confidence</dt>
+              <dt>Affidabilita</dt>
               <dd>{formatPercent(reference.mapTypeConfidence)}</dd>
             </div>
             <div>
-              <dt>Size</dt>
+              <dt>Dimensioni</dt>
               <dd>
                 {reference.width ?? "?"} x {reference.height ?? "?"}
               </dd>
             </div>
             <div>
-              <dt>Path</dt>
+              <dt>Percorso</dt>
               <dd>{reference.path}</dd>
             </div>
           </dl>
@@ -185,24 +186,24 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
       </section>
 
       <aside className="asset-details review-form">
-        <h2>Correction</h2>
+        <h2>Correzione</h2>
 
         <label className="field">
-          <span>Map Type</span>
+          <span>Tipo mappa</span>
           <select
             onChange={(event) => setDraftField("mapType", event.target.value as ReferenceReviewMapType)}
             value={draft.mapType}
           >
             {REFERENCE_REVIEW_MAP_TYPES.map((mapType) => (
               <option key={mapType} value={mapType}>
-                {mapType}
+                {formatReferenceMapType(mapType)}
               </option>
             ))}
           </select>
         </label>
 
         <label className="field">
-          <span>Theme Tags</span>
+          <span>Tag tema</span>
           <textarea
             onChange={(event) => setDraftField("themeTagsText", event.target.value)}
             rows={2}
@@ -211,27 +212,27 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
         </label>
 
         <label className="field">
-          <span>Style Tags</span>
+          <span>Tag stile</span>
           <textarea
             onChange={(event) => setDraftField("styleTagsText", event.target.value)}
-            placeholder="painted, parchment, realistic..."
+            placeholder="dipinta, pergamena, realistica..."
             rows={2}
             value={draft.styleTagsText}
           />
         </label>
 
         <label className="field">
-          <span>Layout Tags</span>
+          <span>Tag layout</span>
           <textarea
             onChange={(event) => setDraftField("layoutTagsText", event.target.value)}
-            placeholder="linear, multi-level, open..."
+            placeholder="lineare, multipiano, aperta..."
             rows={2}
             value={draft.layoutTagsText}
           />
         </label>
 
         <label className="field">
-          <span>Quality Score {draft.qualityScore}</span>
+          <span>Punteggio qualita {draft.qualityScore}</span>
           <input
             max="100"
             min="0"
@@ -243,21 +244,21 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
         </label>
 
         <label className="field">
-          <span>Notes</span>
+          <span>Note</span>
           <textarea
             onChange={(event) => setDraftField("notes", event.target.value)}
-            placeholder="Grid visible, strong room layout, good cave branch..."
+            placeholder="Griglia visibile, layout stanze chiaro, buon ramo grotta..."
             rows={4}
             value={draft.notes}
           />
         </label>
 
         <button className="save-correction" disabled={saveState === "saving"} onClick={saveCurrent} type="button">
-          {saveState === "saving" ? "Saving..." : "Save Correction"}
+          {saveState === "saving" ? "Salvataggio..." : "Salva correzione"}
         </button>
 
-        {saveState === "saved" ? <p className="save-note">Saved to reference-overrides.json.</p> : null}
-        {saveState === "error" ? <p className="save-note error">Could not save correction.</p> : null}
+        {saveState === "saved" ? <p className="save-note">Salvato in reference-overrides.json.</p> : null}
+        {saveState === "error" ? <p className="save-note error">Impossibile salvare la correzione.</p> : null}
 
         <CorrectionSummary correction={correction} />
       </aside>
@@ -268,9 +269,10 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
 function CorrectionSummary({ correction }: { correction: ReferenceCorrection }) {
   return (
     <section className="detail-block">
-      <h3>Will Save</h3>
+      <h3>Verra salvato</h3>
       <p>
-        {correction.mapType} - quality {correction.qualityScore} - {correction.themeTags.length} theme tags
+        {formatReferenceMapType(correction.mapType)} - qualita {correction.qualityScore} -{" "}
+        {correction.themeTags.length} tag tema
       </p>
     </section>
   );

@@ -9,14 +9,14 @@ export default function GenerateAssetPage() {
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>Generate Asset from Prompt</h1>
-          <p>Send a prompt to Replicate or a local Automatic1111 server and save the result to the asset library.</p>
+          <h1>Genera asset da prompt</h1>
+          <p>Invia un prompt a Replicate o a un server locale Automatic1111 e salva il risultato nella libreria asset.</p>
         </div>
       </header>
 
       <section className="group-toolbar">
-        <Link href="/assets">All Assets</Link>
-        <Link href="/assets/import-pack">Import Pack</Link>
+        <Link href="/assets">Tutti gli asset</Link>
+        <Link href="/assets/import-pack">Importa pacchetto</Link>
       </section>
 
       <AssetGeneratorForm />

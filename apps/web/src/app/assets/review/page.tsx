@@ -12,12 +12,12 @@ export default async function AssetReviewPage() {
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>Asset Review</h1>
-          <p>Correct local classifications and write manual overrides.</p>
+          <h1>Revisione asset</h1>
+          <p>Correggi le classificazioni locali e scrivi override manuali.</p>
         </div>
         <dl>
           <div>
-            <dt>Assets</dt>
+            <dt>Asset</dt>
             <dd>{manifest.assets.length}</dd>
           </div>
           <div>
@@ -29,9 +29,9 @@ export default async function AssetReviewPage() {
 
       {manifest.missing ? (
         <section className="asset-empty" aria-live="polite">
-          <h2>No Manifest Found</h2>
+          <h2>Nessun manifest trovato</h2>
           <p>
-            Run <code>pnpm assets:scan &lt;folder&gt;</code>.
+            Esegui <code>pnpm assets:scan &lt;cartella&gt;</code>.
           </p>
         </section>
       ) : (

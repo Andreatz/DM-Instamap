@@ -13,7 +13,7 @@ export function NewCampaignForm() {
 
   async function createCampaign() {
     setSubmitting(true);
-    setStatus("Creating campaign…");
+    setStatus("Creazione campagna...");
 
     try {
       const response = await fetch("/api/campaigns", {
@@ -31,12 +31,12 @@ export function NewCampaignForm() {
       const payload = (await response.json()) as { campaign?: { id: string }; error?: string };
 
       if (!response.ok || !payload.campaign) {
-        throw new Error(payload.error ?? "Could not create campaign.");
+        throw new Error(payload.error ?? "Impossibile creare la campagna.");
       }
 
       router.push(`/campaigns/${payload.campaign.id}`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Could not create campaign.");
+      setStatus(error instanceof Error ? error.message : "Impossibile creare la campagna.");
     } finally {
       setSubmitting(false);
     }
@@ -44,17 +44,17 @@ export function NewCampaignForm() {
 
   return (
     <section className="asset-details">
-      <h2>New Campaign</h2>
+      <h2>Nuova campagna</h2>
       <label className="field">
-        <span>Name</span>
-        <input onChange={(event) => setName(event.target.value)} placeholder="Whispering Woods" value={name} />
+        <span>Nome</span>
+        <input onChange={(event) => setName(event.target.value)} placeholder="Boschi Sussurranti" value={name} />
       </label>
       <label className="field">
-        <span>Description (optional)</span>
+        <span>Descrizione (facoltativa)</span>
         <textarea onChange={(event) => setDescription(event.target.value)} rows={3} value={description} />
       </label>
       <label className="field">
-        <span>Tags (comma separated)</span>
+        <span>Tag (separati da virgola)</span>
         <input onChange={(event) => setTags(event.target.value)} placeholder="hexcrawl, level-5" value={tags} />
       </label>
       <button
@@ -63,7 +63,7 @@ export function NewCampaignForm() {
         onClick={() => void createCampaign()}
         type="button"
       >
-        {submitting ? "Creating…" : "Create Campaign"}
+        {submitting ? "Creazione..." : "Crea campagna"}
       </button>
       {status ? <p>{status}</p> : null}
     </section>

@@ -10,37 +10,37 @@ export default async function AssetGroupsPage() {
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>Asset Groups</h1>
-          <p>Generated sets for browsing, generation hints, and future manual curation.</p>
+          <h1>Gruppi di asset</h1>
+          <p>Set generati per navigazione, suggerimenti di generazione e futura curatela manuale.</p>
         </div>
         <dl>
           <div>
-            <dt>Groups</dt>
+            <dt>Gruppi</dt>
             <dd>{groups.groupCount}</dd>
           </div>
           <div>
             <dt>Index</dt>
-            <dd>{groups.missing ? "Missing" : "Loaded"}</dd>
+            <dd>{groups.missing ? "Mancante" : "Caricato"}</dd>
           </div>
         </dl>
       </header>
 
       {groups.missing ? (
         <section className="asset-empty" aria-live="polite">
-          <h2>No Groups Found</h2>
+          <h2>Nessun gruppo trovato</h2>
           <p>
-            Run <code>pnpm assets:group</code> after scanning assets.
+            Esegui <code>pnpm assets:group</code> dopo aver indicizzato gli asset.
           </p>
         </section>
       ) : (
         <>
           <section className="group-toolbar">
-            <span>{groups.groups.length} groups shown</span>
-            {groups.generatedAt ? <span>Grouped {new Date(groups.generatedAt).toLocaleString()}</span> : null}
-            <a href="/asset-groups/review">Review groups in batches</a>
+            <span>{groups.groups.length} gruppi mostrati</span>
+            {groups.generatedAt ? <span>Raggruppati {new Date(groups.generatedAt).toLocaleString()}</span> : null}
+            <a href="/asset-groups/review">Revisiona gruppi a lotti</a>
           </section>
 
-          <section className="group-grid" aria-label="Asset groups">
+          <section className="group-grid" aria-label="Gruppi di asset">
             {groups.groups.map((group) => (
               <article className="group-card" key={group.id}>
                 <div className="group-preview">
@@ -53,12 +53,12 @@ export default async function AssetGroupsPage() {
                   </div>
                   <dl>
                     <div>
-                      <dt>Assets</dt>
+                      <dt>Asset</dt>
                       <dd>{group.assetCount}</dd>
                     </div>
                     <div>
-                      <dt>Representative</dt>
-                      <dd>{group.representativeAssetId ?? "none"}</dd>
+                      <dt>Rappresentativo</dt>
+                      <dd>{group.representativeAssetId ?? "nessuno"}</dd>
                     </div>
                   </dl>
                   <div className="tag-list">
@@ -66,7 +66,7 @@ export default async function AssetGroupsPage() {
                       <span key={tag}>{tag}</span>
                     ))}
                   </div>
-                  <p>{group.sourceFolders.slice(0, 2).join(", ") || "No source folder"}</p>
+                  <p>{group.sourceFolders.slice(0, 2).join(", ") || "Nessuna cartella sorgente"}</p>
                 </div>
               </article>
             ))}

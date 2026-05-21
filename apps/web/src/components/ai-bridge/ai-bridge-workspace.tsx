@@ -36,11 +36,11 @@ type ImportResponse = {
 
 export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspaceProps) {
   const [userRequest, setUserRequest] = useState(
-    "Create a crypt dungeon with an entrance, chapel, library, treasure room, and boss room."
+    "Crea un dungeon cripta con ingresso, cappella, biblioteca, sala del tesoro e stanza del boss."
   );
   const [pastedResponse, setPastedResponse] = useState("");
   const [assetSearchResults, setAssetSearchResults] = useState<AssetSearchApiResult[]>([]);
-  const [status, setStatus] = useState("Manual bridge ready");
+  const [status, setStatus] = useState("Bridge manuale pronto");
   const [importMode, setImportMode] = useState<ImportMode>("new-project");
   const [importProjectId, setImportProjectId] = useState("");
   const [importedProjectId, setImportedProjectId] = useState<string | null>(null);
@@ -122,7 +122,7 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
 
   async function copyText(value: string, label: string) {
     await navigator.clipboard.writeText(value);
-    setStatus(`${label} copied`);
+    setStatus(`${label} copiato`);
   }
 
   function downloadPacket() {
@@ -133,7 +133,7 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
     link.download = "dm-instamap-prompt-packet.md";
     link.click();
     URL.revokeObjectURL(url);
-    setStatus("Prompt packet downloaded");
+    setStatus("Pacchetto prompt scaricato");
   }
 
   async function searchLocalAssetsForPrompt() {
@@ -141,41 +141,41 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
 
     if (!query) {
       setAssetSearchResults([]);
-      setStatus("Write a request before searching local assets");
+      setStatus("Scrivi una richiesta prima di cercare asset locali");
       return;
     }
 
-    setStatus("Searching local assets for prompt");
+    setStatus("Ricerca asset locali per il prompt");
 
     try {
       const response = await fetch(`/api/assets/search?q=${encodeURIComponent(query)}&limit=8`);
       const payload = (await response.json()) as { results?: AssetSearchApiResult[]; error?: string };
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Local asset search failed");
+        throw new Error(payload.error ?? "Ricerca asset locale fallita");
       }
 
       setAssetSearchResults(payload.results ?? []);
-      setStatus(`${payload.results?.length ?? 0} local assets added to prompt context`);
+      setStatus(`${payload.results?.length ?? 0} asset locali aggiunti al contesto prompt`);
     } catch (error) {
       setAssetSearchResults([]);
-      setStatus(error instanceof Error ? error.message : "Local asset search failed");
+      setStatus(error instanceof Error ? error.message : "Ricerca asset locale fallita");
     }
   }
 
   async function importPlan() {
     if (!validation.ok) {
-      setStatus("Fix JSON validation errors before importing");
+      setStatus("Correggi gli errori di validazione JSON prima di importare");
       return;
     }
 
     if (importMode === "update-project" && !importProjectId.trim()) {
-      setStatus("Provide a project id to update");
+      setStatus("Fornisci un ID progetto da aggiornare");
       return;
     }
 
     setBusy(true);
-    setStatus(importMode === "new-project" ? "Creating project" : "Updating project");
+    setStatus(importMode === "new-project" ? "Creazione progetto" : "Aggiornamento progetto");
 
     try {
       const response = await fetch("/api/ai-bridge/import-plan", {
@@ -193,27 +193,27 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
       const payload = (await response.json()) as ImportResponse;
 
       if (!response.ok || !payload.ok) {
-        const message = payload.error ?? payload.errors?.join("; ") ?? "Import failed";
+        const message = payload.error ?? payload.errors?.join("; ") ?? "Importazione fallita";
         throw new Error(message);
       }
 
       setImportedProjectId(payload.project?.id ?? null);
       setImportIssues(payload.issues ?? []);
       setImportMissing(payload.missingAssets ?? []);
-      setStatus(`Plan imported into ${payload.project?.name ?? "project"} (${payload.project?.id ?? ""})`);
+      setStatus(`Piano importato in ${payload.project?.name ?? "progetto"} (${payload.project?.id ?? ""})`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Import failed");
+      setStatus(error instanceof Error ? error.message : "Importazione fallita");
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <section className="bridge-shell" aria-label="Manual ChatGPT bridge">
+    <section className="bridge-shell" aria-label="Bridge manuale ChatGPT">
       <section className="asset-filters bridge-request-panel">
-        <h2>Request</h2>
+        <h2>Richiesta</h2>
         <label className="field">
-          <span>Map request</span>
+          <span>Richiesta mappa</span>
           <textarea
             className="bridge-textarea bridge-request"
             onChange={(event) => setUserRequest(event.target.value)}
@@ -222,29 +222,29 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
         </label>
 
         <section className="detail-block">
-          <h3>Local Context</h3>
-          <p>{context.assetGroups.length} asset groups selected</p>
-          <p>{context.assetSearchResults.length} searched assets selected</p>
-          <p>{context.references.length} references selected</p>
+          <h3>Contesto locale</h3>
+          <p>{context.assetGroups.length} gruppi asset selezionati</p>
+          <p>{context.assetSearchResults.length} asset cercati selezionati</p>
+          <p>{context.references.length} riferimenti selezionati</p>
           <button onClick={searchLocalAssetsForPrompt} type="button">
-            Search Local Assets
+            Cerca asset locali
           </button>
         </section>
 
         <section className="bridge-context-list">
-          <h3>Asset Groups</h3>
+          <h3>Gruppi asset</h3>
           {context.assetGroups.map((group) => (
             <article key={group.id}>
               <strong>{group.name}</strong>
               <span>
-                {group.kind} - {group.assetCount} assets
+                {group.kind} - {group.assetCount} asset
               </span>
             </article>
           ))}
         </section>
 
         <section className="bridge-context-list">
-          <h3>Asset Search</h3>
+          <h3>Ricerca asset</h3>
           {context.assetSearchResults.map((result) => (
             <article key={result.assetId}>
               <strong>{result.relativePath}</strong>
@@ -256,7 +256,7 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
         </section>
 
         <section className="bridge-context-list">
-          <h3>References</h3>
+          <h3>Riferimenti</h3>
           {context.references.map((reference) => (
             <article key={reference.id}>
               <strong>{reference.path}</strong>
@@ -272,13 +272,13 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
             <h2>Prompt</h2>
             <div className="bridge-action-row">
               <button onClick={() => copyText(prompt, "Prompt")} type="button">
-                Copy Prompt
+                Copia prompt
               </button>
               <button onClick={() => copyText(promptPacket, "Prompt packet")} type="button">
-                Copy Packet (.md)
+                Copia pacchetto (.md)
               </button>
               <button onClick={downloadPacket} type="button">
-                Download Packet
+                Scarica pacchetto
               </button>
             </div>
           </header>
@@ -287,22 +287,22 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
 
         <section className="asset-details bridge-response-panel">
           <header className="bridge-panel-header">
-            <h2>Response Validation</h2>
+            <h2>Validazione risposta</h2>
             <span className={validation.ok ? "bridge-valid" : "bridge-invalid"}>
-              {pastedResponse.trim() ? (validation.ok ? "Valid MapPlan JSON" : "Invalid JSON") : "Waiting for paste"}
+              {pastedResponse.trim() ? (validation.ok ? "JSON MapPlan valido" : "JSON non valido") : "In attesa di incolla"}
             </span>
           </header>
           <textarea
             className="bridge-textarea bridge-response"
             onChange={(event) => setPastedResponse(event.target.value)}
-            placeholder="Paste ChatGPT JSON response here"
+            placeholder="Incolla qui la risposta JSON di ChatGPT"
             spellCheck={false}
             value={pastedResponse}
           />
 
           {pastedResponse.trim() && !validation.ok ? (
             <section className="bridge-errors">
-              <h3>Schema Errors</h3>
+              <h3>Errori schema</h3>
               <ul>
                 {validation.errors.map((error) => (
                   <li key={error}>{error}</li>
@@ -313,33 +313,33 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
 
           {validation.ok && semantic ? (
             <section className="bridge-valid-summary">
-              <h3>Parsed Plan</h3>
+              <h3>Piano interpretato</h3>
               <p>
-                {validation.data.name} - {validation.data.rooms.length} rooms,{" "}
-                {validation.data.assetPlacements.length} placements
+                {validation.data.name} - {validation.data.rooms.length} stanze,{" "}
+                {validation.data.assetPlacements.length} piazzamenti
               </p>
               {semantic.ok ? (
-                <p className="bridge-valid">No semantic issues detected.</p>
+                <p className="bridge-valid">Nessun problema semantico rilevato.</p>
               ) : (
                 <section className="bridge-semantic">
-                  <h4>Semantic Issues</h4>
+                  <h4>Problemi semantici</h4>
                   <ul>
                     {semantic.issues.map((issue) => (
                       <li key={`${issue.path}:${issue.message}`}>
-                        <strong>{issue.level === "error" ? "Error" : "Warning"}</strong> [{issue.type}]: {issue.message}
+                        <strong>{issue.level === "error" ? "Errore" : "Avviso"}</strong> [{issue.type}]: {issue.message}
                       </li>
                     ))}
                   </ul>
                   {semantic.missingAssets.length > 0 ? (
                     <section className="bridge-missing-assets">
-                      <h4>Missing Asset Suggestions</h4>
+                      <h4>Suggerimenti asset mancanti</h4>
                       {semantic.missingAssets.map((report) => (
                         <article key={report.assetId}>
                           <strong>{report.assetId}</strong>
                           <ul>
                             {report.suggestions.map((suggestion) => (
                               <li key={suggestion.suggestionId}>
-                                {suggestion.suggestionId} — {suggestion.reason}
+                                {suggestion.suggestionId} - {suggestion.reason}
                               </li>
                             ))}
                           </ul>
@@ -349,9 +349,9 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
                   ) : null}
                   {repairPreview ? (
                     <p>
-                      Local auto-repair would remove {repairPreview.removed.invalidWalls.length} invalid walls,{" "}
-                      {repairPreview.removed.outOfBoundsDoors.length} doors, and apply{" "}
-                      {repairPreview.appliedSubstitutions.length} asset substitutions.
+                      L'autoriparazione locale rimuoverebbe {repairPreview.removed.invalidWalls.length} muri non validi,{" "}
+                      {repairPreview.removed.outOfBoundsDoors.length} porte e applicherebbe{" "}
+                      {repairPreview.appliedSubstitutions.length} sostituzioni asset.
                     </p>
                   ) : null}
                 </section>
@@ -361,27 +361,27 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
 
           {validation.ok ? (
             <section className="bridge-import">
-              <h3>Import Plan Into Project</h3>
+              <h3>Importa piano nel progetto</h3>
               <label className="field">
-                <span>Mode</span>
+                <span>Modalita</span>
                 <select onChange={(event) => setImportMode(event.target.value as ImportMode)} value={importMode}>
-                  <option value="new-project">Create New Project</option>
-                  <option value="update-project">Update Existing Project</option>
+                  <option value="new-project">Crea nuovo progetto</option>
+                  <option value="update-project">Aggiorna progetto esistente</option>
                 </select>
               </label>
               {importMode === "update-project" ? (
                 <label className="field">
-                  <span>Project Id</span>
+                  <span>ID progetto</span>
                   <input
                     onChange={(event) => setImportProjectId(event.target.value)}
-                    placeholder="e.g. crypt-under-the-cathedral"
+                    placeholder="es. cripta-sotto-la-cattedrale"
                     value={importProjectId}
                   />
                 </label>
               ) : null}
               <label className="editor-checkbox">
                 <input checked={autoRepair} onChange={(event) => setAutoRepair(event.target.checked)} type="checkbox" />
-                <span>Apply local auto-repair before saving</span>
+                <span>Applica autoriparazione locale prima del salvataggio</span>
               </label>
               <button
                 className="save-correction"
@@ -389,16 +389,16 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
                 onClick={importPlan}
                 type="button"
               >
-                {busy ? "Working..." : "Import Plan"}
+                {busy ? "Elaborazione..." : "Importa piano"}
               </button>
               {importedProjectId ? (
                 <p>
-                  Imported into <a href={`/projects/${importedProjectId}`}>{importedProjectId}</a>
+                  Importato in <a href={`/projects/${importedProjectId}`}>{importedProjectId}</a>
                 </p>
               ) : null}
               {importIssues.length > 0 ? (
                 <section className="bridge-import-issues">
-                  <h4>Residual Issues After Import</h4>
+                  <h4>Problemi residui dopo l'import</h4>
                   <ul>
                     {importIssues.map((issue) => (
                       <li key={`${issue.path}:${issue.message}`}>
@@ -410,12 +410,12 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
               ) : null}
               {importMissing.length > 0 ? (
                 <section className="bridge-import-missing">
-                  <h4>Missing Assets in Saved Plan</h4>
+                  <h4>Asset mancanti nel piano salvato</h4>
                   <ul>
                     {importMissing.map((report) => (
                       <li key={report.assetId}>
-                        {report.assetId} — suggested:{" "}
-                        {report.suggestions.map((suggestion) => suggestion.suggestionId).join(", ") || "no suggestions"}
+                        {report.assetId} - suggeriti:{" "}
+                        {report.suggestions.map((suggestion) => suggestion.suggestionId).join(", ") || "nessun suggerimento"}
                       </li>
                     ))}
                   </ul>
@@ -427,9 +427,9 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
           {!validation.ok && pastedResponse.trim() ? (
             <section className="bridge-repair">
               <header className="bridge-panel-header">
-                <h3>Repair Prompt</h3>
+                <h3>Prompt di riparazione</h3>
                 <button onClick={() => copyText(repairPrompt, "Repair prompt")} type="button">
-                  Copy Repair
+                  Copia riparazione
                 </button>
               </header>
               <textarea className="bridge-textarea bridge-repair-text" readOnly value={repairPrompt} />

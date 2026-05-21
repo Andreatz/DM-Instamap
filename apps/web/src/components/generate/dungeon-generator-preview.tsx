@@ -160,7 +160,7 @@ export function DungeonGeneratorPreview() {
       return;
     }
 
-    setStatus("Creazione progetto locale…");
+    setStatus("Creazione progetto locale...");
 
     try {
       const response = await fetch("/api/projects", {
@@ -194,7 +194,7 @@ export function DungeonGeneratorPreview() {
       return;
     }
 
-    setStatus(`Creazione di ${generated.floors.length} progetti collegati…`);
+    setStatus(`Creazione di ${generated.floors.length} progetti collegati...`);
 
     try {
       const projectName = buildProjectName(form);
@@ -223,7 +223,7 @@ export function DungeonGeneratorPreview() {
       if (!first) {
         throw new Error("La rotta multipiano non ha restituito alcun progetto.");
       }
-      setStatus(`Creati ${payload.projects.length} progetti collegati. Apertura del piano 1…`);
+      setStatus(`Creati ${payload.projects.length} progetti collegati. Apertura del piano 1...`);
       router.push(`/projects/${first.id}/editor`);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Impossibile creare i progetti multipiano.");
@@ -236,7 +236,7 @@ export function DungeonGeneratorPreview() {
         <h2>Richiesta</h2>
 
         <label className="field">
-          <span>Modalità</span>
+          <span>Modalita</span>
           <select onChange={(event) => setField("mode", event.target.value as GeneratorMode)} value={form.mode}>
             <option value="simple">Semplice (rettangolare)</option>
             <option value="narrative">Narrativa (blueprint)</option>
@@ -333,7 +333,7 @@ export function DungeonGeneratorPreview() {
               <span>Includi fiume con ponti</span>
             </label>
             <label className="field">
-              <span>Densità alberi ({form.outdoorTreeDensity.toFixed(2)})</span>
+              <span>Densita alberi ({form.outdoorTreeDensity.toFixed(2)})</span>
               <input
                 max="0.4"
                 min="0"
@@ -439,7 +439,7 @@ export function DungeonGeneratorPreview() {
           </div>
           <div>
             <dt>Modificabile</dt>
-            <dd>{map.editable ? "sì" : "no"}</dd>
+            <dd>{map.editable ? "si" : "no"}</dd>
           </div>
           <div>
             <dt>Algoritmo</dt>
@@ -483,7 +483,7 @@ function BlueprintSummary({ blueprint }: { blueprint: MapGenerationBlueprint }) 
         <div>
           <dt>Acqua / Vegetazione</dt>
           <dd>
-            {blueprint.hasWater ? "acqua" : "—"} / {blueprint.hasVegetation ? "vegetazione" : "—"}
+            {blueprint.hasWater ? "acqua" : "-"} / {blueprint.hasVegetation ? "vegetazione" : "-"}
           </dd>
         </div>
         <div>
@@ -561,9 +561,9 @@ function buildSourceRequest(form: GeneratorForm): string {
   }
 
   if (form.mode === "outdoor") {
-    return `Mappa outdoor ${form.theme} generata (densità alberi ${form.outdoorTreeDensity.toFixed(
+    return `Mappa outdoor ${form.theme} generata (densita alberi ${form.outdoorTreeDensity.toFixed(
       2
-    )}, fiume ${form.outdoorRiver ? "sì" : "no"}, seed: ${form.seed}).`;
+    )}, fiume ${form.outdoorRiver ? "si" : "no"}, seed: ${form.seed}).`;
   }
 
   if (form.mode === "multi-floor") {

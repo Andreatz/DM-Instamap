@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ASSET_REVIEW_KINDS,
   QUICK_REVIEW_KINDS,
+  formatAssetKind,
   formatPercent,
   type AssetBrowserEntry,
   type ReviewAssetKind
@@ -82,7 +83,7 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
       });
 
       if (!response.ok) {
-        throw new Error("Override save failed.");
+        throw new Error("Salvataggio override fallito.");
       }
 
       const correction = buildCorrectionFromDraft(draft, asset);
@@ -101,8 +102,8 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
   if (!asset || !draft) {
     return (
       <section className="asset-empty">
-        <h2>No Assets To Review</h2>
-        <p>Disable the low-confidence filter or scan assets first.</p>
+        <h2>Nessun asset da revisionare</h2>
+        <p>Disattiva il filtro bassa affidabilita oppure indicizza prima gli asset.</p>
       </section>
     );
   }
@@ -111,10 +112,10 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
   const currentOverride = findOverrideForAsset(overrides, asset);
 
   return (
-    <section className="review-shell" aria-label="Asset review">
+    <section className="review-shell" aria-label="Revisione asset">
       <aside className="asset-filters review-sidebar">
         <div className="filter-header">
-          <h2>Review Queue</h2>
+          <h2>Coda revisione</h2>
           <span>
             {index + 1} / {reviewAssets.length}
           </span>
@@ -126,22 +127,22 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
             onChange={(event) => setLowConfidenceOnly(event.target.checked)}
             type="checkbox"
           />
-          <span>Low confidence only</span>
+          <span>Solo bassa affidabilita</span>
         </label>
 
         <div className="review-nav">
           <button type="button" onClick={() => move(-1)}>
-            Previous
+            Precedente
           </button>
           <button type="button" onClick={() => move(1)}>
-            Next
+            Successivo
           </button>
         </div>
 
         <div className="manifest-note">
-          <span>{reviewAssets.length} in queue</span>
-          <span>{Object.keys(overrides.overrides).length} saved corrections</span>
-          {currentOverride ? <span>Current asset has an override</span> : <span>No override yet</span>}
+          <span>{reviewAssets.length} in coda</span>
+          <span>{Object.keys(overrides.overrides).length} correzioni salvate</span>
+          {currentOverride ? <span>Questo asset ha gia un override</span> : <span>Nessun override</span>}
         </div>
       </aside>
 
@@ -153,21 +154,21 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
           <h2>{getFileName(asset.relativePath)}</h2>
           <dl>
             <div>
-              <dt>Automatic Kind</dt>
-              <dd>{asset.classification}</dd>
+              <dt>Tipo automatico</dt>
+              <dd>{formatAssetKind(asset.classification)}</dd>
             </div>
             <div>
-              <dt>Confidence</dt>
+              <dt>Affidabilita</dt>
               <dd>{formatPercent(asset.confidence)}</dd>
             </div>
             <div>
-              <dt>Size</dt>
+              <dt>Dimensioni</dt>
               <dd>
                 {asset.width ?? "?"} x {asset.height ?? "?"}
               </dd>
             </div>
             <div>
-              <dt>Path</dt>
+              <dt>Percorso</dt>
               <dd>{asset.relativePath}</dd>
             </div>
           </dl>
@@ -175,9 +176,9 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
       </section>
 
       <aside className="asset-details review-form">
-        <h2>Correction</h2>
+        <h2>Correzione</h2>
 
-        <div className="quick-kind-grid" aria-label="Quick kind buttons">
+        <div className="quick-kind-grid" aria-label="Pulsanti rapidi tipo asset">
           {QUICK_REVIEW_KINDS.map((kind) => (
             <button
               className={draft.classification === kind ? "active" : ""}
@@ -185,20 +186,20 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
               onClick={() => setDraftField("classification", kind)}
               type="button"
             >
-              {kind}
+              {formatAssetKind(kind)}
             </button>
           ))}
         </div>
 
         <label className="field">
-          <span>Kind</span>
+          <span>Tipo</span>
           <select
             onChange={(event) => setDraftField("classification", event.target.value as ReviewAssetKind)}
             value={draft.classification}
           >
             {ASSET_REVIEW_KINDS.map((kind) => (
               <option key={kind} value={kind}>
-                {kind}
+                {formatAssetKind(kind)}
               </option>
             ))}
           </select>
@@ -214,7 +215,7 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
         </label>
 
         <label className="field">
-          <span>Theme</span>
+          <span>Tema</span>
           <input
             onChange={(event) => setDraftField("theme", event.target.value)}
             placeholder="dungeon, feywild, crypt..."
@@ -223,7 +224,7 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
         </label>
 
         <label className="field">
-          <span>Usable For</span>
+          <span>Usabile per</span>
           <textarea
             onChange={(event) => setDraftField("usableForText", event.target.value)}
             placeholder="entrance, boss room, tavern..."
@@ -233,7 +234,7 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
         </label>
 
         <label className="field">
-          <span>Quality Score {draft.qualityScore}</span>
+          <span>Punteggio qualita {draft.qualityScore}</span>
           <input
             max="100"
             min="0"
@@ -245,11 +246,11 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
         </label>
 
         <button className="save-correction" disabled={saveState === "saving"} onClick={saveCurrent} type="button">
-          {saveState === "saving" ? "Saving..." : "Save Correction"}
+          {saveState === "saving" ? "Salvataggio..." : "Salva correzione"}
         </button>
 
-        {saveState === "saved" ? <p className="save-note">Saved to asset-overrides.json.</p> : null}
-        {saveState === "error" ? <p className="save-note error">Could not save correction.</p> : null}
+        {saveState === "saved" ? <p className="save-note">Salvato in asset-overrides.json.</p> : null}
+        {saveState === "error" ? <p className="save-note error">Impossibile salvare la correzione.</p> : null}
 
         <CorrectionSummary correction={correction} />
       </aside>
@@ -260,9 +261,9 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
 function CorrectionSummary({ correction }: { correction: AssetCorrection }) {
   return (
     <section className="detail-block">
-      <h3>Will Save</h3>
+      <h3>Verra salvato</h3>
       <p>
-        {correction.classification} - quality {correction.qualityScore} - {correction.tags.length} tags
+        {formatAssetKind(correction.classification)} - qualita {correction.qualityScore} - {correction.tags.length} tag
       </p>
     </section>
   );

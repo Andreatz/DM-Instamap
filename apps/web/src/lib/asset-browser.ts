@@ -161,6 +161,51 @@ export function formatPercent(value: number): string {
   return `${Math.round(value * 100)}%`;
 }
 
+export function formatAssetKind(kind: string): string {
+  switch (kind) {
+    case "wall":
+      return "muro";
+    case "floor":
+      return "pavimento";
+    case "door":
+      return "porta";
+    case "window":
+      return "finestra";
+    case "prop":
+      return "oggetto";
+    case "furniture":
+      return "arredo";
+    case "water":
+      return "acqua";
+    case "light":
+      return "luce";
+    case "terrain":
+      return "terreno";
+    case "roof":
+      return "tetto";
+    case "decoration":
+      return "decorazione";
+    case "unknown":
+      return "sconosciuto";
+    case "all":
+      return "tutti";
+    default:
+      return kind;
+  }
+}
+
+export function formatClassificationSource(source: AssetBrowserEntry["classificationSource"]): string {
+  switch (source) {
+    case "automatic":
+      return "automatica";
+    case "manual":
+      return "manuale";
+    case "missing":
+    default:
+      return "mancante";
+  }
+}
+
 function getSourceFolder(relativePath: string): string {
   const normalized = relativePath.replaceAll("\\", "/");
   const segments = normalized.split("/").filter(Boolean);

@@ -17,22 +17,22 @@ export function JobProgressBar({ jobId, pollIntervalMs }: JobProgressBarProps) {
   if (error) {
     return (
       <p className="muted">
-        Worker error: {error}
+        Errore worker: {error}
       </p>
     );
   }
 
   if (!job) {
-    return <p className="muted">Connecting to worker…</p>;
+    return <p className="muted">Connessione al worker...</p>;
   }
 
   return (
-    <section className="manifest-note" aria-label="Job progress">
+    <section className="manifest-note" aria-label="Avanzamento job">
       <span className="pill">job: {job.id}</span>
-      <span className="pill">status: {job.status}</span>
-      <span className="pill">progress: {job.progress}%</span>
+      <span className="pill">stato: {job.status}</span>
+      <span className="pill">avanzamento: {job.progress}%</span>
       <p>{job.message}</p>
-      {job.status === "failed" && job.error ? <p className="muted">Error: {job.error}</p> : null}
+      {job.status === "failed" && job.error ? <p className="muted">Errore: {job.error}</p> : null}
     </section>
   );
 }

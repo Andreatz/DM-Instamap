@@ -19,28 +19,28 @@ export default async function AssetGroupReviewPage() {
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>Group Asset Review</h1>
-          <p>Review thousands of local assets by group, not one file at a time.</p>
+          <h1>Revisione gruppi asset</h1>
+          <p>Revisiona migliaia di asset locali per gruppo, non un file alla volta.</p>
         </div>
         <dl>
           <div>
-            <dt>Total Assets</dt>
+            <dt>Asset totali</dt>
             <dd>{stats.totalAssets}</dd>
           </div>
           <div>
-            <dt>Reviewed Assets</dt>
+            <dt>Asset revisionati</dt>
             <dd>{stats.reviewedAssets}</dd>
           </div>
           <div>
-            <dt>Reviewed Groups</dt>
+            <dt>Gruppi revisionati</dt>
             <dd>{stats.reviewedGroups}</dd>
           </div>
           <div>
-            <dt>Unknown</dt>
+            <dt>Sconosciuti</dt>
             <dd>{stats.unknownRemaining}</dd>
           </div>
           <div>
-            <dt>Low Confidence</dt>
+            <dt>Bassa affidabilita</dt>
             <dd>{stats.lowConfidenceRemaining}</dd>
           </div>
         </dl>
@@ -48,9 +48,9 @@ export default async function AssetGroupReviewPage() {
 
       {groups.missing || manifest.missing ? (
         <section className="asset-empty">
-          <h2>Review Index Missing</h2>
+          <h2>Indice revisione mancante</h2>
           <p>
-            Run <code>pnpm assets:scan</code> and <code>pnpm assets:group</code> before group review.
+            Esegui <code>pnpm assets:scan</code> e <code>pnpm assets:group</code> prima della revisione gruppi.
           </p>
         </section>
       ) : (

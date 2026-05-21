@@ -123,6 +123,27 @@ export function parseCsvList(value: string): string[] {
   return [...new Set(value.split(",").map((item) => item.trim()).filter(Boolean))];
 }
 
+export function formatReferenceMapType(mapType: string): string {
+  switch (mapType) {
+    case "dungeon":
+      return "dungeon";
+    case "city":
+      return "citta";
+    case "building":
+      return "edificio";
+    case "cave":
+      return "grotta";
+    case "wilderness":
+      return "selvaggio";
+    case "ship":
+      return "nave";
+    case "unknown":
+      return "sconosciuto";
+    default:
+      return mapType;
+  }
+}
+
 function normalizeCorrection(value: unknown): Partial<ReferenceCorrection> | null {
   if (!value || typeof value !== "object") {
     return null;

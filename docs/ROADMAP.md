@@ -1,232 +1,613 @@
-# DM-Instamap — Analisi Esperta, Punteggio e Piano Feature (3-6 mesi, uso personale)
+# DM-Instamap - Roadmap unica
 
-## Context
+Ultimo consolidamento: 2026-05-21.
 
-Progetto: **DM-Instamap**, generatore modulare di mappe D&D local-first. Monorepo pnpm con:
-- `apps/web` — Next.js 16.2.6 + React 19 (editor, browser asset, project manager)
-- `apps/worker` — FastAPI Python 3.12+ (job queue, **placeholder**)
-- `packages/core` — Schemi Zod (`MapDocument`, `AssetMetadata`, ecc.)
-- `packages/assets` — Scanner, classify, group, audit (Sharp)
-- `packages/generator` — Dungeon/building/city procedurali
-- `packages/exporters` — PNG/WEBP/dd2vtt/Foundry (**fondamenta**)
-- `packages/ai-bridge` — Bridge ChatGPT manuale (no API)
+Questo file sostituisce e fonde la roadmap tecnica storica, il piano feature A-E per uso personale in 3-6 mesi e il consolidamento F-L post fase E.
 
-Scelta esplicita dell'utente: il tool è **per uso personale**, niente distribuzione, niente collaboration, niente packaging pubblico. Focus su **nuove feature in 3-6 mesi**.
-
-Questo documento serve a:
-1. Dare un giudizio tecnico onesto del progetto allo stato attuale (commit `b38ee61`, 2026-05-20).
-2. Identificare cosa manca per renderlo concretamente utile al singolo DM.
-3. Proporre una roadmap di feature priorizzata su 3-6 mesi.
-
-> **Consolidamento post-E**: una volta chiuse le fasi A-E, restano gap di integrazione, CLI, worker offload, editor UX, docs e test. La roadmap di consolidamento (fasi F-L) e' in [ROADMAP_POST_E.md](ROADMAP_POST_E.md).
-
-### Aggiornamento implementazione - 2026-05-20
-
-- FASE A completata a livello repo/test automatici.
-- A1: il worker persiste i job in SQLite locale (`~/.dm-instamap/jobs.db`), esegue CLI locali reali via subprocess, supporta cancellazione del processo in corso e salva output/exit code per step.
-- A1: `assets/scan` invoca `pnpm assets:scan`; `references/scan` invoca `pnpm references:scan` e poi `pnpm references:style`; `images/analyze` invoca l'analisi Sharp locale con dimensioni, trasparenza e colori dominanti.
-- A2: l'export raster PNG/WEBP compone `MapDocument`, walls, doors, props e lights, supporta layer separati trasparenti, bundle zip dei layer e qualita WEBP configurabile.
-- A3: l'export dd2vtt produce JSON con immagine base64, walls/lights/portals, bounds espliciti delle porte e fallback line-of-sight dai tile wall quando mancano segmenti plan.
-- Nota verifica manuale: import reali in Foundry/Roll20 restano da fare fuori dai test automatici, usando gli artefatti generati dalla pipeline A.
-- FASE B completata a livello repo/test automatici: il modello dati ora include layer document-level, gruppi asset, note GM ancorate, initiative tracker e luci con flicker.
-- B1/B2: l'editor supporta undo/redo, visibilita/lock/opacita layer, rotazione/scaling/flip asset, cambio layer asset, duplicazione, multi-selezione Ctrl/Shift, marquee selection, selezione asset visibili, group/ungroup e copy/paste locale tra editor.
-- B3/B4: l'editor supporta modifica raggio/colore/intensita/flicker luci, preview fog-of-war grid-based con line-of-sight, note GM ancorate a celle, toggle rapido layer GM-only e initiative tracker minimale.
-- Nota verifica manuale: proiezione al tavolo, import Foundry/Roll20 reali e comportamento con asset library ampia restano da verificare fuori dai test automatici.
-- FASE C completata a livello repo/test automatici: nuovi algoritmi procedurali, blueprint estesi e auto-furnishing per i nuovi room types.
-- C1: `generateCaveDungeon` (cellular automata 5-iter + flood fill della regione piu grande), `generateVillageMap` (subdivision blocks + porte automatiche), `generateMultiFloorDungeon` (N piani con stairs link bidirezionali), `generateOutdoorMap` (poisson-disc trees + opzionale fiume con bridges). Tutti deterministici via seed.
-- C2: `MapGenerationBlueprint` ora include `structure`, `scale`, `mood`, `hasWater`, `hasVegetation`, `ruinLevel`. `createNarrativeBlueprint` riconosce cave/village/outdoor e `generateMapFromBlueprint` instrada automaticamente all'algoritmo C1 corretto. Le dimensioni di default scalano con `scale` (small/medium/large).
-- C3: `FURNISHING_ROOM_TYPES` esteso con `cave`, `village_building`, `tavern`, `smithy`, `shrine`, `clearing`. `inferFurnishingRoomType` riconosce le stanze nuove (anche `kind === "service"` per le clearing outdoor). `selectRooms` include ora il kind `service` cosi le aperture outdoor vengono effettivamente arredate.
-- Nota verifica manuale: qualita visiva delle cave, layout dei villaggi su scale grandi e usabilita degli outdoor restano da valutare dentro l'editor; gli algoritmi sono coperti solo da test su forma del MapDocument.
-- FASE D completata a livello repo/test automatici: AI bridge via API, embedding provider remoto, generazione tile/asset on-demand. Tutto configurabile via env, niente SDK pesanti aggiunti (HTTP diretto via fetch).
-- D1: nuovi provider `createAnthropicProvider` e `createOpenAiProvider` (HTTP diretto verso `/v1/messages` e `/v1/chat/completions`), piu `createCustomProvider` per testing. `resolveAiConfigFromEnv`/`createProviderFromEnv` leggono `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`, `AI_BASE_URL`, `AI_MAX_TOKENS`. `getBridgeStatus(env)` ora segnala `mode: "api"` quando il provider e disponibile.
-- D1: orchestrazione AI in `packages/ai-bridge/src/orchestration.ts`. `generateMapPlanWithAi` riusa `buildChatGptBridgePrompt` e `validateBridgeResponse` con retry automatico via `buildRepairPrompt`. `generateNarrativeBlueprintWithAi` produce blueprint Zod-validati. `suggestAssetsForRoomWithAi` filtra le suggestion alla asset library locale per non inventare id. `describeMapWithAi` produce testo narrativo per il DM.
-- D2: nuovo `createRemoteEmbeddingProvider({endpoint, model, headers, dimensions})` che parla con qualunque servizio CLIP/embedding via HTTP (OpenAI embeddings, server `@xenova/transformers` locale, ecc.). `resolveEmbeddingConfigFromEnv`/`createEmbeddingProviderFromEnv` leggono `EMBEDDINGS_PROVIDER=remote|local`, `EMBEDDINGS_ENDPOINT`, `EMBEDDINGS_API_KEY`, `EMBEDDINGS_MODEL`, `EMBEDDINGS_DIMENSIONS`. Fallback automatico al provider locale se la config remota e incompleta.
-- D3: nuovo modulo `packages/assets/src/image-generation.ts` con astrazione `ImageGenerationProvider` e tre implementazioni: `createReplicateImageGenerationProvider` (predict + polling + download), `createAutomatic1111Provider` (txt2img base64 → buffer) e `createCustomImageGenerationProvider` per testing. `importGeneratedAssetToLibrary` scrive il file nella asset library locale e ritorna un `GeneratedAssetMetadata` pronto per essere passato allo scanner. Env: `IMAGE_GEN_PROVIDER=replicate|automatic1111`, `IMAGE_GEN_API_KEY`, `IMAGE_GEN_MODEL`, `IMAGE_GEN_VERSION`, `IMAGE_GEN_BASE_URL`.
-- Nota verifica manuale: chiamate reali contro Anthropic/OpenAI, embedding service CLIP e Replicate/Automatic1111 restano da provare con chiavi reali; i test automatici usano mock del `fetch`. La pipeline end-to-end "genera asset da prompt → importa nella library → rescan" e da convalidare con un asset di prova.
-- FASE E completata a livello repo/test automatici: importer batch, snapshot/versioning, session pack, journal Foundry e schema campagna sono in piedi. Resta UI di "campagna" e workflow end-to-end da convalidare manualmente.
-- E1: nuovo modulo `packages/assets/src/pack-importer.ts` con preset `forgotten-adventures`, `two-minute-tabletop`, `czepeku`, `generic`. `importAssetPack` riusa `scanAssets` poi applica regole regex per filename/cartella, aggiungendo tag specifici per preset e riclassificando solo gli asset `unknown`/automatici. `applyPackRulesToEntry` e' chiamabile su entry gia esistenti, utile per ri-tagging.
-- E2: nuovo modulo `packages/core/src/snapshots.ts`. `createMapSnapshot` produce un record con `contentHash` (SHA-256 troncato), label, timestamp e MapDocument. `writeSnapshotToDirectory` salva sotto `data/projects/<id>/snapshots/` con dedup automatico per `contentHash`. `listSnapshotsInDirectory`, `readSnapshotFromDirectory`, `restoreSnapshotFromDirectory` per il flusso "torna a 30 minuti fa". `diffSnapshots` confronta due record e ritorna i campi cambiati (rooms/walls/doors/lights/tiles/assets/notes/initiative).
-- E3: nuovo modulo `packages/exporters/src/session-pack.ts`. `exportSessionPack` produce un zip con `maps/<slug>-full.png`, `maps/<slug>-gm.png`, `maps/<slug>-player.png` (sfruttando `applyVisibilityMode`), `notes/gm-notes.json`, `notes/plan-notes.txt`, `notes/description.txt`, `initiative/initiative.json` e `manifest.json`. Workflow "preparo la sessione → un click" coperto, formato grafico tunable (png/webp), initiative opzionale.
-- E4: `exportFoundryModule` ora genera anche journal entries dal MapDocument. Tre journal: "Rooms" (un page per RoomNode con bounds/tags/connections), "GM Notes" (un page per MapNote ancorata), "Plan Notes" (notes plan-level). Il manifest aggiunge il pack `journal` di tipo `JournalEntry`. `includeJournals: false` mantiene la compatibilita pre-E4.
-- E5: nuovi schema in `packages/core/src/campaign.ts` con `Campaign`, `CampaignMapLink`, `CampaignSession`. `createCampaign` produce un record validato Zod con maps e sessions opzionali. Schema pensato per uso personale: niente sync, solo aggregazione locale di mappe e timeline sessioni.
-- Nota verifica manuale: workflow end-to-end con asset reali, import Foundry/Roll20 reali e chiamate AI/CLIP/Replicate reali restano da provare fuori dai test automatici.
-- UI gap chiuso a livello repo/test automatici: tutti i feature C/D/E sono ora esposti nell'app web.
-- UI C1/C2: `dungeon-generator-preview` ha un selettore Mode con `simple`, `narrative`, `cave`, `village`, `outdoor`, `multi-floor`. Campi seed deterministico, building count, river/tree density, floor count compaiono on-demand. Il blueprint summary mostra structure/scale/mood/water/vegetation/ruin.
-- UI E3/E4: `project-export-panel` aggiunge i format `session-pack` (con campo description e toggle initiative) e il toggle "include journals" per Foundry. Backend: `/api/export` e `/api/projects/[id]/export` instradano a `exportSessionPack` e passano `includeJournals` a `exportFoundryModule`.
-- UI E2: `ProjectSnapshotsPanel` su `/projects/[id]` con create / list / restore. API: `/api/projects/[id]/snapshots` (GET/POST) e `/api/projects/[id]/snapshots/[contentHash]` (GET/POST per restore via `updateProject`).
-- UI E1: pagina `/assets/import-pack` con dropdown preset, default tags e summary (asset indexed, preset tags applied, reclassified). API: `/api/assets/import-pack`.
-- UI E5: pagine `/campaigns` (lista + form crea) e `/campaigns/[id]` (linked maps + timeline sessioni). API: `/api/campaigns` e `/api/campaigns/[id]`. Storage locale in `data/campaigns/<id>/campaign.json` via `apps/web/src/lib/campaigns.ts`.
-- UI D1: `AiAutoWorkspace` su `/ai-bridge` che mostra status del provider (env-config) e bottoni "Generate Blueprint" / "Generate Map Plan". Plan importabile come progetto via `/api/ai-bridge/import`. API: `/api/ai/status`, `/api/ai/blueprint`, `/api/ai/plan`.
-- UI D2/D3: `/api/assets/search` ora usa `createEmbeddingProviderFromEnv` (D2). Nuova pagina `/assets/generate` con `AssetGeneratorForm` per prompt/seed/steps/style tags; salvataggio diretto nella library via `/api/assets/generate`.
-- Header e home aggiornati: link a Campaigns, Import Pack, Generate Asset; nav header con "AI Bridge (auto + manual)". CSS minimo per snapshot-list, campaign-list, field-row in `globals.css`.
+Da ora in poi esiste una sola fonte di verita per roadmap, stato e criteri di verifica: questo documento.
 
 ---
 
-## 1. Roadmap Feature (3-6 mesi, uso personale)
+## Contesto
 
-Priorità basata su: (a) impatto concreto sull'uso al tavolo, (b) effort ragionevole per singolo dev, (c) sfruttamento delle fondamenta già esistenti.
+DM-Instamap e un generatore modulare local-first di mappe D&D. Il progetto deve generare mappe giocabili, modificabili e riesportabili usando asset locali, mappe di riferimento e un bridge opzionale verso ChatGPT o provider AI configurabili.
 
-### FASE A — Sbloccare la pipeline reale (settimane 1-3)
+Monorepo:
 
-Obiettivo: trasformare i placeholder in funzionalità reali. Senza questo, il resto è inutilizzabile.
+- `apps/web`: editor visuale, UI, project manager, campagne, bridge AI.
+- `apps/worker`: worker Python FastAPI per job locali lunghi.
+- `packages/core`: schemi dati condivisi, snapshot, campagne, MapDocument.
+- `packages/assets`: scanner, classificazione, audit, gruppi, importer, embedding, image generation.
+- `packages/generator`: dungeon, building, city, cave, village, outdoor, multi-floor, auto-furnish.
+- `packages/exporters`: PNG, WEBP, dd2vtt, Foundry, Session Pack.
+- `packages/ai-bridge`: bridge manuale ChatGPT e orchestrazione AI opzionale.
+- `docs`: manuali e riferimento operativo.
 
-#### A1. Worker Python: esecuzione job reale
-- File: [apps/worker/src/dm_instamap_worker/jobs.py](apps/worker/src/dm_instamap_worker/jobs.py)
-- Sostituire `run_placeholder_job()` con esecutori reali:
-  - `assets/scan` → invoca lo scanner TS via subprocess o porta la logica in Python (preferibile: subprocess sul CLI `pnpm assets:scan` esistente, con cattura progress).
-  - `references/scan` → idem con `pnpm references:style`.
-  - `images/analyze` → analisi Sharp via subprocess o porting Python (Pillow + colorthief).
-- Aggiungere persistenza job (SQLite via `sqlite3` stdlib in `~/.dm-instamap/jobs.db`) per sopravvivere a restart del worker.
-- Background tasks reali via `asyncio` + `BackgroundTasks` di FastAPI, con cancellation.
+Scelta di prodotto:
 
-#### A2. Exporter PNG/WEBP funzionante
-- File: [packages/exporters/](packages/exporters/)
-- Composizione raster: Sharp per comporre `MapDocument` (tiles + nodes + walls) in PNG single-image alla risoluzione scelta (es. 70px/cell).
-- Layer separati esportabili: floor / walls / props / lighting (per import VTT).
-- WEBP con compression tunable.
-
-#### A3. Exporter dd2vtt completo
-- Formato dd2vtt = JSON con base64 PNG + walls/lights/portals come array di coordinate.
-- Mappare `MapNode` walls → wall segments dd2vtt.
-- Mappare luci dell'editor (vedi B3) → lights array.
-- Test contro Foundry/Roll20 reali.
-
-### FASE B — Editor da DM serio (settimane 4-8)
-
-Obiettivo: rendere l'editor uno strumento utilizzabile durante la prep di una sessione, non un demo.
-
-#### B1. Manipolazione asset avanzata
-- File: [apps/web/src/](apps/web/src/) sezione editor
-- Rotazione libera (15° snap + free), scaling proporzionale e libero, flip H/V.
-- Multi-selezione con marquee + group/ungroup.
-- Undo/redo stack persistente (command pattern, ricicla `MapDocument` immutabile).
-- Copy/paste tra mappe diverse dello stesso progetto.
-
-#### B2. Layer system
-- Layer: Background / Terrain / Walls / Props / Lighting / GM-only / Notes.
-- Toggle visibilità, lock, opacity per layer.
-- Riflesso nel `MapDocument` schema in [packages/core](packages/core/).
-
-#### B3. Lighting & Fog of War (preview)
-- Light sources con raggio, colore, intensità, flicker.
-- Calcolo line-of-sight grid-based (shadowcasting o Bresenham) per preview in editor.
-- Esporta dati luci in dd2vtt/Foundry (compatibilità nativa).
-- *Non* serve real-time multi-player — solo preview e export.
-
-#### B4. Strumenti DM al tavolo
-- "Initiative tracker" minimale embeddato nell'editor (uso personale, niente sync).
-- Note ancorate a coordinate sulla mappa (visibili solo a te).
-- Hotkey per nascondere/mostrare layer GM durante reveal narrativo (utile se proietti la mappa).
-
-### FASE C — Generator potenziato (settimane 7-12)
-
-Obiettivo: generazione che produca mappe non banali, riducendo il lavoro manuale.
-
-#### C1. Algoritmi aggiuntivi
-- File: [packages/generator/src/](packages/generator/src/)
-- **Cave organiche**: cellular automata (4-5 rule, 5 iterazioni) per dungeon naturali.
-- **Città/villaggi**: subdivision-based block layout + road network (L-system o A* connection).
-- **Dungeon multi-piano**: link verticali (scale, botole), generazione consistente cross-floor.
-- **Outdoor**: foreste con poisson-disk sampling, fiumi con perlin noise + erosione semplice.
-
-#### C2. Blueprint-driven generation
-- Estendere `narrativeBlueprint` in [docs/GENERATOR.md](docs/GENERATOR.md) con: tipo struttura, scala, mood, presenza acqua/vegetazione, livello di rovina.
-- Da blueprint → selezione automatica algoritmo + parametri.
-
-#### C3. Auto-furnishing intelligente
-- Usa asset audit + classification per popolare stanze in modo contestuale:
-  - Tavern → tavoli/sedie/bar/camino con regole di posizionamento.
-  - Crypt → sarcofagi/altari/candelabri.
-  - Library → scaffali lungo i muri, tavoli al centro.
-- Constraint-based placement (no overlap, no blocking doors, density target).
-
-### FASE D — AI integrata seria (settimane 10-16)
-
-Obiettivo: ridurre la frizione del "manual ChatGPT bridge" e sbloccare nuove possibilità.
-
-#### D1. AI bridge automatico (Claude/OpenAI)
-- Trasformare [packages/ai-bridge/](packages/ai-bridge/) da manual → API.
-- Provider configurabile (`.env`: `AI_PROVIDER=anthropic|openai`, `AI_API_KEY=...`).
-- Costruisce prompt automaticamente da contesto attuale (asset groups + style DNA + user request) e parsea la risposta con gli schemi Zod esistenti.
-- Funzioni:
-  - "Genera blueprint narrativo da idea testuale" → produce `narrativeBlueprint` valido.
-  - "Suggerisci asset coerenti per questa stanza" → query asset library locale + suggerimenti AI.
-  - "Scrivi descrizione narrativa di questa mappa" → testo per il DM.
-
-#### D2. Embeddings reali per asset search
-- Integrare CLIP locale (via `@xenova/transformers` in Node, o `clip-onnx` Python nel worker) per embedding immagini.
-- File: arricchire `pnpm assets:embed` per generare embeddings reali.
-- API `/api/assets/search-by-image` usa cosine similarity su embeddings veri (oggi solo hash visivo).
-- Text-to-image search ("dark gothic library") via CLIP text encoder.
-
-#### D3. Generazione tile/asset on-demand (opzionale)
-- Integrazione opzionale Replicate / Stable Diffusion locale (Automatic1111 API) per:
-  - Generare tile mancanti coerenti con lo style DNA.
-  - Generare prop singoli da prompt testuale, taglio automatico background.
-- File risultanti vengono **importati nella asset library** come asset locali (no dipendenza runtime).
-
-### FASE E — Quality of life (settimane 14-24, continuative)
-
-#### E1. Importer batch da pacchetti asset esistenti
-- Importer per pacchetti famosi (Forgotten Adventures, 2-Minute Tabletop, ecc.): auto-tagging basato su nomi file/cartelle, classification preset.
-- Resta local-first: importi solo ciò che hai già su disco.
-
-#### E2. Snapshot/versioning progetti
-- Ogni save crea snapshot diff-based in `data/projects/<id>/snapshots/`.
-- UI per "torna a 30 minuti fa" durante prep.
-
-#### E3. Export "session pack"
-- Da progetto → zip con: mappa PNG full, mappa GM con note, mappa player senza note, handout slice, initiative tracker JSON, descrizioni narrative.
-- Workflow "preparo la sessione → un click → tutto pronto".
-
-#### E4. Integrazione Foundry VTT module
-- Completare [docs/FOUNDRY_EXPORT.md](docs/FOUNDRY_EXPORT.md): produrre un vero `.zip` module installabile.
-- Scene con walls, lights, doors, journal entries pre-popolati.
-
-#### E5. Dashboard "campagna"
-- Vista d'insieme: tutte le mappe di una campagna, link tra di esse, timeline sessioni.
-- Solo per uso personale, niente sync.
+- Uso personale per un DM.
+- Niente distribuzione pubblica come obiettivo.
+- Niente cloud obbligatorio.
+- Niente API a pagamento obbligatorie.
+- Ogni output deve restare editabile.
+- Export futuri e presenti devono restare compatibili con PNG, WEBP, dd2vtt, Foundry VTT e formato locale.
 
 ---
 
-## 2. File critici di riferimento
+## Principi obbligatori
 
-Per ogni fase, questi sono i punti di ingresso da leggere prima di toccare:
+### 1. Local-first
 
-- **Schemi dati centrali**: [packages/core/src/](packages/core/src/) — qualunque feature che tocca i dati passa da qui.
-- **Worker**: [apps/worker/src/dm_instamap_worker/jobs.py](apps/worker/src/dm_instamap_worker/jobs.py), [apps/worker/src/dm_instamap_worker/models.py](apps/worker/src/dm_instamap_worker/models.py).
-- **Asset audit/DNA** (da riusare): [packages/assets/src/audit.ts](packages/assets/src/audit.ts), [packages/assets/src/reference-style.ts](packages/assets/src/reference-style.ts).
-- **Generator**: [packages/generator/src/index.ts](packages/generator/src/index.ts).
-- **Editor**: [apps/web/src/app/projects/[projectId]/editor/](apps/web/src/app/projects/) (verificare path esatto in dev).
-- **AI bridge**: [packages/ai-bridge/src/index.ts](packages/ai-bridge/src/index.ts).
-- **Roadmap esistente**: [docs/ROADMAP.md](docs/ROADMAP.md) — già contiene 10 fasi pianificate, allineare la nuova roadmap con quella esistente.
+Il progetto deve funzionare localmente. API e provider remoti sono ammessi solo come opzioni configurabili, mai come requisito.
+
+Accettabile:
+
+- analisi locale con Node/Python;
+- Sharp;
+- euristiche locali;
+- embedding locali o endpoint locali/remoti opzionali;
+- ChatGPT Bridge manuale via copia/incolla;
+- provider AI opzionali dietro env var.
+
+Non accettabile come requisito:
+
+- login obbligatorio;
+- database cloud obbligatorio;
+- upload remoto obbligatorio;
+- OpenAI/Anthropic/Replicate richiesti per usare il prodotto.
+
+### 2. Asset binari fuori da Git
+
+Non committare asset pesanti, mappe, immagini di pack o output generati.
+
+Percorsi locali previsti:
+
+```txt
+data/
+  assets/
+  indexes/
+  previews/
+  projects/
+  exports/
+  campaigns/
+```
+
+### 3. Sviluppo incrementale
+
+Tenere task piccoli. Ogni feature deve poter essere verificata con test o controllo manuale chiaro.
+
+Comandi base:
+
+```bash
+pnpm lint
+pnpm test
+pnpm build
+```
+
+Per il worker:
+
+```bash
+pnpm worker:install
+pnpm --filter @dm-instamap/worker lint
+pnpm --filter @dm-instamap/worker test
+```
+
+### 4. Schemi stabili
+
+`packages/core` e la fonte degli schemi principali. Ogni modifica a `MapDocument`, asset metadata, export, snapshot o campaign schema deve essere retrocompatibile oppure accompagnata da migrazione.
+
+### 5. Test per ogni feature
+
+Minimo richiesto:
+
+- unit test per funzioni pure;
+- fixture piccole;
+- test schema;
+- test edge case;
+- test import/export quando applicabile.
+
+### 6. UI tecnica ma chiara
+
+Ogni sezione UI deve avere stati empty/loading/error dove servono, feedback dopo salvataggio e testo comprensibile. La UI principale deve rimanere in italiano.
 
 ---
 
-## 3. Utility e pattern già esistenti da riusare (non re-implementare)
+## Stato consolidato
 
-- `clamp`, `toTitle`, `unique` — utility centralizzate in `packages/core` o `packages/assets`.
-- `AssetMetadata`, `MapDocument`, `MapNode`, `MapTile`, `ExportJob` — schemi Zod completi, riusare invece di crearne di nuovi.
-- `createAssetCandidate`, `classifyAsset`, `scanAssets` — pattern verb-noun, mantenere coerenza nei nuovi moduli.
-- Quality scoring weighted di `audit.ts` — pattern riutilizzabile per scoring di asset generati AI.
-- Visual-hash di `audit.ts` — riusare per deduplicazione di asset generati AI.
+### Fasi legacy 1-10
+
+La roadmap storica ha portato il progetto da prototipo tecnico a tool locale con UI, asset intelligence, generazione, editor ed export.
+
+| Fase | Stato | Esito |
+| --- | --- | --- |
+| 1. Stabilizzazione tecnica | Completata | CI, `.env.example`, README, `.gitignore`, asset storage docs. |
+| 2. Worker Python reale | Completata | Job persistenti SQLite, subprocess CLI, cancellazione, progress. |
+| 3. Asset intelligence avanzata | Completata | Scan, preview, classificazione, audit, duplicati, quality score. |
+| 4. Reference Style DNA | Completata | Palette, mood, layout traits, grid detection base, prompt summary. |
+| 5. Project System locale | Completata | Progetti locali in `data/projects`, API e pagine progetto. |
+| 6. Editor visuale canvas | Completata | Canvas, paint tools, inspector, save/reopen, editing asset. |
+| 7. Generatore semantico/narrativo | Completata | Blueprint narrativi e tattici, room roles, generator pipeline. |
+| 8. AI bridge manuale avanzato | Completata | Prompt packet, import risposta, validazione, repair locale. |
+| 9. Export professionale | Completata | PNG, WEBP, dd2vtt, Foundry, player/GM map, dmimap. |
+| 10. UX finale guidata | Completata | Home, wizard nuova mappa, navigazione principale. |
+
+### Novita storiche integrate
+
+| Novita | Stato | Esito |
+| --- | --- | --- |
+| Style DNA reference maps | Completata | DNA locale riusabile da generator e AI bridge. |
+| Generatore narrativo + tattico | Completata | Blueprint coerenti, ruoli tattici, stanze semantiche. |
+| Batch review intelligente | Completata | Code prioritarie per asset critici, duplicati, ignoti, bassa qualita. |
+| Local visual search | Completata | Ricerca testo/immagine locale con embedding opzionali. |
+| Auto-furnish avanzato | Completata | Regole wall/center/scatter/light, debug, vincoli anti-overlap. |
+
+### Fasi A-E: piano feature 3-6 mesi
+
+| Fase | Stato | Esito |
+| --- | --- | --- |
+| A. Pipeline reale | Completata | Worker reale, export PNG/WEBP, dd2vtt completo. |
+| B. Editor da DM serio | Completata | Layer, undo/redo, luci, fog preview, note GM, initiative tracker. |
+| C. Generator potenziato | Completata | Cave, village, outdoor, multi-floor, blueprint estesi, auto-furnish esteso. |
+| D. AI integrata opzionale | Completata | Provider Anthropic/OpenAI opzionali, embedding remoto, image generation. |
+| E. Quality of life | Completata | Pack importer, snapshot, session pack, Foundry journal, campagne. |
+
+### Fasi F-L: consolidamento post-E
+
+| Fase | Stato | Esito |
+| --- | --- | --- |
+| F. Integration fixes | Completata | AI auto con contesto, multi-floor completo, rescan asset generato, snapshot diff, Foundry notes, localizzazione UI. |
+| G. CLI surface | Completata | CLI import pack, generate asset, snapshots, AI smoke, session pack, campaigns. |
+| H. Worker offload | Completata | Job worker per import, generate, ai plan, session pack, proxy web e progress UI. |
+| I. Editor canvas integration | Completata | Snapshot toolbar, Session Pack quick export, AI drawer, Recently Generated palette. |
+| J. Documentazione | Completata | Docs generator, Foundry, worker, AI, image generation, snapshots, campaigns, importer. |
+| K. Test web | Completata/parziale | Route API e helper coperti; componenti React coperti indirettamente senza testing-library/jsdom. |
+| L. Polish | Parziale | L1/L4/L5 completati; L2 outdoor noise e L3 AI streaming rimandati. |
 
 ---
 
-## 4. Verifica
+## Dettaglio implementazione per fase
 
-Ogni fase ha criteri di verifica chiari:
+### Fase A - Pipeline reale
 
-- **Fase A**: avviare worker, lanciare `POST /jobs/assets/scan` da curl/Postman → vedere job passare `queued → running → completed` con risultati reali. Esportare una mappa di test in PNG e aprirla, in dd2vtt e importarla in Foundry.
-- **Fase B**: prendere una mappa pre-esistente, ruotare/scalare 10 asset, fare 20 undo, salvare, riaprire, verificare integrità. Test luci: una torcia in stanza buia mostra cono di luce nell'editor.
-- **Fase C**: generare 5 dungeon caverna, 3 villaggi, 1 foresta → ispezione visiva qualità. Auto-furnish di una taverna → conta oggetti, no overlap, no blocco porte.
-- **Fase D**: configurare `AI_API_KEY`, chiedere "genera blueprint per cripta sotto un monastero" → ricevere JSON validato da Zod. Search "dark gothic library" → top-10 risultati visivamente coerenti.
-- **Fase E**: preparare una sessione end-to-end, click "session pack" → zip aperto contiene tutti gli artefatti previsti, importabili in Foundry.
+Stato: completata a livello repo/test automatici.
+
+- Worker con persistenza SQLite locale in `~/.dm-instamap/jobs.db`.
+- `assets/scan`, `references/scan`, `images/analyze` eseguiti via CLI/subprocess.
+- Export raster PNG/WEBP con MapDocument, walls, doors, props, lights, layer separati e qualita WEBP.
+- Export dd2vtt con immagine base64, walls/lights/portals, bounds porte e fallback line-of-sight dai tile wall.
+
+Verifica manuale ancora utile:
+
+- import reali in Foundry/Roll20;
+- apertura artefatti generati su mappe grandi.
+
+### Fase B - Editor da DM serio
+
+Stato: completata a livello repo/test automatici.
+
+- Layer document-level: background, terrain, walls, props, lighting, GM-only, notes.
+- Undo/redo, visibilita/lock/opacita, rotazione, scaling, flip, cambio layer, duplicazione.
+- Multi-selezione Ctrl/Shift, marquee selection, select visible, group/ungroup, copy/paste.
+- Luci con raggio/colore/intensita/flicker.
+- Fog-of-war preview grid-based con line-of-sight.
+- Note GM ancorate a celle, toggle GM-only, initiative tracker minimale.
+
+Verifica manuale ancora utile:
+
+- proiezione al tavolo;
+- comportamento con asset library ampia;
+- round-trip export Foundry/Roll20.
+
+### Fase C - Generator potenziato
+
+Stato: completata a livello repo/test automatici.
+
+- `generateCaveDungeon`: cellular automata + flood fill della regione piu grande.
+- `generateVillageMap`: subdivision blocks + porte automatiche.
+- `generateMultiFloorDungeon`: N piani con stairs link bidirezionali.
+- `generateOutdoorMap`: poisson-disc trees + fiume opzionale con bridges.
+- `MapGenerationBlueprint` esteso con `structure`, `scale`, `mood`, `hasWater`, `hasVegetation`, `ruinLevel`.
+- `createNarrativeBlueprint` riconosce cave/village/outdoor.
+- `generateMapFromBlueprint` sceglie l'algoritmo corretto.
+- Auto-furnish esteso a cave, village buildings, tavern, smithy, shrine, clearing.
+
+Verifica manuale ancora utile:
+
+- qualita visiva cave;
+- layout villaggi su scale grandi;
+- usabilita outdoor.
+
+### Fase D - AI integrata opzionale
+
+Stato: completata a livello repo/test automatici.
+
+- Provider HTTP diretti: `createAnthropicProvider`, `createOpenAiProvider`, `createCustomProvider`.
+- Config via `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`, `AI_BASE_URL`, `AI_MAX_TOKENS`.
+- Orchestrazione in `packages/ai-bridge/src/orchestration.ts`.
+- `generateMapPlanWithAi` con retry e repair prompt.
+- `generateNarrativeBlueprintWithAi`, `suggestAssetsForRoomWithAi`, `describeMapWithAi`.
+- Embedding provider remoto opzionale con fallback locale.
+- Image generation provider: Replicate, Automatic1111, custom test provider.
+- Import asset generato nella libreria locale.
+
+Verifica manuale ancora utile:
+
+- chiamate reali con chiavi Anthropic/OpenAI;
+- embedding service CLIP reale;
+- Replicate/Automatic1111 reali;
+- pipeline end-to-end generate asset -> library -> manifest -> editor.
+
+### Fase E - Quality of life
+
+Stato: completata a livello repo/test automatici.
+
+- `packages/assets/src/pack-importer.ts` con preset `forgotten-adventures`, `two-minute-tabletop`, `czepeku`, `generic`.
+- Snapshot MapDocument con `contentHash`, dedup, list/read/restore/diff.
+- Session Pack zip con mappe full/GM/player, note, description, initiative e manifest.
+- Foundry export con journal entries: Rooms, GM Notes, Plan Notes.
+- Campaign schema: `Campaign`, `CampaignMapLink`, `CampaignSession`.
+- UI per import pack, asset generate, campaigns, snapshots, export session pack, AI auto.
+
+Verifica manuale ancora utile:
+
+- workflow end-to-end con asset reali;
+- import Foundry/Roll20 reali;
+- chiamate AI e image generation reali.
+
+### Fase F - Integration fixes
+
+Stato: completata.
+
+- AI auto bridge riceve asset groups e references dalla server component e li invia a `/api/ai/plan`.
+- Multi-floor salva tutti i piani come progetti collegati con `relatedProjectIds`.
+- Asset generato aggiorna il manifest con scan parziale.
+- Snapshot diff API e UI.
+- Foundry scene notes collegate ai journal.
+- UI tradotta in italiano nelle sezioni residue: asset browser/review, gruppi asset, riferimenti, AI Bridge, editor, campagne, progetti, export, snapshot, worker status.
+
+### Fase G - CLI surface
+
+Stato: completata.
+
+Comandi disponibili:
+
+```bash
+pnpm assets:import-pack --root <path> --preset <preset> --default-tags a,b
+pnpm assets:generate --prompt "..." --classification prop --seed 123
+pnpm snapshots:create <projectId> --label <label>
+pnpm snapshots:list <projectId>
+pnpm snapshots:restore <projectId> <contentHash>
+pnpm ai:blueprint "crypt below cathedral"
+pnpm ai:plan "..."
+pnpm exports:session-pack <projectId> --scale 2 --output <path>
+pnpm campaigns:list
+pnpm campaigns:create --name "Whispering Woods" --tags a,b
+```
+
+### Fase H - Worker offload
+
+Stato: completata.
+
+- Job `assets/import-pack`.
+- Job `assets/generate`.
+- Job `ai/plan`.
+- Job `exports/session-pack`.
+- `apps/web/src/lib/worker-client.ts`.
+- Proxy web per job.
+- `useJob`.
+- `JobProgressBar`.
+- UI pack importer con toggle worker locale.
+
+### Fase I - Editor canvas integration
+
+Stato: completata.
+
+- Pulsante Snapshot in toolbar editor e hotkey `Ctrl+Shift+S`.
+- Quick export Session Pack dall'editor.
+- Drawer AI Assist con descrizione mappa, suggerimenti asset e generazione asset.
+- Palette Recently Generated con drag-and-drop.
+
+### Fase J - Documentazione
+
+Stato: completata.
+
+Documenti aggiornati o creati:
+
+- `docs/GENERATOR.md`
+- `docs/FOUNDRY_EXPORT.md`
+- `docs/WORKER.md`
+- `docs/AI_BRIDGE.md`
+- `docs/IMAGE_GENERATION.md`
+- `docs/SNAPSHOTS.md`
+- `docs/CAMPAIGNS.md`
+- `docs/PACK_IMPORTER.md`
+
+### Fase K - Test web
+
+Stato: completata/parziale.
+
+- Coperti helper web come bridge mappers e worker client.
+- Coperti endpoint API con mock filesystem/provider/worker.
+- Non introdotte dipendenze pesanti per testing-library + jsdom.
+- Componenti React veri restano coperti indirettamente da lib di supporto, route API e test esistenti.
+
+### Fase L - Polish
+
+Stato: parziale.
+
+Completato:
+
+- L1: API delta snapshot in `packages/core/src/snapshots.ts` (`computeMapDocumentDelta`, `applyMapDocumentDelta`, `createDeltaSnapshot`, `restoreDeltaSnapshot`).
+- L4: `POST /api/ai/describe` e `ProjectDescribeButton`.
+- L5: `/projects/[id]/floors` per progetti multi-floor collegati.
+
+Rimandato:
+
+- L2: outdoor con perlin/simplex noise + erosione.
+- L3: streaming SSE per provider AI.
 
 ---
 
-## 5. Note finali
+## Prossime priorita
 
-- **Stack ML locale**: per CLIP locale considerare `@xenova/transformers` (browser/Node, no Python) — evita di appesantire il worker Python.
-- **Niente collaboration / cloud / packaging**: deliberatamente fuori scope per uso personale.
-- **Stima realistica solo dev**: Fase A 2-3 settimane, Fase B 4-5 settimane, Fase C 4-6 settimane, Fase D 4-6 settimane, Fase E continuativa. Totale ~4-6 mesi a ritmo serale/weekend.
+Questa e la parte viva della roadmap.
+
+### P0 - Verifica manuale end-to-end
+
+Obiettivo: dimostrare che DM-Instamap e utile in una sessione reale.
+
+- Importare un pack asset reale.
+- Eseguire scan, group, audit e batch review su libreria non banale.
+- Generare un dungeon, una caverna, un villaggio, una mappa outdoor e un multi-floor.
+- Salvare come progetto locale.
+- Aprire in editor, modificare, arredare, aggiungere note/luci/initiative.
+- Creare snapshot, diff e restore.
+- Esportare PNG/WEBP, dd2vtt, Foundry, Session Pack.
+- Importare davvero in Foundry e/o Roll20.
+
+### P1 - Stabilita build Next
+
+La build Next puo fallire per import client di moduli Node (`node:fs/promises`) tracciati da `packages/core/src/index.ts` e Turbopack. Non e un problema di prodotto visibile in dev/test, ma va risolto per avere build production pulita.
+
+Direzione consigliata:
+
+- separare entrypoint browser-safe e server-only in `packages/core`;
+- evitare che componenti client importino barrel che esportano moduli filesystem;
+- spostare snapshot/file helpers dietro entrypoint server-only.
+
+### P2 - Migrazioni dati
+
+Oggi `version: 1` e dichiarato, ma non c'e un sistema completo di migrazione documenti.
+
+Task:
+
+- `migrateMapDocument(input): MapDocument`;
+- fixture di versioni precedenti;
+- test di compatibilita;
+- documentare policy di breaking changes.
+
+### P3 - Outdoor polish
+
+Migliorare `generateOutdoorMap`:
+
+- fiumi piu naturali;
+- radure piu giocabili;
+- densita alberi piu controllabile;
+- punti tattici e percorsi leggibili.
+
+### P4 - AI streaming e UX lunga durata
+
+Solo se l'uso reale mostra attrito:
+
+- SSE provider Anthropic/OpenAI;
+- progressivo display in UI;
+- cancellazione richiesta;
+- storico raw response.
+
+---
+
+## Checklist maturita
+
+### Core
+
+- [x] Schemi Zod stabili.
+- [ ] Migrazioni versioni documento.
+- [x] Test schema.
+- [x] Snapshot full.
+- [x] Delta snapshot API.
+- [x] Campaign schema.
+
+### Assets
+
+- [x] Scan.
+- [x] Preview.
+- [x] Classification.
+- [x] Manual overrides.
+- [x] Audit.
+- [x] Duplicates.
+- [x] Quality score.
+- [x] Batch review.
+- [x] Local visual search.
+- [x] Pack importer.
+- [x] Image generation import.
+
+### References
+
+- [x] Scan.
+- [x] Preview.
+- [x] Map type.
+- [x] Review override.
+- [x] Style DNA.
+- [x] Grid detection base.
+- [x] Prompt summary.
+
+### Generator
+
+- [x] Simple dungeon.
+- [x] Narrative blueprint.
+- [x] Crypt/building/dungeon blueprint.
+- [x] Cave.
+- [x] Village.
+- [x] Outdoor.
+- [x] Multi-floor.
+- [x] Tactical roles.
+- [x] Auto-furnish advanced.
+- [ ] Outdoor polish con noise/erosione.
+
+### Web
+
+- [x] Home.
+- [x] Projects.
+- [x] New map wizard.
+- [x] Asset browser.
+- [x] Asset review.
+- [x] Asset group review.
+- [x] Reference browser/review.
+- [x] AI bridge manuale.
+- [x] AI auto workspace.
+- [x] Editor canvas.
+- [x] Campaign dashboard.
+- [x] Export page.
+- [x] Snapshot panel.
+- [x] UI italiana.
+
+### Worker
+
+- [x] Health.
+- [x] Jobs.
+- [x] SQLite persistence.
+- [x] Cancellation.
+- [x] Asset scan endpoint.
+- [x] Reference scan endpoint.
+- [x] Image analysis endpoint.
+- [x] Import pack job.
+- [x] Asset generation job.
+- [x] AI plan job.
+- [x] Session pack job.
+- [x] Web progress polling.
+
+### Export
+
+- [x] PNG.
+- [x] WEBP.
+- [x] dd2vtt.
+- [x] Foundry.
+- [x] Player safe map.
+- [x] GM map.
+- [x] dmimap.
+- [x] Session Pack.
+- [ ] Verifica manuale import Foundry/Roll20 su artefatti reali.
+
+### Quality
+
+- [x] CI.
+- [x] README.
+- [x] Roadmap unica.
+- [x] Docs feature.
+- [x] Tests.
+- [x] No generated data in Git.
+- [x] No external API requirement.
+- [ ] Build production Next pulita.
+
+---
+
+## File critici
+
+- Schemi dati: `packages/core/src/`
+- Snapshot: `packages/core/src/snapshots.ts`
+- Campaign schema: `packages/core/src/campaign.ts`
+- Worker jobs: `apps/worker/src/dm_instamap_worker/jobs.py`
+- Worker models: `apps/worker/src/dm_instamap_worker/models.py`
+- Asset scanner: `packages/assets/src/scanner.ts`
+- Asset audit: `packages/assets/src/audit.ts`
+- Asset groups: `packages/assets/src/groups.ts`
+- Pack importer: `packages/assets/src/pack-importer.ts`
+- Reference Style DNA: `packages/assets/src/reference-style.ts`
+- Generator: `packages/generator/src/`
+- Auto-furnish: `packages/generator/src/furnishing.ts`
+- Editor web: `apps/web/src/components/editor/map-editor.tsx`
+- Project storage: `apps/web/src/lib/projects.ts`
+- AI bridge: `packages/ai-bridge/src/`
+- Exporters: `packages/exporters/src/`
+
+---
+
+## Pattern da riusare
+
+- Zod schemas in `packages/core`.
+- `MapDocument` come source of truth editabile.
+- Manifest asset locale come base di classificazione/search.
+- Override manuali separati dal manifest generato.
+- `scanSingleAsset` + append manifest per aggiornamenti incrementali.
+- `diffSnapshots` e snapshot helpers per versioning.
+- CLI pnpm come interfaccia stabile tra web, worker e package.
+- UI locale con feedback esplicito invece di operazioni mute.
+
+---
+
+## Verifica consigliata
+
+### Automatica
+
+```bash
+pnpm lint
+pnpm test
+pnpm --filter @dm-instamap/web lint
+pnpm --filter @dm-instamap/web test
+pnpm --filter @dm-instamap/worker test
+```
+
+### Manuale
+
+1. Avviare worker e app web.
+2. Importare un pack asset locale.
+3. Generare gruppi e audit.
+4. Revisionare qualche gruppo e asset.
+5. Generare una mappa da wizard e una da generator preview.
+6. Modificare in editor.
+7. Usare snapshot, restore e diff.
+8. Esportare Session Pack.
+9. Esportare Foundry e dd2vtt.
+10. Importare gli artefatti in VTT reali.
+
+---
+
+## Definizione di progetto maturo
+
+DM-Instamap puo considerarsi maturo quando:
+
+- puoi creare una nuova mappa da wizard;
+- puoi scegliere asset e reference;
+- puoi generare una bozza coerente;
+- puoi modificarla in editor canvas;
+- puoi arredarla automaticamente;
+- puoi correggere asset senza controllarli tutti uno per uno;
+- puoi usare il ChatGPT manual bridge senza API;
+- puoi usare provider AI opzionali quando configurati;
+- puoi esportare player map, GM map, Foundry, dd2vtt, PNG, WEBP e Session Pack;
+- puoi riaprire progetti salvati;
+- puoi gestire campagne locali;
+- test e CI sono verdi;
+- non c'e dipendenza obbligatoria da servizi esterni.
+
+---
+
+## Nota finale
+
+DM-Instamap non deve diventare un generatore magico e fragile.
+
+La strategia corretta resta:
+
+```txt
+Asset locali analizzati bene
++ Reference Style DNA
++ Blueprint narrativo
++ Generatore geometrico controllabile
++ Editor manuale
++ Auto-furnish
++ Export professionale
++ ChatGPT Bridge opzionale
+= Tool realmente utile per un DM
+```
+
+Ogni mappa generata deve restare correggibile, editabile e riesportabile.

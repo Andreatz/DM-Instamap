@@ -23,7 +23,7 @@ export function CampaignEditor({ campaign, projectOptions }: CampaignEditorProps
 
   async function persist(patch: { maps?: CampaignMapLink[]; sessions?: CampaignSession[] }) {
     setSubmitting(true);
-    setStatus("Saving…");
+    setStatus("Salvataggio...");
 
     try {
       const response = await fetch(`/api/campaigns/${campaign.id}`, {
@@ -34,13 +34,13 @@ export function CampaignEditor({ campaign, projectOptions }: CampaignEditorProps
       const payload = (await response.json()) as { error?: string; ok?: boolean };
 
       if (!response.ok || !payload.ok) {
-        throw new Error(payload.error ?? "Save failed.");
+        throw new Error(payload.error ?? "Salvataggio fallito.");
       }
 
-      setStatus("Saved.");
+      setStatus("Salvato.");
       router.refresh();
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Save failed.");
+      setStatus(error instanceof Error ? error.message : "Salvataggio fallito.");
     } finally {
       setSubmitting(false);
     }
@@ -50,12 +50,12 @@ export function CampaignEditor({ campaign, projectOptions }: CampaignEditorProps
     const project = projectOptions.find((option) => option.id === newMapProjectId);
 
     if (!project) {
-      setStatus("Pick a project to link.");
+      setStatus("Scegli un progetto da collegare.");
       return;
     }
 
     if (maps.some((map) => map.projectId === project.id && map.documentId === project.documentId)) {
-      setStatus("This project is already linked.");
+      setStatus("Questo progetto e gia collegato.");
       return;
     }
 
@@ -80,7 +80,7 @@ export function CampaignEditor({ campaign, projectOptions }: CampaignEditorProps
 
   function addSession() {
     if (newSessionTitle.trim().length === 0) {
-      setStatus("Session title is required.");
+      setStatus("Il titolo della sessione e obbligatorio.");
       return;
     }
 
@@ -109,10 +109,10 @@ export function CampaignEditor({ campaign, projectOptions }: CampaignEditorProps
   return (
     <>
       <section className="asset-details">
-        <h2>Linked Maps</h2>
-        <p className="muted">Tie local projects to this campaign for quick access during prep.</p>
+        <h2>Mappe collegate</h2>
+        <p className="muted">Collega progetti locali a questa campagna per accedervi rapidamente durante la preparazione.</p>
 
-        {maps.length === 0 ? <p className="muted">No maps linked yet.</p> : null}
+        {maps.length === 0 ? <p className="muted">Nessuna mappa collegata.</p> : null}
 
         {maps.length > 0 ? (
           <ul className="campaign-map-list">
@@ -120,7 +120,7 @@ export function CampaignEditor({ campaign, projectOptions }: CampaignEditorProps
               <li key={`${map.projectId}-${map.documentId}`}>
                 <div>
                   <strong>{map.label}</strong>
-                  <span className="muted"> — project {map.projectId}</span>
+                  <span className="muted"> - progetto {map.projectId}</span>
                 </div>
                 <button
                   className="save-correction"
@@ -128,7 +128,7 @@ export function CampaignEditor({ campaign, projectOptions }: CampaignEditorProps
                   onClick={() => removeMap(map.documentId)}
                   type="button"
                 >
-                  Unlink
+                  Scollega
                 </button>
               </li>
             ))}
@@ -137,9 +137,9 @@ export function CampaignEditor({ campaign, projectOptions }: CampaignEditorProps
 
         <div className="field-row">
           <label className="field">
-            <span>Add Project</span>
+            <span>Aggiungi progetto</span>
             <select onChange={(event) => setNewMapProjectId(event.target.value)} value={newMapProjectId}>
-              {projectOptions.length === 0 ? <option value="">No projects available</option> : null}
+              {projectOptions.length === 0 ? <option value="">Nessun progetto disponibile</option> : null}
               {projectOptions.map((option) => (
                 <option key={option.id} value={option.id}>
                   {option.name}
@@ -153,16 +153,16 @@ export function CampaignEditor({ campaign, projectOptions }: CampaignEditorProps
             onClick={addMap}
             type="button"
           >
-            Link Project
+            Collega progetto
           </button>
         </div>
       </section>
 
       <section className="asset-details">
-        <h2>Sessions Timeline</h2>
-        <p className="muted">Local, append-only record of session prep / play notes.</p>
+        <h2>Timeline sessioni</h2>
+        <p className="muted">Registro locale append-only per preparazione e note di gioco.</p>
 
-        {sessions.length === 0 ? <p className="muted">No sessions logged yet.</p> : null}
+        {sessions.length === 0 ? <p className="muted">Nessuna sessione registrata.</p> : null}
 
         {sessions.length > 0 ? (
           <ol className="campaign-session-list">
@@ -179,7 +179,7 @@ export function CampaignEditor({ campaign, projectOptions }: CampaignEditorProps
                   onClick={() => removeSession(session.id)}
                   type="button"
                 >
-                  Remove
+                  Rimuovi
                 </button>
               </li>
             ))}
@@ -188,15 +188,15 @@ export function CampaignEditor({ campaign, projectOptions }: CampaignEditorProps
 
         <div className="field-row">
           <label className="field">
-            <span>Title</span>
+            <span>Titolo</span>
             <input
               onChange={(event) => setNewSessionTitle(event.target.value)}
-              placeholder="Session 1 — Arrival"
+              placeholder="Sessione 1 - Arrivo"
               value={newSessionTitle}
             />
           </label>
           <label className="field">
-            <span>Date</span>
+            <span>Data</span>
             <input
               onChange={(event) => setNewSessionDate(event.target.value)}
               placeholder="2026-05-21"
@@ -205,7 +205,7 @@ export function CampaignEditor({ campaign, projectOptions }: CampaignEditorProps
           </label>
         </div>
         <label className="field">
-          <span>Summary (optional)</span>
+          <span>Riepilogo (facoltativo)</span>
           <textarea
             onChange={(event) => setNewSessionSummary(event.target.value)}
             rows={3}
@@ -213,7 +213,7 @@ export function CampaignEditor({ campaign, projectOptions }: CampaignEditorProps
           />
         </label>
         <button className="save-correction" disabled={submitting} onClick={addSession} type="button">
-          Add Session
+          Aggiungi sessione
         </button>
       </section>
 

@@ -21,7 +21,7 @@ export function ProjectDescribeButton({ mapName, rooms, theme }: ProjectDescribe
 
   async function describe() {
     setBusy(true);
-    setStatus("Chiamata al provider AI…");
+    setStatus("Chiamata al provider AI...");
     setDescription("");
 
     try {
@@ -58,7 +58,7 @@ export function ProjectDescribeButton({ mapName, rooms, theme }: ProjectDescribe
         e <code>AI_API_KEY</code>.
       </p>
       <button className="save-correction" disabled={busy} onClick={() => void describe()} type="button">
-        {busy ? "In corso…" : "Descrivi la mappa con l'AI"}
+        {busy ? "In corso..." : "Descrivi la mappa con l'AI"}
       </button>
       {status ? <p className="muted">{status}</p> : null}
       {description ? <p>{description}</p> : null}

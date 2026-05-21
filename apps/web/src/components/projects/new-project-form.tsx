@@ -27,7 +27,7 @@ export function NewProjectForm() {
 
   async function createLocalProject(event: FormEvent) {
     event.preventDefault();
-    setStatus("Creazione progetto…");
+    setStatus("Creazione progetto...");
 
     try {
       const response = await fetch("/api/projects", {

@@ -1,4 +1,5 @@
 import { loadReferenceMaps } from "@/lib/references";
+import { formatReferenceMapType } from "@/lib/reference-review";
 
 export const dynamic = "force-dynamic";
 
@@ -10,37 +11,37 @@ export default async function ReferencesPage() {
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>Reference Maps</h1>
-          <p>Local map references for layout inspiration and future generation planning.</p>
+          <h1>Mappe di riferimento</h1>
+          <p>Riferimenti locali per ispirazione di layout e pianificazione della generazione.</p>
         </div>
         <dl>
           <div>
-            <dt>References</dt>
+            <dt>Riferimenti</dt>
             <dd>{manifest.references.length}</dd>
           </div>
           <div>
             <dt>Index</dt>
-            <dd>{manifest.missing ? "Missing" : "Loaded"}</dd>
+            <dd>{manifest.missing ? "Mancante" : "Caricato"}</dd>
           </div>
         </dl>
       </header>
 
       {manifest.missing ? (
         <section className="asset-empty" aria-live="polite">
-          <h2>No Reference Registry Found</h2>
+          <h2>Nessun registro riferimenti trovato</h2>
           <p>
-            Run <code>pnpm references:scan &lt;folder&gt;</code>.
+            Esegui <code>pnpm references:scan &lt;cartella&gt;</code>.
           </p>
         </section>
       ) : (
         <>
           <section className="group-toolbar">
-            <span>{manifest.references.length} references shown</span>
-            {manifest.generatedAt ? <span>Indexed {new Date(manifest.generatedAt).toLocaleString()}</span> : null}
-            {manifest.sourceRoot ? <span title={manifest.sourceRoot}>Local source loaded</span> : null}
+            <span>{manifest.references.length} riferimenti mostrati</span>
+            {manifest.generatedAt ? <span>Indicizzati {new Date(manifest.generatedAt).toLocaleString()}</span> : null}
+            {manifest.sourceRoot ? <span title={manifest.sourceRoot}>Sorgente locale caricata</span> : null}
           </section>
 
-          <section className="reference-grid" aria-label="Reference maps">
+          <section className="reference-grid" aria-label="Mappe di riferimento">
             {manifest.references.map((reference) => (
               <article className="reference-card" key={reference.id}>
                 <div className="reference-preview">
@@ -49,11 +50,11 @@ export default async function ReferencesPage() {
                 <div className="reference-card-body">
                   <div className="group-title-row">
                     <h2>{getFileName(reference.path)}</h2>
-                    <span>{reference.mapType}</span>
+                    <span>{formatReferenceMapType(reference.mapType)}</span>
                   </div>
                   <dl>
                     <div>
-                      <dt>Size</dt>
+                      <dt>Dimensioni</dt>
                       <dd>
                         {reference.width ?? "?"} x {reference.height ?? "?"}
                       </dd>

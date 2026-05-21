@@ -87,7 +87,7 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
 
   async function generate() {
     setBusy(true);
-    setStatus("Generazione del progetto dal blueprint…");
+    setStatus("Generazione del progetto dal blueprint...");
 
     try {
       const response = await fetch("/api/projects", {
@@ -111,7 +111,7 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
         throw new Error(payload.error ?? "Impossibile creare il progetto.");
       }
 
-      setStatus("Progetto creato. Apertura dell'editor…");
+      setStatus("Progetto creato. Apertura dell'editor...");
       router.push(`/projects/${payload.project.id}/editor`);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Impossibile creare il progetto.");
@@ -173,7 +173,7 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
               <select onChange={(event) => setMapKind(event.target.value as MapKind)} value={mapKind}>
                 <option value="dungeon">Dungeon</option>
                 <option value="building">Edificio</option>
-                <option value="city">Città</option>
+                <option value="city">Citta</option>
               </select>
             </label>
             <label className="field">
@@ -217,7 +217,7 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
           <>
             <h2>Stile di riferimento</h2>
             <p className="muted">
-              Opzionale. Seleziona una o più mappe di riferimento il cui Style DNA dovrebbe guidare il prompt.
+              Opzionale. Seleziona una o piu mappe di riferimento il cui Style DNA dovrebbe guidare il prompt.
             </p>
             {references.length === 0 ? (
               <p>Nessuna mappa di riferimento indicizzata. Esegui prima `pnpm references:scan`.</p>
@@ -319,7 +319,7 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
         </button>
         {step === "review" ? (
           <button disabled={busy} onClick={generate} type="button">
-            {busy ? "Generazione…" : "Genera progetto"}
+            {busy ? "Generazione..." : "Genera progetto"}
           </button>
         ) : (
           <button disabled={busy} onClick={goNext} type="button">

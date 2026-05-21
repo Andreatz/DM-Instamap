@@ -21,10 +21,10 @@ export function AssetAuditBatches({ batches }: AssetAuditBatchesProps) {
   const totalAssets = useMemo(() => batches.reduce((sum, batch) => sum + batch.entries.length, 0), [batches]);
 
   return (
-    <section className="batch-shell" aria-label="Asset audit batches">
+    <section className="batch-shell" aria-label="Lotti audit asset">
       <aside className="batch-sidebar">
-        <h2>Batches</h2>
-        <p className="muted">{totalAssets} entries across all batches.</p>
+        <h2>Lotti</h2>
+        <p className="muted">{totalAssets} voci in tutti i lotti.</p>
         <ul>
           {batches.map((batch) => (
             <li key={batch.id}>
@@ -50,17 +50,17 @@ export function AssetAuditBatches({ batches }: AssetAuditBatchesProps) {
             </header>
 
             {activeBatch.entries.length === 0 ? (
-              <p>Empty batch. Nothing to review here.</p>
+              <p>Lotto vuoto. Qui non c'e nulla da revisionare.</p>
             ) : (
               <table className="batch-table">
                 <thead>
                   <tr>
                     <th scope="col">Asset</th>
-                    <th scope="col">Classification</th>
-                    <th scope="col">Confidence</th>
-                    <th scope="col">Quality</th>
-                    <th scope="col">Priority</th>
-                    <th scope="col">Reasons</th>
+                    <th scope="col">Classificazione</th>
+                    <th scope="col">Affidabilita</th>
+                    <th scope="col">Qualita</th>
+                    <th scope="col">Priorita</th>
+                    <th scope="col">Motivi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -72,15 +72,15 @@ export function AssetAuditBatches({ batches }: AssetAuditBatchesProps) {
             )}
             {activeBatch.entries.length > MAX_ROWS_PER_BATCH ? (
               <p className="muted">
-                Showing first {MAX_ROWS_PER_BATCH} of {activeBatch.entries.length}. Filter or fix entries to see more.
+                Mostrate le prime {MAX_ROWS_PER_BATCH} di {activeBatch.entries.length}. Filtra o correggi le voci per vederne altre.
               </p>
             ) : null}
             <p>
-              Need finer control? Open the <Link href="/assets/review">per-asset review</Link> to write manual overrides.
+              Serve piu controllo? Apri la <Link href="/assets/review">revisione per asset</Link> per scrivere override manuali.
             </p>
           </>
         ) : (
-          <p>No batches available.</p>
+          <p>Nessun lotto disponibile.</p>
         )}
       </section>
     </section>
@@ -102,7 +102,7 @@ function AssetAuditRow({ entry }: { entry: AuditEntryView }) {
       </td>
       <td>
         {entry.reasons.length === 0 ? (
-          <span className="muted">—</span>
+          <span className="muted">-</span>
         ) : (
           <ul className="reason-list">
             {entry.reasons.slice(0, 3).map((reason) => (

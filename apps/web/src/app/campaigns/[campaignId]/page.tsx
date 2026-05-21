@@ -38,23 +38,23 @@ export default async function CampaignPage({ params }: CampaignPageProps) {
         <div>
           <strong>DM-Instamap</strong>
           <h1>{campaign.name}</h1>
-          <p>{campaign.description ?? "Local campaign dashboard."}</p>
+          <p>{campaign.description ?? "Dashboard campagna locale."}</p>
         </div>
         <dl>
           <div>
-            <dt>Maps</dt>
+            <dt>Mappe</dt>
             <dd>{campaign.maps.length}</dd>
           </div>
           <div>
-            <dt>Sessions</dt>
+            <dt>Sessioni</dt>
             <dd>{campaign.sessions.length}</dd>
           </div>
         </dl>
       </header>
 
       <section className="group-toolbar">
-        <Link href="/campaigns">All Campaigns</Link>
-        <Link href="/projects">All Projects</Link>
+        <Link href="/campaigns">Tutte le campagne</Link>
+        <Link href="/projects">Tutti i progetti</Link>
       </section>
 
       <CampaignEditor campaign={campaign} projectOptions={cleanOptions} />

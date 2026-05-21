@@ -44,7 +44,7 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
   const router = useRouter();
   const [aiStatus, setAiStatus] = useState<AiStatus | null>(null);
   const [request, setRequest] = useState(
-    "Crypt below the cathedral. The dead are bound, not hostile. Six rooms."
+    "Cripta sotto la cattedrale. I morti sono vincolati, non ostili. Sei stanze."
   );
   const [planResult, setPlanResult] = useState<PlanResult | null>(null);
   const [blueprintResult, setBlueprintResult] = useState<BlueprintResult | null>(null);
@@ -69,7 +69,7 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
 
   async function runBlueprint() {
     setBlueprintBusy(true);
-    setStatus("Calling AI for narrative blueprint…");
+    setStatus("Chiamata AI per blueprint narrativo...");
 
     try {
       const response = await fetch("/api/ai/blueprint", {
@@ -79,9 +79,9 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
       });
       const payload = (await response.json()) as BlueprintResult;
       setBlueprintResult(payload);
-      setStatus(payload.ok ? "Blueprint received." : "Blueprint failed.");
+      setStatus(payload.ok ? "Blueprint ricevuto." : "Blueprint fallito.");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Blueprint failed.");
+      setStatus(error instanceof Error ? error.message : "Blueprint fallito.");
     } finally {
       setBlueprintBusy(false);
     }
@@ -89,7 +89,7 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
 
   async function runPlan() {
     setPlanBusy(true);
-    setStatus("Calling AI for map plan…");
+    setStatus("Chiamata AI per piano mappa...");
     setPlanResult(null);
 
     try {
@@ -104,9 +104,9 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
       });
       const payload = (await response.json()) as PlanResult;
       setPlanResult(payload);
-      setStatus(payload.ok ? `Plan received in ${payload.attempts} attempts.` : "Plan failed.");
+      setStatus(payload.ok ? `Piano ricevuto in ${payload.attempts} tentativi.` : "Piano fallito.");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Plan failed.");
+      setStatus(error instanceof Error ? error.message : "Piano fallito.");
     } finally {
       setPlanBusy(false);
     }
@@ -118,7 +118,7 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
     }
 
     setImportBusy(true);
-    setStatus("Importing AI plan into a new local project…");
+    setStatus("Importazione piano AI in un nuovo progetto locale...");
 
     try {
       const response = await fetch("/api/ai-bridge/import", {
@@ -126,7 +126,7 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
           autoRepair: true,
           mode: "new-project",
           plan: planResult.plan,
-          projectName: planResult.plan.name || "AI Plan",
+          projectName: planResult.plan.name || "Piano AI",
           sourceRequest: request
         }),
         headers: { "Content-Type": "application/json" },
@@ -135,12 +135,12 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
       const payload = (await response.json()) as { error?: string; project?: { id: string } };
 
       if (!response.ok || !payload.project) {
-        throw new Error(payload.error ?? "Import failed.");
+        throw new Error(payload.error ?? "Importazione fallita.");
       }
 
       router.push(`/projects/${payload.project.id}/editor`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Import failed.");
+      setStatus(error instanceof Error ? error.message : "Importazione fallita.");
     } finally {
       setImportBusy(false);
     }
@@ -150,29 +150,29 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
 
   return (
     <section className="asset-details">
-      <h2>AI Auto Mode (D1)</h2>
+      <h2>Modalita AI automatica (D1)</h2>
       <p className="muted">
-        Calls the configured provider directly (no manual copy/paste). Configure with environment variables:{" "}
+        Chiama direttamente il provider configurato (senza copia/incolla manuale). Configura con variabili ambiente:{" "}
         <code>AI_PROVIDER=anthropic|openai</code>, <code>AI_API_KEY=...</code>, optional <code>AI_MODEL</code>.
       </p>
 
       <div className="manifest-note">
-        {aiStatus === null ? <span>Loading status…</span> : null}
+        {aiStatus === null ? <span>Caricamento stato...</span> : null}
         {aiStatus?.enabled ? (
           <>
             <span className="pill">provider: {aiStatus.provider}</span>
-            {aiStatus.model ? <span className="pill">model: {aiStatus.model}</span> : null}
+            {aiStatus.model ? <span className="pill">modello: {aiStatus.model}</span> : null}
           </>
         ) : null}
         {aiStatus && !aiStatus.enabled ? (
-          <span className="pill">disabled — {aiStatus.reason ?? "no env config"}</span>
+          <span className="pill">disattivato: {aiStatus.reason ?? "config env mancante"}</span>
         ) : null}
-        <span className="pill">{groupSummaries.length} asset groups</span>
-        <span className="pill">{referenceSummaries.length} references</span>
+        <span className="pill">{groupSummaries.length} gruppi asset</span>
+        <span className="pill">{referenceSummaries.length} riferimenti</span>
       </div>
 
       <label className="field">
-        <span>Request</span>
+        <span>Richiesta</span>
         <textarea onChange={(event) => setRequest(event.target.value)} rows={4} value={request} />
       </label>
 
@@ -183,7 +183,7 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
           onClick={() => void runBlueprint()}
           type="button"
         >
-          {blueprintBusy ? "Running…" : "Generate Blueprint"}
+          {blueprintBusy ? "Esecuzione..." : "Genera blueprint"}
         </button>
         <button
           className="save-correction"
@@ -191,7 +191,7 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
           onClick={() => void runPlan()}
           type="button"
         >
-          {planBusy ? "Running…" : "Generate Map Plan"}
+          {planBusy ? "Esecuzione..." : "Genera piano mappa"}
         </button>
       </div>
 
@@ -201,8 +201,8 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
           {blueprintResult.ok && blueprintResult.blueprint ? (
             <>
               <p>
-                <strong>{blueprintResult.blueprint.name}</strong> — structure {blueprintResult.blueprint.structure},
-                scale {blueprintResult.blueprint.scale}, mood {blueprintResult.blueprint.mood}.
+                <strong>{blueprintResult.blueprint.name}</strong> - struttura {blueprintResult.blueprint.structure},
+                scala {blueprintResult.blueprint.scale}, mood {blueprintResult.blueprint.mood}.
               </p>
               <div className="tag-list">
                 {blueprintResult.blueprint.globalTags.map((tag) => (
@@ -230,12 +230,12 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
 
       {planResult ? (
         <section className="detail-block">
-          <h3>Map Plan</h3>
+          <h3>Piano mappa</h3>
           {planResult.ok && planResult.plan ? (
             <>
               <p>
-                Plan <strong>{planResult.plan.name}</strong> — {planResult.plan.rooms.length} rooms,{" "}
-                {planResult.plan.walls.length} walls, {planResult.plan.doors.length} doors. Provider:{" "}
+                Piano <strong>{planResult.plan.name}</strong> - {planResult.plan.rooms.length} stanze,{" "}
+                {planResult.plan.walls.length} muri, {planResult.plan.doors.length} porte. Provider:{" "}
                 {planResult.providerId}.
               </p>
               <button
@@ -244,7 +244,7 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
                 onClick={() => void importPlanAsProject()}
                 type="button"
               >
-                {importBusy ? "Importing…" : "Import as New Project"}
+                {importBusy ? "Importazione..." : "Importa come nuovo progetto"}
               </button>
             </>
           ) : (

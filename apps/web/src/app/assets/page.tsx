@@ -13,26 +13,26 @@ export default async function AssetsPage() {
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>Asset Browser</h1>
-          <p>Local manifest - thumbnails - classification signals</p>
+          <h1>Browser asset</h1>
+          <p>Manifest locale - anteprime - segnali di classificazione</p>
         </div>
         <dl>
           <div>
-            <dt>Assets</dt>
+            <dt>Asset</dt>
             <dd>{manifest.assets.length}</dd>
           </div>
           <div>
             <dt>Manifest</dt>
-            <dd>{manifest.missing ? "Missing" : "Loaded"}</dd>
+            <dd>{manifest.missing ? "Mancante" : "Caricato"}</dd>
           </div>
         </dl>
       </header>
 
       {manifest.missing ? (
         <section className="asset-empty" aria-live="polite">
-          <h2>No Manifest Found</h2>
+          <h2>Nessun manifest trovato</h2>
           <p>
-            Run <code>pnpm assets:scan &lt;folder&gt;</code>.
+            Esegui <code>pnpm assets:scan &lt;cartella&gt;</code>.
           </p>
         </section>
       ) : (

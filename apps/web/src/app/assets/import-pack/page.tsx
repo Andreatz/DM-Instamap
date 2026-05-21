@@ -9,17 +9,17 @@ export default function ImportPackPage() {
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>Import Asset Pack</h1>
+          <h1>Importa pacchetto di asset</h1>
           <p>
-            Apply preset-specific auto-tagging on top of the standard scanner. Works on Forgotten Adventures, 2-Minute
-            Tabletop, Czepeku layouts, or as a generic fallback.
+            Applica tag automatici specifici del preset sopra lo scanner standard. Funziona con Forgotten Adventures,
+            2-Minute Tabletop, layout Czepeku o come fallback generico.
           </p>
         </div>
       </header>
 
       <section className="group-toolbar">
-        <Link href="/assets">All Assets</Link>
-        <Link href="/asset-groups">Asset Groups</Link>
+        <Link href="/assets">Tutti gli asset</Link>
+        <Link href="/asset-groups">Gruppi di asset</Link>
       </section>
 
       <PackImporterForm />

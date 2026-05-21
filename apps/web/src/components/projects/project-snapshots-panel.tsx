@@ -54,7 +54,7 @@ export function ProjectSnapshotsPanel({ projectId }: ProjectSnapshotsPanelProps)
   }, [projectId]);
 
   async function createSnapshot() {
-    setStatus("Creazione snapshot…");
+    setStatus("Creazione snapshot...");
 
     try {
       const response = await fetch(`/api/projects/${projectId}/snapshots`, {
@@ -78,7 +78,7 @@ export function ProjectSnapshotsPanel({ projectId }: ProjectSnapshotsPanelProps)
 
   async function diffSnapshotAgainstCurrent(contentHash: string) {
     setDiffBusyHash(contentHash);
-    setStatus("Calcolo del diff rispetto allo stato corrente…");
+    setStatus("Calcolo del diff rispetto allo stato corrente...");
 
     try {
       const response = await fetch(`/api/projects/${projectId}/snapshots/${contentHash}/diff?against=current`);
@@ -91,7 +91,7 @@ export function ProjectSnapshotsPanel({ projectId }: ProjectSnapshotsPanelProps)
       setDiffResults((current) => ({ ...current, [contentHash]: payload.diff ?? null }));
       setStatus(
         payload.diff.identical
-          ? "Lo snapshot è identico allo stato corrente."
+          ? "Lo snapshot e identico allo stato corrente."
           : `Diff vs corrente: ${payload.diff.changedFields.join(", ") || "nessun cambiamento di campo"}.`
       );
     } catch (error) {
@@ -109,7 +109,7 @@ export function ProjectSnapshotsPanel({ projectId }: ProjectSnapshotsPanelProps)
     }
 
     setBusyHash(contentHash);
-    setStatus("Ripristino dello snapshot…");
+    setStatus("Ripristino dello snapshot...");
 
     try {
       const response = await fetch(`/api/projects/${projectId}/snapshots/${contentHash}`, {
@@ -133,8 +133,8 @@ export function ProjectSnapshotsPanel({ projectId }: ProjectSnapshotsPanelProps)
     <section className="asset-details">
       <h2>Snapshot</h2>
       <p className="muted">
-        Ogni salvataggio può essere archiviato localmente in data/projects/{projectId}/snapshots. Il contenuto identico
-        è deduplicato tramite hash.
+        Ogni salvataggio puo essere archiviato localmente in data/projects/{projectId}/snapshots. Il contenuto identico
+        e deduplicato tramite hash.
       </p>
 
       <div className="field-row">
@@ -142,7 +142,7 @@ export function ProjectSnapshotsPanel({ projectId }: ProjectSnapshotsPanelProps)
           <span>Etichetta</span>
           <input
             onChange={(event) => setLabel(event.target.value)}
-            placeholder="prima-modifica, prep-pass-2…"
+            placeholder="prima-modifica, prep-pass-2..."
             value={label}
           />
         </label>
@@ -151,7 +151,7 @@ export function ProjectSnapshotsPanel({ projectId }: ProjectSnapshotsPanelProps)
         </button>
       </div>
 
-      {loading ? <p className="muted">Caricamento snapshot…</p> : null}
+      {loading ? <p className="muted">Caricamento snapshot...</p> : null}
 
       {!loading && snapshots.length === 0 ? <p className="muted">Nessuno snapshot.</p> : null}
 
@@ -170,7 +170,7 @@ export function ProjectSnapshotsPanel({ projectId }: ProjectSnapshotsPanelProps)
                   onClick={() => void diffSnapshotAgainstCurrent(snapshot.contentHash)}
                   type="button"
                 >
-                  {diffBusyHash === snapshot.contentHash ? "Diff…" : "Diff vs corrente"}
+                  {diffBusyHash === snapshot.contentHash ? "Diff..." : "Diff vs corrente"}
                 </button>
                 <button
                   className="save-correction"
@@ -178,7 +178,7 @@ export function ProjectSnapshotsPanel({ projectId }: ProjectSnapshotsPanelProps)
                   onClick={() => void restoreSnapshot(snapshot.contentHash)}
                   type="button"
                 >
-                  {busyHash === snapshot.contentHash ? "Ripristino…" : "Ripristina"}
+                  {busyHash === snapshot.contentHash ? "Ripristino..." : "Ripristina"}
                 </button>
               </div>
               {diffResults[snapshot.contentHash] ? (

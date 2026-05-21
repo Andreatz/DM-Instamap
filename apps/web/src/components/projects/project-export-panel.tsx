@@ -23,7 +23,7 @@ const FORMAT_OPTIONS: Array<{ description: string; extension: string; label: str
 const MODE_OPTIONS: Array<{ description: string; label: string; value: ExportMode }> = [
   { description: "Nasconde stanze segrete, trappole, note GM e annotazioni.", label: "Sicuro per i giocatori", value: "player" },
   { description: "Tutto visibile (per il riferimento personale del DM).", label: "Game Master", value: "gm" },
-  { description: "Come la modalità giocatore, ma rimuove anche note e luci.", label: "Pulito", value: "clean" }
+  { description: "Come la modalita giocatore, ma rimuove anche note e luci.", label: "Pulito", value: "clean" }
 ];
 
 type ProjectExportPanelProps = {
@@ -47,7 +47,7 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
   const supportsSplitLayers = format === "png" || format === "webp";
 
   async function exportProject() {
-    setStatus(`Esportazione ${format.toUpperCase()} (modalità ${mode})…`);
+    setStatus(`Esportazione ${format.toUpperCase()} (modalita ${mode})...`);
 
     try {
       const endpoint = projectId ? `/api/projects/${projectId}/export` : "/api/export";
@@ -83,7 +83,7 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
       link.download = buildDownloadName(document.name, extension, mode, format);
       link.click();
       URL.revokeObjectURL(url);
-      setStatus("Export completato");
+      setStatus("Esportazione completata");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Esportazione fallita.");
     }
@@ -92,7 +92,7 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
   return (
     <section className="asset-details">
       <h2>Esporta progetto</h2>
-      <p className="muted">Scegli cosa esportare e in quale modalità.</p>
+      <p className="muted">Scegli cosa esportare e in quale modalita.</p>
 
       <label className="field">
         <span>Formato</span>
@@ -107,7 +107,7 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
       </label>
 
       <label className="field">
-        <span>Modalità</span>
+        <span>Modalita</span>
         <select onChange={(event) => setMode(event.target.value as ExportMode)} value={mode}>
           {MODE_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -135,7 +135,7 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
           </label>
           {format === "webp" ? (
             <label className="field">
-              <span>Qualità WEBP</span>
+              <span>Qualita WEBP</span>
               <select onChange={(event) => setWebpQuality(Number(event.target.value))} value={webpQuality}>
                 <option value={70}>70</option>
                 <option value={82}>82</option>
@@ -160,7 +160,7 @@ export function ProjectExportPanel({ document, projectId }: ProjectExportPanelPr
             onChange={(event) => setIncludeJournals(event.target.checked)}
             type="checkbox"
           />
-          <span>Includi journal entries (stanze, note GM, note di piano)</span>
+          <span>Includi voci journal (stanze, note GM, note di piano)</span>
         </label>
       ) : null}
 

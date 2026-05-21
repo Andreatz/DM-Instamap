@@ -42,7 +42,7 @@ export function DeleteProjectButton({ projectId, projectName }: DeleteProjectBut
   return (
     <div className="project-danger-zone">
       <button disabled={status === "deleting"} onClick={deleteProject} type="button">
-        {status === "deleting" ? "Eliminazione…" : "Elimina progetto"}
+        {status === "deleting" ? "Eliminazione..." : "Elimina progetto"}
       </button>
       {status === "error" ? (
         <p>Impossibile eliminare il progetto. Verifica che i file locali siano scrivibili.</p>

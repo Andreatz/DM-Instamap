@@ -41,6 +41,7 @@ import {
   type PlacedAssetClipboard
 } from "@/lib/map-editor";
 import type { AssetSearchApiResult } from "@/lib/asset-search";
+import { formatAssetKind } from "@/lib/asset-browser";
 
 type MapEditorProps = {
   assetGroups: MatchableAssetGroup[];
@@ -67,7 +68,7 @@ const CLIPBOARD_STORAGE_KEY = "dm-instamap-editor-asset-clipboard";
 const MIN_ZOOM = 0.35;
 const MAX_ZOOM = 3;
 const HISTORY_LIMIT = 40;
-const DEFAULT_NOTE_TEXT = "GM note";
+const DEFAULT_NOTE_TEXT = "Nota GM";
 
 export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, projectId }: MapEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -107,7 +108,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     side: "enemy" as InitiativeEntry["side"]
   });
   const [jsonText, setJsonText] = useState(() => serializeMapDocument(ensureEditorLayers(initialDocument)));
-  const [status, setStatus] = useState("Ready");
+  const [status, setStatus] = useState("Pronto");
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
   const [aiRequest, setAiRequest] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
@@ -178,7 +179,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       setSelectedAssetId(null);
       setSelectedAssetIds([]);
       setSelectedElement(null);
-      setStatus("Undo");
+      setStatus("Annullato");
       return history.slice(0, -1);
     });
   }, [document]);
@@ -188,7 +189,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       const next = history[0];
 
       if (!next) {
-        setStatus("Nothing to redo");
+        setStatus("Nessuna azione da ripristinare");
         return history;
       }
 
@@ -197,21 +198,21 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       setSelectedAssetId(null);
       setSelectedAssetIds([]);
       setSelectedElement(null);
-      setStatus("Redo");
+      setStatus("Ripristinato");
       return history.slice(1);
     });
   }, [document]);
 
   const createSnapshot = useCallback(async () => {
     if (!projectId) {
-      setStatus("Snapshots require a saved project.");
+      setStatus("Gli snapshot richiedono un progetto salvato.");
       return;
     }
 
     const stamp = new Date().toISOString().replace(/[:.]/gu, "-");
     const label = `editor-${stamp.slice(0, 19)}`;
 
-    setStatus(`Creating snapshot ${label}…`);
+    setStatus(`Creazione snapshot ${label}...`);
 
     try {
       const response = await fetch(`/api/projects/${encodeURIComponent(projectId)}/snapshots`, {
@@ -225,12 +226,12 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       };
 
       if (!response.ok || !payload.snapshot) {
-        throw new Error(payload.error ?? "Snapshot failed.");
+        throw new Error(payload.error ?? "Snapshot fallito.");
       }
 
-      setStatus(payload.snapshot.written ? `Snapshot ${label} created.` : "Snapshot identical — not written.");
+      setStatus(payload.snapshot.written ? `Snapshot ${label} creato.` : "Snapshot identico: non scritto.");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Snapshot failed.");
+      setStatus(error instanceof Error ? error.message : "Snapshot fallito.");
     }
   }, [projectId]);
 
@@ -403,23 +404,23 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       if (visibleSelection?.type === "asset") {
         const asset = document.assets.find((candidate) => candidate.id === visibleSelection.id);
         if (asset && isEditorLayerLocked(document, assetToLayerKind(asset.layer))) {
-          setStatus("Selected asset layer is locked");
+          setStatus("Il livello dell'asset selezionato e bloccato");
           return;
         }
         event.currentTarget.setPointerCapture(event.pointerId);
         setDraggingAssetId(visibleSelection.id);
         setDragStartCell(cell);
-        setStatus("Drag selected asset to move it");
+        setStatus("Trascina l'asset selezionato per spostarlo");
       } else if (!visibleSelection) {
         event.currentTarget.setPointerCapture(event.pointerId);
         setMarqueeSelection({ current: cell, start: cell });
-        setStatus("Selecting assets");
+        setStatus("Selezione asset");
       }
       return;
     }
 
     if (isEditorLayerLocked(document, toolToLayerKind(editorTool))) {
-      setStatus(`${layerLabel(toolToLayerKind(editorTool))} layer is locked`);
+      setStatus(`Il livello ${layerLabel(toolToLayerKind(editorTool))} e bloccato`);
       return;
     }
 
@@ -463,21 +464,21 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       setSelectedAssetIds(assetIds);
       setSelectedAssetId(lastAssetId);
       setSelectedElement(lastAssetId ? { id: lastAssetId, type: "asset" } : null);
-      setStatus(`Selected ${assetIds.length} asset${assetIds.length === 1 ? "" : "s"}`);
+      setStatus(`${assetIds.length} asset selezionati`);
     } else if (draggingAssetId && cell) {
       const asset = document.assets.find((candidate) => candidate.id === draggingAssetId);
       if (asset && isEditorLayerLocked(document, assetToLayerKind(asset.layer))) {
-        setStatus(`${layerLabel(assetToLayerKind(asset.layer))} layer is locked`);
+        setStatus(`Il livello ${layerLabel(assetToLayerKind(asset.layer))} e bloccato`);
       } else {
         const currentSelection = selectedAssetIds.includes(draggingAssetId) ? selectedAssetIds : [draggingAssetId];
         const delta = dragStartCell ? { x: cell.x - dragStartCell.x, y: cell.y - dragStartCell.y } : null;
         if (delta && currentSelection.length > 1) {
           commitDocument(
             (current) => movePlacedAssets(current, currentSelection, delta),
-            `Moved ${currentSelection.length} assets by ${delta.x}, ${delta.y}`
+            `${currentSelection.length} asset spostati di ${delta.x}, ${delta.y}`
           );
         } else {
-          commitDocument((current) => movePlacedAsset(current, draggingAssetId, cell), `Moved asset to ${cell.x}, ${cell.y}`);
+          commitDocument((current) => movePlacedAsset(current, draggingAssetId, cell), `Asset spostato a ${cell.x}, ${cell.y}`);
         }
       }
       setSelectedAssetId(draggingAssetId);
@@ -523,7 +524,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       const layerKind = paletteAsset.kind === "light" ? "lighting" : "props";
 
       if (isEditorLayerLocked(document, layerKind)) {
-        setStatus(`${layerLabel(layerKind)} layer is locked`);
+        setStatus(`Il livello ${layerLabel(layerKind)} e bloccato`);
         return;
       }
 
@@ -533,11 +534,11 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
 
     const asset = document.assets.find((candidate) => candidate.id === payload.placedAssetId);
     if (asset && isEditorLayerLocked(document, assetToLayerKind(asset.layer))) {
-      setStatus(`${layerLabel(assetToLayerKind(asset.layer))} layer is locked`);
+      setStatus(`Il livello ${layerLabel(assetToLayerKind(asset.layer))} e bloccato`);
       return;
     }
 
-    commitDocument((current) => movePlacedAsset(current, payload.placedAssetId, { x, y }), "Moved asset");
+    commitDocument((current) => movePlacedAsset(current, payload.placedAssetId, { x, y }), "Asset spostato");
     setSelectedAssetId(payload.placedAssetId);
     setSelectedAssetIds([payload.placedAssetId]);
   }
@@ -555,11 +556,11 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
 
   const exportSessionPackQuick = useCallback(async () => {
     if (!projectId) {
-      setStatus("Session pack export requires a saved project.");
+      setStatus("L'export Session Pack richiede un progetto salvato.");
       return;
     }
 
-    setStatus("Exporting session pack…");
+    setStatus("Esportazione Session Pack...");
 
     try {
       const response = await fetch(`/api/projects/${encodeURIComponent(projectId)}/export`, {
@@ -575,7 +576,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => ({}))) as { error?: string };
-        throw new Error(payload.error ?? "Session pack export failed.");
+        throw new Error(payload.error ?? "Esportazione Session Pack fallita.");
       }
 
       const blob = await response.blob();
@@ -585,9 +586,9 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       link.download = `${projectId}-session-pack.zip`;
       link.click();
       URL.revokeObjectURL(url);
-      setStatus("Session pack downloaded.");
+      setStatus("Session Pack scaricato.");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Session pack export failed.");
+      setStatus(error instanceof Error ? error.message : "Esportazione Session Pack fallita.");
     }
   }, [document.name, projectId]);
 
@@ -597,7 +598,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     window.localStorage.setItem("dm-instamap-editor-document", serialized);
 
     if (!projectId) {
-      setStatus("Saved JSON locally");
+      setStatus("JSON salvato in locale");
       return;
     }
 
@@ -612,12 +613,12 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       const payload = (await response.json()) as { error?: string };
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Project save failed");
+        throw new Error(payload.error ?? "Salvataggio progetto fallito");
       }
 
-      setStatus("Saved project");
+      setStatus("Progetto salvato");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Project save failed");
+      setStatus(error instanceof Error ? error.message : "Salvataggio progetto fallito");
     }
   }
 
@@ -630,9 +631,9 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       setSelectedAssetId(null);
       setSelectedAssetIds([]);
       setSelectedRoomId(parsed.plan?.rooms.find((room) => room.kind === "entrance")?.id ?? null);
-      setStatus("Loaded MapDocument JSON");
+      setStatus("JSON MapDocument caricato");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Could not load JSON");
+      setStatus(error instanceof Error ? error.message : "Impossibile caricare il JSON");
     }
   }
 
@@ -640,7 +641,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     const saved = window.localStorage.getItem("dm-instamap-editor-document");
 
     if (!saved) {
-      setStatus("No local saved document found");
+      setStatus("Nessun documento salvato localmente trovato");
       return;
     }
 
@@ -650,7 +651,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     setRedoStack([]);
     setSelectedAssetId(null);
     setSelectedAssetIds([]);
-    setStatus("Loaded local saved document");
+    setStatus("Documento locale salvato caricato");
   }
 
   function deleteSelectedAsset() {
@@ -661,7 +662,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     }
 
     if (hasLockedSelectedAsset(document, selectedAssets, assetIds)) {
-      setStatus("One or more selected asset layers are locked");
+      setStatus("Uno o piu livelli degli asset selezionati sono bloccati");
       return;
     }
 
@@ -681,7 +682,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     }
 
     if (hasLockedSelectedAsset(document, selectedAssets, assetIds)) {
-      setStatus("One or more selected asset layers are locked");
+      setStatus("Uno o piu livelli degli asset selezionati sono bloccati");
       return;
     }
 
@@ -695,12 +696,12 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     const assetIds = selectedAssetIds.length > 0 ? selectedAssetIds : selectedAssetId ? [selectedAssetId] : [];
 
     if (assetIds.length < 2) {
-      setStatus("Select at least two assets to group");
+      setStatus("Seleziona almeno due asset da raggruppare");
       return;
     }
 
     if (hasLockedSelectedAsset(document, selectedAssets, assetIds)) {
-      setStatus("One or more selected asset layers are locked");
+      setStatus("Uno o piu livelli degli asset selezionati sono bloccati");
       return;
     }
 
@@ -716,11 +717,11 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     }
 
     if (hasLockedSelectedAsset(document, selectedAssets, assetIds)) {
-      setStatus("One or more selected asset layers are locked");
+      setStatus("Uno o piu livelli degli asset selezionati sono bloccati");
       return;
     }
 
-    commitDocument((current) => ungroupPlacedAssets(current, assetIds), "Ungrouped selected assets");
+    commitDocument((current) => ungroupPlacedAssets(current, assetIds), "Asset selezionati separati");
   }
 
   function copySelectedAssets() {
@@ -732,14 +733,14 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
 
     const clipboard = createPlacedAssetClipboard(document, assetIds);
     window.localStorage.setItem(CLIPBOARD_STORAGE_KEY, JSON.stringify(clipboard));
-    setStatus(`Copied ${clipboard.assets.length} selected asset${clipboard.assets.length === 1 ? "" : "s"}`);
+    setStatus(`${clipboard.assets.length} asset selezionati copiati`);
   }
 
   function pasteAssetClipboard() {
     const rawClipboard = window.localStorage.getItem(CLIPBOARD_STORAGE_KEY);
 
     if (!rawClipboard) {
-      setStatus("No copied assets found");
+      setStatus("Nessun asset copiato trovato");
       return;
     }
 
@@ -752,7 +753,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       setSelectedAssetId(lastPastedId);
       setSelectedElement(lastPastedId ? { id: lastPastedId, type: "asset" } : null);
     } catch {
-      setStatus("Copied asset data is not valid");
+      setStatus("I dati dell'asset copiato non sono validi");
     }
   }
 
@@ -765,14 +766,14 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     setSelectedAssetIds(assetIds);
     setSelectedAssetId(lastAssetId);
     setSelectedElement(lastAssetId ? { id: lastAssetId, type: "asset" } : null);
-    setStatus(`Selected ${assetIds.length} visible asset${assetIds.length === 1 ? "" : "s"}`);
+    setStatus(`${assetIds.length} asset visibili selezionati`);
   }
 
   function clearAssetSelection() {
     setSelectedAssetIds([]);
     setSelectedAssetId(null);
     setSelectedElement(null);
-    setStatus("Asset selection cleared");
+    setStatus("Selezione asset cancellata");
   }
 
   function updateSelectedAssetTransform(transform: Parameters<typeof updatePlacedAssetTransform>[2]) {
@@ -781,11 +782,11 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     }
 
     if (selectedAsset && isEditorLayerLocked(document, assetToLayerKind(selectedAsset.layer))) {
-      setStatus(`${layerLabel(assetToLayerKind(selectedAsset.layer))} layer is locked`);
+      setStatus(`Il livello ${layerLabel(assetToLayerKind(selectedAsset.layer))} e bloccato`);
       return;
     }
 
-    commitDocument((current) => updatePlacedAssetTransform(current, selectedAssetId, transform), "Updated asset transform");
+    commitDocument((current) => updatePlacedAssetTransform(current, selectedAssetId, transform), "Trasformazione asset aggiornata");
   }
 
   function updateSelectedAssetLayer(layer: MapDocument["assets"][number]["layer"]) {
@@ -794,15 +795,15 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     }
 
     if (selectedAsset && isEditorLayerLocked(document, assetToLayerKind(selectedAsset.layer))) {
-      setStatus(`${layerLabel(assetToLayerKind(selectedAsset.layer))} layer is locked`);
+      setStatus(`Il livello ${layerLabel(assetToLayerKind(selectedAsset.layer))} e bloccato`);
       return;
     }
 
-    commitDocument((current) => updatePlacedAssetLayer(current, selectedAssetId, layer), "Moved asset to layer");
+    commitDocument((current) => updatePlacedAssetLayer(current, selectedAssetId, layer), "Asset spostato di livello");
   }
 
   function updateLayer(layerKind: MapLayerKind, patch: Partial<Pick<MapLayer, "locked" | "opacity" | "visible">>) {
-    commitDocument((current) => updateMapLayer(current, layerKind, patch), "Updated layer");
+    commitDocument((current) => updateMapLayer(current, layerKind, patch), "Livello aggiornato");
   }
 
   function toggleGmLayerVisibility() {
@@ -815,18 +816,18 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     }
 
     if (isEditorLayerLocked(document, "lighting")) {
-      setStatus("Lighting layer is locked");
+      setStatus("Il livello luci e bloccato");
       return;
     }
 
-    commitDocument((current) => updateLightSource(current, selectedLight.id, patch), "Updated light");
+    commitDocument((current) => updateLightSource(current, selectedLight.id, patch), "Luce aggiornata");
   }
 
   function addNoteAtHoverCell() {
     const position = hoverCell ?? { x: 0, y: 0 };
 
     if (isEditorLayerLocked(document, "notes")) {
-      setStatus("Notes layer is locked");
+      setStatus("Il livello note e bloccato");
       return;
     }
 
@@ -840,11 +841,11 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     }
 
     if (isEditorLayerLocked(document, "notes")) {
-      setStatus("Notes layer is locked");
+      setStatus("Il livello note e bloccato");
       return;
     }
 
-    commitDocument((current) => updateMapNote(current, selectedNote.id, patch), "Updated note");
+    commitDocument((current) => updateMapNote(current, selectedNote.id, patch), "Nota aggiornata");
   }
 
   function deleteSelectedNote() {
@@ -853,11 +854,11 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     }
 
     if (isEditorLayerLocked(document, "notes")) {
-      setStatus("Notes layer is locked");
+      setStatus("Il livello note e bloccato");
       return;
     }
 
-    commitDocument((current) => deleteMapNote(current, selectedNote.id), "Deleted note");
+    commitDocument((current) => deleteMapNote(current, selectedNote.id), "Nota eliminata");
     setSelectedElement(null);
   }
 
@@ -865,7 +866,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     const name = initiativeDraft.name.trim();
 
     if (!name) {
-      setStatus("Initiative entry needs a name");
+      setStatus("La voce iniziativa richiede un nome");
       return;
     }
 
@@ -902,14 +903,14 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       styleTags: [mapTheme]
     });
 
-    commitDocument(() => ensureEditorLayers(result.document), `Auto-furnished ${result.summary.placedCount} assets, skipped ${result.summary.skippedCount}`);
+    commitDocument(() => ensureEditorLayers(result.document), `Arredamento automatico: ${result.summary.placedCount} asset piazzati, ${result.summary.skippedCount} saltati`);
     setSelectedAssetId(null);
     setSelectedAssetIds([]);
   }
 
   async function handleExport() {
     setIsExporting(true);
-    setStatus(`Exporting ${exportFormat.toUpperCase()}`);
+    setStatus(`Esportazione ${exportFormat.toUpperCase()}`);
 
     try {
       const response = await fetch("/api/export", {
@@ -927,7 +928,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
 
       if (!response.ok) {
         const error = (await response.json()) as { error?: string };
-        throw new Error(error.error ?? "Export failed");
+        throw new Error(error.error ?? "Esportazione fallita");
       }
 
       const blob = await response.blob();
@@ -937,9 +938,9 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       link.download = createExportFilename(document.name, exportFormat);
       link.click();
       URL.revokeObjectURL(url);
-      setStatus(`Exported ${exportFormat.toUpperCase()}`);
+      setStatus(`${exportFormat.toUpperCase()} esportato`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Export failed");
+      setStatus(error instanceof Error ? error.message : "Esportazione fallita");
     } finally {
       setIsExporting(false);
     }
@@ -951,7 +952,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     }
 
     setAiBusy(true);
-    setStatus("Asking AI for a map description…");
+    setStatus("Richiesta descrizione mappa all'AI...");
 
     try {
       const response = await fetch("/api/ai/blueprint", {
@@ -967,15 +968,15 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       };
 
       if (!response.ok || !payload.ok || !payload.blueprint) {
-        throw new Error(payload.error ?? payload.errors?.join("; ") ?? "AI request failed.");
+        throw new Error(payload.error ?? payload.errors?.join("; ") ?? "Richiesta AI fallita.");
       }
 
       const blueprint = payload.blueprint;
-      const description = `${blueprint.name ?? document.name} — structure ${blueprint.structure ?? "unknown"}, mood ${blueprint.mood ?? "unknown"}.`;
+      const description = `${blueprint.name ?? document.name} - struttura ${blueprint.structure ?? "sconosciuta"}, mood ${blueprint.mood ?? "sconosciuto"}.`;
       setAiDescription(description);
-      setStatus("AI description ready.");
+      setStatus("Descrizione AI pronta.");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "AI request failed.");
+      setStatus(error instanceof Error ? error.message : "Richiesta AI fallita.");
     } finally {
       setAiBusy(false);
     }
@@ -983,13 +984,13 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
 
   async function runAiSuggestForSelectedRoom() {
     if (!selectedRoom) {
-      setStatus("Select a room before asking for suggestions.");
+      setStatus("Seleziona una stanza prima di chiedere suggerimenti.");
       return;
     }
 
     setAiBusy(true);
     setAiSuggestions([]);
-    setStatus(`Asking AI for assets in ${selectedRoom.label}…`);
+    setStatus(`Richiesta asset AI per ${selectedRoom.label}...`);
 
     try {
       const query =
@@ -998,13 +999,13 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       const payload = (await response.json()) as { error?: string; results?: AssetSearchApiResult[] };
 
       if (!response.ok || !payload.results) {
-        throw new Error(payload.error ?? "Suggestion failed.");
+        throw new Error(payload.error ?? "Suggerimento fallito.");
       }
 
       setAiSuggestions(payload.results.map((result) => `${result.relativePath} (${result.classification})`));
-      setStatus(`${payload.results.length} suggestions for ${selectedRoom.label}.`);
+      setStatus(`${payload.results.length} suggerimenti per ${selectedRoom.label}.`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Suggestion failed.");
+      setStatus(error instanceof Error ? error.message : "Suggerimento fallito.");
     } finally {
       setAiBusy(false);
     }
@@ -1014,12 +1015,12 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     const prompt = aiRequest.trim();
 
     if (!prompt) {
-      setStatus("Type a prompt before generating.");
+      setStatus("Scrivi un prompt prima di generare.");
       return;
     }
 
     setAiBusy(true);
-    setStatus(`Generating asset from prompt…`);
+    setStatus("Generazione asset da prompt...");
 
     try {
       const response = await fetch("/api/assets/generate", {
@@ -1037,7 +1038,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       };
 
       if (!response.ok || !payload.asset) {
-        throw new Error(payload.error ?? "Generation failed.");
+        throw new Error(payload.error ?? "Generazione fallita.");
       }
 
       const entry = payload.manifestEntry;
@@ -1053,9 +1054,9 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
         saveRecentGeneratedToStorage(next);
       }
 
-      setStatus(`Generated ${payload.asset.filename}.`);
+      setStatus(`Generato ${payload.asset.filename}.`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Generation failed.");
+      setStatus(error instanceof Error ? error.message : "Generazione fallita.");
     } finally {
       setAiBusy(false);
     }
@@ -1069,32 +1070,32 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
 
     if (!query) {
       setAssetSearchResults([]);
-      setStatus("Select a room or enter an asset search query");
+      setStatus("Seleziona una stanza o inserisci una ricerca asset");
       return;
     }
 
-    setStatus("Searching local assets");
+    setStatus("Ricerca asset locali");
 
     try {
       const response = await fetch(`/api/assets/search?q=${encodeURIComponent(query)}&limit=12`);
       const payload = (await response.json()) as { results?: AssetSearchApiResult[]; error?: string };
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Local asset search failed");
+        throw new Error(payload.error ?? "Ricerca asset locale fallita");
       }
 
       setAssetSearchResults(payload.results ?? []);
-      setStatus(`${payload.results?.length ?? 0} local asset suggestions`);
+      setStatus(`${payload.results?.length ?? 0} suggerimenti asset locali`);
     } catch (error) {
       setAssetSearchResults([]);
-      setStatus(error instanceof Error ? error.message : "Local asset search failed");
+      setStatus(error instanceof Error ? error.message : "Ricerca asset locale fallita");
     }
   }
 
   return (
-    <section className="editor-shell" aria-label="Map editor">
+    <section className="editor-shell" aria-label="Editor mappa">
       <aside className="asset-filters editor-sidebar">
-        <h2>Assets</h2>
+        <h2>Asset</h2>
         <div className="editor-palette">
           {palette.map((asset) => (
             <button
@@ -1113,7 +1114,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
 
         {recentGenerated.length > 0 ? (
           <section className="detail-block">
-            <h3>Recently Generated</h3>
+            <h3>Generati di recente</h3>
             <div className="editor-palette">
               {recentGenerated.map((asset) => (
                 <button
@@ -1133,7 +1134,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
         ) : null}
 
         <section className="detail-block">
-          <h3>Rooms</h3>
+          <h3>Stanze</h3>
           <div className="editor-room-list">
             {rooms.map((room) => (
               <button
@@ -1151,14 +1152,14 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
 
       <section className="editor-map-panel">
         <div className="editor-canvas-toolbar">
-          <div className="editor-tool-grid" aria-label="Editor tools">
+          <div className="editor-tool-grid" aria-label="Strumenti editor">
             {[
-              ["select", "Select"],
-              ["paint-floor", "Floor"],
-              ["paint-wall", "Wall"],
-              ["paint-empty", "Erase"],
-              ["door", "Door"],
-              ["light", "Light"],
+              ["select", "Seleziona"],
+              ["paint-floor", "Pavimento"],
+              ["paint-wall", "Muro"],
+              ["paint-empty", "Cancella"],
+              ["door", "Porta"],
+              ["light", "Luce"],
               ["note", "Note"]
             ].map(([tool, label]) => (
               <button
@@ -1173,10 +1174,10 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
           </div>
           <div className="editor-viewport-actions">
             <button disabled={undoStack.length === 0} onClick={undo} type="button">
-              Undo
+              Annulla
             </button>
             <button disabled={redoStack.length === 0} onClick={redo} type="button">
-              Redo
+              Ripristina
             </button>
             <button
               disabled={!projectId}
@@ -1189,7 +1190,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
             <button
               disabled={!projectId}
               onClick={() => void exportSessionPackQuick()}
-              title="Quick session pack export"
+              title="Esportazione rapida Session Pack"
               type="button"
             >
               Session Pack
@@ -1198,10 +1199,10 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
               aria-pressed={aiPanelOpen}
               className={aiPanelOpen ? "active" : ""}
               onClick={() => setAiPanelOpen((value) => !value)}
-              title="Toggle AI assist drawer"
+              title="Mostra/nascondi pannello assistente AI"
               type="button"
             >
-              AI Assist
+              Assistente AI
             </button>
             <button
               onClick={() =>
@@ -1221,13 +1222,13 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
               Zoom +
             </button>
             <button onClick={resetViewport} type="button">
-              Reset
+              Reimposta
             </button>
           </div>
         </div>
         <div className="editor-canvas-wrap">
           <canvas
-            aria-label="Editable map canvas"
+            aria-label="Canvas mappa modificabile"
             className={`editor-canvas editor-tool-${editorTool}`}
             height={canvasSize.height}
             onContextMenu={(event) => event.preventDefault()}
@@ -1243,48 +1244,48 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
           />
         </div>
         <footer className="editor-canvas-status">
-          <span>Tool: {formatToolName(editorTool)}</span>
-          <span>Undo {undoStack.length} / Redo {redoStack.length}</span>
-          <span>{hoverCell ? `Cell ${hoverCell.x}, ${hoverCell.y}` : "Cell -"}</span>
+          <span>Strumento: {formatToolName(editorTool)}</span>
+          <span>Annulla {undoStack.length} / Ripristina {redoStack.length}</span>
+          <span>{hoverCell ? `Cella ${hoverCell.x}, ${hoverCell.y}` : "Cella -"}</span>
           <span>{document.width} x {document.height}</span>
         </footer>
       </section>
 
       {aiPanelOpen ? (
-        <aside className="asset-details editor-ai-drawer" aria-label="AI assist drawer">
-          <h2>AI Assist</h2>
+        <aside className="asset-details editor-ai-drawer" aria-label="Pannello assistente AI">
+          <h2>Assistente AI</h2>
           <p className="muted">
-            Inline access to the configured AI provider. Configure with <code>AI_PROVIDER</code>, <code>AI_API_KEY</code>.
+            Accesso rapido al provider AI configurato. Configura <code>AI_PROVIDER</code>, <code>AI_API_KEY</code>.
           </p>
           <label className="field">
-            <span>Request</span>
+            <span>Richiesta</span>
             <textarea
               onChange={(event) => setAiRequest(event.target.value)}
-              placeholder="e.g. Add tactical interest to the throne room…"
+              placeholder="es. Aggiungi interesse tattico alla sala del trono..."
               rows={3}
               value={aiRequest}
             />
           </label>
           <div className="field-row">
             <button disabled={aiBusy} onClick={() => void runAiDescribeMap()} type="button">
-              {aiBusy ? "Working…" : "Describe map"}
+              {aiBusy ? "Elaborazione..." : "Descrivi mappa"}
             </button>
             <button disabled={aiBusy || !selectedRoom} onClick={() => void runAiSuggestForSelectedRoom()} type="button">
-              {aiBusy ? "Working…" : "Suggest assets for room"}
+              {aiBusy ? "Elaborazione..." : "Suggerisci asset per la stanza"}
             </button>
             <button disabled={aiBusy || aiRequest.trim().length === 0} onClick={() => void generateAssetFromPrompt()} type="button">
-              {aiBusy ? "Working…" : "Generate asset from prompt"}
+              {aiBusy ? "Elaborazione..." : "Genera asset da prompt"}
             </button>
           </div>
           {aiDescription ? (
             <section className="detail-block">
-              <h3>Description</h3>
+              <h3>Descrizione</h3>
               <p>{aiDescription}</p>
             </section>
           ) : null}
           {aiSuggestions.length > 0 ? (
             <section className="detail-block">
-              <h3>Suggestions</h3>
+              <h3>Suggerimenti</h3>
               <ul>
                 {aiSuggestions.map((suggestion, index) => (
                   <li key={`${suggestion}-${index}`}>{suggestion}</li>
@@ -1299,45 +1300,45 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
         <h2>Inspector</h2>
         <dl>
           <div>
-            <dt>Selected Room</dt>
-            <dd>{selectedRoom?.label ?? "none"}</dd>
+            <dt>Stanza selezionata</dt>
+            <dd>{selectedRoom?.label ?? "nessuna"}</dd>
           </div>
           <div>
-            <dt>Selected Asset</dt>
-            <dd>{selectedAsset?.assetId ?? "none"}</dd>
+            <dt>Asset selezionato</dt>
+            <dd>{selectedAsset?.assetId ?? "nessuno"}</dd>
           </div>
           <div>
-            <dt>Selected Assets</dt>
+            <dt>Asset selezionati</dt>
             <dd>{selectedAssetIds.length}</dd>
           </div>
           <div>
-            <dt>Asset Layer</dt>
-            <dd>{selectedAsset ? layerLabel(assetToLayerKind(selectedAsset.layer)) : "none"}</dd>
+            <dt>Livello asset</dt>
+            <dd>{selectedAsset ? layerLabel(assetToLayerKind(selectedAsset.layer)) : "nessuno"}</dd>
           </div>
           <div>
-            <dt>Selected Door</dt>
-            <dd>{selectedDoor?.id ?? "none"}</dd>
+            <dt>Porta selezionata</dt>
+            <dd>{selectedDoor?.id ?? "nessuna"}</dd>
           </div>
           <div>
-            <dt>Selected Light</dt>
-            <dd>{selectedLight?.id ?? "none"}</dd>
+            <dt>Luce selezionata</dt>
+            <dd>{selectedLight?.id ?? "nessuna"}</dd>
           </div>
           <div>
-            <dt>Selected Note</dt>
-            <dd>{selectedNote?.title ?? "none"}</dd>
+            <dt>Nota selezionata</dt>
+            <dd>{selectedNote?.title ?? "nessuna"}</dd>
           </div>
           <div>
-            <dt>Doors</dt>
+            <dt>Porte</dt>
             <dd>{document.plan?.doors.length ?? 0}</dd>
           </div>
           <div>
-            <dt>Walls</dt>
+            <dt>Muri</dt>
             <dd>{document.plan?.walls.length ?? 0}</dd>
           </div>
         </dl>
 
         <section className="detail-block editor-layer-controls">
-          <h3>Layers</h3>
+          <h3>Livelli</h3>
           <div className="editor-layer-list">
             {editorLayers.map((layer) => (
               <article key={layer.id}>
@@ -1352,7 +1353,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
                       onChange={(event) => updateLayer(layer.kind, { visible: event.target.checked })}
                       type="checkbox"
                     />
-                    <span>Visible</span>
+                    <span>Visibile</span>
                   </label>
                   <label className="editor-checkbox">
                     <input
@@ -1360,7 +1361,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
                       onChange={(event) => updateLayer(layer.kind, { locked: event.target.checked })}
                       type="checkbox"
                     />
-                    <span>Lock</span>
+                    <span>Blocca</span>
                   </label>
                 </div>
                 <input
@@ -1379,22 +1380,22 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
 
         {selectedAsset ? (
           <section className="detail-block editor-transform-controls">
-            <h3>Asset Transform</h3>
+            <h3>Trasformazione asset</h3>
             <label>
-              <span>Layer</span>
+              <span>Livello</span>
               <select
                 onChange={(event) => updateSelectedAssetLayer(event.target.value as MapDocument["assets"][number]["layer"])}
                 value={selectedAsset.layer}
               >
-                <option value="floor">Floor</option>
-                <option value="wall">Wall</option>
-                <option value="object">Props</option>
-                <option value="lighting">Lighting</option>
-                <option value="annotation">GM Only</option>
+                <option value="floor">Pavimento</option>
+                <option value="wall">Muro</option>
+                <option value="object">Oggetti</option>
+                <option value="lighting">Luci</option>
+                <option value="annotation">Solo GM</option>
               </select>
             </label>
             <label>
-              <span>Rotation</span>
+              <span>Rotazione</span>
               <input
                 max={359}
                 min={0}
@@ -1409,17 +1410,17 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
                 onClick={() => updateSelectedAssetTransform({ rotation: selectedAsset.rotation - 15 })}
                 type="button"
               >
-                Rotate -15
+                Ruota -15
               </button>
               <button
                 onClick={() => updateSelectedAssetTransform({ rotation: selectedAsset.rotation + 15 })}
                 type="button"
               >
-                Rotate +15
+                Ruota +15
               </button>
             </div>
             <label>
-              <span>Scale</span>
+              <span>Scala</span>
               <input
                 max={4}
                 min={0.25}
@@ -1431,60 +1432,60 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
             </label>
             <div className="editor-action-row">
               <button onClick={() => updateSelectedAssetTransform({ flipX: !selectedAsset.flipX })} type="button">
-                Flip H
+                Rifletti O
               </button>
               <button onClick={() => updateSelectedAssetTransform({ flipY: !selectedAsset.flipY })} type="button">
-                Flip V
+                Rifletti V
               </button>
               <button onClick={duplicateSelectedAsset} type="button">
-                Duplicate
+                Duplica
               </button>
             </div>
           </section>
         ) : null}
 
         <section className="detail-block editor-selection-controls">
-          <h3>Asset Selection</h3>
+          <h3>Selezione asset</h3>
           <div className="editor-action-row">
             <button onClick={selectAllVisibleAssets} type="button">
-              Select Visible
+              Seleziona visibili
             </button>
             <button disabled={selectedAssetIds.length === 0} onClick={clearAssetSelection} type="button">
-              Clear
+              Pulisci
             </button>
           </div>
           <div className="editor-action-row">
             <button disabled={selectedAssetIds.length === 0 && !selectedAssetId} onClick={copySelectedAssets} type="button">
-              Copy
+              Copia
             </button>
             <button onClick={pasteAssetClipboard} type="button">
-              Paste
+              Incolla
             </button>
           </div>
           <div className="editor-action-row">
             <button disabled={selectedAssetIds.length < 2} onClick={groupSelectedAssets} type="button">
-              Group
+              Raggruppa
             </button>
             <button disabled={selectedAssetIds.length === 0 && !selectedAssetId} onClick={ungroupSelectedAssets} type="button">
-              Ungroup
+              Separa
             </button>
           </div>
         </section>
 
         <section className="detail-block editor-light-controls">
-          <h3>Lighting Preview</h3>
+          <h3>Anteprima luci</h3>
           <label className="editor-checkbox">
             <input
               checked={fogPreviewEnabled}
               onChange={(event) => setFogPreviewEnabled(event.target.checked)}
               type="checkbox"
             />
-            <span>Fog Preview</span>
+            <span>Anteprima nebbia</span>
           </label>
           {selectedLight ? (
             <>
               <label>
-                <span>Radius</span>
+                <span>Raggio</span>
                 <input
                   max={20}
                   min={1}
@@ -1495,7 +1496,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
                 />
               </label>
               <label>
-                <span>Intensity</span>
+                <span>Intensita</span>
                 <input
                   max={1}
                   min={0}
@@ -1506,7 +1507,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
                 />
               </label>
               <label>
-                <span>Color</span>
+                <span>Colore</span>
                 <input
                   onChange={(event) => updateSelectedLight({ color: event.target.value })}
                   type="color"
@@ -1519,33 +1520,33 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
                   onChange={(event) => updateSelectedLight({ flicker: event.target.checked })}
                   type="checkbox"
                 />
-                <span>Flicker</span>
+                <span>Sfarfallio</span>
               </label>
             </>
           ) : (
-            <p>{document.plan?.lights.length ?? 0} lights on this map.</p>
+            <p>{document.plan?.lights.length ?? 0} luci su questa mappa.</p>
           )}
         </section>
 
         <section className="detail-block editor-note-controls">
-          <h3>GM Notes</h3>
+          <h3>Note GM</h3>
           <label>
-            <span>Draft</span>
+            <span>Bozza</span>
             <textarea onChange={(event) => setNoteDraft(event.target.value)} value={noteDraft} />
           </label>
           <button onClick={addNoteAtHoverCell} type="button">
-            Add Note
+            Aggiungi nota
           </button>
           {selectedNote ? (
             <article className="editor-note-card">
               <input
-                aria-label="Note title"
+                aria-label="Titolo nota"
                 onChange={(event) => updateSelectedNote({ title: event.target.value })}
                 value={selectedNote.title}
               />
               <textarea onChange={(event) => updateSelectedNote({ text: event.target.value })} value={selectedNote.text} />
               <button onClick={deleteSelectedNote} type="button">
-                Delete Note
+                Elimina nota
               </button>
             </article>
           ) : null}
@@ -1564,41 +1565,41 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
         </section>
 
         <section className="detail-block editor-initiative-controls">
-          <h3>Initiative</h3>
+          <h3>Iniziativa</h3>
           <div className="editor-initiative-form">
             <input
-              aria-label="Initiative name"
+              aria-label="Nome iniziativa"
               onChange={(event) => setInitiativeDraft((current) => ({ ...current, name: event.target.value }))}
-              placeholder="Name"
+              placeholder="Nome"
               value={initiativeDraft.name}
             />
             <input
-              aria-label="Initiative value"
+              aria-label="Valore iniziativa"
               onChange={(event) => setInitiativeDraft((current) => ({ ...current, initiative: event.target.value }))}
               type="number"
               value={initiativeDraft.initiative}
             />
             <input
-              aria-label="Hit points"
+              aria-label="Punti ferita"
               onChange={(event) => setInitiativeDraft((current) => ({ ...current, hitPoints: event.target.value }))}
               placeholder="HP"
               type="number"
               value={initiativeDraft.hitPoints}
             />
             <select
-              aria-label="Side"
+              aria-label="Schieramento"
               onChange={(event) =>
                 setInitiativeDraft((current) => ({ ...current, side: event.target.value as InitiativeEntry["side"] }))
               }
               value={initiativeDraft.side}
             >
-              <option value="enemy">Enemy</option>
-              <option value="player">Player</option>
-              <option value="neutral">Neutral</option>
+              <option value="enemy">Nemico</option>
+              <option value="player">Giocatore</option>
+              <option value="neutral">Neutrale</option>
             </select>
           </div>
           <button onClick={addInitiativeDraft} type="button">
-            Add Turn
+            Aggiungi turno
           </button>
           <div className="editor-initiative-list">
             {(document.plan?.initiative ?? []).map((entry) => (
@@ -1613,7 +1614,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
                     -5 HP
                   </button>
                   <button onClick={() => removeInitiativeEntry(entry)} type="button">
-                    Remove
+                    Rimuovi
                   </button>
                 </div>
               </article>
@@ -1622,13 +1623,13 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
         </section>
 
         <section className="detail-block asset-match-debug">
-          <h3>Room Asset Matches</h3>
+          <h3>Corrispondenze asset stanza</h3>
           {selectedRoom ? (
             <p>
-              Matching {selectedRoom.label} against {assetGroups.length} local groups.
+              Confronto di {selectedRoom.label} con {assetGroups.length} gruppi locali.
             </p>
           ) : (
-            <p>Select a room to inspect local asset matches.</p>
+            <p>Seleziona una stanza per ispezionare le corrispondenze con gli asset locali.</p>
           )}
           <div className="asset-match-list">
             {roomMatches.map((match) => (
@@ -1638,7 +1639,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
                   <span>{Math.round(match.score * 100)}%</span>
                 </header>
                 <p>
-                  {match.group.kind ?? "unknown"} - {match.group.assetIds?.length ?? 0} assets
+                  {formatAssetKind(match.group.kind ?? "unknown")} - {match.group.assetIds?.length ?? 0} asset
                 </p>
                 <ul>
                   {match.reasons.map((reason) => (
@@ -1649,23 +1650,23 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
                 </ul>
               </article>
             ))}
-            {selectedRoom && roomMatches.length === 0 ? <p>No matching groups found yet.</p> : null}
+            {selectedRoom && roomMatches.length === 0 ? <p>Nessun gruppo corrispondente trovato.</p> : null}
           </div>
         </section>
 
         <section className="detail-block asset-match-debug">
-          <h3>Find Matching Assets</h3>
+          <h3>Trova asset compatibili</h3>
           <label>
-            <span>Search</span>
+            <span>Cerca</span>
             <input
               onChange={(event) => setAssetSearchQuery(event.target.value)}
-              placeholder={selectedRoom ? `${selectedRoom.label} ${selectedRoom.tags.join(" ")}` : "crypt coffin"}
+              placeholder={selectedRoom ? `${selectedRoom.label} ${selectedRoom.tags.join(" ")}` : "cripta sarcofago"}
               type="search"
               value={assetSearchQuery}
             />
           </label>
           <button className="save-correction" onClick={handleFindMatchingAssets} type="button">
-            Search Local Assets
+            Cerca asset locali
           </button>
           <div className="asset-match-list">
             {assetSearchResults.map((result) => (
@@ -1680,7 +1681,7 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
                   onDragStart={(event) => writeDragPayload(event, { assetId: result.assetId, type: "palette" })}
                   type="button"
                 >
-                  Drag To Map
+                  Trascina sulla mappa
                 </button>
               </article>
             ))}
@@ -1693,38 +1694,38 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
           onClick={deleteSelectedAsset}
           type="button"
         >
-          Delete Selected Asset{selectedAssetIds.length > 1 ? "s" : ""}
+          Elimina asset selezionat{selectedAssetIds.length > 1 ? "i" : "o"}
         </button>
 
         <section className="detail-block editor-furnish-controls">
-          <h3>Auto-Furnish</h3>
+          <h3>Arredamento automatico</h3>
           <label>
-            <span>Density</span>
+            <span>Densita</span>
             <select
               onChange={(event) => setFurnishingDensity(event.target.value as FurnishingDensity)}
               value={furnishingDensity}
             >
-              <option value="sparse">Sparse</option>
-              <option value="normal">Normal</option>
-              <option value="rich">Rich</option>
+              <option value="sparse">Sparsa</option>
+              <option value="normal">Normale</option>
+              <option value="rich">Ricca</option>
             </select>
           </label>
           <button className="save-correction" onClick={handleAutoFurnish} type="button">
-            Place Room Assets
+            Piazza asset stanza
           </button>
         </section>
 
         <section className="detail-block editor-export-controls">
-          <h3>Export</h3>
+          <h3>Esportazione</h3>
           <label>
-            <span>Format</span>
+            <span>Formato</span>
             <select onChange={(event) => setExportFormat(event.target.value as ExportFormat)} value={exportFormat}>
               <option value="png">PNG</option>
               <option value="webp">WEBP</option>
             </select>
           </label>
           <label>
-            <span>Scale</span>
+            <span>Scala</span>
             <select onChange={(event) => setExportScale(Number(event.target.value))} value={exportScale}>
               <option value={1}>1x</option>
               <option value={2}>2x</option>
@@ -1738,10 +1739,10 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
               onChange={(event) => setExportIncludeGrid(event.target.checked)}
               type="checkbox"
             />
-            <span>Include grid</span>
+            <span>Includi griglia</span>
           </label>
           <button className="save-correction" disabled={isExporting} onClick={handleExport} type="button">
-            {isExporting ? "Exporting" : "Export Map"}
+            {isExporting ? "Esportazione..." : "Esporta mappa"}
           </button>
         </section>
 
@@ -1749,13 +1750,13 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
           <h3>MapDocument JSON</h3>
           <div className="editor-json-actions">
             <button onClick={() => void saveJson()} type="button">
-              {projectId ? "Save Project" : "Save JSON"}
+              {projectId ? "Salva progetto" : "Salva JSON"}
             </button>
             <button onClick={loadJson} type="button">
-              Load JSON
+              Carica JSON
             </button>
             <button onClick={loadLocal} type="button">
-              Load Local
+              Carica locale
             </button>
           </div>
           <textarea
@@ -2235,7 +2236,7 @@ function getTileColor(kind: string): string {
 }
 
 function createToolStatus(tool: EditorTool, cell: { x: number; y: number }): string {
-  return `${formatToolName(tool)} at ${cell.x}, ${cell.y}`;
+  return `${formatToolName(tool)} a ${cell.x}, ${cell.y}`;
 }
 
 function isSelectionVisible(document: MapDocument, selection: NonNullable<EditorSelection>): boolean {
@@ -2325,28 +2326,41 @@ function assetToLayerKind(layer: MapDocument["assets"][number]["layer"]): MapLay
 function layerLabel(kind: MapLayerKind): string {
   switch (kind) {
     case "background":
-      return "Background";
+      return "Sfondo";
     case "terrain":
-      return "Terrain";
+      return "Terreno";
     case "walls":
-      return "Walls";
+      return "Muri";
     case "props":
-      return "Props";
+      return "Oggetti";
     case "lighting":
-      return "Lighting";
+      return "Luci";
     case "gm-only":
-      return "GM Only";
+      return "Solo GM";
     case "notes":
-      return "Notes";
+      return "Note";
   }
 }
 
 function formatToolName(tool: EditorTool): string {
-  return tool
-    .replace(/^paint-/u, "")
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+  switch (tool) {
+    case "select":
+      return "Seleziona";
+    case "paint-floor":
+      return "Pavimento";
+    case "paint-wall":
+      return "Muro";
+    case "paint-empty":
+      return "Cancella";
+    case "door":
+      return "Porta";
+    case "light":
+      return "Luce";
+    case "note":
+      return "Nota";
+    default:
+      return tool;
+  }
 }
 
 function clamp(value: number, min: number, max: number): number {

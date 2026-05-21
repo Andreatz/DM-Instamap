@@ -8,11 +8,11 @@ optional: the manual ChatGPT bridge still works, but provider-backed automation
 (Anthropic / OpenAI / Replicate / Automatic1111) is wired up when you supply
 keys via environment variables.
 
-Phases A through E of [docs/ROADMAP.md](docs/ROADMAP.md) are complete at the
-package, API, and UI levels. Phases F through L of the consolidation roadmap
-[docs/ROADMAP_POST_E.md](docs/ROADMAP_POST_E.md) are also closed at the
-repo/test-automatic level (integration fixes F, CLI surface G, worker offload
-H, editor canvas integration I, documentation J, web tests K, polish L1/L4/L5).
+The unified [docs/ROADMAP.md](docs/ROADMAP.md) now consolidates the historical
+roadmap, phases A-E, and the post-E consolidation phases F-L. Those phases are
+closed at the repo/test-automatic level (integration fixes F, CLI surface G,
+worker offload H, editor canvas integration I, documentation J, web tests K,
+polish L1/L4/L5).
 Remaining work is manual verification with real VTT imports, real provider
 keys, and large asset packs.
 

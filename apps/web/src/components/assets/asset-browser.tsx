@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import {
   filterAssets,
+  formatAssetKind,
+  formatClassificationSource,
   formatPercent,
   type AssetBrowserEntry,
   type AssetBrowserOptions,
@@ -30,7 +32,7 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
   const [visualSearchQuery, setVisualSearchQuery] = useState("");
   const [imageSearchPath, setImageSearchPath] = useState("");
   const [searchResults, setSearchResults] = useState<AssetSearchApiResult[]>([]);
-  const [searchStatus, setSearchStatus] = useState("Local search ready");
+  const [searchStatus, setSearchStatus] = useState("Ricerca locale pronta");
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(assets[0]?.id ?? null);
   const visibleAssets = useMemo(() => filterAssets(assets, filters), [assets, filters]);
   const selectedAsset =
@@ -48,25 +50,25 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
 
     if (!query) {
       setSearchResults([]);
-      setSearchStatus("Enter a local search query");
+      setSearchStatus("Inserisci una ricerca locale");
       return;
     }
 
-    setSearchStatus("Searching local assets");
+    setSearchStatus("Ricerca negli asset locali");
 
     try {
       const response = await fetch(`/api/assets/search?q=${encodeURIComponent(query)}&limit=24`);
       const payload = (await response.json()) as { results?: AssetSearchApiResult[]; error?: string };
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Search failed");
+        throw new Error(payload.error ?? "Ricerca fallita");
       }
 
       setSearchResults(payload.results ?? []);
-      setSearchStatus(`${payload.results?.length ?? 0} local matches`);
+      setSearchStatus(`${payload.results?.length ?? 0} risultati locali`);
     } catch (error) {
       setSearchResults([]);
-      setSearchStatus(error instanceof Error ? error.message : "Search failed");
+      setSearchStatus(error instanceof Error ? error.message : "Ricerca fallita");
     }
   }
 
@@ -75,11 +77,11 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
 
     if (!imagePath) {
       setSearchResults([]);
-      setSearchStatus("Enter a local image path inside the workspace");
+      setSearchStatus("Inserisci un percorso immagine locale dentro il workspace");
       return;
     }
 
-    setSearchStatus("Searching similar local images");
+    setSearchStatus("Ricerca di immagini locali simili");
 
     try {
       const response = await fetch("/api/assets/search-by-image", {
@@ -92,53 +94,53 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
       const payload = (await response.json()) as { results?: AssetSearchApiResult[]; error?: string };
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Image search failed");
+        throw new Error(payload.error ?? "Ricerca per immagine fallita");
       }
 
       setSearchResults(payload.results ?? []);
-      setSearchStatus(`${payload.results?.length ?? 0} similar local assets`);
+      setSearchStatus(`${payload.results?.length ?? 0} asset locali simili`);
     } catch (error) {
       setSearchResults([]);
-      setSearchStatus(error instanceof Error ? error.message : "Image search failed");
+      setSearchStatus(error instanceof Error ? error.message : "Ricerca per immagine fallita");
     }
   }
 
   return (
-    <section className="asset-browser" aria-label="Asset browser">
+    <section className="asset-browser" aria-label="Browser asset">
       <aside className="asset-filters">
         <div className="filter-header">
-          <h2>Filters</h2>
+          <h2>Filtri</h2>
           <button type="button" onClick={() => setFilters(DEFAULT_FILTERS)}>
-            Reset
+            Reimposta
           </button>
         </div>
 
         <label className="field">
-          <span>Search</span>
+          <span>Cerca</span>
           <input
             onChange={(event) => updateFilter("query", event.target.value)}
-            placeholder="Name, path, tag..."
+            placeholder="Nome, percorso, tag..."
             type="search"
             value={filters.query}
           />
         </label>
 
         <section className="detail-block">
-          <h3>Visual/Text Search</h3>
+          <h3>Ricerca visuale/testuale</h3>
           <label className="field">
-            <span>Text query</span>
+            <span>Ricerca testuale</span>
             <input
               onChange={(event) => setVisualSearchQuery(event.target.value)}
-              placeholder="crypt coffin, blue water..."
+              placeholder="cripta, sarcofago, acqua blu..."
               type="search"
               value={visualSearchQuery}
             />
           </label>
           <button onClick={runTextSearch} type="button">
-            Search Assets
+            Cerca asset
           </button>
           <label className="field">
-            <span>Image path</span>
+            <span>Percorso immagine</span>
             <input
               onChange={(event) => setImageSearchPath(event.target.value)}
               placeholder="data/previews/references/example.webp"
@@ -147,18 +149,18 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
             />
           </label>
           <button onClick={runImageSearch} type="button">
-            Search By Image
+            Cerca per immagine
           </button>
           <p>{searchStatus}</p>
         </section>
 
         <label className="field">
-          <span>Kind</span>
+          <span>Tipo</span>
           <select onChange={(event) => updateFilter("kind", event.target.value)} value={filters.kind}>
-            <option value="all">All kinds</option>
+            <option value="all">Tutti i tipi</option>
             {options.kinds.map((kind) => (
               <option key={kind} value={kind}>
-                {kind}
+                {formatAssetKind(kind)}
               </option>
             ))}
           </select>
@@ -167,7 +169,7 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
         <label className="field">
           <span>Tag</span>
           <select onChange={(event) => updateFilter("tag", event.target.value)} value={filters.tag}>
-            <option value="all">All tags</option>
+            <option value="all">Tutti i tag</option>
             {options.tags.slice(0, 500).map((tag) => (
               <option key={tag} value={tag}>
                 {tag}
@@ -177,12 +179,12 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
         </label>
 
         <label className="field">
-          <span>Source Folder</span>
+          <span>Cartella sorgente</span>
           <select
             onChange={(event) => updateFilter("sourceFolder", event.target.value)}
             value={filters.sourceFolder}
           >
-            <option value="all">All folders</option>
+            <option value="all">Tutte le cartelle</option>
             {options.sourceFolders.slice(0, 500).map((folder) => (
               <option key={folder} value={folder}>
                 {folder}
@@ -192,7 +194,7 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
         </label>
 
         <label className="field">
-          <span>Confidence {formatPercent(filters.confidence)}</span>
+          <span>Affidabilita {formatPercent(filters.confidence)}</span>
           <input
             max="1"
             min="0"
@@ -204,17 +206,17 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
         </label>
 
         <div className="manifest-note">
-          <span>{visibleAssets.length} shown</span>
-          {generatedAt ? <span>Indexed {new Date(generatedAt).toLocaleString()}</span> : null}
-          {sourceRoot ? <span title={sourceRoot}>Local source loaded</span> : null}
+          <span>{visibleAssets.length} mostrati</span>
+          {generatedAt ? <span>Indicizzati {new Date(generatedAt).toLocaleString()}</span> : null}
+          {sourceRoot ? <span title={sourceRoot}>Sorgente locale caricata</span> : null}
         </div>
       </aside>
 
       <div className="asset-results">
         {searchResults.length > 0 ? (
           <section className="detail-block">
-            <h2>Local Search Results</h2>
-            <div className="asset-grid" aria-label="Local visual search results">
+            <h2>Risultati ricerca locale</h2>
+            <div className="asset-grid" aria-label="Risultati della ricerca visuale locale">
               {searchResults.map((result) => (
                 <button
                   className="asset-card"
@@ -227,7 +229,7 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
                   </span>
                   <span className="asset-card-name">{getFileName(result.relativePath)}</span>
                   <span className="asset-card-meta">
-                    {result.classification} - {Math.round(result.score * 100)}%
+                    {formatAssetKind(result.classification)} - {Math.round(result.score * 100)}%
                   </span>
                   <span className="asset-card-meta">{result.reason}</span>
                 </button>
@@ -236,7 +238,7 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
           </section>
         ) : null}
 
-        <div className="asset-grid" aria-label="Asset thumbnails">
+        <div className="asset-grid" aria-label="Anteprime asset">
           {visibleAssets.map((asset) => (
             <button
               aria-pressed={selectedAsset?.id === asset.id}
@@ -250,7 +252,7 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
               </span>
               <span className="asset-card-name">{getFileName(asset.relativePath)}</span>
               <span className="asset-card-meta">
-                {asset.classification} - {formatPercent(asset.confidence)}
+                {formatAssetKind(asset.classification)} - {formatPercent(asset.confidence)}
               </span>
             </button>
           ))}
@@ -258,8 +260,8 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
 
         {visibleAssets.length === 0 ? (
           <div className="asset-empty">
-            <h2>No Assets Match</h2>
-            <p>Adjust the filters or search text to widen the current view.</p>
+            <h2>Nessun asset corrisponde</h2>
+            <p>Modifica i filtri o il testo di ricerca per ampliare la vista.</p>
           </div>
         ) : null}
       </div>
@@ -273,8 +275,8 @@ function AssetDetails({ asset }: { asset: AssetBrowserEntry | null }) {
   if (!asset) {
     return (
       <aside className="asset-details">
-        <h2>Asset Details</h2>
-        <p>No asset selected.</p>
+        <h2>Dettagli asset</h2>
+        <p>Nessun asset selezionato.</p>
       </aside>
     );
   }
@@ -287,35 +289,35 @@ function AssetDetails({ asset }: { asset: AssetBrowserEntry | null }) {
       <h2>{getFileName(asset.relativePath)}</h2>
       <dl>
         <div>
-          <dt>Kind</dt>
-          <dd>{asset.classification}</dd>
+          <dt>Tipo</dt>
+          <dd>{formatAssetKind(asset.classification)}</dd>
         </div>
         <div>
-          <dt>Confidence</dt>
+          <dt>Affidabilita</dt>
           <dd>{formatPercent(asset.confidence)}</dd>
         </div>
         <div>
-          <dt>Source</dt>
-          <dd>{asset.classificationSource}</dd>
+          <dt>Sorgente</dt>
+          <dd>{formatClassificationSource(asset.classificationSource)}</dd>
         </div>
         <div>
-          <dt>Size</dt>
+          <dt>Dimensioni</dt>
           <dd>
             {asset.width ?? "?"} x {asset.height ?? "?"}
           </dd>
         </div>
         <div>
-          <dt>Transparency</dt>
-          <dd>{asset.hasTransparency === null ? "unknown" : asset.hasTransparency ? "yes" : "no"}</dd>
+          <dt>Trasparenza</dt>
+          <dd>{asset.hasTransparency === null ? "sconosciuta" : asset.hasTransparency ? "si" : "no"}</dd>
         </div>
         <div>
-          <dt>Extension</dt>
+          <dt>Estensione</dt>
           <dd>{asset.extension}</dd>
         </div>
       </dl>
 
       <section className="detail-block">
-        <h3>Path</h3>
+        <h3>Percorso</h3>
         <p>{asset.relativePath}</p>
       </section>
 
@@ -329,7 +331,7 @@ function AssetDetails({ asset }: { asset: AssetBrowserEntry | null }) {
       </section>
 
       <section className="detail-block">
-        <h3>Dominant Colors</h3>
+        <h3>Colori dominanti</h3>
         <div className="color-list">
           {asset.dominantColors.map((color) => (
             <span key={color.hex} title={`${color.hex} (${color.population})`}>

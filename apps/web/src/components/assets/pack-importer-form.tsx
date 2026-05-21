@@ -34,7 +34,7 @@ export function PackImporterForm() {
 
   async function importPack() {
     setSubmitting(true);
-    setStatus("Importing pack…");
+    setStatus("Importazione pacchetto...");
     setSummary(null);
     setActiveJobId(null);
 
@@ -57,11 +57,11 @@ export function PackImporterForm() {
         const payload = (await response.json()) as { error?: string; job?: WorkerJobRecord };
 
         if (!response.ok || !payload.job) {
-          throw new Error(payload.error ?? "Worker import failed.");
+          throw new Error(payload.error ?? "Import tramite worker fallito.");
         }
 
         setActiveJobId(payload.job.id);
-        setStatus(`Worker job ${payload.job.id} queued.`);
+        setStatus(`Job worker ${payload.job.id} in coda.`);
         return;
       }
 
@@ -77,13 +77,13 @@ export function PackImporterForm() {
       const payload = (await response.json()) as { error?: string; summary?: ImportSummary };
 
       if (!response.ok || !payload.summary) {
-        throw new Error(payload.error ?? "Import failed.");
+        throw new Error(payload.error ?? "Importazione fallita.");
       }
 
       setSummary(payload.summary);
-      setStatus(`Imported ${payload.summary.assetCount} assets.`);
+      setStatus(`Importati ${payload.summary.assetCount} asset.`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Import failed.");
+      setStatus(error instanceof Error ? error.message : "Importazione fallita.");
     } finally {
       setSubmitting(false);
     }
@@ -91,14 +91,14 @@ export function PackImporterForm() {
 
   return (
     <section className="asset-details">
-      <h2>Import Asset Pack</h2>
+      <h2>Importa pacchetto di asset</h2>
       <p className="muted">
-        Scan a local folder and apply preset-specific tagging rules. Existing classifications stay manual; only unknown
-        assets get reclassified.
+        Analizza una cartella locale e applica regole di tagging specifiche del preset. Le classificazioni esistenti
+        restano manuali; solo gli asset sconosciuti vengono riclassificati.
       </p>
 
       <label className="field">
-        <span>Asset Root (absolute path or relative to workspace)</span>
+        <span>Root asset (percorso assoluto o relativo al workspace)</span>
         <input
           onChange={(event) => setAssetRoot(event.target.value)}
           placeholder="C:/Assets/ForgottenAdventures or data/imports/fa-1"
@@ -118,10 +118,10 @@ export function PackImporterForm() {
       </label>
 
       <label className="field">
-        <span>Extra Default Tags (comma separated)</span>
+        <span>Tag predefiniti extra (separati da virgola)</span>
         <input
           onChange={(event) => setDefaultTags(event.target.value)}
-          placeholder="imported, needs-review"
+          placeholder="importato, da-revisionare"
           value={defaultTags}
         />
       </label>
@@ -132,7 +132,7 @@ export function PackImporterForm() {
           onChange={(event) => setRunOnWorker(event.target.checked)}
           type="checkbox"
         />
-        <span>Run on local worker (fire-and-forget, requires worker running)</span>
+        <span>Esegui sul worker locale (fire-and-forget, richiede il worker attivo)</span>
       </label>
 
       <button
@@ -141,7 +141,7 @@ export function PackImporterForm() {
         onClick={() => void importPack()}
         type="button"
       >
-        {submitting ? "Importing…" : "Import Pack"}
+        {submitting ? "Importazione..." : "Importa pacchetto"}
       </button>
 
       {status ? <p>{status}</p> : null}
@@ -151,23 +151,23 @@ export function PackImporterForm() {
       {summary ? (
         <dl>
           <div>
-            <dt>Source</dt>
+            <dt>Sorgente</dt>
             <dd>{summary.sourceRoot}</dd>
           </div>
           <div>
-            <dt>Assets indexed</dt>
+            <dt>Asset indicizzati</dt>
             <dd>{summary.assetCount}</dd>
           </div>
           <div>
-            <dt>Preset tags applied</dt>
+            <dt>Tag preset applicati</dt>
             <dd>{summary.presetTagsApplied}</dd>
           </div>
           <div>
-            <dt>Reclassified</dt>
+            <dt>Riclassificati</dt>
             <dd>{summary.reclassifiedCount}</dd>
           </div>
           <div>
-            <dt>Scan errors</dt>
+            <dt>Errori scansione</dt>
             <dd>{summary.manifestErrors}</dd>
           </div>
         </dl>

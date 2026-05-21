@@ -12,12 +12,12 @@ export default async function ReferenceReviewPage() {
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>Reference Review</h1>
-          <p>Correct map type, tags, score, and notes for local reference maps.</p>
+          <h1>Revisione riferimenti</h1>
+          <p>Correggi tipo mappa, tag, punteggio e note delle mappe di riferimento locali.</p>
         </div>
         <dl>
           <div>
-            <dt>References</dt>
+            <dt>Riferimenti</dt>
             <dd>{manifest.references.length}</dd>
           </div>
           <div>
@@ -29,9 +29,9 @@ export default async function ReferenceReviewPage() {
 
       {manifest.missing ? (
         <section className="asset-empty" aria-live="polite">
-          <h2>No Reference Registry Found</h2>
+          <h2>Nessun registro riferimenti trovato</h2>
           <p>
-            Run <code>pnpm references:scan &lt;folder&gt;</code>.
+            Esegui <code>pnpm references:scan &lt;cartella&gt;</code>.
           </p>
         </section>
       ) : (

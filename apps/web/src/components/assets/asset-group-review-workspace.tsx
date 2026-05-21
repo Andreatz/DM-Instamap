@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ASSET_REVIEW_KINDS, type ReviewAssetKind } from "@/lib/asset-browser";
+import { ASSET_REVIEW_KINDS, formatAssetKind, type ReviewAssetKind } from "@/lib/asset-browser";
 import type {
   AssetGroupReviewDraft,
   AssetGroupReviewItem,
@@ -17,11 +17,11 @@ type AssetGroupReviewWorkspaceProps = {
 };
 
 const QUEUES: Array<{ id: GroupReviewQueue; label: string }> = [
-  { id: "largest-unreviewed", label: "Largest unreviewed" },
-  { id: "low-confidence", label: "Low confidence" },
-  { id: "unknown", label: "Unknown assets" },
-  { id: "most-used", label: "Most used" },
-  { id: "random-sample", label: "Random sample" }
+  { id: "largest-unreviewed", label: "Non revisionati piu grandi" },
+  { id: "low-confidence", label: "Bassa affidabilita" },
+  { id: "unknown", label: "Asset sconosciuti" },
+  { id: "most-used", label: "Piu usati" },
+  { id: "random-sample", label: "Campione casuale" }
 ];
 
 export function AssetGroupReviewWorkspace({
@@ -43,7 +43,7 @@ export function AssetGroupReviewWorkspace({
   const [splitName, setSplitName] = useState("");
   const [mergeGroupIdsText, setMergeGroupIdsText] = useState("");
   const [mergeName, setMergeName] = useState("");
-  const [status, setStatus] = useState("Ready");
+  const [status, setStatus] = useState("Pronto");
   const queueItems = useMemo(() => selectQueue(items, queue), [items, queue]);
 
   function selectGroup(groupId: string) {
@@ -52,11 +52,11 @@ export function AssetGroupReviewWorkspace({
     setDraft(createDraft(item));
     setRemoveAssetId(item?.visibleAssetIds[0] ?? "");
     setSplitAssetIdsText("");
-    setStatus("Ready");
+    setStatus("Pronto");
   }
 
   async function submit(action: Record<string, unknown>, label: string) {
-    setStatus("Saving...");
+    setStatus("Salvataggio...");
 
     try {
       const response = await fetch("/api/asset-groups/review", {
@@ -68,7 +68,7 @@ export function AssetGroupReviewWorkspace({
       });
 
       if (!response.ok) {
-        throw new Error("Could not save group review action.");
+        throw new Error("Impossibile salvare l'azione di revisione gruppo.");
       }
 
       const payload = (await response.json()) as { reviews: AssetGroupReviewsFile };
@@ -77,24 +77,24 @@ export function AssetGroupReviewWorkspace({
       setStats(calculateStats(applyLocalAction(items, action)));
       setStatus(label);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Could not save group review action.");
+      setStatus(error instanceof Error ? error.message : "Impossibile salvare l'azione di revisione gruppo.");
     }
   }
 
   if (!selectedItem) {
     return (
       <section className="asset-empty">
-        <h2>No Groups To Review</h2>
-        <p>Generate asset groups first.</p>
+        <h2>Nessun gruppo da revisionare</h2>
+        <p>Genera prima i gruppi di asset.</p>
       </section>
     );
   }
 
   return (
-    <section className="group-review-shell" aria-label="Group asset review">
+    <section className="group-review-shell" aria-label="Revisione gruppi asset">
       <aside className="asset-filters group-review-sidebar">
         <div className="filter-header">
-          <h2>Queues</h2>
+          <h2>Code</h2>
           <span>{queueItems.length}</span>
         </div>
         <div className="group-review-queues">
@@ -111,26 +111,26 @@ export function AssetGroupReviewWorkspace({
         </div>
 
         <section className="detail-block group-review-stats">
-          <h3>Progress</h3>
+          <h3>Avanzamento</h3>
           <dl>
             <div>
-              <dt>Total assets</dt>
+              <dt>Asset totali</dt>
               <dd>{stats.totalAssets}</dd>
             </div>
             <div>
-              <dt>Reviewed assets</dt>
+              <dt>Asset revisionati</dt>
               <dd>{stats.reviewedAssets}</dd>
             </div>
             <div>
-              <dt>Reviewed groups</dt>
+              <dt>Gruppi revisionati</dt>
               <dd>{stats.reviewedGroups}</dd>
             </div>
             <div>
-              <dt>Unknown remaining</dt>
+              <dt>Sconosciuti rimanenti</dt>
               <dd>{stats.unknownRemaining}</dd>
             </div>
             <div>
-              <dt>Low confidence</dt>
+              <dt>Bassa affidabilita</dt>
               <dd>{stats.lowConfidenceRemaining}</dd>
             </div>
           </dl>
@@ -151,11 +151,11 @@ export function AssetGroupReviewWorkspace({
             <span>
               <strong>{item.group.name}</strong>
               <small>
-                {item.group.kind} - {item.assetCount} assets - confidence{" "}
-                {item.confidenceAverage === null ? "n/a" : `${Math.round(item.confidenceAverage * 100)}%`}
+                {formatAssetKind(item.group.kind)} - {item.assetCount} asset - affidabilita{" "}
+                {item.confidenceAverage === null ? "n/d" : `${Math.round(item.confidenceAverage * 100)}%`}
               </small>
             </span>
-            {item.reviewed ? <em>reviewed</em> : null}
+            {item.reviewed ? <em>revisionato</em> : null}
           </button>
         ))}
       </section>
@@ -164,23 +164,23 @@ export function AssetGroupReviewWorkspace({
         <h2>{selectedItem.group.name}</h2>
         <dl>
           <div>
-            <dt>Kind</dt>
-            <dd>{selectedItem.group.kind}</dd>
+            <dt>Tipo</dt>
+            <dd>{formatAssetKind(selectedItem.group.kind)}</dd>
           </div>
           <div>
-            <dt>Assets</dt>
+            <dt>Asset</dt>
             <dd>{selectedItem.assetCount}</dd>
           </div>
           <div>
-            <dt>Confidence Average</dt>
+            <dt>Affidabilita media</dt>
             <dd>
               {selectedItem.confidenceAverage === null
-                ? "n/a"
+                ? "n/d"
                 : `${Math.round(selectedItem.confidenceAverage * 100)}%`}
             </dd>
           </div>
           <div>
-            <dt>Unknown</dt>
+            <dt>Sconosciuti</dt>
             <dd>{selectedItem.unknownCount}</dd>
           </div>
         </dl>
@@ -192,9 +192,9 @@ export function AssetGroupReviewWorkspace({
         </div>
 
         <div className="group-review-thumb-toolbar">
-          <span>{thumbLimit} representative thumbnails</span>
+          <span>{thumbLimit} anteprime rappresentative</span>
           <button onClick={() => setThumbLimit(thumbLimit === 12 ? 24 : 12)} type="button">
-            Show {thumbLimit === 12 ? 24 : 12}
+            Mostra {thumbLimit === 12 ? 24 : 12}
           </button>
         </div>
 
@@ -202,7 +202,7 @@ export function AssetGroupReviewWorkspace({
           {selectedItem.previewAssets.slice(0, thumbLimit).map((asset) => (
             <figure key={asset.id}>
               <img alt="" src={asset.thumbnailUrl} />
-              <figcaption>{asset.classification}</figcaption>
+              <figcaption>{formatAssetKind(asset.classification)}</figcaption>
             </figure>
           ))}
         </div>
@@ -210,18 +210,18 @@ export function AssetGroupReviewWorkspace({
         <div className="group-review-actions">
           <button
             className="save-correction"
-            onClick={() => submit({ action: "confirm", groupId: selectedItem.group.id }, "Group confirmed")}
+            onClick={() => submit({ action: "confirm", groupId: selectedItem.group.id }, "Gruppo confermato")}
             type="button"
           >
-            Confirm Group
+            Conferma gruppo
           </button>
 
           <label className="field">
-            <span>Kind</span>
+            <span>Tipo</span>
             <select onChange={(event) => setDraft({ ...draft, kind: event.target.value as ReviewAssetKind })} value={draft.kind}>
               {ASSET_REVIEW_KINDS.map((kind) => (
                 <option key={kind} value={kind}>
-                  {kind}
+                  {formatAssetKind(kind)}
                 </option>
               ))}
             </select>
@@ -233,12 +233,12 @@ export function AssetGroupReviewWorkspace({
           </label>
 
           <label className="field">
-            <span>Theme</span>
+            <span>Tema</span>
             <input onChange={(event) => setDraft({ ...draft, theme: event.target.value })} value={draft.theme} />
           </label>
 
           <label className="field">
-            <span>Usable For</span>
+            <span>Usabile per</span>
             <textarea
               onChange={(event) => setDraft({ ...draft, usableForText: event.target.value })}
               rows={2}
@@ -247,7 +247,7 @@ export function AssetGroupReviewWorkspace({
           </label>
 
           <label className="field">
-            <span>Quality Score {draft.qualityScore}</span>
+            <span>Punteggio qualita {draft.qualityScore}</span>
             <input
               max="100"
               min="0"
@@ -260,35 +260,35 @@ export function AssetGroupReviewWorkspace({
           <button
             className="save-correction"
             onClick={() =>
-              submit({ action: "correct", draft, groupId: selectedItem.group.id }, "Group correction saved")
+              submit({ action: "correct", draft, groupId: selectedItem.group.id }, "Correzione gruppo salvata")
             }
             type="button"
           >
-            Save Group Correction
+            Salva correzione gruppo
           </button>
         </div>
 
         <section className="detail-block group-review-batch">
-          <h3>Batch Operations</h3>
+          <h3>Operazioni a lotto</h3>
 
           <label className="field">
-            <span>Add Tags</span>
+            <span>Aggiungi tag</span>
             <input onChange={(event) => setTagBatchText(event.target.value)} value={tagBatchText} />
           </label>
           <button
             onClick={() =>
               submit(
                 { action: "add-tags", groupId: selectedItem.group.id, tagsText: tagBatchText },
-                "Tags added to group"
+                "Tag aggiunti al gruppo"
               )
             }
             type="button"
           >
-            Add Tags To Group
+            Aggiungi tag al gruppo
           </button>
 
           <label className="field">
-            <span>Remove Wrong Asset</span>
+            <span>Rimuovi asset errato</span>
             <select onChange={(event) => setRemoveAssetId(event.target.value)} value={removeAssetId}>
               {selectedItem.assets.slice(0, 100).map((asset) => (
                 <option key={asset.id} value={asset.id}>
@@ -301,16 +301,16 @@ export function AssetGroupReviewWorkspace({
             onClick={() =>
               submit(
                 { action: "remove-asset", assetId: removeAssetId, groupId: selectedItem.group.id },
-                "Asset removed from group review"
+                "Asset rimosso dalla revisione gruppo"
               )
             }
             type="button"
           >
-            Remove From Group
+            Rimuovi dal gruppo
           </button>
 
           <label className="field">
-            <span>Split Asset IDs</span>
+            <span>ID asset da separare</span>
             <textarea
               onChange={(event) => setSplitAssetIdsText(event.target.value)}
               placeholder="asset-a, asset-b"
@@ -319,7 +319,7 @@ export function AssetGroupReviewWorkspace({
             />
           </label>
           <label className="field">
-            <span>Split Name</span>
+            <span>Nome separazione</span>
             <input onChange={(event) => setSplitName(event.target.value)} value={splitName} />
           </label>
           <button
@@ -331,16 +331,16 @@ export function AssetGroupReviewWorkspace({
                   groupId: selectedItem.group.id,
                   name: splitName
                 },
-                "Split saved"
+                "Separazione salvata"
               )
             }
             type="button"
           >
-            Save Split
+            Salva separazione
           </button>
 
           <label className="field">
-            <span>Merge Group IDs</span>
+            <span>ID gruppi da unire</span>
             <textarea
               onChange={(event) => setMergeGroupIdsText(event.target.value)}
               placeholder={`${selectedItem.group.id}, group-other`}
@@ -349,23 +349,23 @@ export function AssetGroupReviewWorkspace({
             />
           </label>
           <label className="field">
-            <span>Merge Name</span>
+            <span>Nome unione</span>
             <input onChange={(event) => setMergeName(event.target.value)} value={mergeName} />
           </label>
           <button
             onClick={() =>
-              submit({ action: "merge", groupIds: parseList(mergeGroupIdsText), name: mergeName }, "Merge saved")
+              submit({ action: "merge", groupIds: parseList(mergeGroupIdsText), name: mergeName }, "Unione salvata")
             }
             type="button"
           >
-            Save Merge
+            Salva unione
           </button>
         </section>
 
         <p className="save-note">{status}</p>
         <p className="manifest-note">
-          Saved metadata: {Object.keys(reviews.reviewedGroups).length} group reviews, {reviews.splits.length} splits,{" "}
-          {reviews.merges.length} merges.
+          Metadati salvati: {Object.keys(reviews.reviewedGroups).length} revisioni gruppo, {reviews.splits.length} separazioni,{" "}
+          {reviews.merges.length} unioni.
         </p>
       </aside>
     </section>

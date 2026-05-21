@@ -131,52 +131,52 @@ export function buildAuditBatches(audit: LoadedAssetAudit): AssetAuditBatch[] {
 
   return [
     {
-      description: "Severe issues that block the asset from being used safely.",
+      description: "Problemi gravi che impediscono l'uso sicuro dell'asset.",
       entries: queue.filter((entry) => entry.reviewPriority === "critical"),
       id: "critical",
-      label: "Critical"
+      label: "Critici"
     },
     {
-      description: "Highly likely problematic. Fix soon.",
+      description: "Probabilmente problematici. Da correggere presto.",
       entries: queue.filter((entry) => entry.reviewPriority === "high"),
       id: "high",
-      label: "High Priority"
+      label: "Alta priorita"
     },
     {
-      description: "Possibly questionable classification or quality.",
+      description: "Classificazione o qualita potenzialmente dubbia.",
       entries: queue.filter((entry) => entry.reviewPriority === "medium"),
       id: "medium",
-      label: "Medium Priority"
+      label: "Priorita media"
     },
     {
-      description: "Visual or file-hash duplicates detected locally.",
+      description: "Duplicati visuali o di hash file rilevati localmente.",
       entries: queue.filter((entry) => duplicateAssetIds.has(entry.assetId)),
       id: "duplicates",
-      label: "Duplicates"
+      label: "Duplicati"
     },
     {
-      description: "Quality score below the safe threshold.",
+      description: "Punteggio qualita sotto la soglia sicura.",
       entries: queue.filter((entry) => entry.qualityScore < 45),
       id: "low-quality",
-      label: "Low Quality"
+      label: "Bassa qualita"
     },
     {
-      description: "Auto-classifier could not assign a confident kind.",
+      description: "Il classificatore automatico non ha assegnato un tipo affidabile.",
       entries: queue.filter((entry) => entry.classification === "unknown"),
       id: "unknown-classification",
-      label: "Unknown Classification"
+      label: "Classificazione sconosciuta"
     },
     {
-      description: "Assets without width/height/transparency metadata.",
+      description: "Asset senza metadati di larghezza, altezza o trasparenza.",
       entries: queue.filter((entry) => missingMetadataIds.has(entry.assetId)),
       id: "missing-metadata",
-      label: "Missing Metadata"
+      label: "Metadati mancanti"
     },
     {
-      description: "Duplicate groups where the classifications do not agree.",
+      description: "Gruppi duplicati con classificazioni non coerenti.",
       entries: queue.filter((entry) => conflictAssetIds.has(entry.assetId)),
       id: "classification-conflict",
-      label: "Classification Conflict"
+      label: "Conflitto classificazione"
     }
   ];
 }

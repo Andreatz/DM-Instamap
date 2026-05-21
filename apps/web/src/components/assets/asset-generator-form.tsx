@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatAssetKind } from "@/lib/asset-browser";
 
 type ProviderStatus =
   | { configured: false; reason: string }
@@ -24,10 +25,10 @@ type ManifestUpdate = {
 
 export function AssetGeneratorForm() {
   const [providerStatus, setProviderStatus] = useState<ProviderStatus | null>(null);
-  const [prompt, setPrompt] = useState("ornate wooden door with iron banding, top-down");
-  const [negativePrompt, setNegativePrompt] = useState("text, watermark, low quality");
+  const [prompt, setPrompt] = useState("porta di legno ornata con bande di ferro, vista dall'alto");
+  const [negativePrompt, setNegativePrompt] = useState("testo, watermark, bassa qualita");
   const [classification, setClassification] = useState("door");
-  const [styleTags, setStyleTags] = useState("wood, iron");
+  const [styleTags, setStyleTags] = useState("legno, ferro");
   const [seed, setSeed] = useState("");
   const [steps, setSteps] = useState("24");
   const [status, setStatus] = useState("");
@@ -49,7 +50,7 @@ export function AssetGeneratorForm() {
 
   async function generateAsset() {
     setSubmitting(true);
-    setStatus("Generating asset…");
+    setStatus("Generazione asset...");
 
     try {
       const response = await fetch("/api/assets/generate", {
@@ -74,21 +75,21 @@ export function AssetGeneratorForm() {
       };
 
       if (!response.ok || !payload.asset) {
-        throw new Error(payload.error ?? "Generation failed.");
+        throw new Error(payload.error ?? "Generazione fallita.");
       }
 
       setLastAsset(payload.asset);
       setManifestUpdate(payload.manifestUpdate ?? null);
       const manifestNote = payload.manifestUpdate
         ? payload.manifestUpdate.appended
-          ? " Added to manifest."
+          ? " Aggiunto al manifest."
           : payload.manifestUpdate.replaced
-            ? " Updated existing manifest entry."
+            ? " Voce manifest esistente aggiornata."
             : ""
-        : " Manifest not updated — run pnpm assets:scan to refresh.";
-      setStatus(`Asset written to ${payload.asset.relativePath}.${manifestNote}`);
+        : " Manifest non aggiornato: esegui pnpm assets:scan per ricaricare.";
+      setStatus(`Asset scritto in ${payload.asset.relativePath}.${manifestNote}`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Generation failed.");
+      setStatus(error instanceof Error ? error.message : "Generazione fallita.");
     } finally {
       setSubmitting(false);
     }
@@ -98,22 +99,22 @@ export function AssetGeneratorForm() {
 
   return (
     <section className="asset-details">
-      <h2>Generate Asset (D3)</h2>
+      <h2>Genera asset (D3)</h2>
       <p className="muted">
-        Send a prompt to the configured image-generation provider and save the result to the local library. Env:{" "}
+        Invia un prompt al provider di generazione immagini configurato e salva il risultato nella libreria locale. Env:{" "}
         <code>IMAGE_GEN_PROVIDER=replicate|automatic1111</code>, <code>IMAGE_GEN_API_KEY</code>, <code>IMAGE_GEN_MODEL</code>.
       </p>
 
       <div className="manifest-note">
-        {providerStatus === null ? <span>Loading provider status…</span> : null}
+        {providerStatus === null ? <span>Caricamento stato provider...</span> : null}
         {providerStatus?.configured ? (
           <>
-            <span className="pill">vendor: {providerStatus.vendor}</span>
+            <span className="pill">fornitore: {providerStatus.vendor}</span>
             <span className="pill">id: {providerStatus.id}</span>
           </>
         ) : null}
         {providerStatus && !providerStatus.configured ? (
-          <span className="pill">disabled — {providerStatus.reason}</span>
+          <span className="pill">disattivato: {providerStatus.reason}</span>
         ) : null}
       </div>
 
@@ -123,37 +124,37 @@ export function AssetGeneratorForm() {
       </label>
 
       <label className="field">
-        <span>Negative Prompt (optional)</span>
+        <span>Prompt negativo (facoltativo)</span>
         <input onChange={(event) => setNegativePrompt(event.target.value)} value={negativePrompt} />
       </label>
 
       <div className="field-row">
         <label className="field">
-          <span>Classification</span>
+          <span>Classificazione</span>
           <select onChange={(event) => setClassification(event.target.value)} value={classification}>
-            <option value="prop">prop</option>
-            <option value="furniture">furniture</option>
-            <option value="door">door</option>
-            <option value="floor">floor</option>
-            <option value="wall">wall</option>
-            <option value="light">light</option>
-            <option value="terrain">terrain</option>
-            <option value="water">water</option>
-            <option value="decoration">decoration</option>
+            <option value="prop">{formatAssetKind("prop")}</option>
+            <option value="furniture">{formatAssetKind("furniture")}</option>
+            <option value="door">{formatAssetKind("door")}</option>
+            <option value="floor">{formatAssetKind("floor")}</option>
+            <option value="wall">{formatAssetKind("wall")}</option>
+            <option value="light">{formatAssetKind("light")}</option>
+            <option value="terrain">{formatAssetKind("terrain")}</option>
+            <option value="water">{formatAssetKind("water")}</option>
+            <option value="decoration">{formatAssetKind("decoration")}</option>
           </select>
         </label>
         <label className="field">
-          <span>Seed (optional)</span>
+          <span>Seed (facoltativo)</span>
           <input onChange={(event) => setSeed(event.target.value)} placeholder="42" value={seed} />
         </label>
         <label className="field">
-          <span>Steps</span>
+          <span>Passi</span>
           <input onChange={(event) => setSteps(event.target.value)} value={steps} />
         </label>
       </div>
 
       <label className="field">
-        <span>Style Tags (comma separated)</span>
+        <span>Tag stile (separati da virgola)</span>
         <input onChange={(event) => setStyleTags(event.target.value)} value={styleTags} />
       </label>
 
@@ -163,7 +164,7 @@ export function AssetGeneratorForm() {
         onClick={() => void generateAsset()}
         type="button"
       >
-        {submitting ? "Generating…" : "Generate Asset"}
+        {submitting ? "Generazione..." : "Genera asset"}
       </button>
 
       {status ? <p>{status}</p> : null}
@@ -180,20 +181,20 @@ export function AssetGeneratorForm() {
           </div>
           <div>
             <dt>Seed</dt>
-            <dd>{lastAsset.seed ?? "—"}</dd>
+            <dd>{lastAsset.seed ?? "-"}</dd>
           </div>
           <div>
             <dt>Tags</dt>
-            <dd>{lastAsset.styleTags.join(", ") || "—"}</dd>
+            <dd>{lastAsset.styleTags.join(", ") || "-"}</dd>
           </div>
           <div>
             <dt>Manifest</dt>
             <dd>
               {manifestUpdate
-                ? `${manifestUpdate.totalAssets} entries (${
-                    manifestUpdate.appended ? "appended" : manifestUpdate.replaced ? "updated" : "unchanged"
+                ? `${manifestUpdate.totalAssets} voci (${
+                    manifestUpdate.appended ? "aggiunta" : manifestUpdate.replaced ? "aggiornata" : "invariata"
                   })`
-                : "not updated"}
+                : "non aggiornato"}
             </dd>
           </div>
         </dl>

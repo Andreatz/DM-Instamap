@@ -103,7 +103,7 @@ web app can inspect failures without reading terminal logs.
 
 The following endpoints expose longer-running tasks as background jobs. Each
 shells out to a `pnpm` CLI registered at the monorepo root (see
-[ROADMAP_POST_E.md](ROADMAP_POST_E.md) FASE G), so the worker stays thin and
+[ROADMAP.md](ROADMAP.md) FASE G), so the worker stays thin and
 the same logic is reachable from the terminal.
 
 - `POST /jobs/assets/import-pack` — body `{ "root": "...", "preset": "generic|forgotten-adventures|two-minute-tabletop|czepeku", "defaultTags": ["..."] }`. Runs `pnpm assets:import-pack`.

@@ -14,15 +14,15 @@ export default async function AiBridgePage() {
         <div>
           <strong>DM-Instamap</strong>
           <h1>AI Bridge</h1>
-          <p>Auto mode talks to a configured provider; manual mode keeps the ChatGPT copy/paste flow.</p>
+          <p>La modalita automatica parla con un provider configurato; quella manuale mantiene il flusso copia/incolla con ChatGPT.</p>
         </div>
         <dl>
           <div>
-            <dt>Asset Groups</dt>
+            <dt>Gruppi asset</dt>
             <dd>{assetGroups.groupCount}</dd>
           </div>
           <div>
-            <dt>References</dt>
+            <dt>Riferimenti</dt>
             <dd>{references.references.length}</dd>
           </div>
         </dl>

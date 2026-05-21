@@ -61,7 +61,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       {project.relatedProjectIds.length > 0 ? (
         <section className="asset-details">
           <h2>Piani collegati</h2>
-          <p>Questo progetto è collegato a {project.relatedProjectIds.length} altro/i piano/i dello stesso dungeon.</p>
+          <p>Questo progetto e collegato a {project.relatedProjectIds.length} altro/i piano/i dello stesso dungeon.</p>
           <p>
             <Link href={`/projects/${project.id}/floors`}>Apri panoramica piani</Link>
           </p>
