@@ -28,3 +28,34 @@ pnpm assets:analyze-image <image>
 
 The command returns JSON with format, dimensions, transparency and sampled
 dominant colors. It uses Sharp locally and does not call external APIs.
+
+## Partial Rescan API
+
+`packages/assets` exposes two helpers used when a single new file should be
+added to the manifest without re-running the entire scan:
+
+```ts
+import { scanSingleAsset, appendAssetToManifest } from "@dm-instamap/assets";
+
+const entry = await scanSingleAsset(absolutePath, {
+  outputRoot: workspaceRoot,
+  sourceRoot: workspaceRoot   // or the manifest's existing sourceRoot
+});
+const { appended, replaced, manifest } = await appendAssetToManifest(entry, {
+  outputRoot: workspaceRoot
+});
+```
+
+`scanSingleAsset` inspects a single file the same way the full scanner does
+(hash, dominant colors, transparency, classification, thumbnail), but it
+takes the `sourceRoot` as input so the resulting `relativePath` matches the
+rest of the manifest. `appendAssetToManifest` reads the existing
+`assets.manifest.json`, replaces or appends the entry (matched by id or
+`relativePath`), re-runs duplicate detection / audit enrichment on the
+combined list, and writes the manifest back atomically.
+
+These helpers back the F3 rescan path: after `POST /api/assets/generate`
+imports a generated file into `data/assets/generated/`, the route calls
+`scanSingleAsset` + `appendAssetToManifest` so the new asset shows up in the
+manifest (and in `/assets`) without invoking `pnpm assets:scan`. The CLI
+`pnpm assets:generate` shares the same flow.

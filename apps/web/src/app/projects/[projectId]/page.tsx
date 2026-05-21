@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DeleteProjectButton } from "@/components/projects/delete-project-button";
+import { ProjectDescribeButton } from "@/components/projects/project-describe-button";
 import { ProjectSnapshotsPanel } from "@/components/projects/project-snapshots-panel";
 import { ProjectNotFoundError, readProject } from "@/lib/projects";
 
@@ -61,6 +62,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         <section className="asset-details">
           <h2>Linked Floors</h2>
           <p>This project is linked with {project.relatedProjectIds.length} other floor(s) from the same dungeon.</p>
+          <p>
+            <Link href={`/projects/${project.id}/floors`}>Open Floors Overview</Link>
+          </p>
           <ul>
             {project.relatedProjectIds.map((relatedId) => (
               <li key={relatedId}>
@@ -70,6 +74,16 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           </ul>
         </section>
       ) : null}
+
+      <ProjectDescribeButton
+        mapName={project.document.name || project.name}
+        rooms={(project.document.plan?.rooms ?? []).map((room) => ({
+          id: room.id,
+          label: room.label,
+          tags: room.tags
+        }))}
+        theme={project.sourceRequest}
+      />
 
       <ProjectSnapshotsPanel projectId={project.id} />
 

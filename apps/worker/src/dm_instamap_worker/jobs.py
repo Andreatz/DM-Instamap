@@ -235,6 +235,133 @@ def run_asset_scan_job(store: JobStore, job_id: str, folder: str) -> None:
     )
 
 
+def run_asset_import_pack_job(
+    store: JobStore,
+    job_id: str,
+    *,
+    root: str,
+    preset: str,
+    default_tags: list[str],
+) -> None:
+    command: list[str] = ["pnpm", "assets:import-pack", "--root", root, "--preset", preset]
+    if default_tags:
+        command.extend(["--default-tags", ",".join(default_tags)])
+
+    run_subprocess_steps_job(
+        store,
+        job_id,
+        [(command, f"Importing asset pack from {root} with preset {preset}.", 85)],
+        {"root": root, "preset": preset, "defaultTags": default_tags},
+    )
+
+
+def run_asset_generate_job(
+    store: JobStore,
+    job_id: str,
+    *,
+    prompt: str,
+    classification: str,
+    seed: int | None,
+    steps: int | None,
+    style_tags: list[str],
+    negative_prompt: str | None,
+    file_name_hint: str | None,
+    output_directory: str | None,
+) -> None:
+    command: list[str] = [
+        "pnpm",
+        "assets:generate",
+        "--prompt",
+        prompt,
+        "--classification",
+        classification,
+    ]
+    if seed is not None:
+        command.extend(["--seed", str(seed)])
+    if steps is not None:
+        command.extend(["--steps", str(steps)])
+    if style_tags:
+        command.extend(["--style-tags", ",".join(style_tags)])
+    if negative_prompt:
+        command.extend(["--negative-prompt", negative_prompt])
+    if file_name_hint:
+        command.extend(["--file-name-hint", file_name_hint])
+    if output_directory:
+        command.extend(["--output-directory", output_directory])
+
+    run_subprocess_steps_job(
+        store,
+        job_id,
+        [(command, "Generating asset via configured provider.", 85)],
+        {
+            "prompt": prompt,
+            "classification": classification,
+            "seed": seed,
+            "styleTags": style_tags,
+        },
+    )
+
+
+def run_ai_plan_job(
+    store: JobStore,
+    job_id: str,
+    *,
+    user_request: str,
+    max_retries: int | None,
+) -> None:
+    command: list[str] = ["pnpm", "ai:plan", user_request]
+    if max_retries is not None:
+        command.extend(["--max-retries", str(max_retries)])
+
+    run_subprocess_steps_job(
+        store,
+        job_id,
+        [(command, "Calling AI provider for map plan.", 85)],
+        {"userRequest": user_request, "maxRetries": max_retries},
+    )
+
+
+def run_exports_session_pack_job(
+    store: JobStore,
+    job_id: str,
+    *,
+    project_id: str,
+    scale: float | None,
+    description: str | None,
+    include_initiative: bool | None,
+    image_format: str | None,
+    include_grid: bool | None,
+    output: str | None,
+) -> None:
+    command: list[str] = ["pnpm", "exports:session-pack", project_id]
+    if scale is not None:
+        command.extend(["--scale", str(scale)])
+    if description:
+        command.extend(["--description", description])
+    if include_initiative is True:
+        command.append("--include-initiative")
+    if include_initiative is False:
+        command.append("--no-initiative")
+    if image_format:
+        command.extend(["--format", image_format])
+    if include_grid is False:
+        command.append("--no-grid")
+    if output:
+        command.extend(["--output", output])
+
+    run_subprocess_steps_job(
+        store,
+        job_id,
+        [(command, f"Exporting session pack for {project_id}.", 90)],
+        {
+            "projectId": project_id,
+            "scale": scale,
+            "includeInitiative": include_initiative,
+            "output": output,
+        },
+    )
+
+
 def run_reference_scan_job(store: JobStore, job_id: str, folder: str) -> None:
     run_subprocess_steps_job(
         store,

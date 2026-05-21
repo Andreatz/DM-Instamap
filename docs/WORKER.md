@@ -98,3 +98,35 @@ curl -X POST http://127.0.0.1:8000/jobs/images/analyze \
 
 The job payload captures command output, per-step results and exit codes so the
 web app can inspect failures without reading terminal logs.
+
+## Worker offload (H1–H4)
+
+The following endpoints expose longer-running tasks as background jobs. Each
+shells out to a `pnpm` CLI registered at the monorepo root (see
+[ROADMAP_POST_E.md](ROADMAP_POST_E.md) FASE G), so the worker stays thin and
+the same logic is reachable from the terminal.
+
+- `POST /jobs/assets/import-pack` — body `{ "root": "...", "preset": "generic|forgotten-adventures|two-minute-tabletop|czepeku", "defaultTags": ["..."] }`. Runs `pnpm assets:import-pack`.
+- `POST /jobs/assets/generate` — body `{ "prompt": "...", "classification": "prop", "seed": 42, "steps": 24, "styleTags": ["..."], "negativePrompt": "...", "fileNameHint": "...", "outputDirectory": "..." }`. Runs `pnpm assets:generate`. Requires `IMAGE_GEN_*` env vars.
+- `POST /jobs/ai/plan` — body `{ "userRequest": "...", "maxRetries": 2 }`. Runs `pnpm ai:plan`. Requires `AI_*` env vars. Useful when retries can take 30–90s round-trip.
+- `POST /jobs/exports/session-pack` — body `{ "projectId": "...", "scale": 2, "description": "...", "includeInitiative": true, "imageFormat": "png|webp", "includeGrid": true, "output": "data/exports/foo.zip" }`. Runs `pnpm exports:session-pack`.
+
+Example:
+
+```bash
+curl -X POST http://127.0.0.1:8000/jobs/assets/import-pack \
+  -H "Content-Type: application/json" \
+  -d '{"root":"./local-assets/fa","preset":"forgotten-adventures"}'
+```
+
+The web app proxies the job lifecycle through `/api/jobs/<jobId>` and exposes
+a shared React hook `useJob` (`apps/web/src/lib/use-job.ts`) plus the
+`JobProgressBar` component. Form components opt into worker mode (e.g. the
+"Run on local worker" toggle in `PackImporterForm`) to start a fire-and-forget
+job and poll the progress.
+
+Configure the worker base URL on the web side with:
+
+```bash
+DM_INSTAMAP_WORKER_URL=http://127.0.0.1:8000
+```

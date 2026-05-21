@@ -2,7 +2,14 @@ from fastapi import FastAPI
 
 from .health import health_payload
 from .jobs import JobStore
-from .routes import assets_router, images_router, jobs_router, references_router
+from .routes import (
+    ai_router,
+    assets_router,
+    exports_router,
+    images_router,
+    jobs_router,
+    references_router,
+)
 
 
 def create_app(job_store: JobStore | None = None) -> FastAPI:
@@ -21,6 +28,8 @@ def create_app(job_store: JobStore | None = None) -> FastAPI:
     app.include_router(assets_router)
     app.include_router(references_router)
     app.include_router(images_router)
+    app.include_router(ai_router)
+    app.include_router(exports_router)
 
     return app
 

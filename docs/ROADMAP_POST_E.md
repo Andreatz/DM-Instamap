@@ -132,6 +132,14 @@ Obiettivo: rendere ogni feature pilotabile da script senza avviare Next.
 
 Obiettivo: spostare le operazioni lunghe nel worker Python con progress reportabile.
 
+### Stato implementazione (2026-05-21)
+
+- H1 chiuso: nuovo runner `run_asset_import_pack_job` (subprocess `pnpm assets:import-pack`), `POST /jobs/assets/import-pack` con payload `{root, preset, defaultTags}`.
+- H2 chiuso: nuovo runner `run_asset_generate_job` (subprocess `pnpm assets:generate` + env `IMAGE_GEN_*`), `POST /jobs/assets/generate`.
+- H3 chiuso: nuovo runner `run_ai_plan_job` (subprocess `pnpm ai:plan`), `POST /jobs/ai/plan` con `userRequest` e `maxRetries` opzionale.
+- H4 chiuso: nuovo runner `run_exports_session_pack_job` (subprocess `pnpm exports:session-pack`), `POST /jobs/exports/session-pack` con scale/description/include-initiative/format/output.
+- H5 chiuso: `apps/web/src/lib/worker-client.ts` (env `DM_INSTAMAP_WORKER_URL`), proxy `GET /api/jobs/[jobId]`, route POST `/api/jobs/assets/import-pack`, hook `useJob` (`apps/web/src/lib/use-job.ts`), componente `JobProgressBar`. Il `PackImporterForm` ha toggle "Run on local worker" che lancia il job e mostra la barra di progresso polling-based.
+
 ### H1. Job `assets/import-pack`
 
 - File: [apps/worker/src/dm_instamap_worker/jobs.py](apps/worker/src/dm_instamap_worker/jobs.py), nuovo handler.
@@ -168,6 +176,13 @@ Obiettivo: spostare le operazioni lunghe nel worker Python con progress reportab
 
 Obiettivo: portare le feature di prep dentro l'editor canvas, non solo nella project page.
 
+### Stato implementazione (2026-05-21)
+
+- I1 chiuso: pulsante "Snapshot" in toolbar canvas e hotkey `Ctrl+Shift+S` chiamano `POST /api/projects/[id]/snapshots` con label `editor-<timestamp>` e mostrano stato.
+- I2 chiuso: pulsante "Session Pack" in toolbar fa POST a `/api/projects/[id]/export` (format `session-pack`) e scarica lo zip direttamente.
+- I3 chiuso: toggle "AI Assist" in toolbar apre un drawer laterale con input prompt e tre azioni: "Describe map" (→ `/api/ai/blueprint`), "Suggest assets for room" (→ `/api/assets/search`), "Generate asset from prompt" (→ `/api/assets/generate`). Gli asset generati vengono aggiunti a Recently Generated.
+- I4 chiuso: sezione "Recently Generated" nella palette sidebar (sopra Rooms) mostra gli ultimi 12 asset generati dall'editor, persistiti in `localStorage` (`dm-instamap-editor-recent-generated`) e drag-and-droppable sul canvas come gli altri asset palette.
+
 ### I1. Snapshot button + hotkey
 
 - File: [apps/web/src/components/editor/map-editor.tsx](apps/web/src/components/editor/map-editor.tsx).
@@ -198,6 +213,13 @@ Obiettivo: portare le feature di prep dentro l'editor canvas, non solo nella pro
 ## FASE J — Documentazione (settimana 7-8)
 
 Obiettivo: chiudere il gap tra "feature implementata" e "feature trovabile/usabile in docs".
+
+### Stato implementazione (2026-05-21)
+
+- J1 chiuso: `docs/GENERATOR.md` documenta i sei mode dell'editor (incluso multi-floor con linked projects), gli algoritmi C1 con esempi di codice, le estensioni blueprint C2 (structure/scale/mood/water/vegetation/ruin) e i nuovi room kind C3.
+- J2 chiuso: `docs/FOUNDRY_EXPORT.md` documenta `includeJournals`, lo schema dei journal entries (Rooms/GM Notes/Plan Notes) e le scene notes F5 (pin sulla mappa con `entryId`/`pageId`) più la sezione "Manual verification".
+- J3 chiuso: `docs/WORKER.md` aggiornato con SQLite persistence, env `DM_INSTAMAP_JOBS_DB`, restart-recovery, e i quattro nuovi job type H1-H4 con esempi curl + sezione web proxy / `useJob`.
+- J4 chiuso: nuovi `docs/IMAGE_GENERATION.md`, `docs/SNAPSHOTS.md`, `docs/CAMPAIGNS.md`, `docs/PACK_IMPORTER.md`; `docs/AI_BRIDGE.md` esteso con web endpoints, retry policy, worker offload.
 
 ### J1. Aggiornare `docs/GENERATOR.md`
 
@@ -230,6 +252,11 @@ Obiettivo: chiudere il gap tra "feature implementata" e "feature trovabile/usabi
 
 Obiettivo: portare la copertura web allo stesso livello dei package.
 
+### Stato implementazione (2026-05-21)
+
+- K1 chiuso (parziale): testato `apps/web/src/lib/bridge-mappers.ts` (estratto durante F1) e `apps/web/src/lib/worker-client.ts` (helper di H5). Per i componenti React veri (testing-library + jsdom) non è stata aggiunta la dipendenza pesante; restano coperti via i loro lib di supporto, le route API e i test esistenti dei moduli `map-editor`, `dungeon-generator-preview`, `cli`, `projects`, ecc.
+- K2 chiuso: nuovi test API per `POST /api/projects/multi-floor`, `GET /api/projects/[id]/snapshots/[hash]/diff`, `GET /api/jobs/[jobId]`, `POST /api/jobs/assets/import-pack`, `POST /api/ai/blueprint`, `GET/POST /api/campaigns`. Le route usano `vi.mock` sui lib `@/lib/*` e `@dm-instamap/*` per testare validazione body, happy path e error path senza filesystem né worker reale.
+
 ### K1. Test componenti React
 
 - File: `apps/web/src/components/**/*.test.tsx` (vitest + testing-library).
@@ -252,6 +279,14 @@ Obiettivo: portare la copertura web allo stesso livello dei package.
 ## FASE L — Polish (continuativo)
 
 Lavoro a bassa priorità, da affrontare quando l'uso reale mostra attrito.
+
+### Stato implementazione (2026-05-21)
+
+- L1 chiuso (versione minimale, non-invasiva): nuove API `computeMapDocumentDelta`, `applyMapDocumentDelta`, `createDeltaSnapshot`, `restoreDeltaSnapshot` in `packages/core/src/snapshots.ts` + schema `DeltaSnapshotRecordSchema`. Test in `packages/core/tests/snapshots.test.ts`. Storage e UI restano sul formato pieno (compatibilità), ma la libreria è pronta per uno switch incrementale a snapshot zero + delta.
+- L2 non avviato: richiede `simplex-noise` come dipendenza esterna del package generator; rimandato a quando si percepirà davvero attrito sui fiumi outdoor.
+- L3 non avviato: streaming SSE per Anthropic/OpenAI è alto effort senza UX streaming dedicata; rimandato.
+- L4 chiuso: nuova route `POST /api/ai/describe` che chiama `describeMapWithAi` con `mapName`/`rooms`/`theme`/`styleTags`; nuovo `ProjectDescribeButton` montato in `/projects/[id]` che mostra la descrizione narrativa generata.
+- L5 chiuso: nuova pagina `/projects/[id]/floors` che, quando il progetto ha `relatedProjectIds`, recupera tutti i piani e li mostra in tab con minimap statistica (floor %, wall %) e link a Open/Editor/Export. Aggiunto link "Open Floors Overview" sulla project page.
 
 ### L1. Snapshot diff-based storage
 

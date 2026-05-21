@@ -27,13 +27,98 @@ The generator returns a `MapDocument` with:
 ## Preview
 
 The `/generate` page renders a simple tile preview of the generated map. It has
-two modes:
+six modes selectable from the toolbar:
 
-- `Simple` uses `generateDungeon` directly.
+- `Simple` uses `generateDungeon` directly (rectangular rooms + corridors).
 - `Narrative` builds a local `MapGenerationBlueprint` first, then converts that
   blueprint into a valid editable `MapDocument`.
+- `Cave` runs the cellular automata algorithm `generateCaveDungeon`.
+- `Village` runs `generateVillageMap` with the subdivision block layout.
+- `Outdoor` runs `generateOutdoorMap` (poisson-disc trees + optional river with
+  bridges).
+- `Multi-floor` runs `generateMultiFloorDungeon`. The preview shows the selected
+  floor; "Save As Project" creates N linked projects (one per floor) via
+  `POST /api/projects/multi-floor`, with cross-floor links stored in
+  `project.json` under `relatedProjectIds`.
 
-Both modes can save the result as a local project.
+Every mode can save the result as a local project.
+
+## Algorithms (C1)
+
+All algorithms are deterministic per `seed` and return a fully validated
+`MapDocument`.
+
+```ts
+import {
+  generateCaveDungeon,
+  generateVillageMap,
+  generateOutdoorMap,
+  generateMultiFloorDungeon
+} from "@dm-instamap/generator";
+
+const cave = generateCaveDungeon({
+  heightCells: 36,
+  seed: "torchlight",
+  theme: "crypt",
+  widthCells: 52
+});
+
+const village = generateVillageMap({
+  blockCount: 6,
+  heightCells: 36,
+  seed: "river-village",
+  theme: "village",
+  widthCells: 52
+});
+
+const outdoor = generateOutdoorMap({
+  heightCells: 36,
+  river: true,
+  seed: "deep-forest",
+  theme: "forest",
+  treeDensity: 0.2,
+  widthCells: 52
+});
+
+const multiFloor = generateMultiFloorDungeon({
+  floorCount: 3,
+  heightCells: 36,
+  perFloorRoomCount: 6,
+  seed: "ossuary",
+  theme: "crypt",
+  widthCells: 52
+});
+// multiFloor.floors[0..N-1] are linked via stairs nodes at matching coordinates.
+```
+
+## Blueprint extensions (C2)
+
+`createNarrativeBlueprint` extracts these fields from the request prompt and
+returns them on the produced `MapGenerationBlueprint`:
+
+- `structure`: `dungeon | cave | village | outdoor | building | mixed`
+- `scale`: `small | medium | large`
+- `mood`: free-form descriptor (e.g. "haunted", "festive")
+- `hasWater`: boolean
+- `hasVegetation`: boolean
+- `ruinLevel`: 0..1 (heuristic from words like "ruined", "abandoned")
+
+`generateMapFromBlueprint(blueprint)` reads `structure` and routes to the
+matching C1 algorithm. Width/height defaults scale with `scale`.
+
+```ts
+import { createNarrativeBlueprint, generateMapFromBlueprint } from "@dm-instamap/generator";
+
+const blueprint = createNarrativeBlueprint({
+  heightCells: 40,
+  request: "A ruined forest cave near a slow river, abandoned for ages.",
+  roomCount: 7,
+  theme: "wilds",
+  widthCells: 60
+});
+
+const map = generateMapFromBlueprint(blueprint);
+```
 
 ## Narrative Blueprint
 
@@ -88,6 +173,18 @@ resulting `MapDocument` remains editable in the project editor.
 The placement pass now scores assets per room before placing them. It can use
 single assets or `AssetGroup` representatives, plus optional narrative room
 metadata and style tags.
+
+The room type inference also recognises the new outdoor and village kinds
+introduced in C1/C3:
+
+- `cave`
+- `village_building`
+- `tavern`
+- `smithy`
+- `shrine`
+- `clearing`
+
+`selectRooms` includes `kind === "service"` so outdoor clearings get furnished.
 
 Placement preferences:
 

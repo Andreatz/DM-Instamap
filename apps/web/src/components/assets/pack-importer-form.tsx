@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { JobProgressBar } from "@/components/jobs/job-progress-bar";
+import type { WorkerJobRecord } from "@/lib/worker-client";
 
 const PRESETS = [
   { label: "Forgotten Adventures", value: "forgotten-adventures" },
@@ -27,20 +29,46 @@ export function PackImporterForm() {
   const [status, setStatus] = useState("");
   const [summary, setSummary] = useState<ImportSummary | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [runOnWorker, setRunOnWorker] = useState(false);
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
 
   async function importPack() {
     setSubmitting(true);
     setStatus("Importing pack…");
     setSummary(null);
+    setActiveJobId(null);
+
+    const parsedDefaultTags = defaultTags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean);
 
     try {
+      if (runOnWorker) {
+        const response = await fetch("/api/jobs/assets/import-pack", {
+          body: JSON.stringify({
+            defaultTags: parsedDefaultTags,
+            preset,
+            root: assetRoot
+          }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST"
+        });
+        const payload = (await response.json()) as { error?: string; job?: WorkerJobRecord };
+
+        if (!response.ok || !payload.job) {
+          throw new Error(payload.error ?? "Worker import failed.");
+        }
+
+        setActiveJobId(payload.job.id);
+        setStatus(`Worker job ${payload.job.id} queued.`);
+        return;
+      }
+
       const response = await fetch("/api/assets/import-pack", {
         body: JSON.stringify({
           assetRoot,
-          defaultTags: defaultTags
-            .split(",")
-            .map((tag) => tag.trim())
-            .filter(Boolean),
+          defaultTags: parsedDefaultTags,
           preset
         }),
         headers: { "Content-Type": "application/json" },
@@ -98,6 +126,15 @@ export function PackImporterForm() {
         />
       </label>
 
+      <label className="editor-checkbox">
+        <input
+          checked={runOnWorker}
+          onChange={(event) => setRunOnWorker(event.target.checked)}
+          type="checkbox"
+        />
+        <span>Run on local worker (fire-and-forget, requires worker running)</span>
+      </label>
+
       <button
         className="save-correction"
         disabled={submitting || assetRoot.trim().length === 0}
@@ -108,6 +145,8 @@ export function PackImporterForm() {
       </button>
 
       {status ? <p>{status}</p> : null}
+
+      <JobProgressBar jobId={activeJobId} />
 
       {summary ? (
         <dl>

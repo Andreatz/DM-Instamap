@@ -9,8 +9,12 @@ optional: the manual ChatGPT bridge still works, but provider-backed automation
 keys via environment variables.
 
 Phases A through E of [docs/ROADMAP.md](docs/ROADMAP.md) are complete at the
-package, API, and UI levels. Remaining work is manual verification with real
-VTT imports, real provider keys, and large asset packs.
+package, API, and UI levels. Phases F through L of the consolidation roadmap
+[docs/ROADMAP_POST_E.md](docs/ROADMAP_POST_E.md) are also closed at the
+repo/test-automatic level (integration fixes F, CLI surface G, worker offload
+H, editor canvas integration I, documentation J, web tests K, polish L1/L4/L5).
+Remaining work is manual verification with real VTT imports, real provider
+keys, and large asset packs.
 
 ## Current capabilities
 
@@ -61,6 +65,13 @@ VTT imports, real provider keys, and large asset packs.
 - **Snapshots panel (E2)** in `/projects/[id]`: create labelled snapshots,
   dedupe by content hash, restore at any time. Files in
   `data/projects/<id>/snapshots/`.
+- **Snapshot diff vs current (F4)**: per-snapshot button that calls
+  `/api/projects/[id]/snapshots/[hash]/diff?against=current` and shows the
+  list of changed top-level fields.
+- **Editor toolbar quick actions (I1–I4)**: Snapshot button + `Ctrl+Shift+S`
+  hotkey, one-click Session Pack export, AI Assist drawer (describe map /
+  suggest assets / generate asset from prompt), and a "Recently Generated"
+  palette section persisted in `localStorage`.
 
 ### AI Bridge
 
@@ -183,6 +194,10 @@ IMAGE_GEN_API_KEY=...
 IMAGE_GEN_MODEL=stability-ai/sdxl
 IMAGE_GEN_VERSION=...
 IMAGE_GEN_BASE_URL=http://127.0.0.1:7860
+
+# Worker offload (H5)
+DM_INSTAMAP_WORKER_URL=http://127.0.0.1:8000
+DM_INSTAMAP_JOBS_DB=                   # override worker SQLite path
 ```
 
 Install Python worker runtime dependencies when you want to run the worker:
@@ -208,8 +223,23 @@ pnpm assets:scan <folder>
 pnpm assets:group
 pnpm assets:audit
 pnpm assets:embed
+pnpm assets:import-pack --root <path> --preset forgotten-adventures
+pnpm assets:generate --prompt "ornate iron door" --classification door --seed 42
 pnpm references:scan <folder>
 pnpm references:style
+```
+
+Project, AI, exports, and campaigns CLIs:
+
+```bash
+pnpm snapshots:create <projectId> --label "before-edit"
+pnpm snapshots:list <projectId>
+pnpm snapshots:restore <projectId> <contentHash>
+pnpm ai:blueprint "crypt below cathedral"
+pnpm ai:plan "three rooms with a hidden study"
+pnpm exports:session-pack <projectId> --scale 2 --include-initiative
+pnpm campaigns:list
+pnpm campaigns:create --name "Whispering Woods" --tags hex-crawl,wilderness
 ```
 
 The scanner writes lightweight metadata to `data/indexes/` and thumbnails to
@@ -241,8 +271,13 @@ Projects are saved locally in `data/projects/<project-id>/` with a lightweight
 ### Projects
 
 - `/projects` — local saved project list.
-- `/projects/[projectId]` — project details, snapshot panel, delete action.
-- `/projects/[projectId]/editor` — canvas editor with save.
+- `/projects/[projectId]` — project details, snapshot panel (with diff vs
+  current), AI describe button, linked floors list, delete action.
+- `/projects/[projectId]/floors` — multi-floor overview tab grid with
+  per-floor minimap stats and Open/Editor/Export shortcuts (L5).
+- `/projects/[projectId]/editor` — canvas editor with save, snapshot quick
+  action, session pack quick export, AI assist drawer, Recently Generated
+  palette section.
 - `/projects/[projectId]/export` — format + mode + grid + scale export panel
   including Session Pack and Foundry journals toggle.
 
@@ -284,25 +319,47 @@ Projects are saved locally in `data/projects/<project-id>/` with a lightweight
 - `POST /api/assets/import-pack` — preset-driven import.
 - `GET /api/assets/generate` — provider status; `POST` to generate.
 - `POST /api/projects` and `GET/PUT/DELETE /api/projects/[projectId]`.
+- `POST /api/projects/multi-floor` — saves N linked projects in one shot for
+  a multi-floor dungeon (F2). Cross-floor links stored in
+  `project.json#relatedProjectIds`.
 - `GET/POST /api/projects/[projectId]/snapshots` and
   `GET/POST /api/projects/[projectId]/snapshots/[contentHash]` for create /
   list / restore.
+- `GET /api/projects/[projectId]/snapshots/[contentHash]/diff?against=current|<hash>` —
+  returns `SnapshotDiff` with the list of changed fields (F4).
 - `POST /api/projects/[projectId]/export` — per-project export with mode,
   Session Pack, and Foundry journals toggle.
 - `POST /api/export` — global export of any `MapDocument`.
 - `POST /api/ai-bridge/import-plan` — import a validated `MapPlan` from
   ChatGPT (manual flow) into a new project or an existing one.
-- `GET /api/ai/status`, `POST /api/ai/plan`, `POST /api/ai/blueprint` — auto
-  AI bridge endpoints.
+- `GET /api/ai/status`, `POST /api/ai/plan`, `POST /api/ai/blueprint`,
+  `POST /api/ai/describe` — auto AI bridge endpoints (the last one calls
+  `describeMapWithAi` for the project page).
 - `GET /api/campaigns`, `POST /api/campaigns`, `GET/PUT/DELETE
   /api/campaigns/[campaignId]` — campaign CRUD.
+- `GET /api/jobs/[jobId]` — proxy to the local FastAPI worker for polling
+  long-running jobs.
+- `POST /api/jobs/assets/import-pack` — fire-and-forget worker job for asset
+  pack import (reference integration for H1–H5; other forms can opt-in by
+  flipping the same hook).
 
 ## Local worker
 
 The FastAPI worker persists jobs in SQLite (`~/.dm-instamap/jobs.db`), runs
 real CLI subprocesses for asset scan, reference scan / style, and Sharp-based
 image analysis, supports cancellation, and exposes `/health`, `/jobs`,
-`/jobs/{job_id}`, `/jobs/{job_id}/cancel`. See [docs/WORKER.md](docs/WORKER.md).
+`/jobs/{job_id}`, `/jobs/{job_id}/cancel`. The worker also accepts longer
+fire-and-forget jobs introduced in FASE H:
+
+- `POST /jobs/assets/import-pack` (H1)
+- `POST /jobs/assets/generate` (H2)
+- `POST /jobs/ai/plan` (H3)
+- `POST /jobs/exports/session-pack` (H4)
+
+On the web side, configure `DM_INSTAMAP_WORKER_URL` (defaults to
+`http://127.0.0.1:8000`); the `useJob` React hook and `JobProgressBar`
+component poll job status via `/api/jobs/[jobId]`. See
+[docs/WORKER.md](docs/WORKER.md).
 
 ## Exports
 

@@ -108,6 +108,12 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
   });
   const [jsonText, setJsonText] = useState(() => serializeMapDocument(ensureEditorLayers(initialDocument)));
   const [status, setStatus] = useState("Ready");
+  const [aiPanelOpen, setAiPanelOpen] = useState(false);
+  const [aiRequest, setAiRequest] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiDescription, setAiDescription] = useState<string>("");
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [recentGenerated, setRecentGenerated] = useState<EditorPaletteAsset[]>(() => loadRecentGeneratedFromStorage());
   const rooms = document.plan?.rooms.filter((room) => room.kind === "room" || room.kind === "entrance") ?? [];
   const editorLayers = [...document.layers].sort((left, right) => left.order - right.order);
   const selectedRoom = rooms.find((room) => room.id === selectedRoomId) ?? null;
@@ -196,6 +202,38 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     });
   }, [document]);
 
+  const createSnapshot = useCallback(async () => {
+    if (!projectId) {
+      setStatus("Snapshots require a saved project.");
+      return;
+    }
+
+    const stamp = new Date().toISOString().replace(/[:.]/gu, "-");
+    const label = `editor-${stamp.slice(0, 19)}`;
+
+    setStatus(`Creating snapshot ${label}…`);
+
+    try {
+      const response = await fetch(`/api/projects/${encodeURIComponent(projectId)}/snapshots`, {
+        body: JSON.stringify({ label }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST"
+      });
+      const payload = (await response.json()) as {
+        error?: string;
+        snapshot?: { written: boolean };
+      };
+
+      if (!response.ok || !payload.snapshot) {
+        throw new Error(payload.error ?? "Snapshot failed.");
+      }
+
+      setStatus(payload.snapshot.written ? `Snapshot ${label} created.` : "Snapshot identical — not written.");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Snapshot failed.");
+    }
+  }, [projectId]);
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (isTextInputTarget(event.target)) {
@@ -231,11 +269,16 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
         event.preventDefault();
         pasteAssetClipboard();
       }
+
+      if (event.key.toLowerCase() === "s" && event.shiftKey) {
+        event.preventDefault();
+        void createSnapshot();
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [copySelectedAssets, pasteAssetClipboard, redo, undo]);
+  }, [copySelectedAssets, createSnapshot, pasteAssetClipboard, redo, undo]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -509,6 +552,44 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
 
     handleDrop(event, cell.x, cell.y);
   }
+
+  const exportSessionPackQuick = useCallback(async () => {
+    if (!projectId) {
+      setStatus("Session pack export requires a saved project.");
+      return;
+    }
+
+    setStatus("Exporting session pack…");
+
+    try {
+      const response = await fetch(`/api/projects/${encodeURIComponent(projectId)}/export`, {
+        body: JSON.stringify({
+          description: document.name,
+          format: "session-pack",
+          includeInitiative: true,
+          scale: 1
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST"
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => ({}))) as { error?: string };
+        throw new Error(payload.error ?? "Session pack export failed.");
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = window.document.createElement("a");
+      link.href = url;
+      link.download = `${projectId}-session-pack.zip`;
+      link.click();
+      URL.revokeObjectURL(url);
+      setStatus("Session pack downloaded.");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Session pack export failed.");
+    }
+  }, [document.name, projectId]);
 
   async function saveJson() {
     const serialized = serializeMapDocument(document);
@@ -864,6 +945,122 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
     }
   }
 
+  async function runAiDescribeMap() {
+    if (aiBusy) {
+      return;
+    }
+
+    setAiBusy(true);
+    setStatus("Asking AI for a map description…");
+
+    try {
+      const response = await fetch("/api/ai/blueprint", {
+        body: JSON.stringify({ request: aiRequest.trim() || `Describe ${document.name} for the GM.` }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST"
+      });
+      const payload = (await response.json()) as {
+        blueprint?: { name?: string; mood?: string; structure?: string };
+        error?: string;
+        errors?: string[];
+        ok: boolean;
+      };
+
+      if (!response.ok || !payload.ok || !payload.blueprint) {
+        throw new Error(payload.error ?? payload.errors?.join("; ") ?? "AI request failed.");
+      }
+
+      const blueprint = payload.blueprint;
+      const description = `${blueprint.name ?? document.name} — structure ${blueprint.structure ?? "unknown"}, mood ${blueprint.mood ?? "unknown"}.`;
+      setAiDescription(description);
+      setStatus("AI description ready.");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "AI request failed.");
+    } finally {
+      setAiBusy(false);
+    }
+  }
+
+  async function runAiSuggestForSelectedRoom() {
+    if (!selectedRoom) {
+      setStatus("Select a room before asking for suggestions.");
+      return;
+    }
+
+    setAiBusy(true);
+    setAiSuggestions([]);
+    setStatus(`Asking AI for assets in ${selectedRoom.label}…`);
+
+    try {
+      const query =
+        aiRequest.trim() || `${selectedRoom.label} ${selectedRoom.tags.join(" ")} ${mapTheme}`.trim();
+      const response = await fetch(`/api/assets/search?q=${encodeURIComponent(query)}&limit=8`);
+      const payload = (await response.json()) as { error?: string; results?: AssetSearchApiResult[] };
+
+      if (!response.ok || !payload.results) {
+        throw new Error(payload.error ?? "Suggestion failed.");
+      }
+
+      setAiSuggestions(payload.results.map((result) => `${result.relativePath} (${result.classification})`));
+      setStatus(`${payload.results.length} suggestions for ${selectedRoom.label}.`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Suggestion failed.");
+    } finally {
+      setAiBusy(false);
+    }
+  }
+
+  async function generateAssetFromPrompt() {
+    const prompt = aiRequest.trim();
+
+    if (!prompt) {
+      setStatus("Type a prompt before generating.");
+      return;
+    }
+
+    setAiBusy(true);
+    setStatus(`Generating asset from prompt…`);
+
+    try {
+      const response = await fetch("/api/assets/generate", {
+        body: JSON.stringify({
+          classification: "prop",
+          prompt
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST"
+      });
+      const payload = (await response.json()) as {
+        asset?: { filename: string; relativePath: string };
+        error?: string;
+        manifestEntry?: { id: string; relativePath: string; thumbnailPath: string | null } | null;
+      };
+
+      if (!response.ok || !payload.asset) {
+        throw new Error(payload.error ?? "Generation failed.");
+      }
+
+      const entry = payload.manifestEntry;
+      if (entry) {
+        const palette: EditorPaletteAsset = {
+          id: entry.id,
+          kind: "prop",
+          name: payload.asset.filename,
+          thumbnailUrl: entry.thumbnailPath ? `/${entry.thumbnailPath}` : ""
+        };
+        const next = [palette, ...recentGenerated.filter((item) => item.id !== entry.id)].slice(0, 12);
+        setRecentGenerated(next);
+        saveRecentGeneratedToStorage(next);
+      }
+
+      setStatus(`Generated ${payload.asset.filename}.`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Generation failed.");
+    } finally {
+      setAiBusy(false);
+    }
+  }
+
   async function handleFindMatchingAssets() {
     const query = (
       assetSearchQuery.trim() ||
@@ -914,6 +1111,27 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
           ))}
         </div>
 
+        {recentGenerated.length > 0 ? (
+          <section className="detail-block">
+            <h3>Recently Generated</h3>
+            <div className="editor-palette">
+              {recentGenerated.map((asset) => (
+                <button
+                  draggable
+                  key={asset.id}
+                  onDragStart={(event) => writeDragPayload(event, { assetId: asset.id, type: "palette" })}
+                  type="button"
+                >
+                  <span className="palette-thumb">
+                    {asset.thumbnailUrl ? <img alt="" src={asset.thumbnailUrl} /> : <b>{asset.name.charAt(0)}</b>}
+                  </span>
+                  <span>{asset.name}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         <section className="detail-block">
           <h3>Rooms</h3>
           <div className="editor-room-list">
@@ -961,6 +1179,31 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
               Redo
             </button>
             <button
+              disabled={!projectId}
+              onClick={() => void createSnapshot()}
+              title="Snapshot (Ctrl+Shift+S)"
+              type="button"
+            >
+              Snapshot
+            </button>
+            <button
+              disabled={!projectId}
+              onClick={() => void exportSessionPackQuick()}
+              title="Quick session pack export"
+              type="button"
+            >
+              Session Pack
+            </button>
+            <button
+              aria-pressed={aiPanelOpen}
+              className={aiPanelOpen ? "active" : ""}
+              onClick={() => setAiPanelOpen((value) => !value)}
+              title="Toggle AI assist drawer"
+              type="button"
+            >
+              AI Assist
+            </button>
+            <button
               onClick={() =>
                 setViewport((current) => ({ ...current, zoom: clamp(current.zoom - 0.15, MIN_ZOOM, MAX_ZOOM) }))
               }
@@ -1006,6 +1249,51 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
           <span>{document.width} x {document.height}</span>
         </footer>
       </section>
+
+      {aiPanelOpen ? (
+        <aside className="asset-details editor-ai-drawer" aria-label="AI assist drawer">
+          <h2>AI Assist</h2>
+          <p className="muted">
+            Inline access to the configured AI provider. Configure with <code>AI_PROVIDER</code>, <code>AI_API_KEY</code>.
+          </p>
+          <label className="field">
+            <span>Request</span>
+            <textarea
+              onChange={(event) => setAiRequest(event.target.value)}
+              placeholder="e.g. Add tactical interest to the throne room…"
+              rows={3}
+              value={aiRequest}
+            />
+          </label>
+          <div className="field-row">
+            <button disabled={aiBusy} onClick={() => void runAiDescribeMap()} type="button">
+              {aiBusy ? "Working…" : "Describe map"}
+            </button>
+            <button disabled={aiBusy || !selectedRoom} onClick={() => void runAiSuggestForSelectedRoom()} type="button">
+              {aiBusy ? "Working…" : "Suggest assets for room"}
+            </button>
+            <button disabled={aiBusy || aiRequest.trim().length === 0} onClick={() => void generateAssetFromPrompt()} type="button">
+              {aiBusy ? "Working…" : "Generate asset from prompt"}
+            </button>
+          </div>
+          {aiDescription ? (
+            <section className="detail-block">
+              <h3>Description</h3>
+              <p>{aiDescription}</p>
+            </section>
+          ) : null}
+          {aiSuggestions.length > 0 ? (
+            <section className="detail-block">
+              <h3>Suggestions</h3>
+              <ul>
+                {aiSuggestions.map((suggestion, index) => (
+                  <li key={`${suggestion}-${index}`}>{suggestion}</li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+        </aside>
+      ) : null}
 
       <aside className="asset-details editor-inspector">
         <h2>Inspector</h2>
@@ -1481,6 +1769,50 @@ export function MapEditor({ assetGroups, initialDocument, mapTheme, palette, pro
       </aside>
     </section>
   );
+}
+
+const RECENT_GENERATED_STORAGE_KEY = "dm-instamap-editor-recent-generated";
+
+function loadRecentGeneratedFromStorage(): EditorPaletteAsset[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const raw = window.localStorage.getItem(RECENT_GENERATED_STORAGE_KEY);
+
+    if (!raw) {
+      return [];
+    }
+
+    const parsed = JSON.parse(raw) as unknown;
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed.filter(
+      (entry): entry is EditorPaletteAsset =>
+        typeof entry === "object" &&
+        entry !== null &&
+        typeof (entry as EditorPaletteAsset).id === "string" &&
+        typeof (entry as EditorPaletteAsset).name === "string"
+    );
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentGeneratedToStorage(assets: EditorPaletteAsset[]): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(RECENT_GENERATED_STORAGE_KEY, JSON.stringify(assets));
+  } catch {
+    /* ignore quota errors */
+  }
 }
 
 function createTileLookup(tiles: MapTile[]): Map<string, MapTile> {

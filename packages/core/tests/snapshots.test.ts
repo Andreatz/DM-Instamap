@@ -3,12 +3,16 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  applyMapDocumentDelta,
   computeDocumentContentHash,
+  computeMapDocumentDelta,
+  createDeltaSnapshot,
   createMapDocument,
   createMapSnapshot,
   diffSnapshots,
   listSnapshotsInDirectory,
   readSnapshotFromDirectory,
+  restoreDeltaSnapshot,
   restoreSnapshotFromDirectory,
   writeSnapshotToDirectory
 } from "../src";
@@ -122,5 +126,46 @@ describe("snapshot directory IO", () => {
 
     const directoryEntries = await readdir(path.join(outputRoot, "data", "projects", "project-a", "snapshots"));
     expect(directoryEntries).toHaveLength(1);
+  });
+});
+
+describe("delta snapshots (L1)", () => {
+  it("computes only the fields that changed", () => {
+    const base = buildDocument({ name: "Original" });
+    const target = buildDocument({ name: "Renamed" });
+    const delta = computeMapDocumentDelta(base, target);
+
+    expect(Object.keys(delta.fields)).toEqual(["name"]);
+    expect(delta.fields.name).toBe("Renamed");
+  });
+
+  it("applies a delta back into a base document", () => {
+    const base = buildDocument({ name: "Original" });
+    const target = buildDocument({ name: "Renamed" });
+    const delta = computeMapDocumentDelta(base, target);
+    const applied = applyMapDocumentDelta(base, delta);
+
+    expect(applied.name).toBe("Renamed");
+    expect(applied.tiles).toEqual(base.tiles);
+  });
+
+  it("creates a delta snapshot with parentHash and restores correctly", () => {
+    const baseDocument = buildDocument({ name: "Original" });
+    const baseRecord = createMapSnapshot({ document: baseDocument, label: "base", projectId: "project-a" });
+    const targetDocument = buildDocument({ name: "Updated" });
+    const delta = createDeltaSnapshot({
+      base: baseRecord,
+      document: targetDocument,
+      label: "delta",
+      projectId: "project-a"
+    });
+
+    expect(delta.parentHash).toBe(baseRecord.contentHash);
+    expect(delta.label).toBe("delta");
+    expect(delta.delta.fields.name).toBe("Updated");
+
+    const restored = restoreDeltaSnapshot(baseRecord, delta);
+    expect(restored.name).toBe("Updated");
+    expect(computeDocumentContentHash(restored)).toBe(delta.contentHash);
   });
 });

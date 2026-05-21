@@ -238,6 +238,79 @@ export async function restoreSnapshotFromDirectory(
   return record ? record.document : null;
 }
 
+export type MapDocumentDelta = {
+  fields: Partial<MapDocument>;
+};
+
+export type DeltaSnapshotRecord = SnapshotMetadata & {
+  delta: MapDocumentDelta;
+  parentHash: string;
+};
+
+export const DeltaSnapshotRecordSchema = SnapshotMetadataSchema.extend({
+  delta: z.object({
+    fields: z.record(z.string(), z.unknown())
+  }),
+  parentHash: z.string().min(8)
+}).strict();
+
+export function computeMapDocumentDelta(base: MapDocument, target: MapDocument): MapDocumentDelta {
+  const baseParsed = stableSerializeDocument(base);
+  const targetParsed = stableSerializeDocument(target);
+  const fields: Partial<MapDocument> = {};
+  const keys = new Set<keyof MapDocument>([
+    ...(Object.keys(baseParsed) as Array<keyof MapDocument>),
+    ...(Object.keys(targetParsed) as Array<keyof MapDocument>)
+  ]);
+
+  for (const key of keys) {
+    const left = baseParsed[key];
+    const right = targetParsed[key];
+
+    if (JSON.stringify(left) !== JSON.stringify(right)) {
+      (fields as Record<string, unknown>)[key] = right;
+    }
+  }
+
+  return { fields };
+}
+
+export function applyMapDocumentDelta(base: MapDocument, delta: MapDocumentDelta): MapDocument {
+  const merged: Record<string, unknown> = {
+    ...stableSerializeDocument(base),
+    ...delta.fields
+  };
+  return MapDocumentSchema.parse(merged);
+}
+
+export function createDeltaSnapshot(input: {
+  base: SnapshotRecord;
+  document: MapDocument;
+  label?: string;
+  now?: () => string;
+  projectId: string;
+}): DeltaSnapshotRecord {
+  const target = MapDocumentSchema.parse(input.document);
+  const now = input.now ? input.now() : new Date().toISOString();
+  const contentHash = computeDocumentContentHash(target);
+  const label = (input.label ?? "auto").trim() || "auto";
+  const delta = computeMapDocumentDelta(input.base.document, target);
+
+  return DeltaSnapshotRecordSchema.parse({
+    contentHash,
+    createdAt: now,
+    delta,
+    documentId: target.id,
+    label,
+    parentHash: input.base.contentHash,
+    projectId: input.projectId
+  });
+}
+
+export function restoreDeltaSnapshot(base: SnapshotRecord, delta: DeltaSnapshotRecord): MapDocument {
+  return applyMapDocumentDelta(base.document, delta.delta);
+}
+
 function buildSnapshotFileName(snapshot: SnapshotRecord): string {
   const timestamp = snapshot.createdAt.replace(/[:.]/gu, "-");
   return `${timestamp}__${snapshot.contentHash}.json`;

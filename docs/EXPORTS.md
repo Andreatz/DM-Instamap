@@ -7,8 +7,9 @@ The first raster export pipeline lives in `packages/exporters`.
 - PNG
 - WEBP
 - dd2vtt / Universal VTT
-- Foundry VTT module zip
+- Foundry VTT module zip (with optional journals + scene notes pin)
 - DMIMAP project payload
+- Session Pack zip (full / GM / player PNGs + GM notes + initiative)
 
 ## Raster Options
 
@@ -58,7 +59,30 @@ walls, the exporter derives line-of-sight segments from wall tiles.
 scene pack file, and the rendered map image. Walls, doors, lights, and grid
 settings are converted from the editable `MapDocument`.
 
-## Session Pack CLI
+When `includeJournals` is enabled (default), the zip also contains a journal
+pack with one entry per `RoomNode`, one per `MapNote`, and one for plan-level
+notes. The scene then carries a `notes` array where each GM note is a pin
+linking to the matching journal page via `entryId`/`pageId`. See
+[FOUNDRY_EXPORT.md](FOUNDRY_EXPORT.md) for the manual-verification checklist.
+
+## Session Pack
+
+`exportSessionPack` produces a zip with:
+
+- `maps/<slug>-full.png`
+- `maps/<slug>-gm.png`
+- `maps/<slug>-player.png`
+- `notes/gm-notes.json`
+- `notes/plan-notes.txt`
+- `notes/description.txt`
+- `initiative/initiative.json` (when `includeInitiative` is true)
+- `manifest.json`
+
+Trigger it from:
+
+- `POST /api/projects/[id]/export` with `{ "format": "session-pack", ... }`
+- the editor toolbar "Session Pack" button (I2)
+- the CLI:
 
 ```bash
 pnpm exports:session-pack <projectId> --scale 2 --include-initiative --description "Session notes"
@@ -67,3 +91,7 @@ pnpm exports:session-pack <projectId> --scale 2 --include-initiative --descripti
 The command reads `data/projects/<projectId>/map.dmimap.json` and writes a zip
 under `data/projects/<projectId>/exports/` by default. Use `--output <path>` to
 choose a file or directory. Supported image formats are `png` and `webp`.
+
+The same job is also exposed as a fire-and-forget worker task at
+`POST /jobs/exports/session-pack` for scales that would otherwise tie up a
+Next.js request (see [WORKER.md](WORKER.md) H4).

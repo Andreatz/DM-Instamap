@@ -110,6 +110,94 @@ class WorkerJobTests(unittest.TestCase):
         self.assertFalse(payload["result"]["analysis"]["transparency"])
         self.assertGreater(len(payload["result"]["analysis"]["dominantColors"]), 0)
 
+    def test_import_pack_job_uses_local_runner(self) -> None:
+        def complete(store: JobStore, job_id: str, *, root: str, preset: str, default_tags: list[str]) -> None:
+            store.update_job(
+                job_id,
+                status=JobStatus.completed,
+                progress=100,
+                message="Job completed.",
+                result={"root": root, "preset": preset, "defaultTags": default_tags},
+            )
+
+        with patch("dm_instamap_worker.routes.assets.run_asset_import_pack_job", complete):
+            created = self.client.post(
+                "/jobs/assets/import-pack",
+                json={"root": "./packs/fa", "preset": "forgotten-adventures", "defaultTags": ["fa", "dungeon"]},
+            )
+
+        self.assertEqual(created.status_code, 200)
+        payload = self.client.get(f"/jobs/{created.json()['id']}").json()
+        self.assertEqual(payload["type"], "assets.import-pack")
+        self.assertEqual(payload["status"], "completed")
+        self.assertEqual(payload["result"]["preset"], "forgotten-adventures")
+        self.assertEqual(payload["result"]["defaultTags"], ["fa", "dungeon"])
+
+    def test_asset_generate_job_uses_local_runner(self) -> None:
+        def complete(store: JobStore, job_id: str, **kwargs) -> None:  # noqa: ANN003
+            store.update_job(
+                job_id,
+                status=JobStatus.completed,
+                progress=100,
+                message="Job completed.",
+                result={"prompt": kwargs["prompt"], "classification": kwargs["classification"]},
+            )
+
+        with patch("dm_instamap_worker.routes.assets.run_asset_generate_job", complete):
+            created = self.client.post(
+                "/jobs/assets/generate",
+                json={"prompt": "ornate iron door", "classification": "door", "seed": 42},
+            )
+
+        self.assertEqual(created.status_code, 200)
+        payload = self.client.get(f"/jobs/{created.json()['id']}").json()
+        self.assertEqual(payload["type"], "assets.generate")
+        self.assertEqual(payload["result"]["prompt"], "ornate iron door")
+        self.assertEqual(payload["result"]["classification"], "door")
+
+    def test_ai_plan_job_uses_local_runner(self) -> None:
+        def complete(store: JobStore, job_id: str, *, user_request: str, max_retries: int | None) -> None:
+            store.update_job(
+                job_id,
+                status=JobStatus.completed,
+                progress=100,
+                message="Job completed.",
+                result={"userRequest": user_request, "maxRetries": max_retries},
+            )
+
+        with patch("dm_instamap_worker.routes.ai.run_ai_plan_job", complete):
+            created = self.client.post(
+                "/jobs/ai/plan",
+                json={"userRequest": "crypt under cathedral", "maxRetries": 2},
+            )
+
+        self.assertEqual(created.status_code, 200)
+        payload = self.client.get(f"/jobs/{created.json()['id']}").json()
+        self.assertEqual(payload["type"], "ai.plan")
+        self.assertEqual(payload["result"]["userRequest"], "crypt under cathedral")
+        self.assertEqual(payload["result"]["maxRetries"], 2)
+
+    def test_session_pack_job_uses_local_runner(self) -> None:
+        def complete(store: JobStore, job_id: str, **kwargs) -> None:  # noqa: ANN003
+            store.update_job(
+                job_id,
+                status=JobStatus.completed,
+                progress=100,
+                message="Job completed.",
+                result={"projectId": kwargs["project_id"], "scale": kwargs["scale"]},
+            )
+
+        with patch("dm_instamap_worker.routes.exports.run_exports_session_pack_job", complete):
+            created = self.client.post(
+                "/jobs/exports/session-pack",
+                json={"projectId": "crypt", "scale": 2, "includeInitiative": True},
+            )
+
+        self.assertEqual(created.status_code, 200)
+        payload = self.client.get(f"/jobs/{created.json()['id']}").json()
+        self.assertEqual(payload["type"], "exports.session-pack")
+        self.assertEqual(payload["result"]["projectId"], "crypt")
+
     def test_missing_job_returns_404(self) -> None:
         response = self.client.get("/jobs/job_missing")
 

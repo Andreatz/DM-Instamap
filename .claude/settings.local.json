@@ -16,7 +16,11 @@
       "Bash(pnpm --filter @dm-instamap/web typecheck)",
       "Bash(pnpm --filter @dm-instamap/assets lint)",
       "Bash(pnpm --filter @dm-instamap/assets test)",
-      "Bash(pnpm -r lint)"
+      "Bash(pnpm -r lint)",
+      "Bash(pnpm --filter @dm-instamap/worker test)",
+      "Bash(grep -n \"editor-map-panel\\\\|editor-details-panel\\\\|</section>\\\\s*$\\\\|editor-canvas-status\" apps/web/src/components/editor/map-editor.tsx)",
+      "Bash(pnpm --filter @dm-instamap/web test)",
+      "Bash(pnpm --filter @dm-instamap/core test)"
     ]
   }
 }

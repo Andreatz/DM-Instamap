@@ -44,8 +44,27 @@ pnpm assets:generate --prompt "mossy stone altar" --classification prop --seed 4
 
 This command uses the optional image generation provider configured through
 `IMAGE_GEN_*` environment variables. Generated files are imported into the local
-library and appended to the manifest with a single-file rescan. No generated
-asset is required at runtime from an external service.
+library and appended to the manifest with a single-file rescan
+(`scanSingleAsset` + `appendAssetToManifest`, see
+[ASSET_SCANNER.md](ASSET_SCANNER.md)). No generated asset is required at
+runtime from an external service.
+
+## Worker offload
+
+Both import-pack and generate are also wired to the FastAPI worker as
+fire-and-forget jobs:
+
+- `POST /jobs/assets/import-pack` (H1) — body
+  `{ root, preset, defaultTags }`. Runs `pnpm assets:import-pack` in a
+  subprocess and reports progress through the SQLite-backed job store.
+- `POST /jobs/assets/generate` (H2) — body
+  `{ prompt, classification, seed, steps, styleTags, ... }`. Runs
+  `pnpm assets:generate`. Requires `IMAGE_GEN_*` env vars on the worker.
+
+The web app proxies job state via `GET /api/jobs/[jobId]`; the React hook
+`useJob` and the `JobProgressBar` component poll until the job is
+terminal. The `PackImporterForm` exposes a "Run on local worker" toggle as
+the reference integration. See [WORKER.md](WORKER.md) for details.
 
 ## Classification
 
