@@ -43,6 +43,32 @@ six modes selectable from the toolbar:
 
 Every mode can save the result as a local project.
 
+## Quality scoring
+
+`scoreMapQuality(map)` assigns a local, deterministic 0-100 score to any
+editable `MapDocument`. The score currently weighs:
+
+- connectivity of walkable cells;
+- walkable area balance;
+- isolated or useless rooms;
+- dead ends and narrow passages;
+- tactical cover near playable spaces;
+- line-of-sight breaks;
+- points of interest such as doors, lights, notes, assets, stairs, boss/final
+  rooms, water, shrines, libraries, and similar tagged areas.
+
+The function returns:
+
+- `score` and `rating` (`poor`, `usable`, `strong`);
+- per-metric values and scores;
+- human-readable warnings;
+- debug tiles for dead ends, disconnected cells, and narrow passages.
+
+The `/generate` preview shows the quality score, a compact debug panel, and a
+tile overlay for the first flagged cells. This is intentionally heuristic: it
+does not decide whether a map is beautiful, but it highlights maps that need
+manual cleanup before export or play.
+
 ## Algorithms (C1)
 
 All algorithms are deterministic per `seed` and return a fully validated

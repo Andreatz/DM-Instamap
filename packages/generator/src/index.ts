@@ -433,6 +433,14 @@ function unique(values: string[]): string[] {
 }
 
 export {
+  scoreMapQuality,
+  type MapQualityDebugTile,
+  type MapQualityMetric,
+  type MapQualityRating,
+  type MapQualityReport
+} from "./quality";
+
+export {
   createNarrativeBlueprint,
   generateBuildingBlueprint,
   generateCryptBlueprint,

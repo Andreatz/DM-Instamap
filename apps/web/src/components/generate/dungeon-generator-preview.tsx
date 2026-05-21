@@ -10,6 +10,7 @@ import {
   generateMultiFloorDungeon,
   generateOutdoorMap,
   generateVillageMap,
+  scoreMapQuality,
   type MapGenerationBlueprint
 } from "@dm-instamap/generator";
 import type { MapDocument } from "@dm-instamap/core/browser";
@@ -146,6 +147,11 @@ export function DungeonGeneratorPreview() {
   }, [blueprint, form, selectedFloor]);
   const map = generated.map;
   const rooms = map.plan?.rooms.filter((room) => room.kind === "room" || room.kind === "entrance") ?? [];
+  const quality = useMemo(() => scoreMapQuality(map), [map]);
+  const qualityDebugTiles = useMemo(
+    () => new Map(quality.debugTiles.map((tile) => [`${tile.x},${tile.y}`, tile])),
+    [quality]
+  );
 
   function setField<Key extends keyof GeneratorForm>(key: Key, value: GeneratorForm[Key]) {
     setForm((current) => ({
@@ -393,6 +399,7 @@ export function DungeonGeneratorPreview() {
           <span>{rooms.length} stanze</span>
           <span>{map.plan?.doors.length ?? 0} porte</span>
           <span>{map.plan?.walls.length ?? 0} segmenti muro</span>
+          <span>Qualita {quality.score}/100</span>
           {generated.floors ? <span>{generated.floors.length} piani</span> : null}
         </div>
         <button className="save-correction" onClick={() => void createProjectFromPreview()} type="button">
@@ -415,7 +422,13 @@ export function DungeonGeneratorPreview() {
           }}
         >
           {map.tiles.map((tile) => (
-            <span className={`generated-tile generated-tile-${tile.kind}`} key={tile.id} />
+            <span
+              className={`generated-tile generated-tile-${tile.kind}${
+                qualityDebugTiles.has(`${tile.x},${tile.y}`) ? " generated-tile-debug" : ""
+              }`}
+              key={tile.id}
+              title={qualityDebugTiles.get(`${tile.x},${tile.y}`)?.reason}
+            />
           ))}
         </div>
       </section>
@@ -445,7 +458,33 @@ export function DungeonGeneratorPreview() {
             <dt>Algoritmo</dt>
             <dd>{describeMode(form.mode)}</dd>
           </div>
+          <div>
+            <dt>Qualita</dt>
+            <dd>
+              {quality.score}/100 ({formatQualityRating(quality.rating)})
+            </dd>
+          </div>
         </dl>
+
+        <section className="detail-block">
+          <h3>Debug qualita</h3>
+          <p>{quality.summary}</p>
+          <div className="tag-list">
+            <span>Connettivita {quality.metrics.connectivity.score}</span>
+            <span>Spazio {quality.metrics.walkableBalance.score}</span>
+            <span>Coperture {quality.metrics.tacticalCover.score}</span>
+            <span>POI {quality.metrics.pointsOfInterest.score}</span>
+          </div>
+          {quality.warnings.length > 0 ? (
+            <ul className="quality-warning-list">
+              {quality.warnings.slice(0, 4).map((warning) => (
+                <li key={warning}>{warning}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>Nessun warning critico.</p>
+          )}
+        </section>
 
         <section className="detail-block">
           <h3>Stanze</h3>
@@ -527,6 +566,19 @@ function describeMode(mode: GeneratorMode): string {
       return "Multipiano (collegati da scale)";
     default:
       return mode;
+  }
+}
+
+function formatQualityRating(rating: ReturnType<typeof scoreMapQuality>["rating"]): string {
+  switch (rating) {
+    case "strong":
+      return "solida";
+    case "usable":
+      return "usabile";
+    case "poor":
+      return "debole";
+    default:
+      return rating;
   }
 }
 

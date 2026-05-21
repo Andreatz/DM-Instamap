@@ -61,6 +61,9 @@ keys, and large asset packs.
 - **Advanced auto-furnish** that places assets by room type, narrative role and
   wall/center/scatter rules, with debug output. Room-type vocabulary extended
   with `cave`, `village_building`, `tavern`, `smithy`, `shrine`, `clearing`.
+- **Generator quality scoring** via `scoreMapQuality`, shown in `/generate`
+  with connectivity, dead-end, cover, line-of-sight, POI, and debug-tile
+  warnings.
 
 ### Editor
 
@@ -223,6 +226,9 @@ pnpm build
 pnpm dev          # binds Next.js to 127.0.0.1
 pnpm worker:dev   # binds FastAPI to 127.0.0.1
 ```
+
+Testing details and the lightweight UI smoke-flow contract live in
+[docs/TESTING.md](docs/TESTING.md).
 
 Asset and reference commands:
 
