@@ -122,6 +122,104 @@ export async function scanAssets(folder: string, options: AssetScannerOptions = 
   return manifest;
 }
 
+export type ScanSingleAssetOptions = {
+  outputRoot?: string;
+  overridesPath?: string;
+  previewDir?: string;
+  sourceRoot: string;
+  thumbnailSize?: number;
+};
+
+export async function scanSingleAsset(
+  filePath: string,
+  options: ScanSingleAssetOptions
+): Promise<AssetManifestEntry> {
+  const sourceRoot = path.resolve(options.sourceRoot);
+  const outputRoot = path.resolve(options.outputRoot ?? process.cwd());
+  const overridesPath = path.resolve(outputRoot, options.overridesPath ?? DEFAULT_OVERRIDES_PATH);
+  const previewDir = path.resolve(outputRoot, options.previewDir ?? DEFAULT_PREVIEW_DIR);
+  const thumbnailSize = options.thumbnailSize ?? 128;
+  const absolutePath = path.resolve(filePath);
+  const relativePath = toPosixPath(path.relative(sourceRoot, absolutePath));
+
+  await mkdir(previewDir, { recursive: true });
+  const overrides = await readAssetOverrides(overridesPath);
+
+  return inspectAsset({
+    filePath: absolutePath,
+    outputRoot,
+    overrides,
+    previewDir,
+    relativePath,
+    thumbnailSize
+  });
+}
+
+export type AppendAssetToManifestOptions = {
+  manifestPath?: string;
+  outputRoot?: string;
+};
+
+export type AppendAssetResult = {
+  appended: boolean;
+  manifest: AssetManifest;
+  replaced: boolean;
+};
+
+export async function appendAssetToManifest(
+  asset: AssetManifestEntry,
+  options: AppendAssetToManifestOptions = {}
+): Promise<AppendAssetResult> {
+  const outputRoot = path.resolve(options.outputRoot ?? process.cwd());
+  const manifestPath = path.resolve(outputRoot, options.manifestPath ?? DEFAULT_MANIFEST_PATH);
+  let existing: AssetManifest | null = null;
+
+  try {
+    const raw = await readFile(manifestPath, "utf8");
+    existing = JSON.parse(raw) as AssetManifest;
+  } catch (error) {
+    if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) {
+      throw error;
+    }
+  }
+
+  const baseManifest: AssetManifest = existing ?? {
+    assets: [],
+    errors: [],
+    generatedAt: new Date().toISOString(),
+    sourceRoot: outputRoot,
+    version: 1
+  };
+  const existingIndex = baseManifest.assets.findIndex(
+    (entry) => entry.id === asset.id || entry.relativePath === asset.relativePath
+  );
+  const nextAssets = [...baseManifest.assets];
+
+  let replaced = false;
+
+  if (existingIndex >= 0) {
+    nextAssets[existingIndex] = asset;
+    replaced = true;
+  } else {
+    nextAssets.push(asset);
+  }
+
+  const duplicateLookup = createDuplicateLookup(findDuplicateGroups(nextAssets));
+  const enriched = nextAssets.map((entry) =>
+    enrichAssetWithAuditFields(entry, duplicateLookup) as AssetManifestEntry
+  );
+  const manifest: AssetManifest = {
+    ...baseManifest,
+    assets: enriched,
+    generatedAt: new Date().toISOString()
+  };
+
+  await mkdir(path.dirname(manifestPath), { recursive: true });
+  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+
+  return { appended: !replaced, manifest, replaced };
+}
+
 function createDuplicateLookup(
   duplicateGroups: ReturnType<typeof findDuplicateGroups>
 ): Map<string, { confidence: number; id: string }> {

@@ -57,6 +57,20 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         </dl>
       </section>
 
+      {project.relatedProjectIds.length > 0 ? (
+        <section className="asset-details">
+          <h2>Linked Floors</h2>
+          <p>This project is linked with {project.relatedProjectIds.length} other floor(s) from the same dungeon.</p>
+          <ul>
+            {project.relatedProjectIds.map((relatedId) => (
+              <li key={relatedId}>
+                <Link href={`/projects/${relatedId}`}>{relatedId}</Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <ProjectSnapshotsPanel projectId={project.id} />
 
       <section className="asset-details">

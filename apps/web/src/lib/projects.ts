@@ -11,6 +11,7 @@ export const ProjectMetadataSchema = z
     createdAt: z.string().datetime(),
     id: z.string().trim().min(1),
     name: z.string().trim().min(1),
+    relatedProjectIds: z.array(z.string()).default([]),
     selectedAssetGroupIds: z.array(z.string()).default([]),
     selectedReferenceIds: z.array(z.string()).default([]),
     sourceRequest: z.string().trim().optional(),
@@ -39,6 +40,8 @@ export type CreateProjectInput = {
   document?: unknown;
   heightCells?: unknown;
   name?: unknown;
+  preferredId?: unknown;
+  relatedProjectIds?: unknown;
   requiredRooms?: unknown;
   roomCount?: unknown;
   selectedAssetGroupIds?: unknown;
@@ -130,13 +133,17 @@ export async function createProject(
 ): Promise<DmInstamapProject> {
   const now = new Date().toISOString();
   const name = readString(input.name) || "Untitled Map";
-  const id = await createUniqueProjectId(name, options);
+  const preferredId = readString(input.preferredId);
+  const id = preferredId
+    ? await reservePreferredProjectId(preferredId, options)
+    : await createUniqueProjectId(name, options);
   const document = createProjectDocument(input);
   const project = DmInstamapProjectSchema.parse({
     createdAt: now,
     document,
     id,
     name,
+    relatedProjectIds: readStringArray(input.relatedProjectIds),
     selectedAssetGroupIds: readStringArray(input.selectedAssetGroupIds),
     selectedReferenceIds: readStringArray(input.selectedReferenceIds),
     sourceRequest: readOptionalString(input.sourceRequest),
@@ -146,6 +153,56 @@ export async function createProject(
 
   await writeProject(project, options);
   return project;
+}
+
+export type MultiFloorProjectInput = {
+  baseSlug: string;
+  documents: unknown[];
+  name: string;
+  selectedAssetGroupIds?: unknown;
+  selectedReferenceIds?: unknown;
+  sourceRequest?: unknown;
+  styleDnaIds?: unknown;
+};
+
+export async function createMultiFloorProjects(
+  input: MultiFloorProjectInput,
+  options: { outputRoot?: string } = {}
+): Promise<DmInstamapProject[]> {
+  if (!Array.isArray(input.documents) || input.documents.length === 0) {
+    throw new Error("documents array is required for multi-floor save");
+  }
+
+  const baseSlug = createProjectSlug(input.baseSlug);
+  const ids = await reserveMultiFloorIds(baseSlug, input.documents.length, options);
+  const projects: DmInstamapProject[] = [];
+
+  for (let index = 0; index < input.documents.length; index += 1) {
+    const id = ids[index];
+    if (!id) {
+      throw new Error("Could not reserve project id for floor");
+    }
+
+    const related = ids.filter((other) => other !== id);
+    const floorName = `${input.name} — Floor ${index + 1}`;
+    const project = await createProject(
+      {
+        document: input.documents[index],
+        name: floorName,
+        preferredId: id,
+        relatedProjectIds: related,
+        selectedAssetGroupIds: input.selectedAssetGroupIds,
+        selectedReferenceIds: input.selectedReferenceIds,
+        sourceRequest: input.sourceRequest,
+        styleDnaIds: input.styleDnaIds
+      },
+      options
+    );
+
+    projects.push(project);
+  }
+
+  return projects;
 }
 
 export async function readProject(
@@ -187,6 +244,10 @@ export async function updateProject(
     ...current,
     document,
     name: readString(input.name) || current.name,
+    relatedProjectIds:
+      input.relatedProjectIds === undefined
+        ? current.relatedProjectIds
+        : readStringArray(input.relatedProjectIds),
     selectedAssetGroupIds:
       input.selectedAssetGroupIds === undefined
         ? current.selectedAssetGroupIds
@@ -220,6 +281,7 @@ export async function writeProject(
     createdAt: parsed.createdAt,
     id: parsed.id,
     name: parsed.name,
+    relatedProjectIds: parsed.relatedProjectIds,
     selectedAssetGroupIds: parsed.selectedAssetGroupIds,
     selectedReferenceIds: parsed.selectedReferenceIds,
     sourceRequest: parsed.sourceRequest,
@@ -239,6 +301,7 @@ export function toProjectSummary(project: DmInstamapProject): DmInstamapProjectS
     createdAt: project.createdAt,
     id: project.id,
     name: project.name,
+    relatedProjectIds: project.relatedProjectIds,
     roomCount: project.document.plan?.rooms.length ?? 0,
     selectedAssetGroupIds: project.selectedAssetGroupIds,
     selectedReferenceIds: project.selectedReferenceIds,
@@ -271,6 +334,68 @@ async function createUniqueProjectId(name: string, options: { outputRoot?: strin
   }
 
   return `${base}-${Date.now()}`;
+}
+
+async function reservePreferredProjectId(
+  preferred: string,
+  options: { outputRoot?: string }
+): Promise<string> {
+  const safe = assertSafeProjectId(preferred);
+  const root = await getProjectsRoot(options.outputRoot);
+
+  try {
+    await readFile(path.join(root, safe, PROJECT_METADATA_FILE), "utf8");
+  } catch (error) {
+    if (isMissingFileError(error)) {
+      return safe;
+    }
+
+    throw error;
+  }
+
+  return createUniqueProjectId(safe, options);
+}
+
+async function reserveMultiFloorIds(
+  baseSlug: string,
+  count: number,
+  options: { outputRoot?: string }
+): Promise<string[]> {
+  const root = await getProjectsRoot(options.outputRoot);
+
+  for (let attempt = 0; attempt < 1000; attempt += 1) {
+    const suffix = attempt === 0 ? "" : `-${attempt + 1}`;
+    const candidates: string[] = [];
+    for (let floor = 0; floor < count; floor += 1) {
+      candidates.push(`${baseSlug}${suffix}-floor-${floor + 1}`);
+    }
+
+    const collisions = await Promise.all(
+      candidates.map(async (id) => {
+        try {
+          await readFile(path.join(root, id, PROJECT_METADATA_FILE), "utf8");
+          return true;
+        } catch (error) {
+          if (isMissingFileError(error)) {
+            return false;
+          }
+
+          throw error;
+        }
+      })
+    );
+
+    if (collisions.every((collided) => !collided)) {
+      candidates.forEach((id) => assertSafeProjectId(id));
+      return candidates;
+    }
+  }
+
+  const stamp = Date.now();
+  return Array.from({ length: count }, (_, index) => {
+    const id = `${baseSlug}-${stamp}-floor-${index + 1}`;
+    return assertSafeProjectId(id);
+  });
 }
 
 async function getProjectDir(projectId: string, options: { outputRoot?: string }): Promise<string> {

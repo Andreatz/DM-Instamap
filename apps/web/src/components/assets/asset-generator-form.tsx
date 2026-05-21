@@ -16,6 +16,12 @@ type GeneratedAsset = {
   styleTags: string[];
 };
 
+type ManifestUpdate = {
+  appended: boolean;
+  replaced: boolean;
+  totalAssets: number;
+};
+
 export function AssetGeneratorForm() {
   const [providerStatus, setProviderStatus] = useState<ProviderStatus | null>(null);
   const [prompt, setPrompt] = useState("ornate wooden door with iron banding, top-down");
@@ -27,6 +33,7 @@ export function AssetGeneratorForm() {
   const [status, setStatus] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [lastAsset, setLastAsset] = useState<GeneratedAsset | null>(null);
+  const [manifestUpdate, setManifestUpdate] = useState<ManifestUpdate | null>(null);
 
   useEffect(() => {
     void (async () => {
@@ -60,14 +67,26 @@ export function AssetGeneratorForm() {
         headers: { "Content-Type": "application/json" },
         method: "POST"
       });
-      const payload = (await response.json()) as { asset?: GeneratedAsset; error?: string };
+      const payload = (await response.json()) as {
+        asset?: GeneratedAsset;
+        error?: string;
+        manifestUpdate?: ManifestUpdate | null;
+      };
 
       if (!response.ok || !payload.asset) {
         throw new Error(payload.error ?? "Generation failed.");
       }
 
       setLastAsset(payload.asset);
-      setStatus(`Asset written to ${payload.asset.relativePath}.`);
+      setManifestUpdate(payload.manifestUpdate ?? null);
+      const manifestNote = payload.manifestUpdate
+        ? payload.manifestUpdate.appended
+          ? " Added to manifest."
+          : payload.manifestUpdate.replaced
+            ? " Updated existing manifest entry."
+            : ""
+        : " Manifest not updated — run pnpm assets:scan to refresh.";
+      setStatus(`Asset written to ${payload.asset.relativePath}.${manifestNote}`);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Generation failed.");
     } finally {
@@ -166,6 +185,16 @@ export function AssetGeneratorForm() {
           <div>
             <dt>Tags</dt>
             <dd>{lastAsset.styleTags.join(", ") || "—"}</dd>
+          </div>
+          <div>
+            <dt>Manifest</dt>
+            <dd>
+              {manifestUpdate
+                ? `${manifestUpdate.totalAssets} entries (${
+                    manifestUpdate.appended ? "appended" : manifestUpdate.replaced ? "updated" : "unchanged"
+                  })`
+                : "not updated"}
+            </dd>
           </div>
         </dl>
       ) : null}

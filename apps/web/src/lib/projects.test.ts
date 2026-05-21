@@ -4,6 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   assertSafeProjectId,
+  createMultiFloorProjects,
   createProject,
   createProjectSlug,
   deleteProject,
@@ -12,6 +13,7 @@ import {
   readProject,
   updateProject
 } from "./projects";
+import { generateMultiFloorDungeon } from "@dm-instamap/generator";
 
 describe("project storage", () => {
   it("creates safe slugs and rejects unsafe ids", () => {
@@ -72,6 +74,38 @@ describe("project storage", () => {
 
     await deleteProject(project.id, { outputRoot });
     await expect(listProjects({ outputRoot })).resolves.toEqual([]);
+  });
+
+  it("saves a multi-floor dungeon as linked projects", async () => {
+    const outputRoot = await mkdtemp(path.join(os.tmpdir(), "dm-instamap-multi-floor-"));
+    const result = generateMultiFloorDungeon({
+      floorCount: 3,
+      heightCells: 24,
+      perFloorRoomCount: 4,
+      seed: "test-seed",
+      theme: "crypt",
+      widthCells: 32
+    });
+
+    const projects = await createMultiFloorProjects(
+      {
+        baseSlug: "Crypt Below",
+        documents: result.floors,
+        name: "Crypt Below"
+      },
+      { outputRoot }
+    );
+
+    expect(projects).toHaveLength(3);
+    expect(projects[0]!.id).toBe("crypt-below-floor-1");
+    expect(projects[1]!.id).toBe("crypt-below-floor-2");
+    expect(projects[2]!.id).toBe("crypt-below-floor-3");
+    expect(projects[0]!.relatedProjectIds).toEqual(["crypt-below-floor-2", "crypt-below-floor-3"]);
+    expect(projects[1]!.relatedProjectIds).toEqual(["crypt-below-floor-1", "crypt-below-floor-3"]);
+    expect(projects[0]!.name).toBe("Crypt Below — Floor 1");
+
+    const reloaded = await readProject("crypt-below-floor-2", { outputRoot });
+    expect(reloaded.relatedProjectIds).toEqual(["crypt-below-floor-1", "crypt-below-floor-3"]);
   });
 
   it("keeps duplicate project ids unique", async () => {

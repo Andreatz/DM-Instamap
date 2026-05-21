@@ -57,6 +57,7 @@ export function DungeonGeneratorPreview() {
   const router = useRouter();
   const [form, setForm] = useState<GeneratorForm>(INITIAL_FORM);
   const [status, setStatus] = useState("Generator ready");
+  const [selectedFloor, setSelectedFloor] = useState(0);
   const blueprint = useMemo(
     () =>
       form.mode === "narrative"
@@ -126,9 +127,10 @@ export function DungeonGeneratorPreview() {
         widthCells: form.widthCells
       });
 
+      const index = Math.min(Math.max(0, selectedFloor), result.floors.length - 1);
       return {
         floors: result.floors,
-        map: result.floors[0] as MapDocument
+        map: result.floors[index] as MapDocument
       };
     }
 
@@ -141,7 +143,7 @@ export function DungeonGeneratorPreview() {
         widthCells: form.widthCells
       })
     };
-  }, [blueprint, form]);
+  }, [blueprint, form, selectedFloor]);
   const map = generated.map;
   const rooms = map.plan?.rooms.filter((room) => room.kind === "room" || room.kind === "entrance") ?? [];
 
@@ -153,6 +155,11 @@ export function DungeonGeneratorPreview() {
   }
 
   async function createProjectFromPreview() {
+    if (form.mode === "multi-floor" && generated.floors && generated.floors.length > 1) {
+      await createMultiFloorProjectsFromPreview();
+      return;
+    }
+
     setStatus("Creating local project");
 
     try {
@@ -178,6 +185,48 @@ export function DungeonGeneratorPreview() {
       router.push(`/projects/${payload.project.id}/editor`);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Could not create project.");
+    }
+  }
+
+  async function createMultiFloorProjectsFromPreview() {
+    if (!generated.floors || generated.floors.length === 0) {
+      setStatus("No floors to save.");
+      return;
+    }
+
+    setStatus(`Creating ${generated.floors.length} linked projects…`);
+
+    try {
+      const projectName = buildProjectName(form);
+      const response = await fetch("/api/projects/multi-floor", {
+        body: JSON.stringify({
+          baseSlug: projectName,
+          documents: generated.floors,
+          name: projectName,
+          sourceRequest: buildSourceRequest(form)
+        }),
+        headers: {
+          "Content-Type": "application/json"
+        },
+        method: "POST"
+      });
+      const payload = (await response.json()) as {
+        error?: string;
+        projects?: Array<{ id: string }>;
+      };
+
+      if (!response.ok || !payload.projects || payload.projects.length === 0) {
+        throw new Error(payload.error ?? "Could not create multi-floor projects.");
+      }
+
+      const first = payload.projects[0];
+      if (!first) {
+        throw new Error("No projects returned by multi-floor route.");
+      }
+      setStatus(`Created ${payload.projects.length} linked projects. Opening floor 1…`);
+      router.push(`/projects/${first.id}/editor`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Could not create multi-floor projects.");
     }
   }
 
@@ -298,16 +347,36 @@ export function DungeonGeneratorPreview() {
         ) : null}
 
         {form.mode === "multi-floor" ? (
-          <label className="field">
-            <span>Floor Count</span>
-            <input
-              max="6"
-              min="2"
-              onChange={(event) => setField("floorCount", Number(event.target.value))}
-              type="number"
-              value={form.floorCount}
-            />
-          </label>
+          <>
+            <label className="field">
+              <span>Floor Count</span>
+              <input
+                max="6"
+                min="2"
+                onChange={(event) => {
+                  setField("floorCount", Number(event.target.value));
+                  setSelectedFloor(0);
+                }}
+                type="number"
+                value={form.floorCount}
+              />
+            </label>
+            {generated.floors && generated.floors.length > 1 ? (
+              <div className="field-row" role="group" aria-label="Preview floor">
+                {generated.floors.map((_, index) => (
+                  <button
+                    aria-pressed={selectedFloor === index}
+                    className={selectedFloor === index ? "save-correction" : ""}
+                    key={`floor-${index}`}
+                    onClick={() => setSelectedFloor(index)}
+                    type="button"
+                  >
+                    Floor {index + 1}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </>
         ) : null}
 
         {form.mode === "cave" ||
@@ -331,8 +400,8 @@ export function DungeonGeneratorPreview() {
         </button>
         {generated.floors ? (
           <p className="muted">
-            Multi-floor preview shows the entrance floor. All {generated.floors.length} floors are linked via stairs in
-            the saved document.
+            Multi-floor save creates {generated.floors.length} linked projects (one per floor). Currently previewing
+            floor {selectedFloor + 1}.
           </p>
         ) : null}
         <p>{status}</p>
@@ -498,7 +567,7 @@ function buildSourceRequest(form: GeneratorForm): string {
   }
 
   if (form.mode === "multi-floor") {
-    return `Generated ${form.theme} multi-floor dungeon (${form.floorCount} floors, seed: ${form.seed}). Saved floor 1.`;
+    return `Generated ${form.theme} multi-floor dungeon (${form.floorCount} floors, seed: ${form.seed}). All floors saved as linked projects.`;
   }
 
   return `Generated ${form.theme} dungeon with ${form.roomCount} rooms.`;

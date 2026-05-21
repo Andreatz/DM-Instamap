@@ -72,6 +72,19 @@ export type FoundryModuleManifest = {
   version: string;
 };
 
+export type FoundrySceneNoteData = {
+  _id: string;
+  entryId: string;
+  icon: {
+    src: string;
+    tint: string | null;
+  };
+  pageId: string;
+  text: string;
+  x: number;
+  y: number;
+};
+
 export type FoundrySceneData = {
   _id: string;
   active: boolean;
@@ -89,6 +102,7 @@ export type FoundrySceneData = {
   lights: FoundryAmbientLightData[];
   name: string;
   navigation: boolean;
+  notes: FoundrySceneNoteData[];
   padding: number;
   walls: FoundryWallData[];
   width: number;
@@ -129,13 +143,15 @@ export async function exportFoundryModule(
   });
   const mapImagePath = `maps/${sceneSlug}.${imageFormat}`;
   const sceneImagePath = `modules/${moduleId}/${mapImagePath}`;
+  const includeJournals = options.includeJournals ?? true;
+  const journalJson = includeJournals ? buildJournalEntries(document) : [];
+  const gmNoteLookup = buildGmNoteLookup(document, journalJson);
   const sceneJson = createFoundryScene(document, {
+    gmNoteLookup,
     sceneId: sceneSlug,
     sceneImagePath,
     sceneName: options.sceneName ?? document.name
   });
-  const includeJournals = options.includeJournals ?? true;
-  const journalJson = includeJournals ? buildJournalEntries(document) : [];
   const moduleJson = createModuleManifest({
     author: options.author,
     description: options.description,
@@ -327,9 +343,41 @@ function escapeHtml(value: string): string {
     .replace(/'/gu, "&#39;");
 }
 
+type GmNoteLookup = {
+  entryId: string;
+  pageById: Map<string, string>;
+} | null;
+
+function buildGmNoteLookup(
+  document: MapDocument,
+  journals: FoundryJournalEntryData[]
+): GmNoteLookup {
+  const gmNotes = document.plan?.gmNotes ?? [];
+
+  if (gmNotes.length === 0 || journals.length === 0) {
+    return null;
+  }
+
+  const journal = journals.find((entry) => entry.name.endsWith("— GM Notes"));
+
+  if (!journal) {
+    return null;
+  }
+
+  const pageById = new Map<string, string>();
+
+  gmNotes.forEach((note, index) => {
+    const pageId = toFoundryId(`gmnote-${note.id}-${index}`);
+    pageById.set(note.id, pageId);
+  });
+
+  return { entryId: journal._id, pageById };
+}
+
 function createFoundryScene(
   document: MapDocument,
   input: {
+    gmNoteLookup: GmNoteLookup;
     sceneId: string;
     sceneImagePath: string;
     sceneName: string;
@@ -338,6 +386,29 @@ function createFoundryScene(
   const gridSize = document.grid.pixelsPerCell;
   const width = document.width * gridSize;
   const height = document.height * gridSize;
+  const sceneNotes = input.gmNoteLookup
+    ? (document.plan?.gmNotes ?? []).flatMap<FoundrySceneNoteData>((note, index) => {
+        const pageId = input.gmNoteLookup?.pageById.get(note.id);
+        if (!pageId || !input.gmNoteLookup) {
+          return [];
+        }
+
+        return [
+          {
+            _id: toFoundryId(`scenenote-${note.id}-${index}`),
+            entryId: input.gmNoteLookup.entryId,
+            icon: {
+              src: "icons/svg/book.svg",
+              tint: null
+            },
+            pageId,
+            text: note.title,
+            x: roundCoordinate(note.position.x * gridSize),
+            y: roundCoordinate(note.position.y * gridSize)
+          }
+        ];
+      })
+    : [];
 
   return {
     _id: toFoundryId(input.sceneId),
@@ -356,6 +427,7 @@ function createFoundryScene(
     lights: (document.plan?.lights ?? []).map((light, index) => convertLight(light, index, gridSize)),
     name: input.sceneName,
     navigation: false,
+    notes: sceneNotes,
     padding: 0,
     walls: [
       ...(document.plan?.walls ?? []).map((wall, index) => convertWall(wall, index, gridSize)),

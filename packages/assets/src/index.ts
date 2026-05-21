@@ -25,13 +25,18 @@ export {
 } from "./classifier";
 
 export {
+  appendAssetToManifest,
   scanAssets,
+  scanSingleAsset,
   SUPPORTED_ASSET_EXTENSIONS,
+  type AppendAssetResult,
+  type AppendAssetToManifestOptions,
   type AssetManifest,
   type AssetManifestEntry,
   type AssetScanError,
   type AssetScannerOptions,
-  type DominantColor
+  type DominantColor,
+  type ScanSingleAssetOptions
 } from "./scanner";
 
 export {

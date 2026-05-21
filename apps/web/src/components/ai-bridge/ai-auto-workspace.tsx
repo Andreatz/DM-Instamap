@@ -1,8 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { MapPlan } from "@dm-instamap/core";
+import type { AssetGroupView } from "@/lib/asset-groups";
+import type { ReferenceMapView } from "@/lib/references";
+import { toBridgeAssetGroup, toBridgeReference } from "@/lib/bridge-mappers";
+
+type AiAutoWorkspaceProps = {
+  assetGroups: AssetGroupView[];
+  references: ReferenceMapView[];
+};
 
 type AiStatus =
   | { enabled: false; mode: "manual-only"; reason?: string }
@@ -32,7 +40,7 @@ type BlueprintResult = {
   ok: boolean;
 };
 
-export function AiAutoWorkspace() {
+export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProps) {
   const router = useRouter();
   const [aiStatus, setAiStatus] = useState<AiStatus | null>(null);
   const [request, setRequest] = useState(
@@ -44,6 +52,8 @@ export function AiAutoWorkspace() {
   const [blueprintBusy, setBlueprintBusy] = useState(false);
   const [importBusy, setImportBusy] = useState(false);
   const [status, setStatus] = useState("");
+  const groupSummaries = useMemo(() => assetGroups.map(toBridgeAssetGroup), [assetGroups]);
+  const referenceSummaries = useMemo(() => references.map(toBridgeReference), [references]);
 
   useEffect(() => {
     void (async () => {
@@ -85,8 +95,8 @@ export function AiAutoWorkspace() {
     try {
       const response = await fetch("/api/ai/plan", {
         body: JSON.stringify({
-          assetGroups: [],
-          references: [],
+          assetGroups: groupSummaries,
+          references: referenceSummaries,
           userRequest: request
         }),
         headers: { "Content-Type": "application/json" },
@@ -157,6 +167,8 @@ export function AiAutoWorkspace() {
         {aiStatus && !aiStatus.enabled ? (
           <span className="pill">disabled — {aiStatus.reason ?? "no env config"}</span>
         ) : null}
+        <span className="pill">{groupSummaries.length} asset groups</span>
+        <span className="pill">{referenceSummaries.length} references</span>
       </div>
 
       <label className="field">

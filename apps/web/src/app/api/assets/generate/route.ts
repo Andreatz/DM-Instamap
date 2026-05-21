@@ -1,8 +1,17 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import {
+  appendAssetToManifest,
   createImageGenerationProviderFromEnv,
-  importGeneratedAssetToLibrary
+  importGeneratedAssetToLibrary,
+  scanSingleAsset,
+  type AssetManifestEntry
 } from "@dm-instamap/assets";
 import { findWorkspaceRoot } from "@/lib/assets-manifest";
+
+type ExistingManifest = {
+  sourceRoot?: unknown;
+};
 
 type GenerateBody = {
   classification?: unknown;
@@ -78,12 +87,62 @@ export async function POST(request: Request) {
       result
     });
 
+    const rescan = await tryAppendToManifest({
+      generatedAbsolutePath: metadata.path,
+      workspaceRoot
+    });
+
     return Response.json({
       asset: metadata,
+      manifestEntry: rescan?.entry ?? null,
+      manifestUpdate: rescan
+        ? {
+            appended: rescan.result.appended,
+            replaced: rescan.result.replaced,
+            totalAssets: rescan.result.manifest.assets.length
+          }
+        : null,
       ok: true
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Image generation failed.";
     return Response.json({ error: message, ok: false }, { status: 500 });
+  }
+}
+
+async function tryAppendToManifest(input: {
+  generatedAbsolutePath: string;
+  workspaceRoot: string;
+}): Promise<{
+  entry: AssetManifestEntry;
+  result: Awaited<ReturnType<typeof appendAssetToManifest>>;
+} | null> {
+  try {
+    const manifestPath = path.join(input.workspaceRoot, "data", "indexes", "assets.manifest.json");
+    let sourceRoot = path.join(input.workspaceRoot, "data", "assets", "generated");
+
+    try {
+      const raw = await readFile(manifestPath, "utf8");
+      const parsed = JSON.parse(raw) as ExistingManifest;
+      if (typeof parsed.sourceRoot === "string" && parsed.sourceRoot.trim().length > 0) {
+        sourceRoot = parsed.sourceRoot;
+      }
+    } catch (error) {
+      if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) {
+        throw error;
+      }
+    }
+
+    const entry = await scanSingleAsset(input.generatedAbsolutePath, {
+      outputRoot: input.workspaceRoot,
+      sourceRoot
+    });
+    const result = await appendAssetToManifest(entry, {
+      outputRoot: input.workspaceRoot
+    });
+
+    return { entry, result };
+  } catch {
+    return null;
   }
 }

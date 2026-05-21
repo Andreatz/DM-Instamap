@@ -28,7 +28,7 @@ export default async function AiBridgePage() {
         </dl>
       </header>
 
-      <AiAutoWorkspace />
+      <AiAutoWorkspace assetGroups={assetGroups.groups} references={references.references} />
 
       <AiBridgeWorkspace assetGroups={assetGroups.groups} references={references.references} />
     </main>

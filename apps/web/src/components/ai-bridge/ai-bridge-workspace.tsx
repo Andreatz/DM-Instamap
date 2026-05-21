@@ -9,15 +9,14 @@ import {
   searchBridgeContext,
   validateBridgeResponse,
   validatePlanSemantics,
-  type BridgeAssetGroupSummary,
   type BridgeAssetSearchSummary,
-  type BridgeReferenceSummary,
   type MissingAssetReport,
   type SemanticIssue
 } from "@dm-instamap/ai-bridge";
 import type { AssetGroupView } from "@/lib/asset-groups";
 import type { AssetSearchApiResult } from "@/lib/asset-search";
 import type { ReferenceMapView } from "@/lib/references";
+import { toBridgeAssetGroup, toBridgeReference } from "@/lib/bridge-mappers";
 
 type AiBridgeWorkspaceProps = {
   assetGroups: AssetGroupView[];
@@ -452,41 +451,6 @@ function toBridgeAssetSearchResult(result: AssetSearchApiResult): BridgeAssetSea
     relativePath: result.relativePath,
     score: result.score,
     tags: result.tags
-  };
-}
-
-function toBridgeAssetGroup(group: AssetGroupView): BridgeAssetGroupSummary {
-  return {
-    assetCount: group.assetCount,
-    id: group.id,
-    kind: group.kind,
-    name: group.name,
-    qualityScore: group.qualityScore,
-    tags: group.tags,
-    theme: group.theme,
-    usableFor: group.usableFor
-  };
-}
-
-function toBridgeReference(reference: ReferenceMapView): BridgeReferenceSummary {
-  return {
-    height: reference.height,
-    id: reference.id,
-    mapType: reference.mapType,
-    mapTypeConfidence: reference.mapTypeConfidence,
-    path: reference.path,
-    styleDna: reference.styleDna
-      ? {
-          density: reference.styleDna.density,
-          layoutTraits: reference.styleDna.layoutTraits,
-          mood: reference.styleDna.mood,
-          promptSummary: reference.styleDna.promptSummary,
-          recommendedAssetTags: reference.styleDna.recommendedAssetTags,
-          visualTags: reference.styleDna.visualTags
-        }
-      : null,
-    tags: reference.tags,
-    width: reference.width
   };
 }
 

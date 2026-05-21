@@ -9,6 +9,13 @@ type SnapshotSummary = {
   label: string;
 };
 
+type SnapshotDiffResult = {
+  changedFields: string[];
+  fromHash: string;
+  identical: boolean;
+  toHash: string;
+};
+
 type ProjectSnapshotsPanelProps = {
   projectId: string;
 };
@@ -19,6 +26,8 @@ export function ProjectSnapshotsPanel({ projectId }: ProjectSnapshotsPanelProps)
   const [label, setLabel] = useState("");
   const [loading, setLoading] = useState(true);
   const [busyHash, setBusyHash] = useState<string | null>(null);
+  const [diffBusyHash, setDiffBusyHash] = useState<string | null>(null);
+  const [diffResults, setDiffResults] = useState<Record<string, SnapshotDiffResult | null>>({});
 
   async function refresh() {
     setLoading(true);
@@ -64,6 +73,31 @@ export function ProjectSnapshotsPanel({ projectId }: ProjectSnapshotsPanelProps)
       await refresh();
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Snapshot failed.");
+    }
+  }
+
+  async function diffSnapshotAgainstCurrent(contentHash: string) {
+    setDiffBusyHash(contentHash);
+    setStatus("Computing diff against current state…");
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}/snapshots/${contentHash}/diff?against=current`);
+      const payload = (await response.json()) as { diff?: SnapshotDiffResult; error?: string };
+
+      if (!response.ok || !payload.diff) {
+        throw new Error(payload.error ?? "Diff failed.");
+      }
+
+      setDiffResults((current) => ({ ...current, [contentHash]: payload.diff ?? null }));
+      setStatus(
+        payload.diff.identical
+          ? "Snapshot is identical to current state."
+          : `Diff vs current: ${payload.diff.changedFields.join(", ") || "no field changes"}.`
+      );
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Diff failed.");
+    } finally {
+      setDiffBusyHash(null);
     }
   }
 
@@ -129,14 +163,30 @@ export function ProjectSnapshotsPanel({ projectId }: ProjectSnapshotsPanelProps)
                 <span className="muted">{new Date(snapshot.createdAt).toLocaleString()}</span>
               </header>
               <code className="muted">{snapshot.contentHash}</code>
-              <button
-                className="save-correction"
-                disabled={busyHash === snapshot.contentHash}
-                onClick={() => void restoreSnapshot(snapshot.contentHash)}
-                type="button"
-              >
-                {busyHash === snapshot.contentHash ? "Restoring…" : "Restore"}
-              </button>
+              <div className="field-row">
+                <button
+                  disabled={diffBusyHash === snapshot.contentHash}
+                  onClick={() => void diffSnapshotAgainstCurrent(snapshot.contentHash)}
+                  type="button"
+                >
+                  {diffBusyHash === snapshot.contentHash ? "Diffing…" : "Diff vs current"}
+                </button>
+                <button
+                  className="save-correction"
+                  disabled={busyHash === snapshot.contentHash}
+                  onClick={() => void restoreSnapshot(snapshot.contentHash)}
+                  type="button"
+                >
+                  {busyHash === snapshot.contentHash ? "Restoring…" : "Restore"}
+                </button>
+              </div>
+              {diffResults[snapshot.contentHash] ? (
+                <p className="muted">
+                  {diffResults[snapshot.contentHash]?.identical
+                    ? "Identical to current state."
+                    : `Changed: ${diffResults[snapshot.contentHash]?.changedFields.join(", ") || "(none)"}`}
+                </p>
+              ) : null}
             </li>
           ))}
         </ul>

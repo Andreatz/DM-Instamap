@@ -103,6 +103,33 @@ describe("exportFoundryModule", () => {
     expect(zip.file("packs/journal.db")).not.toBeNull();
   });
 
+  it("adds scene notes that link GM notes to their journal pages", async () => {
+    const result = await exportFoundryModule(createFoundryFixtureWithJournals(), {
+      moduleId: "scene-notes-test"
+    });
+
+    expect(result.sceneJson.notes).toHaveLength(1);
+    const note = result.sceneJson.notes[0]!;
+    expect(note.text).toBe("Trap");
+    expect(note.x).toBe(210);
+    expect(note.y).toBe(70);
+    expect(note.entryId).toHaveLength(16);
+    expect(note.pageId).toHaveLength(16);
+
+    const gmJournal = result.journalJson.find((entry) => entry.name.endsWith("— GM Notes"));
+    expect(gmJournal?._id).toBe(note.entryId);
+    expect(gmJournal?.pages[0]?._id).toBe(note.pageId);
+  });
+
+  it("emits empty scene notes when journals are disabled", async () => {
+    const result = await exportFoundryModule(createFoundryFixtureWithJournals(), {
+      includeJournals: false,
+      moduleId: "scene-notes-skip-test"
+    });
+
+    expect(result.sceneJson.notes).toHaveLength(0);
+  });
+
   it("skips journal output when includeJournals is false", async () => {
     const result = await exportFoundryModule(createFoundryFixtureWithJournals(), {
       includeJournals: false,

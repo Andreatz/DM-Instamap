@@ -20,6 +20,14 @@ I gap identificati sono raggruppati in:
 
 Obiettivo: chiudere i bug che rendono visibilmente "rotte" feature che il ROADMAP marca come complete.
 
+### Stato implementazione (2026-05-21)
+
+- F1 chiuso: `AiAutoWorkspace` riceve `assetGroups` e `references` da `apps/web/src/app/ai-bridge/page.tsx`, li trasforma via `toBridgeAssetGroup`/`toBridgeReference` (estratti in `apps/web/src/lib/bridge-mappers.ts`) e li invia a `/api/ai/plan`. UI mostra contatori del contesto inviato.
+- F2 chiuso: aggiunto `relatedProjectIds` a `ProjectMetadataSchema`, nuova `createMultiFloorProjects` in `apps/web/src/lib/projects.ts`, route `/api/projects/multi-floor`, segmented control "Floor N" e salvataggio multi-piano in `dungeon-generator-preview`, sezione "Linked Floors" nella project page. Coperto da test `projects.test.ts`.
+- F3 chiuso: nuovi `scanSingleAsset` e `appendAssetToManifest` in `packages/assets/src/scanner.ts`; `/api/assets/generate` aggiorna il manifest dopo `importGeneratedAssetToLibrary` e l'UI di `asset-generator-form` mostra "Added to manifest" / count.
+- F4 chiuso: nuova route `GET /api/projects/[id]/snapshots/[hash]/diff?against=current|<hash>` e bottone "Diff vs current" nel `ProjectSnapshotsPanel`. Riusa `diffSnapshots` e `createMapSnapshot` da `@dm-instamap/core`.
+- F5 chiuso: `FoundrySceneData` ora include `notes: FoundrySceneNoteData[]` con `entryId`/`pageId` agganciati alle pagine del journal "GM Notes". Quando `includeJournals: false` le note di scena non vengono emesse. Coperto da nuovi test in `foundry.test.ts`.
+
 ### F1. AI auto bridge passa contesto locale
 
 - File: [apps/web/src/components/ai-bridge/ai-auto-workspace.tsx](apps/web/src/components/ai-bridge/ai-auto-workspace.tsx), [apps/web/src/app/api/ai/plan/route.ts](apps/web/src/app/api/ai/plan/route.ts), [apps/web/src/app/ai-bridge/page.tsx](apps/web/src/app/ai-bridge/page.tsx).
