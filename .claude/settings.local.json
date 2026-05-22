@@ -110,7 +110,10 @@
       "Bash(grep -vE \"//|console|className\")",
       "Bash(node scripts/audit-ui-language.mjs)",
       "Bash(xargs cat)",
-      "Bash(pnpm audit:ui-language)"
+      "Bash(pnpm audit:ui-language)",
+      "Bash(grep -nA12 \"export async function importAssetPack\" packages/assets/src/pack-importer.ts)",
+      "Bash(pnpm --filter @dm-instamap/assets typecheck)",
+      "Bash(pnpm --filter @dm-instamap/assets exec vitest run tests/seed-demo.test.ts)"
     ]
   }
 }

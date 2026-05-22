@@ -39,10 +39,25 @@ Su Windows, la guida rapida e in [docs/WINDOWS_SETUP.md](docs/WINDOWS_SETUP.md).
 
 ## Setup Rapido
 
+Comando unico (install + dipendenze worker + diagnosi):
+
+```bash
+pnpm setup
+```
+
+Equivale a:
+
 ```bash
 pnpm install
 pnpm worker:install
 pnpm doctor
+```
+
+Opzionale: crea una libreria asset demo sintetica (placeholder, nessun asset
+personale) per provare scan -> genera -> edita -> esporta:
+
+```bash
+pnpm data:seed-demo
 ```
 
 Se servono override locali:
@@ -55,16 +70,17 @@ Lascia le variabili AI vuote per lavorare in modalita local-first/manuale.
 
 ## Avvio Locale
 
-Terminale 1:
+Comando unico (web + worker insieme su `127.0.0.1`):
 
 ```bash
-pnpm dev
+pnpm start
 ```
 
-Terminale 2, solo per job lunghi tramite worker:
+In alternativa, due terminali separati:
 
 ```bash
-pnpm worker:dev
+pnpm dev          # terminale 1: editor web
+pnpm worker:dev   # terminale 2: worker (job lunghi)
 ```
 
 Apri:
