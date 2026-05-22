@@ -224,3 +224,24 @@ The output includes debug data for each placement: room id, room type,
 footprint, placement preference, score, and match reasons. It also returns a
 summary with room count, placed count, skipped count, and density. The editor
 uses this summary in its auto-furnish status message.
+
+## Giocabilita verificata (invarianti + benchmark)
+
+Oltre alle metriche di qualita, ogni mappa generata e verificata contro
+invarianti "hard" tramite property-based test (`fast-check`, 200 seed per
+algoritmo) in `packages/generator/src/invariants.test.ts`:
+
+- solo tile validi (`floor`/`wall`/`door`/`empty`), nessun debug-tile;
+- ogni porta su una cella walkable in bounds;
+- ogni asset piazzato dentro la struttura e in bounds;
+- ogni stanza giocabile raggiungibile dalla rete walkable principale;
+- dungeon multipiano: scale accoppiate e coerenti tra i piani collegati.
+
+Gli helper sono esportati: `checkMapInvariants(document)` e
+`checkMultiFloorInvariants(result)`.
+
+Il benchmark (`pnpm generator:benchmark`) copre 9 scenari deterministici con
+soglie di qualita "strong" (almeno 8 mappe `strong`); le sintesi golden, con
+content hash, sono congelate in `packages/generator/tests/fixtures/benchmark/`
+come regression guard. Rigenerale con `pnpm --filter @dm-instamap/generator
+benchmark --write` dopo cambi intenzionali al generatore.

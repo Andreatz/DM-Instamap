@@ -39,6 +39,13 @@ export function generateOutdoorMap(options: OutdoorMapOptions): MapDocument {
     carveRiver(grid, rng, bridges);
   }
 
+  // Guaranteed trail from the entrance into the clearing so the entry point is
+  // always reachable, regardless of where trees or the river fall.
+  const entranceX = Math.floor(width / 2);
+  for (let y = 0; y <= Math.floor(height / 2); y += 1) {
+    setTile(grid, entranceX, y, "floor");
+  }
+
   const clearingBounds = { height, width, x: 0, y: 0 };
   const rooms: RoomNode[] = [
     {

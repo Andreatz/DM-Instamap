@@ -49,6 +49,42 @@ Pack import can rebuild asset manifests from a supported pack folder:
 pnpm assets:import-pack --root <path> --preset generic
 ```
 
+## Backup e restore
+
+I dati locali (progetti, campagne, indici opzionali) si salvano e ripristinano
+con due comandi:
+
+```bash
+pnpm data:backup                          # in ./backups (ignorato da Git)
+pnpm data:backup --out /percorso/esterno  # es. una chiavetta USB
+pnpm data:backup --include-indexes        # include anche data/indexes
+pnpm data:restore <cartella-backup> --dry-run   # mostra cosa farebbe
+pnpm data:restore <cartella-backup>             # ripristina senza sovrascrivere
+pnpm data:restore <cartella-backup> --force     # sovrascrive i conflitti
+```
+
+Cosa includere/escludere:
+
+- **Incluso**: `data/projects/` e `data/campaigns/` (i dati insostituibili).
+- **Opzionale** (`--include-indexes`): `data/indexes/` (rigenerabile dagli asset).
+- **Escluso**: `data/previews/` e `data/exports/`, rigenerabili.
+
+Formato del backup:
+
+- una cartella versionata `dm-instamap-backup-<timestamp>/` con i file copiati e
+  un `backup-manifest.json` (`version`, `createdAt`, `sections`, e per ogni file
+  `path` + checksum `sha256` + dimensione);
+- il restore verifica i checksum prima di scrivere e si interrompe se un file e
+  mancante o alterato;
+- senza `--force` i file esistenti non vengono sovrascritti e sono elencati come
+  conflitti; con `--dry-run` non viene scritto nulla;
+- le destinazioni broad o di sistema (home, root del disco, cartelle di sistema)
+  sono rifiutate riusando `validateLocalPath`.
+
+Rotazione e conservazione: tieni piu backup datati (il nome include il
+timestamp) e conserva almeno una copia su un supporto separato dalla macchina di
+gioco. I backup in `./backups/` sono ignorati da Git.
+
 ## Repository audit
 
 Run this before committing:

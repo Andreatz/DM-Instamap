@@ -102,7 +102,11 @@
       "Bash(pnpm --filter @dm-instamap/web test:coverage)",
       "Bash(gh auth *)",
       "Bash(grep -n \"= useLightingTools\\({\\\\|setStatus\\\\s*$\\\\|}\\);\" apps/web/src/hooks/use-map-editor-state.ts)",
-      "Bash(grep -nE \"createSnapshot = useCallback|exportSessionPackQuick = useCallback|async function handleExport|^  \\\\}, \\\\[|function handleAutoFurnish|return \\\\{\" apps/web/src/hooks/use-map-editor-state.ts)"
+      "Bash(grep -nE \"createSnapshot = useCallback|exportSessionPackQuick = useCallback|async function handleExport|^  \\\\}, \\\\[|function handleAutoFurnish|return \\\\{\" apps/web/src/hooks/use-map-editor-state.ts)",
+      "Bash(pnpm --filter @dm-instamap/web exec vitest run src/lib/data-archive.test.ts src/lib/cli/cli.test.ts)",
+      "Bash(pnpm --filter @dm-instamap/generator exec vitest run src/invariants.test.ts)",
+      "Bash(pnpm generator:benchmark)",
+      "Bash(pnpm --filter @dm-instamap/generator benchmark --write)"
     ]
   }
 }

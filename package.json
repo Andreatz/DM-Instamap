@@ -18,6 +18,8 @@
     "build": "pnpm -r --if-present build",
     "campaigns:create": "pnpm --filter @dm-instamap/web campaigns:create",
     "campaigns:list": "pnpm --filter @dm-instamap/web campaigns:list",
+    "data:backup": "pnpm --filter @dm-instamap/web data:backup",
+    "data:restore": "pnpm --filter @dm-instamap/web data:restore",
     "dev": "pnpm --filter @dm-instamap/web dev",
     "doctor": "tsx scripts/doctor.ts",
     "exports:session-pack": "pnpm --filter @dm-instamap/exporters session-pack",

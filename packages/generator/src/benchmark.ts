@@ -97,10 +97,10 @@ export const BENCHMARK_SCENARIOS: BenchmarkScenario[] = [
     },
     theme: "crypt",
     thresholds: {
-      minScore: 60,
-      readability: 55,
-      routing: 80,
-      themeAlignment: 70
+      minScore: 90,
+      readability: 85,
+      routing: 90,
+      themeAlignment: 90
     }
   },
   {
@@ -121,10 +121,10 @@ export const BENCHMARK_SCENARIOS: BenchmarkScenario[] = [
     },
     theme: "dungeon",
     thresholds: {
-      minScore: 60,
-      routing: 80,
-      tacticalAffordance: 40,
-      themeAlignment: 70
+      minScore: 90,
+      routing: 90,
+      tacticalAffordance: 60,
+      themeAlignment: 90
     }
   },
   {
@@ -144,7 +144,7 @@ export const BENCHMARK_SCENARIOS: BenchmarkScenario[] = [
       paletteTags: ["moss", "broken-stone"]
     },
     theme: "ruin",
-    thresholds: { minScore: 58, routing: 75, themeAlignment: 70 }
+    thresholds: { minScore: 88, routing: 88, themeAlignment: 90 }
   },
   {
     build: () =>
@@ -162,7 +162,7 @@ export const BENCHMARK_SCENARIOS: BenchmarkScenario[] = [
       paletteTags: ["rock", "damp"]
     },
     theme: "cave",
-    thresholds: { minScore: 55, routing: 70 }
+    thresholds: { minScore: 70, routing: 90 }
   },
   {
     build: () =>
@@ -181,7 +181,7 @@ export const BENCHMARK_SCENARIOS: BenchmarkScenario[] = [
       paletteTags: ["timber", "thatch"]
     },
     theme: "village",
-    thresholds: { minScore: 55, roomVariety: 40 }
+    thresholds: { minScore: 90, roomVariety: 80, routing: 90 }
   },
   {
     build: () =>
@@ -201,7 +201,7 @@ export const BENCHMARK_SCENARIOS: BenchmarkScenario[] = [
       paletteTags: ["canvas", "campfire"]
     },
     theme: "camp",
-    thresholds: { minScore: 50 }
+    thresholds: { minScore: 80, routing: 90 }
   },
   {
     build: () =>
@@ -219,7 +219,53 @@ export const BENCHMARK_SCENARIOS: BenchmarkScenario[] = [
       paletteTags: ["wood", "hearth"]
     },
     theme: "tavern",
-    thresholds: { minScore: 55, themeAlignment: 50 }
+    thresholds: { minScore: 78, themeAlignment: 90 }
+  },
+  {
+    build: () =>
+      generateDungeon({
+        heightCells: 32,
+        requiredRooms: ["sanctum", "altar", "vault"],
+        roomCount: 7,
+        theme: "temple",
+        widthCells: 46
+      }),
+    id: "temple",
+    label: "Tempio",
+    styleDna: {
+      densityBias: "rich",
+      layoutBias: "compact",
+      paletteTags: ["marble", "incense", "gold"]
+    },
+    theme: "temple",
+    thresholds: {
+      minScore: 88,
+      routing: 88,
+      themeAlignment: 85
+    }
+  },
+  {
+    build: () =>
+      generateDungeon({
+        heightCells: 38,
+        requiredRooms: ["barracks", "armory", "keep"],
+        roomCount: 8,
+        theme: "fortress",
+        widthCells: 54
+      }),
+    id: "fortress",
+    label: "Fortezza",
+    styleDna: {
+      densityBias: "normal",
+      layoutBias: "balanced",
+      paletteTags: ["granite", "iron", "banner"]
+    },
+    theme: "fortress",
+    thresholds: {
+      minScore: 88,
+      routing: 88,
+      themeAlignment: 85
+    }
   }
 ];
 

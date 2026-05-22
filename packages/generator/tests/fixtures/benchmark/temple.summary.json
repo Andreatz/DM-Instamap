@@ -1,7 +1,7 @@
 {
-  "contentHash": "ff3ba0f615412cb7",
-  "id": "ruin",
-  "label": "Rovina",
+  "contentHash": "cfd0a89c0b742c1d",
+  "id": "temple",
+  "label": "Tempio",
   "metrics": {
     "assetDensity": 100,
     "readability": 100,
@@ -11,16 +11,16 @@
     "themeAlignment": 100
   },
   "rating": "strong",
-  "roomCount": 6,
+  "roomCount": 7,
   "score": 100,
   "size": {
-    "height": 30,
-    "width": 44
+    "height": 32,
+    "width": 46
   },
-  "theme": "ruin",
+  "theme": "temple",
   "thresholds": {
     "minScore": 88,
     "routing": 88,
-    "themeAlignment": 90
+    "themeAlignment": 85
   }
 }

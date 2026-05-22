@@ -1,4 +1,5 @@
 {
+  "contentHash": "bfabb7d673ccffb2",
   "id": "boss-dungeon",
   "label": "Dungeon con boss",
   "metrics": {
@@ -18,9 +19,9 @@
   },
   "theme": "dungeon",
   "thresholds": {
-    "minScore": 60,
-    "routing": 80,
-    "tacticalAffordance": 40,
-    "themeAlignment": 70
+    "minScore": 90,
+    "routing": 90,
+    "tacticalAffordance": 60,
+    "themeAlignment": 90
   }
 }

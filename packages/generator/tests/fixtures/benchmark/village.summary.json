@@ -1,4 +1,5 @@
 {
+  "contentHash": "709ff99957c2ce9a",
   "id": "village",
   "label": "Villaggio",
   "metrics": {
@@ -18,7 +19,8 @@
   },
   "theme": "village",
   "thresholds": {
-    "minScore": 55,
-    "roomVariety": 40
+    "minScore": 90,
+    "roomVariety": 80,
+    "routing": 90
   }
 }

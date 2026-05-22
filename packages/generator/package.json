@@ -18,5 +18,8 @@
   },
   "dependencies": {
     "@dm-instamap/core": "workspace:*"
+  },
+  "devDependencies": {
+    "fast-check": "^3.23.2"
   }
 }

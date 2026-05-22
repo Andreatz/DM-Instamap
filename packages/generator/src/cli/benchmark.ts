@@ -1,5 +1,6 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { computeDocumentContentHash } from "@dm-instamap/core/server";
 import {
   BENCHMARK_SCENARIOS,
   benchmarkMetricLabel,
@@ -73,6 +74,7 @@ function main(): void {
         (candidate) => candidate.id === result.id
       );
       const summary = {
+        contentHash: computeDocumentContentHash(result.document),
         id: result.id,
         label: result.label,
         metrics: result.metrics,

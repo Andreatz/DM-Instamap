@@ -26,6 +26,9 @@ reference-maps-local/
 data/projects/
 data/exports/
 
+# Local data backups (pnpm data:backup default destination)
+backups/
+
 # Python
 __pycache__/
 *.py[cod]
