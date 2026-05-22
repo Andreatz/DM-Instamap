@@ -1,206 +1,57 @@
-# DM-Instamap - Analisi critica e nuova roadmap
+# DM-Instamap - Roadmap verso 9.5 e completezza
 
-## Stato avanzamento
+## Premessa
 
-Aggiornamento Fase 0:
+Questa roadmap parte dalla baseline attuale, valutata circa **8/10** in una
+analisi completa (architettura monorepo pulita, 315 test verdi tra TS e worker
+Python, TypeScript `strict` + `noUncheckedIndexedAccess` con zero `any` nel
+sorgente, repository senza dati locali tracciati, CI di base, documentazione per
+modulo). Le fasi 0-10 della roadmap precedente
+([docs/LEGACY_ROADMAP.md](LEGACY_ROADMAP.md)) sono considerate chiuse.
 
-- Fase 0 completata: `.gitignore` ora esclude `data/indexes/` e
-  `data/previews/`;
-- aggiunto `pnpm repo:audit` per bloccare dati locali generati e binari
-  inattesi tracciati in Git;
-- aggiunta la guida `docs/LOCAL_DATA.md`;
-- gli artefatti gia tracciati sotto `data/` sono stati rimossi dall'indice Git
-  senza cancellare i file locali;
-- verifiche passate: `pnpm repo:audit`, `pnpm lint`, `pnpm test`,
-  `pnpm build`, `pnpm --filter @dm-instamap/worker test`.
+Obiettivo: portare il progetto a **9.5/10** e a uno stato "feature-complete"
+per l'uso da DM personale, chiudendo le lacune residue di tooling, copertura,
+modularita, giocabilita e onboarding.
 
-Avanzamento Fase 1:
+Principi invariati (da [AGENTS.md](../AGENTS.md)):
 
-- aggiunto `apps/web/src/lib/local-paths.ts` come validatore path web condiviso;
-- applicato a import pack diretto, import pack via worker e ricerca asset per
-  immagine;
-- aggiunti test per path relativo valido, traversal, assoluto fuori workspace,
-  path broad/system e path inesistente;
-- l'editor di progetto ora limita i gruppi asset passati al client per evitare
-  hydration lenta con librerie locali molto grandi; la ricerca asset resta
-  disponibile tramite API;
-- restano da allineare eventuali future route con input file-system e da
-  consolidare la policy in un modulo condiviso tra web e worker.
+- local-first, nessuna API a pagamento obbligatoria;
+- ogni feature ha test;
+- ogni mappa generata resta editabile;
+- task piccoli, ogni fase si chiude con test e documentazione;
+- tutto il testo UI resta in italiano, identificatori e docs tecniche in
+  inglese.
 
-Avanzamento Fase 2:
+## Lacune che questa roadmap chiude
 
-- Playwright ora copre un flusso editor reale: creazione progetto via API,
-  apertura editor, attesa idratazione client, modifica canvas, salvataggio,
-  verifica del documento salvato e export PNG;
-- Playwright copre snapshot create/diff/restore usando un progetto temporaneo e
-  verificando che il documento torni allo stato precedente;
-- Playwright copre export API per WEBP, dd2vtt e Session Pack, inclusi content
-  type, formato dd2vtt e ZIP valido;
-- aggiunto un marker `data-hydrated` all'editor per evitare click su markup SSR
-  prima che React abbia agganciato gli handler;
-- restano da coprire undo/redo esplicito, copy/paste asset, Foundry e import
-  pack fixture.
+Dall'analisi della baseline 8/10:
 
-Avanzamento Fase 3:
+1. lo script `lint` e solo `tsc --noEmit`: manca un linter vero (ESLint/Biome) e
+   un formatter; il worker Python ha solo `compileall`, senza ruff/mypy;
+2. la CI non esegue gli E2E e non ha gate di coverage;
+3. file molto grandi: `apps/web/src/hooks/use-map-editor-state.ts` (1121 righe),
+   `packages/ai-bridge/src/index.ts` (1039), `packages/generator/src/algorithms.ts`
+   (1006);
+4. la copertura E2E e parziale (mancano undo/redo, copy/paste, Foundry,
+   import-pack con fixture, multi-floor, campagne);
+5. backup/restore locale non e documentato ne testato (era gia un requisito 9/10
+   non soddisfatto nella roadmap precedente);
+6. la validazione path non copre ancora ogni route file-system;
+7. la giocabilita del generatore e misurata con metriche interne ma non
+   verificata con invarianti "hard";
+8. mancano audit di accessibilita, un onboarding "one-command" e governance di
+   base (licenza, changelog, policy dipendenze).
 
-- `apps/web/src/components/editor/map-editor.tsx` e passato da 2391 a 38 righe e
-  ora e solo un orchestratore che compone i sottocomponenti;
-- estratto il rendering canvas puro in `apps/web/src/lib/map-canvas-renderer.ts`
-  (testabile senza DOM tramite context 2D mock);
-- estratte le funzioni di supporto pure in `apps/web/src/lib/map-editor-view.ts`
-  (mappatura livelli, label IT, clamp/parse, bounds marquee, drag payload,
-  storage asset generati);
-- estratti gli hook `useEditorHistory`, `useCanvasViewport` e l'hook master
-  `useMapEditorState` sotto `apps/web/src/hooks/`;
-- estratti i pannelli React `EditorAssetSidebar`, `EditorCanvasToolbar`,
-  `MapCanvas`, `EditorAiPanel`, `EditorInspector`;
-- nessuna feature editor rimossa: strumenti, undo/redo, selezione, copy/paste,
-  layer, luci, note, iniziativa, arredamento, export e JSON restano invariati;
-- aggiunti test unitari per `map-editor-view` e `map-canvas-renderer`
-  (rendering base + helper puri);
-- verifiche passate: `pnpm lint`, `pnpm test` (108 test), `pnpm build`,
-  `pnpm test:e2e` (8/8, incluso save canvas + export PNG dell'editor reale);
-- restano da estrarre, se servira, sotto-pannelli piu granulari dall'inspector
-  (522 righe) e da valutare uno split ulteriore dell'hook master.
-
-Avanzamento Fase 4:
-
-- aggiunta cronologia export per progetto: `apps/web/src/lib/project-export-history.ts`
-  registra ogni export in `data/projects/<id>/exports/history.json` (best-effort,
-  non blocca il download); la route `POST /api/projects/[projectId]/export` la
-  scrive dopo ogni export riuscito;
-- aggiunta thumbnail progetto come mini-mappa SVG deterministica
-  (`apps/web/src/lib/project-thumbnail.ts`, run-length per riga, nessun testo
-  utente inline) con il componente server `ProjectThumbnail`;
-- aggiunta pagina "Pronto per la sessione"
-  (`/projects/[projectId]/session-ready`) con checklist requisiti/consigliati
-  (`apps/web/src/lib/project-readiness.ts`) ed export consigliati;
-- aggiunto `ProjectQuickExport`: Session Pack e PNG giocatori esportabili in un
-  clic dalla pagina progetto (rispetta il limite dei 3 clic);
-- la pagina progetto mostra ora preview, stato di preparazione, export recenti e
-  azioni principali; la lista progetti mostra thumbnail e stato per card;
-- aggiunto stato libreria asset in home (`apps/web/src/lib/asset-library-status.ts`):
-  numero asset, ultima scansione, duplicati ed elementi da rivedere;
-- migliorati i messaggi vuoti (home, lista progetti) con call-to-action;
-- progress feedback job lunghi gia coperto da `JobProgressBar` + `useJob`
-  (polling worker), riutilizzato dove servono job;
-- aggiunti test unitari per readiness, export history, asset library status e
-  thumbnail; aggiunto E2E `home -> progetto -> session ready -> export` che
-  verifica anche la registrazione della cronologia;
-- verifiche passate: `pnpm lint`, `pnpm test` (122 test), `pnpm build`,
-  `pnpm test:e2e` (9/9).
-
-Avanzamento Fase 5:
-
-- aggiunto harness benchmark in `packages/generator/src/benchmark.ts` con 7
-  scenari deterministici (cripta, dungeon con boss, rovina, caverna, villaggio,
-  accampamento, taverna) a input/seed fissi;
-- introdotte 6 metriche DM (allineamento tema, varieta stanze, densita elementi,
-  routing, leggibilita, affordance tattica) che riusano il quality scorer del
-  core ed estendono con metriche di struttura;
-- ogni scenario ha soglie codificate: il test `tests/benchmark.test.ts` fallisce
-  se il punteggio scende sotto soglia o si discosta dalle sintesi salvate in
-  `tests/fixtures/benchmark/` (snapshot seed-based);
-- aggiunte note GM deterministiche per ruolo stanza
-  (`packages/generator/src/gm-notes.ts`): `inferRoomRole`, `generateRoomRoleNotes`,
-  `withRoomRoleNotes`, idempotenti e senza randomness;
-- aggiunto un primo aggancio Reference Style DNA
-  (`packages/generator/src/style-dna.ts`): palette tags e densita influenzano i
-  tag stanza e la densita di arredamento; influenza sul layout ancora parziale;
-- aggiunto report CLI `pnpm generator:benchmark` (stampa tabella, `--write`
-  rigenera le sintesi, esce non-zero sotto soglia);
-- run del 2026-05-22: 7/7 scenari sopra soglia, 5 "strong" e 2 "usable";
-  report manuale in `docs/manual-test-reports/generator-benchmark-2026-05-22.md`;
-- verifiche passate: `pnpm lint`, `pnpm test` (generator 46 test; workspace
-  intero verde, incluso worker), `pnpm build`, `pnpm generator:benchmark` (7/7).
-
-Avanzamento Fase 6:
-
-- corretto un disallineamento di fidelity dd2vtt: l'immagine incorporata ora e
-  renderizzata a `grid.pixelsPerCell * scale` px/cella e `pixels_per_grid` /
-  `image_size` derivano dai pixel reali, garantendo
-  `image_size = map_size * pixels_per_grid` (prima l'immagine era a 28 px/cella
-  ma il file dichiarava 70: griglia disallineata all'import);
-- aggiunta opzione `cellPixels` al raster exporter per render a risoluzione
-  griglia esatta;
-- estratto `buildFoundryModuleData` (dati strutturali Foundry senza render) e
-  aggiunta opzione `foundryVersion` (`v12` default = 11/12, `v13` = 12/13);
-- aggiunto `buildVttExportManifest`: confronto strutturale image-free tra dd2vtt
-  e Foundry con controlli di coerenza (porte, luci, muri, allineamento griglia);
-- aggiunta fixture realistica versionata
-  (`packages/exporters/tests/fixtures/realistic-map.ts`) e snapshot manifest;
-- nuovi test: allineamento griglia/immagine (immagine decodificata con sharp),
-  scala, round-trip dd2vtt, compatibilita Foundry 12/13, dimensioni scena,
-  coordinate muri/porte/luci/note;
-- documentazione: `docs/VTT_EXPORT.md` (incluso Foundry 12 vs 13) e report
-  manuale `docs/manual-test-reports/vtt-export-2026-05-22.md`;
-- verifiche passate: `pnpm lint`, `pnpm test` (exporters 43 test; workspace
-  intero verde, incluso worker), `pnpm build`, e l'E2E export dd2vtt del web.
-
-Avanzamento Fase 7:
-
-- aggiunto log sintetico persistente sui job worker (`log.lastCommand`,
-  `durationMs`, `stdoutTail`, `stderrTail`, `interrupted`);
-- health worker arricchito con versione, repo root, db path, conteggi job,
-  job running e limite concorrenza;
-- aggiunto limite concorrenza configurabile
-  `DM_INSTAMAP_WORKER_CONCURRENCY`;
-- aggiunto cleanup automatico dei job terminali vecchi o in eccesso
-  (`DM_INSTAMAP_JOBS_RETENTION_DAYS`,
-  `DM_INSTAMAP_JOBS_MAX_TERMINAL`);
-- i job running interrotti da restart vengono marcati failed con
-  `log.interrupted`;
-- aggiunto proxy web `GET /api/jobs` e visualizzazione stderr sintetico in
-  `JobProgressBar`;
-- documentata recovery dopo crash in `docs/WORKER.md`.
-
-Avanzamento Fase 8:
-
-- aggiunti `MapDocumentV2Schema` e `upgradeMapDocumentToV2` come percorso
-  esplicito di preparazione v2 senza forzare ancora il salvataggio dei
-  progetti a v2;
-- aggiunta metadata v2 per export history, thumbnail e schema changelog;
-- aggiunto validator `validateMapDocumentAssetReferences` per asset mancanti
-  in document asset placements e plan asset placements;
-- aggiunta classificazione usage asset: `tile-texture`, `semantic-object`,
-  `asset-placement`;
-- aggiunta fixture `document-v2-basic.json` e test v1 -> v2.
-
-Avanzamento Fase 9:
-
-- aggiunto `pnpm run doctor` (`scripts/doctor.ts`) con controlli Node, pnpm,
-  Python, worker requirements, Sharp, template env e porte 3000/8000;
-- aggiunta `.env.local.example` con variabili locali worker/AI;
-- aggiunta guida `docs/WINDOWS_SETUP.md`;
-- aggiunto report manuale
-  `docs/manual-test-reports/local-packaging-2026-05-22.md`;
-- aggiunti test per parsing versioni e classificazione check doctor.
-
-Avanzamento Fase 10:
-
-- aggiunto provider AI mock locale (`AI_PROVIDER=mock`) senza chiavi e senza
-  chiamate esterne;
-- `getBridgeStatus` espone `localOnly` e distingue `manual-only`, `api` e
-  `mock`;
-- `createProviderFromEnv` crea il provider mock per test e demo offline;
-- documentato il mock provider in `docs/AI_BRIDGE.md`.
-
-## Nuova roadmap
-
-Questa roadmap parte dalla baseline positiva documentata in:
-
-```txt
-docs/manual-test-reports/baseline-2026-05-21.md
-```
-
-Ogni fase deve restare piccola e chiudersi con documentazione e test.
-
-Comandi minimi di chiusura per ogni fase tecnica:
+## Comandi minimi di chiusura per ogni fase
 
 ```bash
-pnpm lint
+pnpm format:check
+pnpm lint           # ESLint/Biome (non piu solo tsc)
+pnpm typecheck      # tsc --noEmit, separato dal lint
 pnpm test
+pnpm test:coverage
 pnpm build
+pnpm --filter @dm-instamap/worker lint   # ruff + mypy
 pnpm --filter @dm-instamap/worker test
 ```
 
@@ -210,340 +61,454 @@ Se la fase tocca flussi UI:
 pnpm test:e2e
 ```
 
-## Fase 0 - Pulizia repository e dati locali
+---
+
+## Fase A - Tooling di qualita reale
 
 Priorita: P0
 
-Obiettivo: separare in modo definitivo codice versionabile e dati locali.
+Obiettivo: separare lint, formattazione e typecheck e introdurre regole reali
+su TypeScript e Python.
 
 Task:
 
-- aggiungere a `.gitignore` anche `data/indexes/` e `data/previews/`;
-- rimuovere dal tracking Git i file generati sotto `data/` con `git rm --cached`;
-- mantenere solo fixture piccole e intenzionali sotto `packages/**/tests/fixtures`;
-- creare `docs/LOCAL_DATA.md` con spiegazione di cosa vive in `data/`;
-- aggiungere uno script di audit che fallisce se asset binari grandi entrano in
-  Git;
-- documentare come rigenerare indici e preview.
+- introdurre un linter vero. Opzione consigliata: **Biome** (lint + format
+  unico, veloce, una sola config) oppure **ESLint flat config** con
+  `typescript-eslint`, `eslint-plugin-react-hooks`, `eslint-plugin-import` e
+  `eslint-plugin-jsx-a11y` piu Prettier. Scegliere una sola strada e
+  documentarla;
+- rinominare gli script in ogni package: `typecheck` = `tsc --noEmit`, `lint` =
+  linter scelto, `format` / `format:check` = formatter;
+- aggiornare lo script root `lint` perche aggreghi il linter, non il typecheck;
+- introdurre nel worker `ruff` (lint + format) e `mypy --strict`, con config
+  tracciata in `apps/worker/pyproject.toml` o `ruff.toml`;
+- correggere o sopprimere in modo esplicito i warning iniziali; nessuna regola
+  disattivata silenziosamente;
+- aggiungere una regola che impedisca la reintroduzione di `any`
+  (`@typescript-eslint/no-explicit-any` o equivalente Biome).
 
 Definition of Done:
 
-- `git ls-files data` non mostra preview o manifest locali generati;
-- il repo resta sotto una dimensione ragionevole per codice sorgente;
-- un nuovo clone puo partire da zero con `pnpm install` e scanner locale.
+- `pnpm lint`, `pnpm typecheck` e `pnpm format:check` sono comandi distinti e
+  verdi;
+- `pnpm --filter @dm-instamap/worker lint` esegue ruff + mypy ed e verde;
+- nessun `any` nel sorgente non-test (gia vero oggi, ora reso impossibile da
+  reintrodurre).
 
 Test:
 
-- `pnpm lint`
-- `pnpm test`
-- verifica manuale `git ls-files data`
+- `pnpm lint && pnpm typecheck && pnpm format:check`;
+- ruff + mypy sul worker.
 
-## Fase 1 - Validazione path unica per web e worker
+---
+
+## Fase B - CI completa e gate di merge
 
 Priorita: P0
 
-Obiettivo: avere una policy unica per ogni path locale ricevuto da UI, API e
-worker.
+Obiettivo: trasformare la CI da build base a vera rete di sicurezza pre-merge.
 
 Task:
 
-- estrarre un modulo condiviso di validazione path lato Node;
-- applicarlo a import pack, search-by-image, preview route, export output e
-  ogni route che legge/scrive su disco;
-- allineare la semantica con il worker: no home root, no drive root, no Windows,
-  no Program Files, no path fuori workspace salvo directory esplicitamente
-  consentite;
-- aggiungere messaggi errore chiari in UI;
-- documentare quando usare path assoluti e quando usare path relativi.
+- aggiungere un job E2E Playwright in [.github/workflows/ci.yml](../.github/workflows/ci.yml)
+  con cache dei browser;
+- aggiungere copertura con `vitest --coverage` e soglie minime che fanno
+  fallire la build (es. core/generator/exporters 80% righe, web lib 65%);
+- aggiungere lint Python (ruff) e mypy al workflow;
+- eseguire la pipeline su `ubuntu-latest` **e** `windows-latest`, dato che il
+  target reale e Windows;
+- separare gli step: `format:check`, `lint`, `typecheck`, `test:coverage`,
+  `build`, `test:e2e`;
+- documentare in `docs/` i required check e la branch protection consigliata su
+  `main`.
 
 Definition of Done:
 
-- ogni route web con input path ha test su path valido, path traversal, drive
-  root e directory di sistema;
-- worker e web rifiutano le stesse classi di path pericolosi;
-- `DM_INSTAMAP_ALLOW_REMOTE=true` non cambia la validazione file-system.
+- ogni PR esegue format + lint + typecheck + test + coverage + e2e su ubuntu e
+  windows;
+- il merge e bloccato se un gate e rosso o se la coverage scende sotto soglia;
+- gli artifact e2e/coverage finiscono solo in cartelle ignorate.
 
 Test:
 
-- test unitari route/lib;
-- test worker sicurezza;
-- `pnpm lint && pnpm test && pnpm --filter @dm-instamap/worker test`.
+- una PR di prova che deve risultare verde end-to-end.
 
-## Fase 2 - Playwright sui flussi reali
+---
 
-Priorita: P0
-
-Obiettivo: trasformare Playwright da smoke test a rete di sicurezza sulle
-azioni da sessione reale.
-
-Task:
-
-- creare fixture temporanee isolate per progetto, asset e export;
-- aggiungere E2E: crea progetto dal wizard, apri editor, dipingi celle, salva,
-  ricarica e verifica persistenza;
-- aggiungere E2E undo/redo/copy/paste asset;
-- aggiungere E2E snapshot create/restore/diff;
-- aggiungere E2E export PNG, WEBP, dd2vtt e Session Pack;
-- aggiungere E2E import pack minimo con asset fixture;
-- salvare screenshot e artifact solo in cartelle ignorate.
-
-Definition of Done:
-
-- `pnpm test:e2e` copre almeno editor save/undo/export;
-- i test non dipendono da asset personali;
-- i test puliscono i dati temporanei o usano una root isolata.
-
-Test:
-
-- `pnpm test:e2e`
-- `pnpm test`
-
-## Fase 3 - Refactor editor in moduli
+## Fase C - Split dei moduli grandi e budget dimensione file
 
 Priorita: P1
 
-Obiettivo: ridurre il rischio di regressione nell'editor.
+Obiettivo: ridurre la superficie di regressione e i re-render dei file piu
+grandi rimasti dopo il refactor editor.
 
 Task:
 
-- estrarre `useMapEditorState`;
-- estrarre `useEditorHistory`;
-- estrarre `useCanvasViewport`;
-- estrarre `MapCanvas`;
-- estrarre `EditorToolbar`, `LayerPanel`, `AssetPalette`, `ExportPanel`,
-  `AiAssistPanel`, `JsonPanel`;
-- spostare il rendering canvas in un modulo puro testabile;
-- aggiungere test per hit-testing, viewport, comandi e rendering base.
+- spezzare [apps/web/src/hooks/use-map-editor-state.ts](../apps/web/src/hooks/use-map-editor-state.ts)
+  in sotto-hook coesi: `useAssetSelection`, `useAssetClipboard`,
+  `useNotesAndInitiative`, `useLightingTools`, lasciando `useMapEditorState`
+  come sola composizione;
+- spezzare [packages/ai-bridge/src/index.ts](../packages/ai-bridge/src/index.ts)
+  separando provider, orchestrazione e costruzione prompt;
+- spezzare [packages/generator/src/algorithms.ts](../packages/generator/src/algorithms.ts)
+  un file per algoritmo (cave, village, multi-floor, outdoor) con un barrel;
+- aggiungere un gate "nessun file applicativo oltre ~700 righe senza eccezione
+  motivata" (regola `max-lines` o script di audit);
+- stabilizzare i riferimenti tra closure dell'editor (useCallback dove serve)
+  per ridurre i re-render.
 
 Definition of Done:
 
-- `map-editor.tsx` scende sotto 700 righe;
-- rendering e comandi principali hanno test dedicati;
-- nessuna feature editor viene rimossa.
+- nessun file applicativo supera ~700 righe senza motivazione documentata;
+- ogni sotto-hook estratto ha test dedicati;
+- nessuna feature editor rimossa; e2e editor verde.
 
 Test:
 
-- unit test `apps/web/src/lib/map-editor*`;
+- unit test dei nuovi sotto-hook e moduli;
 - Playwright editor flow.
 
-## Fase 4 - Migliorare UX operativa
+---
+
+## Fase D - Copertura E2E completa
 
 Priorita: P1
 
-Obiettivo: far sentire il tool meno "laboratorio" e piu "strumento da DM".
+Obiettivo: chiudere i flussi E2E ancora mancanti dalla Fase 2 originale.
 
 Task:
 
-- aggiungere thumbnail progetto;
-- aggiungere cronologia export per progetto;
-- aggiungere stato asset library: numero asset, ultimo scan, errori, duplicati;
-- creare una pagina "Session Ready" con export consigliati e checklist;
-- migliorare messaggi vuoti: nessun asset, nessun riferimento, nessun progetto;
-- aggiungere progress feedback coerente per job lunghi.
+- E2E undo/redo, copy/paste asset e group/ungroup nell'editor reale;
+- E2E export Foundry (zip valido + toggle journal) e WEBP/PNG/dd2vtt/Session
+  Pack se non gia coperti;
+- E2E import-pack con una fixture asset minimale versionata (no asset
+  personali);
+- E2E multi-floor: creazione N piani e navigazione `/projects/[id]/floors`;
+- E2E campagne: crea campagna, collega progetto, aggiungi sessione;
+- E2E AI bridge con `AI_PROVIDER=mock` (nessuna chiamata esterna, nessuna
+  chiave).
 
 Definition of Done:
 
-- dalla home si capisce subito cosa fare;
-- ogni progetto mostra preview, stato, ultimi export e azioni principali;
-- una mappa pronta e esportabile in massimo 3 click dalla pagina progetto.
+- tutti i flussi elencati nella Fase 2 originale sono coperti;
+- gli E2E girano in CI (Fase B) e non dipendono da dati personali;
+- ogni test isola e pulisce i propri dati temporanei.
 
 Test:
 
-- Playwright su home -> progetto -> session ready -> export;
-- unit test sulle funzioni di summary progetto/export.
+- `pnpm test:e2e`.
 
-## Fase 5 - Qualita generativa misurabile
+---
+
+## Fase E - Backup e restore locale
 
 Priorita: P1
 
-Obiettivo: passare da "genera una mappa" a "genera una mappa giocabile".
+Obiettivo: soddisfare il requisito 9/10 mancante: dati locali con backup e
+restore documentati.
 
 Task:
 
-- creare un set di scenari benchmark: cripta, taverna, caverna, villaggio,
-  accampamento, rovina, dungeon boss;
-- salvare fixture JSON seed-based per ogni scenario;
-- introdurre metriche su tema, densita asset, varieta stanze, routing,
-  leggibilita e tactical affordance;
-- aggiungere report `generator:benchmark`;
-- usare Reference Style DNA per influenzare palette, densita e disposizione;
-- aggiungere note GM generate deterministicamente per room role.
+- aggiungere `pnpm data:backup`: crea un archivio versionato di
+  `data/projects/`, `data/campaigns/` e indici opzionali, con manifest e
+  checksum;
+- aggiungere `pnpm data:restore <archivio>` con `--dry-run`, verifica integrita
+  (checksum) e gestione conflitti (nessuna sovrascrittura senza conferma);
+- rifiutare path non sicuri riusando `validateLocalPath`;
+- documentare in [docs/LOCAL_DATA.md](LOCAL_DATA.md): cosa includere, cosa
+  escludere, rotazione e dove conservare i backup.
 
 Definition of Done:
 
-- ogni algoritmo produce output deterministico e confrontabile;
-- i benchmark falliscono se la qualita scende sotto soglie definite;
-- almeno 5 mappe benchmark sono considerate usabili dopo revisione manuale.
+- round-trip testato: progetto -> backup -> wipe -> restore produce un documento
+  identico per content hash;
+- restore segnala chiaramente conflitti e file mancanti;
+- `--dry-run` non scrive nulla.
 
 Test:
 
-- unit test generator;
-- snapshot test JSON;
-- report manuale in `docs/manual-test-reports/`.
+- unit test backup/restore e CLI;
+- E2E o test CLI sul round-trip.
 
-## Fase 6 - Fidelity export VTT
+---
+
+## Fase F - Validazione path universale
 
 Priorita: P1
 
-Obiettivo: ridurre correzioni manuali dopo import in VTT.
+Obiettivo: chiudere la coda della Fase 1 originale ("future routes" con input
+file-system).
 
 Task:
 
-- creare fixture dd2vtt e Foundry piu realistiche;
-- verificare porte, muri, luci, note, journal e scene dimensions;
-- aggiungere export comparison su manifest JSON;
-- aggiungere `includeGrid`, scala e pixel-per-cell nei casi limite;
-- documentare compatibilita Foundry 12/13 separatamente.
+- audit di ogni route e handler web/worker che legge o scrive su disco: deve
+  passare da [apps/web/src/lib/local-paths.ts](../apps/web/src/lib/local-paths.ts)
+  o da un wrapper di workspace condiviso;
+- estrarre la policy in un unico modulo/documento e allineare la semantica
+  web<->worker;
+- aggiungere un test di guardia che fallisce se una route file-system non usa
+  il validator (lint custom o test che ispeziona gli handler).
 
 Definition of Done:
 
-- import Foundry e dd2vtt verificato con fixture versionate piccole;
-- test automatici coprono coordinate, mura, porte e luci;
-- manual report aggiornato per ogni cambio di formato.
+- il 100% delle route file-system usa la stessa policy;
+- esiste un test di guardia contro nuove route non validate;
+- `DM_INSTAMAP_ALLOW_REMOTE=true` non rilassa la validazione path.
 
 Test:
 
-- `pnpm --filter @dm-instamap/exporters test`
-- E2E manuale VTT su release candidate.
+- unit test route/lib su valido, traversal, assoluto fuori workspace, drive
+  root, system folder;
+- test del worker;
+- test di guardia.
 
-## Fase 7 - Worker robusto per job lunghi
+---
+
+## Fase G - Giocabilita verificata, non solo misurata
+
+Priorita: P1
+
+Obiettivo: passare da metriche interne a invarianti "hard" verificati su molte
+seed.
+
+Task:
+
+- definire invarianti obbligatori per ogni mappa generata: ogni stanza
+  raggiungibile (connettivita), nessun asset fuori dai muri, ogni porta tra due
+  celle valide, scale multi-floor accoppiate e coerenti, nessun debug-tile
+  nell'output finale;
+- aggiungere property-based test (`fast-check`) che verificano gli invarianti su
+  N seed casuali per ogni algoritmo;
+- congelare un set di "golden map" riviste manualmente e considerate "strong";
+- alzare le soglie del benchmark esistente da "usable" a "strong" dove
+  possibile.
+
+Definition of Done:
+
+- invarianti verificati su almeno 200 seed per algoritmo;
+- almeno 8 golden map classificate "strong";
+- il gate benchmark e piu alto e resta verde.
+
+Test:
+
+- property-based test generator;
+- snapshot/benchmark con soglie alzate;
+- report manuale aggiornato in `docs/manual-test-reports/`.
+
+---
+
+## Fase H - Reference Style DNA con effetto reale sul layout
 
 Priorita: P2
 
-Obiettivo: rendere il worker affidabile su pack grandi e sessioni lunghe.
+Obiettivo: far influenzare alla Style DNA non solo i tag ma anche la geometria.
 
 Task:
 
-- aggiungere log per job con ultimo comando, stdout/stderr sintetici e durata;
-- aggiungere cleanup job vecchi;
-- aggiungere limite concorrenza configurabile;
-- aggiungere retry solo per task idempotenti;
-- esporre stato health piu ricco: versione, repo root, db path, job running;
-- documentare recovery dopo crash.
+- usare densita, grid e layout della Reference Style DNA per modulare dimensioni
+  stanze, lunghezza corridoi e densita di arredamento;
+- garantire un effetto deterministico: stessa seed con e senza DNA produce
+  layout misurabilmente diversi e coerenti col riferimento.
 
 Definition of Done:
 
-- un job interrotto viene marcato correttamente;
-- la UI mostra errore utile e log breve;
-- database job non cresce senza controllo.
+- esiste un test che mostra una divergenza controllata tra output con e senza
+  DNA;
+- [docs/GENERATOR.md](GENERATOR.md) documenta come la DNA influenza il layout.
 
 Test:
 
-- unit test worker;
-- test cancellazione e restart;
-- test route web `/api/jobs`.
+- unit test generator con e senza DNA a parita di seed.
 
-## Fase 8 - Data model v2
+---
+
+## Fase I - Accessibilita e i18n completa
 
 Priorita: P2
 
-Obiettivo: preparare mappe, progetti e asset a evoluzioni future senza rotture.
+Obiettivo: rendere l'interfaccia accessibile e verificare che sia interamente in
+italiano.
 
 Task:
 
-- definire `MapDocument` v2 solo quando serve davvero;
-- introdurre changelog schema;
-- aggiungere validator per asset references mancanti;
-- distinguere meglio asset placement, tile texture e semantic object;
-- aggiungere metadata export history e thumbnail nel progetto;
-- mantenere import v1 -> v2 automatico.
+- audit accessibilita con `eslint-plugin-jsx-a11y` e un controllo `axe` dentro
+  un E2E: focus order, ruoli ARIA, contrasto, label sui form, navigazione da
+  tastiera dell'editor;
+- aggiungere uno script che cerca stringhe UI hardcoded in inglese e fallisce se
+  ne trova (la regola del progetto vuole UI in italiano);
+- uniformare la gestione errori UI: empty state, error boundary, messaggi
+  coerenti.
 
 Definition of Done:
 
-- ogni documento v1 continua ad aprirsi;
-- ogni nuova proprieta ha default e migrazione;
-- i test fixture coprono vecchi documenti.
+- l'audit `axe` non riporta violazioni critiche;
+- nessuna stringa UI in inglese residua;
+- le azioni principali dell'editor sono usabili da tastiera.
 
 Test:
 
-- `packages/core/tests/migrations.test.ts`;
-- fixture v1/v2;
-- read/write progetto.
+- E2E con audit `axe`;
+- test dello script anti-stringhe-EN.
 
-## Fase 9 - Packaging locale
+---
+
+## Fase J - Onboarding e packaging "one-command"
 
 Priorita: P2
 
-Obiettivo: rendere semplice avviare DM-Instamap su una macchina nuova.
+Obiettivo: estendere la Fase 9 fino a un avvio davvero immediato su una macchina
+nuova.
 
 Task:
 
-- aggiungere script `pnpm doctor`;
-- controllare Node, pnpm, Python, worker deps, Sharp, porte occupate;
-- aggiungere guida Windows passo-passo;
-- preparare `.env.local.example`;
-- valutare launcher locale semplice senza introdurre servizi esterni.
+- aggiungere `pnpm setup` unico: install + `worker:install` + `doctor` +
+  dataset demo opzionale;
+- generare un dataset demo sintetico (asset placeholder generati, non binari
+  reali) per provare scan -> genera -> edita -> esporta senza librerie
+  personali;
+- aggiungere un primo avvio guidato in UI: dallo stato vuoto si crea la demo;
+- aggiungere un launcher locale che avvia web e worker insieme su `127.0.0.1`.
 
 Definition of Done:
 
-- un utente puo clonare, installare, avviare e importare asset seguendo una
-  guida unica;
-- `pnpm doctor` identifica i problemi piu comuni.
+- da clone pulito: `pnpm setup` poi `pnpm start` porta a una mappa esportata in
+  meno di 5 minuti senza asset personali;
+- `pnpm doctor` resta la diagnosi unica dei problemi comuni.
 
 Test:
 
-- test script doctor con env simulato;
-- manual setup report.
+- test dello script setup/launcher con env simulato;
+- report manuale di setup aggiornato.
 
-## Fase 10 - AI opzionale, ma realmente opzionale
+---
+
+## Fase K - Performance su librerie grandi
+
+Priorita: P2
+
+Obiettivo: mantenere la UI fluida con librerie asset molto grandi.
+
+Task:
+
+- virtualizzare la palette/browser asset (liste lunghe) in
+  [apps/web/src/components/assets/](../apps/web/src/components/assets/);
+- rendere misurato il limite di hydration gia introdotto, con un test che simula
+  N gruppi grandi;
+- profilare i re-render dell'editor dopo lo split hook della Fase C.
+
+Definition of Done:
+
+- il browser asset resta fluido con almeno 5.000 asset (test/bench);
+- nessun blocco UI percepibile in apertura editor con libreria grande.
+
+Test:
+
+- bench/test con dataset sintetico grande.
+
+---
+
+## Fase L - Hardening sicurezza locale e import
+
+Priorita: P2
+
+Obiettivo: rendere robusti i parser di import e gli export verso formati esterni.
+
+Task:
+
+- test di robustezza/fuzz sui parser di import (`dmimap`, `dd2vtt`, plan AI):
+  input malformati non devono crashare e devono dare errori chiari;
+- sanitizzare il testo di note e plan negli export Foundry journal (no HTML
+  injection nei journal entry);
+- aggiungere un'opzione di rate-limit o allowlist IP per il caso LAN consentito
+  (`DM_INSTAMAP_ALLOW_REMOTE`).
+
+Definition of Done:
+
+- input rotti/malevoli producono errori gestiti, non crash;
+- i journal Foundry sono sanitizzati;
+- [docs/EXPORTS.md](EXPORTS.md) e la sezione sicurezza del README sono
+  aggiornate.
+
+Test:
+
+- test parser su input malformati;
+- test di sanitizzazione export journal.
+
+---
+
+## Fase M - Sostenibilita e governance
 
 Priorita: P3
 
-Obiettivo: mantenere AI Bridge utile senza rendere il progetto dipendente da
-provider esterni.
+Obiettivo: rendere il progetto manutenibile nel tempo anche da soli.
 
 Task:
 
-- separare meglio manual bridge, provider HTTP e provider locale;
-- aggiungere provider mock per test e demo;
-- documentare chiaramente quali funzioni sono local-only e quali no;
-- evitare chiavi reali nei test;
-- aggiungere fallback UX quando provider non e configurato.
+- aggiungere `LICENSE` (anche per uso personale, esplicita i termini),
+  `CHANGELOG.md` e brevi ADR in `docs/adr/`;
+- definire una policy di aggiornamento dipendenze (Renovate/Dependabot
+  opzionale, oppure checklist trimestrale);
+- consolidare le soglie di coverage come gate stabile;
+- aggiornare il README: nuovo punteggio e link a questa roadmap.
 
 Definition of Done:
 
-- tutte le feature core funzionano senza AI;
-- la UI segnala lo stato AI senza bloccare workflow;
-- test automatici non chiamano provider reali.
+- il repo ha licenza, changelog e ADR di base;
+- esiste una policy chiara per gli aggiornamenti;
+- README coerente con lo stato attuale.
 
 Test:
 
-- unit test ai-bridge;
-- Playwright con provider non configurato;
-- Playwright con provider mock.
+- verifica manuale dei file di governance;
+- `pnpm test:coverage` resta sopra le soglie.
+
+---
+
+## Metriche di maturita 9.5
+
+Il progetto puo essere considerato **9.5/10** quando:
+
+- `lint` (ESLint/Biome), `typecheck` e `format:check` sono comandi distinti e
+  verdi su TypeScript; `ruff` + `mypy` sono verdi sul worker;
+- la CI esegue format + lint + typecheck + test + coverage + e2e su `ubuntu` e
+  `windows`, con gate di coverage e branch protection su `main`;
+- nessun file applicativo supera ~700 righe senza motivazione;
+- gli E2E coprono editor (save/undo/redo/copy/paste), tutti gli export,
+  import-pack, multi-floor, campagne e AI mock;
+- ogni route file-system usa la stessa policy di path, con test di guardia;
+- backup e restore locali sono documentati e testati con round-trip;
+- gli invarianti di giocabilita sono verificati con property-based su molte seed
+  e ci sono almeno 8 golden map "strong";
+- l'audit di accessibilita non ha violazioni critiche e la UI e interamente in
+  italiano;
+- da clone pulito si arriva a una mappa esportata in pochi minuti senza asset
+  personali.
+
+## Definizione di "completo" (feature-complete per uso DM personale)
+
+- generazione, editing ed export coprono i casi reali di sessione senza
+  workaround manuali;
+- la qualita delle mappe e verificata, non solo dichiarata;
+- i dati locali sono protetti da backup/restore;
+- l'onboarding e immediato e ripetibile;
+- il codice e tipizzato, controllato dal linter, formattato, testato e coperto
+  da CI;
+- la documentazione e allineata al comportamento reale.
 
 ## Ordine consigliato
 
-1. Fase 0 - pulizia repository.
-2. Fase 1 - validazione path unica.
-3. Fase 2 - Playwright reale.
-4. Fase 3 - refactor editor.
-5. Fase 4 - UX operativa.
-6. Fase 5 - qualita generativa.
-7. Fase 6 - export VTT.
-8. Fasi 7-10 in parallelo quando il nucleo e stabile.
-
-## Metriche di maturita
-
-Il progetto puo essere considerato "8/10" quando:
-
-- `data/` non contiene file generati tracciati;
-- `pnpm test:e2e` copre editor save/undo/export;
-- `map-editor.tsx` e stato diviso in moduli;
-- ogni input path web/worker usa la stessa policy;
-- almeno 5 benchmark generator sono stabili e documentati;
-- una nuova macchina puo avviare il progetto seguendo un'unica guida.
-
-Il progetto puo essere considerato "9/10" quando:
-
-- export Foundry/dd2vtt hanno fixture realistiche e report manuale periodico;
-- la UI progetto ha thumbnail, export history e session checklist;
-- il worker gestisce bene code lunghe, cancellazioni, restart e log;
-- i dati locali hanno backup/restore documentato;
-- il generatore produce mappe giocabili con interventi minimi.
+1. Fase A - tooling di qualita (fondamenta).
+2. Fase B - CI completa con gate.
+3. Fase F - validazione path universale e Fase D - E2E completi (chiudono i
+   debiti P0/P1 aperti).
+4. Fase C - split moduli grandi (prima di lavorare su performance).
+5. Fase E - backup/restore e Fase G - giocabilita verificata (valore DM).
+6. Fasi H, I, J in parallelo quando il nucleo e stabile.
+7. Fasi K e L - performance e hardening.
+8. Fase M - governance a chiusura.
 
 ## Prossima azione raccomandata
 
-Partire dalla Fase 0. Prima di aggiungere nuove feature, rimuovere dal tracking
-Git tutti gli artefatti generati sotto `data/` e bloccare la ricomparsa di file
-binari locali nel repository.
+Partire dalla Fase A. Senza un linter e un formatter reali, ogni fase
+successiva accumula debito di stile e di qualita non rilevato; con A e B in
+piedi, tutte le fasi seguenti vengono protette automaticamente dalla CI.
