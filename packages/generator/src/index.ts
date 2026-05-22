@@ -522,6 +522,12 @@ export {
 } from "./algorithms";
 
 export {
+  checkMapInvariants,
+  checkMultiFloorInvariants,
+  type InvariantResult
+} from "./invariants";
+
+export {
   generateRoomRoleNotes,
   inferRoomRole,
   withRoomRoleNotes

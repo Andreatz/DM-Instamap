@@ -6,6 +6,8 @@
     "build": "next build",
     "campaigns:create": "tsx src/lib/cli/campaigns.ts create",
     "campaigns:list": "tsx src/lib/cli/campaigns.ts list",
+    "data:backup": "tsx src/lib/cli/data.ts backup",
+    "data:restore": "tsx src/lib/cli/data.ts restore",
     "dev": "next dev --hostname 127.0.0.1",
     "snapshots:create": "tsx src/lib/cli/snapshots.ts create",
     "snapshots:list": "tsx src/lib/cli/snapshots.ts list",

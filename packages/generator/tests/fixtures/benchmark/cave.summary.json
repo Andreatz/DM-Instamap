@@ -1,4 +1,5 @@
 {
+  "contentHash": "66b75a688cba5025",
   "id": "cave",
   "label": "Caverna",
   "metrics": {
@@ -18,7 +19,7 @@
   },
   "theme": "cave",
   "thresholds": {
-    "minScore": 55,
-    "routing": 70
+    "minScore": 70,
+    "routing": 90
   }
 }

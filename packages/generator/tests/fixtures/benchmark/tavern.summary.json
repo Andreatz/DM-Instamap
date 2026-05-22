@@ -1,4 +1,5 @@
 {
+  "contentHash": "930e3465929e5064",
   "id": "tavern",
   "label": "Taverna",
   "metrics": {
@@ -18,7 +19,7 @@
   },
   "theme": "tavern",
   "thresholds": {
-    "minScore": 55,
-    "themeAlignment": 50
+    "minScore": 78,
+    "themeAlignment": 90
   }
 }

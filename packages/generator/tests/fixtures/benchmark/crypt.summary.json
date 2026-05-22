@@ -1,4 +1,5 @@
 {
+  "contentHash": "f1679d7f6ed5d0ed",
   "id": "crypt",
   "label": "Cripta",
   "metrics": {
@@ -18,9 +19,9 @@
   },
   "theme": "crypt",
   "thresholds": {
-    "minScore": 60,
-    "readability": 55,
-    "routing": 80,
-    "themeAlignment": 70
+    "minScore": 90,
+    "readability": 85,
+    "routing": 90,
+    "themeAlignment": 90
   }
 }

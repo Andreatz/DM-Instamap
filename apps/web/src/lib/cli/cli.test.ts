@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseCampaignsArgs } from "./campaigns";
+import { parseDataArgs } from "./data";
 import { parseSnapshotsArgs } from "./snapshots";
 
 describe("web local-data CLI argument parsing", () => {
@@ -35,6 +36,35 @@ describe("web local-data CLI argument parsing", () => {
       name: "Whispering Woods",
       tags: ["fey", "local"],
       type: "create"
+    });
+  });
+
+  it("parses data backup with default destination", () => {
+    expect(parseDataArgs(["backup"])).toEqual({
+      destination: "backups",
+      includeIndexes: false,
+      type: "backup"
+    });
+  });
+
+  it("parses data backup with custom destination and indexes", () => {
+    expect(
+      parseDataArgs(["backup", "--out", "/mnt/usb", "--include-indexes"])
+    ).toEqual({
+      destination: "/mnt/usb",
+      includeIndexes: true,
+      type: "backup"
+    });
+  });
+
+  it("parses data restore with flags", () => {
+    expect(
+      parseDataArgs(["restore", "backups/today", "--dry-run", "--force"])
+    ).toEqual({
+      backupDir: "backups/today",
+      dryRun: true,
+      force: true,
+      type: "restore"
     });
   });
 });

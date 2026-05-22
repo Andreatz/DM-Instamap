@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { computeDocumentContentHash } from "@dm-instamap/core/server";
 import { describe, expect, it } from "vitest";
 import {
   BENCHMARK_SCENARIOS,
@@ -11,6 +12,7 @@ import {
 } from "../src";
 
 type BenchmarkSummaryFixture = {
+  contentHash: string;
   id: string;
   metrics: BenchmarkMetrics;
   rating: string;
@@ -30,7 +32,7 @@ function readSummary(id: string): BenchmarkSummaryFixture {
 }
 
 describe("generator benchmark", () => {
-  it("covers the seven DM scenarios", () => {
+  it("covers the DM scenarios", () => {
     expect(BENCHMARK_SCENARIOS.map((scenario) => scenario.id)).toEqual([
       "crypt",
       "boss-dungeon",
@@ -38,7 +40,9 @@ describe("generator benchmark", () => {
       "cave",
       "village",
       "camp",
-      "tavern"
+      "tavern",
+      "temple",
+      "fortress"
     ]);
   });
 
@@ -63,11 +67,11 @@ describe("generator benchmark", () => {
     }
   });
 
-  it("rates at least five scenarios as usable or stronger", () => {
-    const usable = runBenchmarks().filter(
-      (result) => result.quality.rating !== "poor"
+  it("freezes at least eight golden maps rated strong", () => {
+    const strong = runBenchmarks().filter(
+      (result) => result.quality.rating === "strong"
     );
-    expect(usable.length).toBeGreaterThanOrEqual(5);
+    expect(strong.length).toBeGreaterThanOrEqual(8);
   });
 
   it("matches the recorded seed-based fixtures (regression guard)", () => {
@@ -78,6 +82,9 @@ describe("generator benchmark", () => {
       expect(result.quality.score).toBe(fixture.score);
       expect(result.quality.rating).toBe(fixture.rating);
       expect(result.metrics).toEqual(fixture.metrics);
+      expect(computeDocumentContentHash(result.document)).toBe(
+        fixture.contentHash
+      );
     }
   });
 

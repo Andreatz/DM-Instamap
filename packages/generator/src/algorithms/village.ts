@@ -6,6 +6,7 @@ import type {
 } from "@dm-instamap/core";
 import {
   buildMapDocument,
+  carveCorridor,
   createRandom,
   setTile,
   toTitle,
@@ -97,6 +98,7 @@ export function generateVillageMap(options: VillageMapOptions): MapDocument {
   });
 
   connectAdjacentBuildings(rooms);
+  ensureBuildingsConnected(grid, rooms, width, height);
 
   return buildMapDocument({
     grid,
@@ -109,6 +111,106 @@ export function generateVillageMap(options: VillageMapOptions): MapDocument {
     doors,
     theme: options.theme ?? "village"
   });
+}
+
+function isWalkableCell(grid: TileKind[][], x: number, y: number): boolean {
+  const kind = grid[y]?.[x];
+  return kind === "floor" || kind === "door";
+}
+
+function largestWalkableComponent(
+  grid: TileKind[][],
+  width: number,
+  height: number
+): Set<string> {
+  const visited = new Set<string>();
+  let best = new Set<string>();
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      if (!isWalkableCell(grid, x, y) || visited.has(`${x},${y}`)) {
+        continue;
+      }
+
+      const component = new Set<string>();
+      const stack: Array<[number, number]> = [[x, y]];
+
+      while (stack.length > 0) {
+        const cell = stack.pop();
+        if (!cell) {
+          continue;
+        }
+        const [cx, cy] = cell;
+        const cellKey = `${cx},${cy}`;
+        if (visited.has(cellKey)) {
+          continue;
+        }
+        visited.add(cellKey);
+        component.add(cellKey);
+
+        for (const [nx, ny] of [
+          [cx + 1, cy],
+          [cx - 1, cy],
+          [cx, cy + 1],
+          [cx, cy - 1]
+        ] as Array<[number, number]>) {
+          if (isWalkableCell(grid, nx, ny) && !visited.has(`${nx},${ny}`)) {
+            stack.push([nx, ny]);
+          }
+        }
+      }
+
+      if (component.size > best.size) {
+        best = component;
+      }
+    }
+  }
+
+  return best;
+}
+
+function findInteriorFloorCell(
+  grid: TileKind[][],
+  bounds: { height: number; width: number; x: number; y: number }
+): { x: number; y: number } | null {
+  for (let y = bounds.y; y < bounds.y + bounds.height; y += 1) {
+    for (let x = bounds.x; x < bounds.x + bounds.width; x += 1) {
+      if (grid[y]?.[x] === "floor") {
+        return { x, y };
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Guarantees every building is reachable from the main street network: any
+ * building interior not in the largest walkable component gets a carved
+ * corridor to it (an alley), so no building is left enclosed.
+ */
+function ensureBuildingsConnected(
+  grid: TileKind[][],
+  rooms: RoomNode[],
+  width: number,
+  height: number
+): void {
+  const main = largestWalkableComponent(grid, width, height);
+  const targetKey = main.values().next().value;
+
+  if (!targetKey) {
+    return;
+  }
+
+  const [tx, ty] = targetKey.split(",").map(Number) as [number, number];
+
+  for (const room of rooms) {
+    const interior = findInteriorFloorCell(grid, room.bounds);
+    if (!interior || main.has(`${interior.x},${interior.y}`)) {
+      continue;
+    }
+    carveCorridor(grid, interior, { x: tx, y: ty });
+  }
 }
 
 function subdivideBlocks(
