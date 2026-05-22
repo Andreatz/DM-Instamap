@@ -7,7 +7,9 @@ import { generateReferenceStyleDna, scanReferences } from "../src";
 
 describe("scanReferences", () => {
   it("scans local reference maps and writes a manifest with thumbnails", async () => {
-    const tempDir = await mkdtemp(path.join(os.tmpdir(), "dm-instamap-references-"));
+    const tempDir = await mkdtemp(
+      path.join(os.tmpdir(), "dm-instamap-references-")
+    );
     const sourceDir = path.join(tempDir, "source");
     const outputRoot = path.join(tempDir, "output");
     await mkdir(path.join(sourceDir, "Dungeon Maps"), { recursive: true });
@@ -52,7 +54,10 @@ describe("scanReferences", () => {
       "utf8"
     );
 
-    const manifest = await scanReferences(sourceDir, { outputRoot, thumbnailSize: 24 });
+    const manifest = await scanReferences(sourceDir, {
+      outputRoot,
+      thumbnailSize: 24
+    });
     const manifestFile = await readFile(
       path.join(outputRoot, "data", "indexes", "references.manifest.json"),
       "utf8"
@@ -61,11 +66,19 @@ describe("scanReferences", () => {
     expect(manifest.references).toHaveLength(3);
     expect(manifest.errors).toHaveLength(0);
     expect(JSON.parse(manifestFile)).toMatchObject({ version: 1 });
-    expect(new Set(manifest.references.map((reference) => reference.path))).toEqual(
-      new Set(["City/market-district.jpg", "Dungeon Maps/ancient-dungeon-map.png", "coastal-harbor.webp"])
+    expect(
+      new Set(manifest.references.map((reference) => reference.path))
+    ).toEqual(
+      new Set([
+        "City/market-district.jpg",
+        "Dungeon Maps/ancient-dungeon-map.png",
+        "coastal-harbor.webp"
+      ])
     );
 
-    const dungeon = manifest.references.find((reference) => reference.path.includes("dungeon"));
+    const dungeon = manifest.references.find((reference) =>
+      reference.path.includes("dungeon")
+    );
     expect(dungeon).toMatchObject({
       extension: "png",
       height: 80,
@@ -77,21 +90,29 @@ describe("scanReferences", () => {
     expect(dungeon?.dominantColors.length).toBeGreaterThan(0);
     expect(dungeon?.fileHash.length).toBe(64);
 
-    const city = manifest.references.find((reference) => reference.path.includes("market"));
+    const city = manifest.references.find((reference) =>
+      reference.path.includes("market")
+    );
     expect(city?.mapType).toBe("city");
     expect(city?.mapTypeConfidence).toBeGreaterThan(0.5);
 
-    const coast = manifest.references.find((reference) => reference.path.includes("coastal"));
+    const coast = manifest.references.find((reference) =>
+      reference.path.includes("coastal")
+    );
     expect(coast?.mapType).toBe("coast");
 
     for (const reference of manifest.references) {
       expect(reference.thumbnailPath).toBeTruthy();
-      const preview = await readFile(path.join(outputRoot, reference.thumbnailPath ?? ""));
+      const preview = await readFile(
+        path.join(outputRoot, reference.thumbnailPath ?? "")
+      );
       expect(preview.byteLength).toBeGreaterThan(0);
     }
 
     const styleFile = await generateReferenceStyleDna({ outputRoot });
     expect(styleFile.styles).toHaveLength(3);
-    expect(styleFile.styles.some((style) => style.promptSummary.length > 0)).toBe(true);
+    expect(
+      styleFile.styles.some((style) => style.promptSummary.length > 0)
+    ).toBe(true);
   });
 });

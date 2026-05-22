@@ -155,7 +155,9 @@ const COLOR_TERMS: Record<string, number> = {
   yellow: 1
 };
 
-export function createRemoteEmbeddingProvider(config: RemoteEmbeddingProviderConfig): EmbeddingProvider {
+export function createRemoteEmbeddingProvider(
+  config: RemoteEmbeddingProviderConfig
+): EmbeddingProvider {
   if (!config.endpoint) {
     throw new Error("createRemoteEmbeddingProvider: endpoint is required.");
   }
@@ -163,10 +165,15 @@ export function createRemoteEmbeddingProvider(config: RemoteEmbeddingProviderCon
   const fetchImpl = config.fetchImpl ?? globalThis.fetch;
 
   if (!fetchImpl) {
-    throw new Error("createRemoteEmbeddingProvider: fetch is not available in this runtime.");
+    throw new Error(
+      "createRemoteEmbeddingProvider: fetch is not available in this runtime."
+    );
   }
 
-  const dimensions = Math.max(1, Math.floor(config.dimensions ?? EMBEDDING_DIMENSIONS));
+  const dimensions = Math.max(
+    1,
+    Math.floor(config.dimensions ?? EMBEDDING_DIMENSIONS)
+  );
   const id = config.id ?? `remote:${config.model ?? "default"}`;
   const headers: Record<string, string> = {
     "content-type": "application/json",
@@ -181,8 +188,12 @@ export function createRemoteEmbeddingProvider(config: RemoteEmbeddingProviderCon
     });
 
     if (!response.ok) {
-      const errorText = await response.text().catch(() => "(unable to read response)");
-      throw new Error(`Remote embedding request failed (${response.status}): ${errorText}`);
+      const errorText = await response
+        .text()
+        .catch(() => "(unable to read response)");
+      throw new Error(
+        `Remote embedding request failed (${response.status}): ${errorText}`
+      );
     }
 
     const payload = (await response.json()) as {
@@ -219,13 +230,17 @@ export function createRemoteEmbeddingProvider(config: RemoteEmbeddingProviderCon
   };
 }
 
-export function resolveEmbeddingConfigFromEnv(env: NodeJS.ProcessEnv = process.env): ResolvedEmbeddingConfig {
+export function resolveEmbeddingConfigFromEnv(
+  env: NodeJS.ProcessEnv = process.env
+): ResolvedEmbeddingConfig {
   const provider = (env.EMBEDDINGS_PROVIDER ?? "").trim().toLowerCase();
 
   if (provider === "remote") {
     const endpoint = (env.EMBEDDINGS_ENDPOINT ?? "").trim();
     const dimensionsRaw = (env.EMBEDDINGS_DIMENSIONS ?? "").trim();
-    const dimensions = dimensionsRaw ? Number.parseInt(dimensionsRaw, 10) : undefined;
+    const dimensions = dimensionsRaw
+      ? Number.parseInt(dimensionsRaw, 10)
+      : undefined;
 
     return {
       apiKey: (env.EMBEDDINGS_API_KEY ?? "").trim() || undefined,
@@ -239,14 +254,18 @@ export function resolveEmbeddingConfigFromEnv(env: NodeJS.ProcessEnv = process.e
   return { provider: "local" };
 }
 
-export function createEmbeddingProviderFromEnv(env: NodeJS.ProcessEnv = process.env): EmbeddingProvider {
+export function createEmbeddingProviderFromEnv(
+  env: NodeJS.ProcessEnv = process.env
+): EmbeddingProvider {
   const config = resolveEmbeddingConfigFromEnv(env);
 
   if (config.provider === "remote" && config.endpoint) {
     return createRemoteEmbeddingProvider({
       dimensions: config.dimensions,
       endpoint: config.endpoint,
-      headers: config.apiKey ? { authorization: `Bearer ${config.apiKey}` } : undefined,
+      headers: config.apiKey
+        ? { authorization: `Bearer ${config.apiKey}` }
+        : undefined,
       model: config.model
     });
   }
@@ -254,7 +273,10 @@ export function createEmbeddingProviderFromEnv(env: NodeJS.ProcessEnv = process.
   return createLocalEmbeddingProvider();
 }
 
-function extractRemoteEmbedding(payload: { data?: Array<{ embedding?: unknown }>; embedding?: unknown }): number[] {
+function extractRemoteEmbedding(payload: {
+  data?: Array<{ embedding?: unknown }>;
+  embedding?: unknown;
+}): number[] {
   const candidates: unknown[] = [];
 
   if (Array.isArray(payload.data) && payload.data.length > 0) {
@@ -268,7 +290,12 @@ function extractRemoteEmbedding(payload: { data?: Array<{ embedding?: unknown }>
   candidates.push(payload.embedding);
 
   for (const candidate of candidates) {
-    if (Array.isArray(candidate) && candidate.every((value) => typeof value === "number" && Number.isFinite(value))) {
+    if (
+      Array.isArray(candidate) &&
+      candidate.every(
+        (value) => typeof value === "number" && Number.isFinite(value)
+      )
+    ) {
       return candidate as number[];
     }
   }
@@ -307,7 +334,11 @@ export function createLocalEmbeddingProvider(): EmbeddingProvider {
         ...(input.dominantColors ?? []).map((color) => color.hex)
       ]);
 
-      return normalizeVector(visual.map((value, index) => value * 0.72 + (metadata[index] ?? 0) * 0.28));
+      return normalizeVector(
+        visual.map(
+          (value, index) => value * 0.72 + (metadata[index] ?? 0) * 0.28
+        )
+      );
     },
     async embedImage(filePath) {
       return extractImageVector(filePath);
@@ -318,7 +349,9 @@ export function createLocalEmbeddingProvider(): EmbeddingProvider {
   };
 }
 
-export async function generateAssetEmbeddings(options: AssetEmbeddingOptions = {}): Promise<AssetEmbeddingIndex> {
+export async function generateAssetEmbeddings(
+  options: AssetEmbeddingOptions = {}
+): Promise<AssetEmbeddingIndex> {
   const outputRoot = resolveOutputRoot(options.outputRoot);
   const indexRoot = resolveIndexRoot(options.outputRoot);
   const manifestPath = options.manifestPath
@@ -328,9 +361,13 @@ export async function generateAssetEmbeddings(options: AssetEmbeddingOptions = {
     ? path.resolve(outputRoot, options.embeddingsPath)
     : path.join(indexRoot, DEFAULT_EMBEDDINGS_FILE);
   const provider = options.provider ?? createLocalEmbeddingProvider();
-  const manifest = parseJsonFile(await readFile(manifestPath, "utf8")) as ManifestFile;
+  const manifest = parseJsonFile(
+    await readFile(manifestPath, "utf8")
+  ) as ManifestFile;
   const assets = Array.isArray(manifest.assets)
-    ? manifest.assets.map(normalizeManifestAsset).filter((asset): asset is NormalizedManifestAsset => asset !== null)
+    ? manifest.assets
+        .map(normalizeManifestAsset)
+        .filter((asset): asset is NormalizedManifestAsset => asset !== null)
     : [];
   const vectors: AssetEmbeddingEntry[] = [];
 
@@ -363,18 +400,27 @@ export async function generateAssetEmbeddings(options: AssetEmbeddingOptions = {
     dimensions: provider.dimensions,
     generatedAt: new Date().toISOString(),
     provider: provider.id,
-    sourceManifest: path.relative(outputRoot, manifestPath).split(path.sep).join("/"),
+    sourceManifest: path
+      .relative(outputRoot, manifestPath)
+      .split(path.sep)
+      .join("/"),
     vectors,
     version: 1
   };
 
   await mkdir(path.dirname(embeddingsPath), { recursive: true });
-  await writeFile(embeddingsPath, `${JSON.stringify(index, null, 2)}\n`, "utf8");
+  await writeFile(
+    embeddingsPath,
+    `${JSON.stringify(index, null, 2)}\n`,
+    "utf8"
+  );
 
   return index;
 }
 
-export async function searchAssetsByText(options: AssetTextSearchOptions): Promise<AssetSearchResult[]> {
+export async function searchAssetsByText(
+  options: AssetTextSearchOptions
+): Promise<AssetSearchResult[]> {
   const provider = options.provider ?? createLocalEmbeddingProvider();
   const index = await loadAssetEmbeddingIndex(options);
 
@@ -389,13 +435,17 @@ export async function searchAssetsByText(options: AssetTextSearchOptions): Promi
   const queryVector = await provider.embedText(options.query);
   const queryTokens = tokenize(options.query);
 
-  return rankVectors(index, queryVector, options.limit, (entry) => tokenBoost(entry, queryTokens)).map((result) => ({
+  return rankVectors(index, queryVector, options.limit, (entry) =>
+    tokenBoost(entry, queryTokens)
+  ).map((result) => ({
     ...result,
     reason: explainAssetSearchResult(result, options.query)
   }));
 }
 
-export async function searchAssetsByImage(options: AssetImageSearchOptions): Promise<AssetSearchResult[]> {
+export async function searchAssetsByImage(
+  options: AssetImageSearchOptions
+): Promise<AssetSearchResult[]> {
   const provider = options.provider ?? createLocalEmbeddingProvider();
   const index = await loadAssetEmbeddingIndex(options);
 
@@ -410,9 +460,14 @@ export async function searchAssetsByImage(options: AssetImageSearchOptions): Pro
   }));
 }
 
-export function explainAssetSearchResult(result: AssetSearchResult, query = ""): string {
+export function explainAssetSearchResult(
+  result: AssetSearchResult,
+  query = ""
+): string {
   const queryTokens = tokenize(query);
-  const resultTokens = new Set(tokenize([result.relativePath, ...result.tags].join(" ")));
+  const resultTokens = new Set(
+    tokenize([result.relativePath, ...result.tags].join(" "))
+  );
   const matchedTokens = queryTokens.filter((token) => resultTokens.has(token));
   const reasons: string[] = [];
 
@@ -429,10 +484,9 @@ export function explainAssetSearchResult(result: AssetSearchResult, query = ""):
   return reasons.join("; ");
 }
 
-export async function loadAssetEmbeddingIndex(options: {
-  embeddingsPath?: string;
-  outputRoot?: string;
-} = {}): Promise<AssetEmbeddingIndex | null> {
+export async function loadAssetEmbeddingIndex(
+  options: { embeddingsPath?: string; outputRoot?: string } = {}
+): Promise<AssetEmbeddingIndex | null> {
   const outputRoot = resolveOutputRoot(options.outputRoot);
   const indexRoot = resolveIndexRoot(options.outputRoot);
   const embeddingsPath = options.embeddingsPath
@@ -440,7 +494,9 @@ export async function loadAssetEmbeddingIndex(options: {
     : path.join(indexRoot, DEFAULT_EMBEDDINGS_FILE);
 
   try {
-    return normalizeEmbeddingIndex(parseJsonFile(await readFile(embeddingsPath, "utf8")));
+    return normalizeEmbeddingIndex(
+      parseJsonFile(await readFile(embeddingsPath, "utf8"))
+    );
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === "ENOENT") {
       return null;
@@ -461,33 +517,59 @@ function rankVectors(
       assetId: entry.assetId,
       reason: "",
       relativePath: entry.relativePath,
-      score: roundScore(cosineSimilarity(queryVector, entry.vector) + boost(entry)),
+      score: roundScore(
+        cosineSimilarity(queryVector, entry.vector) + boost(entry)
+      ),
       tags: entry.tags
     }))
-    .sort((left, right) => right.score - left.score || left.relativePath.localeCompare(right.relativePath))
+    .sort(
+      (left, right) =>
+        right.score - left.score ||
+        left.relativePath.localeCompare(right.relativePath)
+    )
     .slice(0, Math.max(1, Math.floor(limit)));
 }
 
-async function searchManifestByText(options: AssetTextSearchOptions): Promise<AssetSearchResult[]> {
-  const outputRoot = resolveOutputRoot(options.outputRoot);
+async function searchManifestByText(
+  options: AssetTextSearchOptions
+): Promise<AssetSearchResult[]> {
   const indexRoot = resolveIndexRoot(options.outputRoot);
   const manifestPath = path.join(indexRoot, DEFAULT_MANIFEST_FILE);
 
   try {
-    const manifest = parseJsonFile(await readFile(manifestPath, "utf8")) as ManifestFile;
+    const manifest = parseJsonFile(
+      await readFile(manifestPath, "utf8")
+    ) as ManifestFile;
     const assets = Array.isArray(manifest.assets)
-      ? manifest.assets.map(normalizeManifestAsset).filter((asset): asset is NormalizedManifestAsset => asset !== null)
+      ? manifest.assets
+          .map(normalizeManifestAsset)
+          .filter((asset): asset is NormalizedManifestAsset => asset !== null)
       : [];
     const queryTokens = tokenize(options.query);
 
     return assets
       .map((asset) => {
-        const assetTokens = new Set(tokenize([asset.classification, asset.relativePath, ...asset.tags].join(" ")));
-        const matchCount = queryTokens.filter((token) => assetTokens.has(token)).length;
-        const fuzzyCount = queryTokens.filter((token) =>
-          [...assetTokens].some((assetToken) => assetToken.includes(token) || token.includes(assetToken))
+        const assetTokens = new Set(
+          tokenize(
+            [asset.classification, asset.relativePath, ...asset.tags].join(" ")
+          )
+        );
+        const matchCount = queryTokens.filter((token) =>
+          assetTokens.has(token)
         ).length;
-        const score = queryTokens.length === 0 ? 0 : Math.min(1, (matchCount + fuzzyCount * 0.35) / queryTokens.length);
+        const fuzzyCount = queryTokens.filter((token) =>
+          [...assetTokens].some(
+            (assetToken) =>
+              assetToken.includes(token) || token.includes(assetToken)
+          )
+        ).length;
+        const score =
+          queryTokens.length === 0
+            ? 0
+            : Math.min(
+                1,
+                (matchCount + fuzzyCount * 0.35) / queryTokens.length
+              );
         const result: AssetSearchResult = {
           assetId: asset.id,
           reason: "",
@@ -502,7 +584,11 @@ async function searchManifestByText(options: AssetTextSearchOptions): Promise<As
         };
       })
       .filter((result) => result.score > 0)
-      .sort((left, right) => right.score - left.score || left.relativePath.localeCompare(right.relativePath))
+      .sort(
+        (left, right) =>
+          right.score - left.score ||
+          left.relativePath.localeCompare(right.relativePath)
+      )
       .slice(0, Math.max(1, Math.floor(options.limit ?? 10)));
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === "ENOENT") {
@@ -545,10 +631,16 @@ async function extractImageVector(filePath: string): Promise<number[]> {
   const totalPixels = Math.max(1, info.width * info.height);
   vector[COLOR_BINS + KIND_BINS] = opaquePixels / totalPixels;
   vector[COLOR_BINS + KIND_BINS + 1] = alphaSum / totalPixels;
-  vector[COLOR_BINS + KIND_BINS + 2] = brightnessSum / Math.max(1, opaquePixels);
+  vector[COLOR_BINS + KIND_BINS + 2] =
+    brightnessSum / Math.max(1, opaquePixels);
   vector[COLOR_BINS + KIND_BINS + 3] = info.width >= info.height ? 1 : 0;
   vector[COLOR_BINS + KIND_BINS + 4] = info.height > info.width ? 1 : 0;
-  vector[COLOR_BINS + KIND_BINS + 5] = Math.min(1, Math.max(info.width, info.height) / Math.max(1, Math.min(info.width, info.height)) / 4);
+  vector[COLOR_BINS + KIND_BINS + 5] = Math.min(
+    1,
+    Math.max(info.width, info.height) /
+      Math.max(1, Math.min(info.width, info.height)) /
+      4
+  );
 
   return normalizeVector(vector);
 }
@@ -570,13 +662,19 @@ function createMetadataVector(values: string[]): number[] {
       addVectorValue(vector, colorIndex, 1);
     }
 
-    addVectorValue(vector, COLOR_BINS + KIND_BINS + 6 + stableTokenBucket(token), 0.25);
+    addVectorValue(
+      vector,
+      COLOR_BINS + KIND_BINS + 6 + stableTokenBucket(token),
+      0.25
+    );
   }
 
   return normalizeVector(vector);
 }
 
-function normalizeManifestAsset(asset: unknown): NormalizedManifestAsset | null {
+function normalizeManifestAsset(
+  asset: unknown
+): NormalizedManifestAsset | null {
   if (!asset || typeof asset !== "object") {
     return null;
   }
@@ -617,14 +715,21 @@ function normalizeEmbeddingIndex(value: unknown): AssetEmbeddingIndex {
 
   const input = value as Partial<AssetEmbeddingIndex>;
   const vectors = Array.isArray(input.vectors)
-    ? input.vectors.filter((entry): entry is AssetEmbeddingEntry => isEmbeddingEntry(entry))
+    ? input.vectors.filter((entry): entry is AssetEmbeddingEntry =>
+        isEmbeddingEntry(entry)
+      )
     : [];
 
   return {
-    dimensions: typeof input.dimensions === "number" ? input.dimensions : EMBEDDING_DIMENSIONS,
+    dimensions:
+      typeof input.dimensions === "number"
+        ? input.dimensions
+        : EMBEDDING_DIMENSIONS,
     generatedAt: typeof input.generatedAt === "string" ? input.generatedAt : "",
-    provider: typeof input.provider === "string" ? input.provider : LOCAL_PROVIDER_ID,
-    sourceManifest: typeof input.sourceManifest === "string" ? input.sourceManifest : "",
+    provider:
+      typeof input.provider === "string" ? input.provider : LOCAL_PROVIDER_ID,
+    sourceManifest:
+      typeof input.sourceManifest === "string" ? input.sourceManifest : "",
     vectors,
     version: 1
   };
@@ -640,11 +745,15 @@ function isEmbeddingEntry(value: unknown): value is AssetEmbeddingEntry {
     typeof entry.assetId === "string" &&
     typeof entry.relativePath === "string" &&
     Array.isArray(entry.vector) &&
-    entry.vector.every((part) => typeof part === "number" && Number.isFinite(part))
+    entry.vector.every(
+      (part) => typeof part === "number" && Number.isFinite(part)
+    )
   );
 }
 
-function readDominantColors(value: unknown): Array<{ hex: string; population: number }> {
+function readDominantColors(
+  value: unknown
+): Array<{ hex: string; population: number }> {
   if (!Array.isArray(value)) {
     return [];
   }
@@ -657,11 +766,14 @@ function readDominantColors(value: unknown): Array<{ hex: string; population: nu
 
       const candidate = color as { hex?: unknown; population?: unknown };
       const hex = readString(candidate.hex);
-      const population = typeof candidate.population === "number" ? candidate.population : 0;
+      const population =
+        typeof candidate.population === "number" ? candidate.population : 0;
 
       return hex ? { hex, population } : null;
     })
-    .filter((color): color is { hex: string; population: number } => color !== null);
+    .filter(
+      (color): color is { hex: string; population: number } => color !== null
+    );
 }
 
 function classifyColorBin(red: number, green: number, blue: number): number {
@@ -728,7 +840,9 @@ function cosineSimilarity(left: number[], right: number[]): number {
 }
 
 function normalizeVector(vector: number[]): number[] {
-  const magnitude = Math.sqrt(vector.reduce((sum, value) => sum + value ** 2, 0));
+  const magnitude = Math.sqrt(
+    vector.reduce((sum, value) => sum + value ** 2, 0)
+  );
 
   if (magnitude === 0) {
     return vector;
@@ -738,7 +852,9 @@ function normalizeVector(vector: number[]): number[] {
 }
 
 function tokenBoost(entry: AssetEmbeddingEntry, queryTokens: string[]): number {
-  const entryTokens = new Set(tokenize([entry.relativePath, ...entry.tags].join(" ")));
+  const entryTokens = new Set(
+    tokenize([entry.relativePath, ...entry.tags].join(" "))
+  );
   const matches = queryTokens.filter((token) => entryTokens.has(token)).length;
   return Math.min(0.25, matches * 0.05);
 }
@@ -758,11 +874,15 @@ function roundScore(value: number): number {
 }
 
 function parseJsonFile(content: string): unknown {
-  return JSON.parse(content.charCodeAt(0) === 0xfeff ? content.slice(1) : content);
+  return JSON.parse(
+    content.charCodeAt(0) === 0xfeff ? content.slice(1) : content
+  );
 }
 
 function resolveOutputRoot(outputRoot?: string): string {
-  return outputRoot ? path.resolve(outputRoot) : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
+  return outputRoot
+    ? path.resolve(outputRoot)
+    : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
 }
 
 function resolveIndexRoot(outputRoot?: string): string {
@@ -788,5 +908,7 @@ function readString(value: unknown): string {
 }
 
 function readStringArray(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }

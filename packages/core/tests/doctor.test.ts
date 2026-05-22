@@ -21,10 +21,18 @@ describe("doctor helpers", () => {
       workerRequirementsExist: true
     });
 
-    expect(checks.find((check) => check.name === "Node.js >= 24")?.status).toBe("fail");
-    expect(checks.find((check) => check.name === "pnpm >= 10")?.status).toBe("fail");
-    expect(checks.find((check) => check.name === "Python >= 3.12")?.status).toBe("warn");
+    expect(checks.find((check) => check.name === "Node.js >= 24")?.status).toBe(
+      "fail"
+    );
+    expect(checks.find((check) => check.name === "pnpm >= 10")?.status).toBe(
+      "fail"
+    );
+    expect(
+      checks.find((check) => check.name === "Python >= 3.12")?.status
+    ).toBe("warn");
     expect(checks.find((check) => check.name === "Sharp")?.status).toBe("fail");
-    expect(checks.find((check) => check.name === "Template env")?.status).toBe("warn");
+    expect(checks.find((check) => check.name === "Template env")?.status).toBe(
+      "warn"
+    );
   });
 });

@@ -19,26 +19,95 @@ export type EditorPaletteAsset = {
   thumbnailUrl: string | null;
 };
 
-export type EditorTool = "select" | "paint-floor" | "paint-wall" | "paint-empty" | "door" | "light" | "note";
+export type EditorTool =
+  | "select"
+  | "paint-floor"
+  | "paint-wall"
+  | "paint-empty"
+  | "door"
+  | "light"
+  | "note";
 
-export const EDITOR_LAYER_KINDS: MapLayerKind[] = ["background", "terrain", "walls", "props", "lighting", "gm-only", "notes"];
-
-export const EDITOR_DEFAULT_LAYERS: MapLayer[] = [
-  { id: "layer-background", kind: "background", locked: true, name: "Background", opacity: 1, order: 0, visible: true },
-  { id: "layer-terrain", kind: "terrain", locked: false, name: "Terrain", opacity: 1, order: 1, visible: true },
-  { id: "layer-walls", kind: "walls", locked: false, name: "Walls", opacity: 1, order: 2, visible: true },
-  { id: "layer-props", kind: "props", locked: false, name: "Props", opacity: 1, order: 3, visible: true },
-  { id: "layer-lighting", kind: "lighting", locked: false, name: "Lighting", opacity: 1, order: 4, visible: true },
-  { id: "layer-gm-only", kind: "gm-only", locked: false, name: "GM Only", opacity: 1, order: 5, visible: true },
-  { id: "layer-notes", kind: "notes", locked: false, name: "Notes", opacity: 1, order: 6, visible: true }
+export const EDITOR_LAYER_KINDS: MapLayerKind[] = [
+  "background",
+  "terrain",
+  "walls",
+  "props",
+  "lighting",
+  "gm-only",
+  "notes"
 ];
 
-export type EditorSelection =
-  | {
-      id: string;
-      type: "asset" | "door" | "light" | "note" | "room";
-    }
-  | null;
+export const EDITOR_DEFAULT_LAYERS: MapLayer[] = [
+  {
+    id: "layer-background",
+    kind: "background",
+    locked: true,
+    name: "Background",
+    opacity: 1,
+    order: 0,
+    visible: true
+  },
+  {
+    id: "layer-terrain",
+    kind: "terrain",
+    locked: false,
+    name: "Terrain",
+    opacity: 1,
+    order: 1,
+    visible: true
+  },
+  {
+    id: "layer-walls",
+    kind: "walls",
+    locked: false,
+    name: "Walls",
+    opacity: 1,
+    order: 2,
+    visible: true
+  },
+  {
+    id: "layer-props",
+    kind: "props",
+    locked: false,
+    name: "Props",
+    opacity: 1,
+    order: 3,
+    visible: true
+  },
+  {
+    id: "layer-lighting",
+    kind: "lighting",
+    locked: false,
+    name: "Lighting",
+    opacity: 1,
+    order: 4,
+    visible: true
+  },
+  {
+    id: "layer-gm-only",
+    kind: "gm-only",
+    locked: false,
+    name: "GM Only",
+    opacity: 1,
+    order: 5,
+    visible: true
+  },
+  {
+    id: "layer-notes",
+    kind: "notes",
+    locked: false,
+    name: "Notes",
+    opacity: 1,
+    order: 6,
+    visible: true
+  }
+];
+
+export type EditorSelection = {
+  id: string;
+  type: "asset" | "door" | "light" | "note" | "room";
+} | null;
 
 export type PlacedAssetClipboard = {
   assets: PlacedAsset[];
@@ -115,7 +184,9 @@ export function movePlacedAssets(
 export function updatePlacedAssetTransform(
   document: MapDocument,
   placedAssetId: string,
-  transform: Partial<Pick<PlacedAsset, "flipX" | "flipY" | "rotation" | "scale">>
+  transform: Partial<
+    Pick<PlacedAsset, "flipX" | "flipY" | "rotation" | "scale">
+  >
 ): MapDocument {
   return parseEditorDocument({
     ...document,
@@ -140,12 +211,19 @@ export function updatePlacedAssetLayer(
 ): MapDocument {
   return parseEditorDocument({
     ...document,
-    assets: document.assets.map((asset) => (asset.id === placedAssetId ? { ...asset, layer } : asset))
+    assets: document.assets.map((asset) =>
+      asset.id === placedAssetId ? { ...asset, layer } : asset
+    )
   });
 }
 
-export function duplicatePlacedAsset(document: MapDocument, placedAssetId: string): MapDocument {
-  const asset = document.assets.find((candidate) => candidate.id === placedAssetId);
+export function duplicatePlacedAsset(
+  document: MapDocument,
+  placedAssetId: string
+): MapDocument {
+  const asset = document.assets.find(
+    (candidate) => candidate.id === placedAssetId
+  );
 
   if (!asset) {
     return document;
@@ -166,7 +244,10 @@ export function duplicatePlacedAsset(document: MapDocument, placedAssetId: strin
   });
 }
 
-export function duplicatePlacedAssets(document: MapDocument, placedAssetIds: string[]): MapDocument {
+export function duplicatePlacedAssets(
+  document: MapDocument,
+  placedAssetIds: string[]
+): MapDocument {
   let next = document;
 
   for (const placedAssetId of placedAssetIds) {
@@ -176,7 +257,10 @@ export function duplicatePlacedAssets(document: MapDocument, placedAssetIds: str
   return next;
 }
 
-export function groupPlacedAssets(document: MapDocument, placedAssetIds: string[]): { document: MapDocument; groupId: string | null } {
+export function groupPlacedAssets(
+  document: MapDocument,
+  placedAssetIds: string[]
+): { document: MapDocument; groupId: string | null } {
   const selectedIds = new Set(placedAssetIds);
 
   if (selectedIds.size < 2) {
@@ -184,20 +268,29 @@ export function groupPlacedAssets(document: MapDocument, placedAssetIds: string[
   }
 
   const groupId = createUniqueId(
-    new Set(document.assets.map((asset) => asset.groupId).filter((id): id is string => Boolean(id))),
+    new Set(
+      document.assets
+        .map((asset) => asset.groupId)
+        .filter((id): id is string => Boolean(id))
+    ),
     `asset-group-${Date.now()}`
   );
 
   return {
     document: parseEditorDocument({
       ...document,
-      assets: document.assets.map((asset) => (selectedIds.has(asset.id) ? { ...asset, groupId } : asset))
+      assets: document.assets.map((asset) =>
+        selectedIds.has(asset.id) ? { ...asset, groupId } : asset
+      )
     }),
     groupId
   };
 }
 
-export function ungroupPlacedAssets(document: MapDocument, placedAssetIds: string[]): MapDocument {
+export function ungroupPlacedAssets(
+  document: MapDocument,
+  placedAssetIds: string[]
+): MapDocument {
   const selectedIds = new Set(placedAssetIds);
   const selectedGroups = new Set(
     document.assets
@@ -209,14 +302,18 @@ export function ungroupPlacedAssets(document: MapDocument, placedAssetIds: strin
   return parseEditorDocument({
     ...document,
     assets: document.assets.map((asset) =>
-      selectedIds.has(asset.id) || (asset.groupId && selectedGroups.has(asset.groupId))
+      selectedIds.has(asset.id) ||
+      (asset.groupId && selectedGroups.has(asset.groupId))
         ? { ...asset, groupId: undefined }
         : asset
     )
   });
 }
 
-export function deletePlacedAsset(document: MapDocument, placedAssetId: string): MapDocument {
+export function deletePlacedAsset(
+  document: MapDocument,
+  placedAssetId: string
+): MapDocument {
   return parseEditorDocument({
     ...document,
     assets: document.assets.filter((asset) => asset.id !== placedAssetId)
@@ -226,7 +323,9 @@ export function deletePlacedAsset(document: MapDocument, placedAssetId: string):
 export function updateLightSource(
   document: MapDocument,
   lightId: string,
-  patch: Partial<Pick<LightSource, "color" | "flicker" | "intensity" | "kind" | "radius">>
+  patch: Partial<
+    Pick<LightSource, "color" | "flicker" | "intensity" | "kind" | "radius">
+  >
 ): MapDocument {
   const plan = ensurePlan(document);
 
@@ -240,9 +339,15 @@ export function updateLightSource(
               ...light,
               color: patch.color ?? light.color,
               flicker: patch.flicker ?? light.flicker,
-              intensity: patch.intensity === undefined ? light.intensity : clampUnit(patch.intensity),
+              intensity:
+                patch.intensity === undefined
+                  ? light.intensity
+                  : clampUnit(patch.intensity),
               kind: patch.kind ?? light.kind,
-              radius: patch.radius === undefined ? light.radius : clampPositive(patch.radius, 1)
+              radius:
+                patch.radius === undefined
+                  ? light.radius
+                  : clampPositive(patch.radius, 1)
             }
           : light
       )
@@ -251,11 +356,16 @@ export function updateLightSource(
 }
 
 export function computeVisibleCells(document: MapDocument): string[] {
-  const tilesByCell = new Map(document.tiles.map((tile) => [cellKey(tile.x, tile.y), tile.kind]));
+  const tilesByCell = new Map(
+    document.tiles.map((tile) => [cellKey(tile.x, tile.y), tile.kind])
+  );
   const visibleCells = new Set<string>();
 
   for (const light of document.plan?.lights ?? []) {
-    const origin = { x: Math.floor(light.position.x), y: Math.floor(light.position.y) };
+    const origin = {
+      x: Math.floor(light.position.x),
+      y: Math.floor(light.position.y)
+    };
     const radius = Math.ceil(light.radius);
 
     for (let y = origin.y - radius; y <= origin.y + radius; y += 1) {
@@ -264,9 +374,15 @@ export function computeVisibleCells(document: MapDocument): string[] {
           continue;
         }
 
-        const distance = Math.hypot(x + 0.5 - light.position.x, y + 0.5 - light.position.y);
+        const distance = Math.hypot(
+          x + 0.5 - light.position.x,
+          y + 0.5 - light.position.y
+        );
 
-        if (distance <= light.radius && hasLineOfSight(document, tilesByCell, origin, { x, y })) {
+        if (
+          distance <= light.radius &&
+          hasLineOfSight(document, tilesByCell, origin, { x, y })
+        ) {
           visibleCells.add(cellKey(x, y));
         }
       }
@@ -276,7 +392,12 @@ export function computeVisibleCells(document: MapDocument): string[] {
   return [...visibleCells].sort();
 }
 
-export function addMapNote(document: MapDocument, position: { x: number; y: number }, text: string, title = "GM Note"): MapDocument {
+export function addMapNote(
+  document: MapDocument,
+  position: { x: number; y: number },
+  text: string,
+  title = "GM Note"
+): MapDocument {
   const trimmedText = text.trim();
 
   if (!trimmedText || !isCellInBounds(document, position)) {
@@ -325,7 +446,10 @@ export function updateMapNote(
   });
 }
 
-export function deleteMapNote(document: MapDocument, noteId: string): MapDocument {
+export function deleteMapNote(
+  document: MapDocument,
+  noteId: string
+): MapDocument {
   const plan = ensurePlan(document);
 
   return parseEditorDocument({
@@ -386,7 +510,10 @@ export function updateInitiativeEntry(
   });
 }
 
-export function deleteInitiativeEntry(document: MapDocument, entryId: string): MapDocument {
+export function deleteInitiativeEntry(
+  document: MapDocument,
+  entryId: string
+): MapDocument {
   const plan = ensurePlan(document);
 
   return parseEditorDocument({
@@ -398,7 +525,10 @@ export function deleteInitiativeEntry(document: MapDocument, entryId: string): M
   });
 }
 
-export function deletePlacedAssets(document: MapDocument, placedAssetIds: string[]): MapDocument {
+export function deletePlacedAssets(
+  document: MapDocument,
+  placedAssetIds: string[]
+): MapDocument {
   const selectedIds = new Set(placedAssetIds);
 
   return parseEditorDocument({
@@ -407,7 +537,10 @@ export function deletePlacedAssets(document: MapDocument, placedAssetIds: string
   });
 }
 
-export function createPlacedAssetClipboard(document: MapDocument, placedAssetIds: string[]): PlacedAssetClipboard {
+export function createPlacedAssetClipboard(
+  document: MapDocument,
+  placedAssetIds: string[]
+): PlacedAssetClipboard {
   const selectedIds = new Set(placedAssetIds);
 
   return {
@@ -479,7 +612,10 @@ export function updateMapLayer(
         ? {
             ...layer,
             locked: patch.locked ?? layer.locked,
-            opacity: patch.opacity === undefined ? layer.opacity : clampOpacity(patch.opacity),
+            opacity:
+              patch.opacity === undefined
+                ? layer.opacity
+                : clampOpacity(patch.opacity),
             visible: patch.visible ?? layer.visible
           }
         : layer
@@ -487,18 +623,33 @@ export function updateMapLayer(
   });
 }
 
-export function isEditorLayerVisible(document: MapDocument, layerKind: MapLayerKind): boolean {
-  const layer = ensureEditorLayers(document).layers.find((candidate) => candidate.kind === layerKind);
+export function isEditorLayerVisible(
+  document: MapDocument,
+  layerKind: MapLayerKind
+): boolean {
+  const layer = ensureEditorLayers(document).layers.find(
+    (candidate) => candidate.kind === layerKind
+  );
   return layer?.visible ?? true;
 }
 
-export function isEditorLayerLocked(document: MapDocument, layerKind: MapLayerKind): boolean {
-  const layer = ensureEditorLayers(document).layers.find((candidate) => candidate.kind === layerKind);
+export function isEditorLayerLocked(
+  document: MapDocument,
+  layerKind: MapLayerKind
+): boolean {
+  const layer = ensureEditorLayers(document).layers.find(
+    (candidate) => candidate.kind === layerKind
+  );
   return layer?.locked ?? false;
 }
 
-export function getEditorLayerOpacity(document: MapDocument, layerKind: MapLayerKind): number {
-  const layer = ensureEditorLayers(document).layers.find((candidate) => candidate.kind === layerKind);
+export function getEditorLayerOpacity(
+  document: MapDocument,
+  layerKind: MapLayerKind
+): number {
+  const layer = ensureEditorLayers(document).layers.find(
+    (candidate) => candidate.kind === layerKind
+  );
   return layer?.opacity ?? 1;
 }
 
@@ -512,9 +663,13 @@ export function setTileKind(
   }
 
   const tileId = createTileId(position);
-  const existingTile = document.tiles.find((tile) => tile.x === position.x && tile.y === position.y);
+  const existingTile = document.tiles.find(
+    (tile) => tile.x === position.x && tile.y === position.y
+  );
   const tiles = existingTile
-    ? document.tiles.map((tile) => (tile.id === existingTile.id ? { ...tile, kind } : tile))
+    ? document.tiles.map((tile) =>
+        tile.id === existingTile.id ? { ...tile, kind } : tile
+      )
     : [
         ...document.tiles,
         {
@@ -531,7 +686,10 @@ export function setTileKind(
   });
 }
 
-export function addDoorAtCell(document: MapDocument, position: { x: number; y: number }): MapDocument {
+export function addDoorAtCell(
+  document: MapDocument,
+  position: { x: number; y: number }
+): MapDocument {
   if (!isCellInBounds(document, position)) {
     return document;
   }
@@ -560,7 +718,10 @@ export function addDoorAtCell(document: MapDocument, position: { x: number; y: n
   );
 }
 
-export function addLightAtCell(document: MapDocument, position: { x: number; y: number }): MapDocument {
+export function addLightAtCell(
+  document: MapDocument,
+  position: { x: number; y: number }
+): MapDocument {
   if (!isCellInBounds(document, position)) {
     return document;
   }
@@ -590,7 +751,9 @@ export function selectElementAtCell(
   position: { x: number; y: number }
 ): EditorSelection {
   const asset = document.assets.find(
-    (placedAsset) => Math.floor(placedAsset.position.x) === position.x && Math.floor(placedAsset.position.y) === position.y
+    (placedAsset) =>
+      Math.floor(placedAsset.position.x) === position.x &&
+      Math.floor(placedAsset.position.y) === position.y
   );
 
   if (asset) {
@@ -598,7 +761,9 @@ export function selectElementAtCell(
   }
 
   const door = document.plan?.doors.find(
-    (candidate) => Math.floor(candidate.position.x) === position.x && Math.floor(candidate.position.y) === position.y
+    (candidate) =>
+      Math.floor(candidate.position.x) === position.x &&
+      Math.floor(candidate.position.y) === position.y
   );
 
   if (door) {
@@ -606,7 +771,9 @@ export function selectElementAtCell(
   }
 
   const light = document.plan?.lights.find(
-    (candidate) => Math.floor(candidate.position.x) === position.x && Math.floor(candidate.position.y) === position.y
+    (candidate) =>
+      Math.floor(candidate.position.x) === position.x &&
+      Math.floor(candidate.position.y) === position.y
   );
 
   if (light) {
@@ -614,7 +781,9 @@ export function selectElementAtCell(
   }
 
   const note = document.plan?.gmNotes.find(
-    (candidate) => Math.floor(candidate.position.x) === position.x && Math.floor(candidate.position.y) === position.y
+    (candidate) =>
+      Math.floor(candidate.position.x) === position.x &&
+      Math.floor(candidate.position.y) === position.y
   );
 
   if (note) {
@@ -652,7 +821,10 @@ export function findRoomAtCell(
   document: MapDocument,
   position: { x: number; y: number }
 ): RoomNode | null {
-  const rooms = document.plan?.rooms.filter((room) => room.kind === "room" || room.kind === "entrance") ?? [];
+  const rooms =
+    document.plan?.rooms.filter(
+      (room) => room.kind === "room" || room.kind === "entrance"
+    ) ?? [];
 
   return (
     rooms.find(
@@ -682,14 +854,27 @@ export function parseMapDocumentJson(value: string): MapDocument {
 export function createFallbackPalette(): EditorPaletteAsset[] {
   return [
     { id: "fallback-torch", kind: "light", name: "Torch", thumbnailUrl: null },
-    { id: "fallback-table", kind: "furniture", name: "Table", thumbnailUrl: null },
+    {
+      id: "fallback-table",
+      kind: "furniture",
+      name: "Table",
+      thumbnailUrl: null
+    },
     { id: "fallback-crate", kind: "prop", name: "Crate", thumbnailUrl: null },
-    { id: "fallback-statue", kind: "decoration", name: "Statue", thumbnailUrl: null }
+    {
+      id: "fallback-statue",
+      kind: "decoration",
+      name: "Statue",
+      thumbnailUrl: null
+    }
   ];
 }
 
 function createPlacedAssetId(document: MapDocument, assetId: string): string {
-  const safeAssetId = assetId.toLowerCase().replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "");
+  const safeAssetId = assetId
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/gu, "-")
+    .replace(/^-|-$/gu, "");
   return createUniqueId(
     new Set(document.assets.map((asset) => asset.id)),
     `placed-${safeAssetId || "asset"}-${document.assets.length + 1}`
@@ -715,8 +900,12 @@ function ensurePlan(document: MapDocument): NonNullable<MapDocument["plan"]> {
 }
 
 export function ensureEditorLayers(document: MapDocument): MapDocument {
-  const existing = new Map((document.layers ?? []).map((layer) => [layer.kind, layer]));
-  const layers = EDITOR_DEFAULT_LAYERS.map((layer) => existing.get(layer.kind) ?? layer).sort((left, right) => left.order - right.order);
+  const existing = new Map(
+    (document.layers ?? []).map((layer) => [layer.kind, layer])
+  );
+  const layers = EDITOR_DEFAULT_LAYERS.map(
+    (layer) => existing.get(layer.kind) ?? layer
+  ).sort((left, right) => left.order - right.order);
 
   return parseEditorDocument({
     ...document,
@@ -773,8 +962,14 @@ function createTileId(position: { x: number; y: number }): string {
   return `tile-${position.x}-${position.y}`;
 }
 
-function createPlanElementId(items: Array<{ id: string }>, prefix: string): string {
-  return createUniqueId(new Set(items.map((item) => item.id)), `${prefix}-${items.length + 1}`);
+function createPlanElementId(
+  items: Array<{ id: string }>,
+  prefix: string
+): string {
+  return createUniqueId(
+    new Set(items.map((item) => item.id)),
+    `${prefix}-${items.length + 1}`
+  );
 }
 
 function createUniqueId(existingIds: Set<string>, preferredId: string): string {
@@ -793,7 +988,10 @@ function createUniqueId(existingIds: Set<string>, preferredId: string): string {
   return `${preferredId}-${Date.now()}`;
 }
 
-function findRoomsTouchingCell(document: MapDocument, position: { x: number; y: number }): RoomNode[] {
+function findRoomsTouchingCell(
+  document: MapDocument,
+  position: { x: number; y: number }
+): RoomNode[] {
   const candidates = [
     position,
     { x: position.x - 1, y: position.y },
@@ -808,12 +1006,23 @@ function findRoomsTouchingCell(document: MapDocument, position: { x: number; y: 
   return [...new Map(rooms.map((room) => [room.id, room])).values()];
 }
 
-function isCellInBounds(document: MapDocument, position: { x: number; y: number }): boolean {
-  return position.x >= 0 && position.y >= 0 && position.x < document.width && position.y < document.height;
+function isCellInBounds(
+  document: MapDocument,
+  position: { x: number; y: number }
+): boolean {
+  return (
+    position.x >= 0 &&
+    position.y >= 0 &&
+    position.x < document.width &&
+    position.y < document.height
+  );
 }
 
 function sortInitiativeEntries(entries: InitiativeEntry[]): InitiativeEntry[] {
-  return [...entries].sort((left, right) => right.initiative - left.initiative || left.name.localeCompare(right.name));
+  return [...entries].sort(
+    (left, right) =>
+      right.initiative - left.initiative || left.name.localeCompare(right.name)
+  );
 }
 
 function hasLineOfSight(
@@ -837,7 +1046,10 @@ function hasLineOfSight(
   return true;
 }
 
-function bresenhamLine(start: { x: number; y: number }, end: { x: number; y: number }): Array<{ x: number; y: number }> {
+function bresenhamLine(
+  start: { x: number; y: number },
+  end: { x: number; y: number }
+): Array<{ x: number; y: number }> {
   const points: Array<{ x: number; y: number }> = [];
   let x = start.x;
   let y = start.y;

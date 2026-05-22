@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { MapDocument } from "@dm-instamap/core/server";
-import { RECOMMENDED_EXPORTS, computeProjectReadiness } from "./project-readiness";
+import {
+  RECOMMENDED_EXPORTS,
+  computeProjectReadiness
+} from "./project-readiness";
 
 function makeDocument(overrides: Record<string, unknown>): MapDocument {
   return {
@@ -24,7 +27,9 @@ function makeDocument(overrides: Record<string, unknown>): MapDocument {
 
 describe("project readiness", () => {
   it("flags an empty document as not session ready", () => {
-    const readiness = computeProjectReadiness(makeDocument({ plan: undefined }));
+    const readiness = computeProjectReadiness(
+      makeDocument({ plan: undefined })
+    );
 
     expect(readiness.isSessionReady).toBe(false);
     expect(readiness.requiredPassed).toBe(0);
@@ -45,8 +50,20 @@ describe("project readiness", () => {
           initiative: [],
           lights: [],
           rooms: [
-            { bounds: { height: 3, width: 3, x: 0, y: 0 }, id: "r1", kind: "entrance", label: "Ingresso", tags: [] },
-            { bounds: { height: 3, width: 3, x: 4, y: 4 }, id: "r2", kind: "room", label: "Sala", tags: [] }
+            {
+              bounds: { height: 3, width: 3, x: 0, y: 0 },
+              id: "r1",
+              kind: "entrance",
+              label: "Ingresso",
+              tags: []
+            },
+            {
+              bounds: { height: 3, width: 3, x: 4, y: 4 },
+              id: "r2",
+              kind: "room",
+              label: "Sala",
+              tags: []
+            }
           ],
           walls: []
         }
@@ -55,8 +72,12 @@ describe("project readiness", () => {
 
     expect(readiness.isSessionReady).toBe(true);
     expect(readiness.requiredPassed).toBe(4);
-    expect(readiness.checks.find((check) => check.id === "room-labels")?.passed).toBe(true);
-    expect(readiness.checks.find((check) => check.id === "lighting")?.passed).toBe(false);
+    expect(
+      readiness.checks.find((check) => check.id === "room-labels")?.passed
+    ).toBe(true);
+    expect(
+      readiness.checks.find((check) => check.id === "lighting")?.passed
+    ).toBe(false);
     expect(readiness.recommendedPassed).toBe(1);
   });
 
@@ -69,18 +90,39 @@ describe("project readiness", () => {
           gmNotes: [],
           initiative: [],
           lights: [],
-          rooms: [{ bounds: { height: 2, width: 2, x: 0, y: 0 }, id: "r1", kind: "entrance", label: "Ingresso", tags: [] }],
-          walls: [{ end: { x: 2, y: 0 }, id: "w1", start: { x: 0, y: 0 }, thickness: 1 }]
+          rooms: [
+            {
+              bounds: { height: 2, width: 2, x: 0, y: 0 },
+              id: "r1",
+              kind: "entrance",
+              label: "Ingresso",
+              tags: []
+            }
+          ],
+          walls: [
+            {
+              end: { x: 2, y: 0 },
+              id: "w1",
+              start: { x: 0, y: 0 },
+              thickness: 1
+            }
+          ]
         }
       })
     );
 
-    expect(readiness.checks.find((check) => check.id === "walls")?.passed).toBe(true);
+    expect(readiness.checks.find((check) => check.id === "walls")?.passed).toBe(
+      true
+    );
     expect(readiness.isSessionReady).toBe(true);
   });
 
   it("exposes recommended exports with the session pack first", () => {
     expect(RECOMMENDED_EXPORTS[0]?.format).toBe("session-pack");
-    expect(RECOMMENDED_EXPORTS.some((preset) => preset.format === "png" && preset.mode === "player")).toBe(true);
+    expect(
+      RECOMMENDED_EXPORTS.some(
+        (preset) => preset.format === "png" && preset.mode === "player"
+      )
+    ).toBe(true);
   });
 });

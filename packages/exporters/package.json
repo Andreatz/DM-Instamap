@@ -11,9 +11,10 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "lint": "tsc -p tsconfig.json --noEmit",
     "session-pack": "tsx src/cli/session-pack.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@dm-instamap/core": "workspace:*",

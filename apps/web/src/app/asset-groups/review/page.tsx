@@ -1,5 +1,9 @@
 import { AssetGroupReviewWorkspace } from "@/components/assets/asset-group-review-workspace";
-import { loadAssetGroupReviews, buildGroupReviewItems, calculateGroupReviewStats } from "@/lib/asset-group-review";
+import {
+  loadAssetGroupReviews,
+  buildGroupReviewItems,
+  calculateGroupReviewStats
+} from "@/lib/asset-group-review";
 import { loadAssetGroups } from "@/lib/asset-groups";
 import { loadAssetManifest } from "@/lib/assets-manifest";
 
@@ -20,7 +24,10 @@ export default async function AssetGroupReviewPage() {
         <div>
           <strong>DM-Instamap</strong>
           <h1>Revisione gruppi asset</h1>
-          <p>Revisiona migliaia di asset locali per gruppo, non un file alla volta.</p>
+          <p>
+            Revisiona migliaia di asset locali per gruppo, non un file alla
+            volta.
+          </p>
         </div>
         <dl>
           <div>
@@ -50,11 +57,16 @@ export default async function AssetGroupReviewPage() {
         <section className="asset-empty">
           <h2>Indice revisione mancante</h2>
           <p>
-            Esegui <code>pnpm assets:scan</code> e <code>pnpm assets:group</code> prima della revisione gruppi.
+            Esegui <code>pnpm assets:scan</code> e{" "}
+            <code>pnpm assets:group</code> prima della revisione gruppi.
           </p>
         </section>
       ) : (
-        <AssetGroupReviewWorkspace initialItems={items} initialReviews={reviews} initialStats={stats} />
+        <AssetGroupReviewWorkspace
+          initialItems={items}
+          initialReviews={reviews}
+          initialStats={stats}
+        />
       )}
     </main>
   );

@@ -68,26 +68,44 @@ export type ImportGeneratedAssetOptions = {
 
 const DEFAULT_DATA_DIRECTORY = "data";
 const DEFAULT_GENERATED_ASSET_DIRECTORY = path.join("assets", "generated");
-const DEFAULT_WORKSPACE_GENERATED_ASSET_DIRECTORY = path.join("data", "assets", "generated");
+const DEFAULT_WORKSPACE_GENERATED_ASSET_DIRECTORY = path.join(
+  "data",
+  "assets",
+  "generated"
+);
 
-export function createReplicateImageGenerationProvider(config: ReplicateProviderConfig): ImageGenerationProvider {
+export function createReplicateImageGenerationProvider(
+  config: ReplicateProviderConfig
+): ImageGenerationProvider {
   if (!config.apiToken) {
-    throw new Error("createReplicateImageGenerationProvider: apiToken is required.");
+    throw new Error(
+      "createReplicateImageGenerationProvider: apiToken is required."
+    );
   }
 
   if (!config.model) {
-    throw new Error("createReplicateImageGenerationProvider: model is required.");
+    throw new Error(
+      "createReplicateImageGenerationProvider: model is required."
+    );
   }
 
-  const baseUrl = (config.baseUrl ?? "https://api.replicate.com").replace(/\/$/u, "");
+  const baseUrl = (config.baseUrl ?? "https://api.replicate.com").replace(
+    /\/$/u,
+    ""
+  );
   const fetchImpl = config.fetchImpl ?? globalThis.fetch;
 
   if (!fetchImpl) {
-    throw new Error("createReplicateImageGenerationProvider: fetch is not available.");
+    throw new Error(
+      "createReplicateImageGenerationProvider: fetch is not available."
+    );
   }
 
   const pollInterval = Math.max(250, Math.floor(config.pollIntervalMs ?? 1000));
-  const pollTimeout = Math.max(5000, Math.floor(config.pollTimeoutMs ?? 120000));
+  const pollTimeout = Math.max(
+    5000,
+    Math.floor(config.pollTimeoutMs ?? 120000)
+  );
 
   return {
     id: `replicate:${config.model}`,
@@ -114,8 +132,12 @@ export function createReplicateImageGenerationProvider(config: ReplicateProvider
       });
 
       if (!createResponse.ok) {
-        const errorText = await createResponse.text().catch(() => "(unable to read)");
-        throw new Error(`Replicate create failed (${createResponse.status}): ${errorText}`);
+        const errorText = await createResponse
+          .text()
+          .catch(() => "(unable to read)");
+        throw new Error(
+          `Replicate create failed (${createResponse.status}): ${errorText}`
+        );
       }
 
       const initial = (await createResponse.json()) as ReplicatePrediction;
@@ -133,13 +155,22 @@ export function createReplicateImageGenerationProvider(config: ReplicateProvider
         throw new Error("Replicate prediction completed without an image URL.");
       }
 
-      return downloadImage(fetchImpl, url, finalPrediction.input?.seed ?? request.seed);
+      return downloadImage(
+        fetchImpl,
+        url,
+        finalPrediction.input?.seed ?? request.seed
+      );
     }
   };
 }
 
-export function createAutomatic1111Provider(config: Automatic1111ProviderConfig = {}): ImageGenerationProvider {
-  const baseUrl = (config.baseUrl ?? "http://127.0.0.1:7860").replace(/\/$/u, "");
+export function createAutomatic1111Provider(
+  config: Automatic1111ProviderConfig = {}
+): ImageGenerationProvider {
+  const baseUrl = (config.baseUrl ?? "http://127.0.0.1:7860").replace(
+    /\/$/u,
+    ""
+  );
   const endpoint = config.endpoint ?? "/sdapi/v1/txt2img";
   const fetchImpl = config.fetchImpl ?? globalThis.fetch;
 
@@ -166,7 +197,9 @@ export function createAutomatic1111Provider(config: Automatic1111ProviderConfig 
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => "(unable to read)");
-        throw new Error(`Automatic1111 request failed (${response.status}): ${errorText}`);
+        throw new Error(
+          `Automatic1111 request failed (${response.status}): ${errorText}`
+        );
       }
 
       const payload = (await response.json()) as { images?: unknown };
@@ -186,7 +219,9 @@ export function createAutomatic1111Provider(config: Automatic1111ProviderConfig 
   };
 }
 
-export function createCustomImageGenerationProvider(config: CustomImageGenerationProviderConfig): ImageGenerationProvider {
+export function createCustomImageGenerationProvider(
+  config: CustomImageGenerationProviderConfig
+): ImageGenerationProvider {
   return {
     id: config.id ?? "custom",
     vendor: "custom",
@@ -202,11 +237,17 @@ export type ResolvedImageGenerationConfig = {
   version?: string;
 };
 
-export function resolveImageGenerationConfigFromEnv(env: NodeJS.ProcessEnv = process.env): ResolvedImageGenerationConfig | null {
+export function resolveImageGenerationConfigFromEnv(
+  env: NodeJS.ProcessEnv = process.env
+): ResolvedImageGenerationConfig | null {
   const provider = (env.IMAGE_GEN_PROVIDER ?? "").trim().toLowerCase();
 
   if (provider === "replicate") {
-    const apiToken = (env.IMAGE_GEN_API_KEY ?? env.REPLICATE_API_TOKEN ?? "").trim();
+    const apiToken = (
+      env.IMAGE_GEN_API_KEY ??
+      env.REPLICATE_API_TOKEN ??
+      ""
+    ).trim();
     const model = (env.IMAGE_GEN_MODEL ?? "").trim();
 
     if (!apiToken || !model) {
@@ -232,7 +273,9 @@ export function resolveImageGenerationConfigFromEnv(env: NodeJS.ProcessEnv = pro
   return null;
 }
 
-export function createImageGenerationProviderFromEnv(env: NodeJS.ProcessEnv = process.env): ImageGenerationProvider | null {
+export function createImageGenerationProviderFromEnv(
+  env: NodeJS.ProcessEnv = process.env
+): ImageGenerationProvider | null {
   const config = resolveImageGenerationConfigFromEnv(env);
 
   if (!config) {
@@ -261,10 +304,15 @@ export async function importGeneratedAssetToLibrary(
   const outputRoot = resolveOutputRoot(options.outputRoot);
   const relativeRoot = resolveRelativeRoot(options.outputRoot, outputRoot);
   const outputDir = options.outputDirectory
-    ? path.resolve(/*turbopackIgnore: true*/ outputRoot, options.outputDirectory)
+    ? path.resolve(
+        /*turbopackIgnore: true*/ outputRoot,
+        options.outputDirectory
+      )
     : path.resolve(
         outputRoot,
-        options.outputRoot ? DEFAULT_WORKSPACE_GENERATED_ASSET_DIRECTORY : DEFAULT_GENERATED_ASSET_DIRECTORY
+        options.outputRoot
+          ? DEFAULT_WORKSPACE_GENERATED_ASSET_DIRECTORY
+          : DEFAULT_GENERATED_ASSET_DIRECTORY
       );
   const filename = buildAssetFilename({
     extension: extensionForContentType(options.result.contentType),
@@ -284,17 +332,25 @@ export async function importGeneratedAssetToLibrary(
     path: targetPath,
     prompt: options.request.prompt,
     provider: provider.id,
-    relativePath: path.relative(relativeRoot, targetPath).split(path.sep).join("/"),
+    relativePath: path
+      .relative(relativeRoot, targetPath)
+      .split(path.sep)
+      .join("/"),
     seed: options.result.seed ?? options.request.seed,
     styleTags: options.request.styleTags ?? []
   };
 }
 
 function resolveOutputRoot(outputRoot?: string): string {
-  return outputRoot ? path.resolve(outputRoot) : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
+  return outputRoot
+    ? path.resolve(outputRoot)
+    : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
 }
 
-function resolveRelativeRoot(outputRoot: string | undefined, resolvedOutputRoot: string): string {
+function resolveRelativeRoot(
+  outputRoot: string | undefined,
+  resolvedOutputRoot: string
+): string {
   return outputRoot ? resolvedOutputRoot : resolvedOutputRoot;
 }
 
@@ -328,7 +384,9 @@ async function pollReplicatePrediction(input: {
 
   while (current.status !== "succeeded") {
     if (current.status === "failed" || current.status === "canceled") {
-      throw new Error(`Replicate prediction ${current.status}: ${current.error ?? "unknown error"}`);
+      throw new Error(
+        `Replicate prediction ${current.status}: ${current.error ?? "unknown error"}`
+      );
     }
 
     if (Date.now() - start > input.timeoutMs) {
@@ -336,7 +394,8 @@ async function pollReplicatePrediction(input: {
     }
 
     await delay(input.intervalMs);
-    const url = current.urls?.get ?? `${input.baseUrl}/v1/predictions/${current.id}`;
+    const url =
+      current.urls?.get ?? `${input.baseUrl}/v1/predictions/${current.id}`;
     const response = await input.fetchImpl(url, {
       headers: {
         authorization: `Token ${input.token}`
@@ -345,7 +404,9 @@ async function pollReplicatePrediction(input: {
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "(unable to read)");
-      throw new Error(`Replicate poll failed (${response.status}): ${errorText}`);
+      throw new Error(
+        `Replicate poll failed (${response.status}): ${errorText}`
+      );
     }
 
     current = (await response.json()) as ReplicatePrediction;
@@ -376,7 +437,9 @@ async function downloadImage(
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => "(unable to read)");
-    throw new Error(`Failed to download generated image (${response.status}): ${errorText}`);
+    throw new Error(
+      `Failed to download generated image (${response.status}): ${errorText}`
+    );
   }
 
   const buffer = Buffer.from(await response.arrayBuffer());
@@ -405,13 +468,20 @@ function extensionForContentType(contentType: string): string {
   return "bin";
 }
 
-function buildAssetFilename(input: { extension: string; hint?: string; prompt: string; seed?: number }): string {
-  const slug = (input.hint ?? input.prompt)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/gu, "-")
-    .replace(/^-|-$/gu, "")
-    .slice(0, 48) || "generated";
-  const seedSuffix = typeof input.seed === "number" ? `-${input.seed}` : `-${Date.now()}`;
+function buildAssetFilename(input: {
+  extension: string;
+  hint?: string;
+  prompt: string;
+  seed?: number;
+}): string {
+  const slug =
+    (input.hint ?? input.prompt)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/gu, "-")
+      .replace(/^-|-$/gu, "")
+      .slice(0, 48) || "generated";
+  const seedSuffix =
+    typeof input.seed === "number" ? `-${input.seed}` : `-${Date.now()}`;
 
   return `${slug}${seedSuffix}.${input.extension}`;
 }

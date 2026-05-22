@@ -32,7 +32,9 @@ export function parseAiPlanArgs(argv: string[]): AiPlanCliOptions {
   const request = parts.join(" ").trim();
 
   if (!request) {
-    throw new Error("Usage: pnpm ai:plan \"crypt below cathedral\" [--max-retries 1]");
+    throw new Error(
+      'Usage: pnpm ai:plan "crypt below cathedral" [--max-retries 1]'
+    );
   }
 
   return { maxRetries, request };
@@ -43,7 +45,9 @@ async function main(): Promise<void> {
   const provider = createProviderFromEnv(process.env);
 
   if (!provider) {
-    throw new Error("AI provider not configured. Set AI_PROVIDER and AI_API_KEY.");
+    throw new Error(
+      "AI provider not configured. Set AI_PROVIDER and AI_API_KEY."
+    );
   }
 
   const outputRoot = process.env.INIT_CWD ?? process.cwd();
@@ -73,7 +77,10 @@ function readNumber(value: string | undefined, flag: string): number {
   return parsed;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
   main().catch((error: unknown) => {
     console.error(error instanceof Error ? error.message : "AI plan failed.");
     process.exit(1);

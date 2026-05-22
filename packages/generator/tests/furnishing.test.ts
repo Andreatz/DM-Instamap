@@ -92,13 +92,19 @@ describe("autoFurnishMap", () => {
     expect(result.placed.length).toBeGreaterThan(0);
 
     for (const placedAsset of result.document.assets) {
-      const room = result.document.plan?.rooms.find((candidate) => placedAsset.tags.includes(candidate.id));
+      const room = result.document.plan?.rooms.find((candidate) =>
+        placedAsset.tags.includes(candidate.id)
+      );
 
       expect(room, placedAsset.id).toBeDefined();
       expect(placedAsset.position.x).toBeGreaterThanOrEqual(room!.bounds.x);
       expect(placedAsset.position.y).toBeGreaterThanOrEqual(room!.bounds.y);
-      expect(placedAsset.position.x).toBeLessThan(room!.bounds.x + room!.bounds.width);
-      expect(placedAsset.position.y).toBeLessThan(room!.bounds.y + room!.bounds.height);
+      expect(placedAsset.position.x).toBeLessThan(
+        room!.bounds.x + room!.bounds.width
+      );
+      expect(placedAsset.position.y).toBeLessThan(
+        room!.bounds.y + room!.bounds.height
+      );
     }
   });
 
@@ -118,15 +124,30 @@ describe("autoFurnishMap", () => {
     const occupied = new Set<string>();
 
     for (const placement of result.placed) {
-      const placedAsset = result.document.assets.find((asset) => asset.assetId === placement.assetId && asset.tags.includes(placement.roomId));
+      const placedAsset = result.document.assets.find(
+        (asset) =>
+          asset.assetId === placement.assetId &&
+          asset.tags.includes(placement.roomId)
+      );
 
       expect(placedAsset).toBeDefined();
 
-      for (let y = placedAsset!.position.y; y < placedAsset!.position.y + placement.footprint.height; y += 1) {
-        for (let x = placedAsset!.position.x; x < placedAsset!.position.x + placement.footprint.width; x += 1) {
+      for (
+        let y = placedAsset!.position.y;
+        y < placedAsset!.position.y + placement.footprint.height;
+        y += 1
+      ) {
+        for (
+          let x = placedAsset!.position.x;
+          x < placedAsset!.position.x + placement.footprint.width;
+          x += 1
+        ) {
           const key = `${x},${y}`;
 
-          expect(occupied.has(key), `${placement.assetId} overlaps at ${key}`).toBe(false);
+          expect(
+            occupied.has(key),
+            `${placement.assetId} overlaps at ${key}`
+          ).toBe(false);
           occupied.add(key);
         }
       }
@@ -167,15 +188,33 @@ describe("autoFurnishMap", () => {
     expect(result.summary.placedCount).toBe(result.placed.length);
     expect(result.placed).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ assetId: "asset-sarcophagus", roomType: "crypt" }),
-        expect.objectContaining({ assetId: "asset-bookshelf", roomType: "library" }),
-        expect.objectContaining({ assetId: "asset-prison-bars", roomType: "prison" }),
+        expect.objectContaining({
+          assetId: "asset-sarcophagus",
+          roomType: "crypt"
+        }),
+        expect.objectContaining({
+          assetId: "asset-bookshelf",
+          roomType: "library"
+        }),
+        expect.objectContaining({
+          assetId: "asset-prison-bars",
+          roomType: "prison"
+        }),
         expect.objectContaining({ assetId: "asset-altar", roomType: "chapel" }),
-        expect.objectContaining({ assetId: "asset-throne", roomType: "boss_room" })
+        expect.objectContaining({
+          assetId: "asset-throne",
+          roomType: "boss_room"
+        })
       ])
     );
-    expect(result.placed.find((placement) => placement.assetId === "asset-bookshelf")?.placement).toBe("wall");
-    expect(result.placed.find((placement) => placement.assetId === "asset-altar")?.placement).toBe("center");
+    expect(
+      result.placed.find((placement) => placement.assetId === "asset-bookshelf")
+        ?.placement
+    ).toBe("wall");
+    expect(
+      result.placed.find((placement) => placement.assetId === "asset-altar")
+        ?.placement
+    ).toBe("center");
   });
 
   it("uses narrative room suggestions and asset groups when available", () => {
@@ -213,7 +252,9 @@ describe("autoFurnishMap", () => {
     );
     expect(
       result.placed.find(
-        (placement) => placement.assetId === "group-ritual-circle-asset" && placement.roomType === "boss_room"
+        (placement) =>
+          placement.assetId === "group-ritual-circle-asset" &&
+          placement.roomType === "boss_room"
       )?.reasons
     ).toContain("usableFor:boss_room");
   });

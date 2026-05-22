@@ -4,7 +4,14 @@ import { z } from "zod";
 import { assertSafeProjectId, getProjectsRoot } from "./projects";
 import { parseJsonFileContent } from "./json-file";
 
-export const EXPORT_FORMATS = ["png", "webp", "dd2vtt", "foundry", "dmimap", "session-pack"] as const;
+export const EXPORT_FORMATS = [
+  "png",
+  "webp",
+  "dd2vtt",
+  "foundry",
+  "dmimap",
+  "session-pack"
+] as const;
 export type ProjectExportFormat = (typeof EXPORT_FORMATS)[number];
 
 export const EXPORT_MODES = ["player", "gm", "clean"] as const;
@@ -65,7 +72,9 @@ export function describeExportMode(mode: ProjectExportMode): string {
   return EXPORT_MODE_LABELS[mode];
 }
 
-export function summarizeExportHistory(entries: ProjectExportEntry[]): ExportHistorySummary {
+export function summarizeExportHistory(
+  entries: ProjectExportEntry[]
+): ExportHistorySummary {
   const latest = entries[0] ?? null;
 
   return {
@@ -75,7 +84,10 @@ export function summarizeExportHistory(entries: ProjectExportEntry[]): ExportHis
   };
 }
 
-async function getHistoryPath(projectId: string, options: { outputRoot?: string }): Promise<string> {
+async function getHistoryPath(
+  projectId: string,
+  options: { outputRoot?: string }
+): Promise<string> {
   const safeProjectId = assertSafeProjectId(projectId);
   const projectsRoot = await getProjectsRoot(options.outputRoot);
   return path.join(projectsRoot, safeProjectId, EXPORTS_DIR, HISTORY_FILE);
@@ -94,7 +106,10 @@ export async function readProjectExportHistory(
 
     return entries
       .map((entry) => ProjectExportEntrySchema.safeParse(entry))
-      .filter((result): result is { data: ProjectExportEntry; success: true } => result.success)
+      .filter(
+        (result): result is { data: ProjectExportEntry; success: true } =>
+          result.success
+      )
       .map((result) => result.data)
       .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
   } catch (error) {
@@ -140,7 +155,10 @@ export async function recordProjectExport(
   }
 }
 
-async function writeJsonAtomic(filePath: string, value: unknown): Promise<void> {
+async function writeJsonAtomic(
+  filePath: string,
+  value: unknown
+): Promise<void> {
   const tempPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
   await writeFile(tempPath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
   await rename(tempPath, filePath);

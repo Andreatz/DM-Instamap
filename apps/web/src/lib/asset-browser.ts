@@ -75,7 +75,9 @@ type ManifestAsset = {
   width?: unknown;
 };
 
-export function normalizeManifestAssets(assets: ManifestAsset[]): AssetBrowserEntry[] {
+export function normalizeManifestAssets(
+  assets: ManifestAsset[]
+): AssetBrowserEntry[] {
   return assets
     .map((asset) => {
       const id = readString(asset.id);
@@ -90,7 +92,9 @@ export function normalizeManifestAssets(assets: ManifestAsset[]): AssetBrowserEn
 
       return {
         classification: readString(asset.classification) || "unknown",
-        classificationSource: readClassificationSource(asset.classificationSource),
+        classificationSource: readClassificationSource(
+          asset.classificationSource
+        ),
         confidence: readConfidence(asset.confidence),
         dominantColors: readDominantColors(asset.dominantColors),
         extension: readString(asset.extension),
@@ -108,7 +112,9 @@ export function normalizeManifestAssets(assets: ManifestAsset[]): AssetBrowserEn
     .filter((asset): asset is AssetBrowserEntry => asset !== null);
 }
 
-export function createAssetBrowserOptions(assets: AssetBrowserEntry[]): AssetBrowserOptions {
+export function createAssetBrowserOptions(
+  assets: AssetBrowserEntry[]
+): AssetBrowserOptions {
   return {
     kinds: uniqueSorted(assets.map((asset) => asset.classification)),
     sourceFolders: uniqueSorted(assets.map((asset) => asset.sourceFolder)),
@@ -131,7 +137,10 @@ export function filterAssets(
       return false;
     }
 
-    if (filters.sourceFolder !== "all" && asset.sourceFolder !== filters.sourceFolder) {
+    if (
+      filters.sourceFolder !== "all" &&
+      asset.sourceFolder !== filters.sourceFolder
+    ) {
       return false;
     }
 
@@ -194,13 +203,14 @@ export function formatAssetKind(kind: string): string {
   }
 }
 
-export function formatClassificationSource(source: AssetBrowserEntry["classificationSource"]): string {
+export function formatClassificationSource(
+  source: AssetBrowserEntry["classificationSource"]
+): string {
   switch (source) {
     case "automatic":
       return "automatica";
     case "manual":
       return "manuale";
-    case "missing":
     default:
       return "mancante";
   }
@@ -228,7 +238,9 @@ function createTagsFromPath(relativePath: string): string[] {
   );
 }
 
-function readClassificationSource(value: unknown): AssetBrowserEntry["classificationSource"] {
+function readClassificationSource(
+  value: unknown
+): AssetBrowserEntry["classificationSource"] {
   if (value === "automatic" || value === "manual") {
     return value;
   }
@@ -244,7 +256,9 @@ function readConfidence(value: unknown): number {
   return Math.min(1, Math.max(0, value));
 }
 
-function readDominantColors(value: unknown): AssetBrowserEntry["dominantColors"] {
+function readDominantColors(
+  value: unknown
+): AssetBrowserEntry["dominantColors"] {
   if (!Array.isArray(value)) {
     return [];
   }
@@ -265,7 +279,9 @@ function readDominantColors(value: unknown): AssetBrowserEntry["dominantColors"]
 
       return { hex, population };
     })
-    .filter((color): color is { hex: string; population: number } => color !== null);
+    .filter(
+      (color): color is { hex: string; population: number } => color !== null
+    );
 }
 
 function readNullableNumber(value: unknown): number | null {
@@ -281,7 +297,9 @@ function readStringArray(value: unknown): string[] {
     return [];
   }
 
-  return uniqueSorted(value.filter((item): item is string => typeof item === "string"));
+  return uniqueSorted(
+    value.filter((item): item is string => typeof item === "string")
+  );
 }
 
 function readTransparency(value: unknown): boolean | null {
@@ -293,5 +311,7 @@ function readTransparency(value: unknown): boolean | null {
 }
 
 function uniqueSorted(values: string[]): string[] {
-  return [...new Set(values.filter(Boolean))].sort((left, right) => left.localeCompare(right));
+  return [...new Set(values.filter(Boolean))].sort((left, right) =>
+    left.localeCompare(right)
+  );
 }

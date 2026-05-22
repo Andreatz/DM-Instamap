@@ -111,12 +111,22 @@ export const AiBlueprintSchema = z
   .object({
     globalTags: z.array(z.string().trim().min(1)).default([]),
     gmNotes: z.array(z.string().trim().min(1)).default([]),
-    mood: z.enum(["safe", "tense", "hostile", "ominous", "festive"]).default("tense"),
+    mood: z
+      .enum(["safe", "tense", "hostile", "ominous", "festive"])
+      .default("tense"),
     name: z.string().trim().min(1),
     rooms: z.array(AiBlueprintRoomSchema).min(1),
     scale: z.enum(["small", "medium", "large"]).default("medium"),
     structure: z
-      .enum(["dungeon", "building", "cave", "city", "village", "outdoor", "ship"])
+      .enum([
+        "dungeon",
+        "building",
+        "cave",
+        "city",
+        "village",
+        "outdoor",
+        "ship"
+      ])
       .default("dungeon"),
     theme: z.string().trim().min(1)
   })
@@ -153,7 +163,10 @@ export async function generateNarrativeBlueprintWithAi(
   for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
     const response = await provider.complete({
       maxTokens: options.maxTokens,
-      messages: buildOrchestrationMessages(prompt, attempt > 0 ? lastErrors : []),
+      messages: buildOrchestrationMessages(
+        prompt,
+        attempt > 0 ? lastErrors : []
+      ),
       temperature: options.temperature ?? 0.3
     });
     rawResponses.push(response.text);
@@ -247,7 +260,10 @@ export async function suggestAssetsForRoomWithAi(
   for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
     const response = await provider.complete({
       maxTokens: options.maxTokens ?? 1024,
-      messages: buildOrchestrationMessages(prompt, attempt > 0 ? lastErrors : []),
+      messages: buildOrchestrationMessages(
+        prompt,
+        attempt > 0 ? lastErrors : []
+      ),
       temperature: options.temperature ?? 0.2
     });
     rawResponses.push(response.text);
@@ -255,10 +271,14 @@ export async function suggestAssetsForRoomWithAi(
 
     if (validation.ok) {
       const available = new Set(input.availableAssetIds);
-      const suggestions = validation.data.suggestions.filter((suggestion) => available.has(suggestion.assetId));
+      const suggestions = validation.data.suggestions.filter((suggestion) =>
+        available.has(suggestion.assetId)
+      );
 
       if (suggestions.length === 0) {
-        lastErrors = ["AI returned no suggestions matching the available asset library."];
+        lastErrors = [
+          "AI returned no suggestions matching the available asset library."
+        ];
         continue;
       }
 
@@ -294,15 +314,17 @@ export type MapDescriptionInput = {
   theme?: string;
 };
 
-export type MapDescriptionResult = {
-  description: string;
-  ok: true;
-  providerId: string;
-} | {
-  errors: string[];
-  ok: false;
-  providerId: string;
-};
+export type MapDescriptionResult =
+  | {
+      description: string;
+      ok: true;
+      providerId: string;
+    }
+  | {
+      errors: string[];
+      ok: false;
+      providerId: string;
+    };
 
 export async function describeMapWithAi(
   input: MapDescriptionInput,
@@ -332,7 +354,10 @@ export async function describeMapWithAi(
   };
 }
 
-function buildOrchestrationMessages(prompt: string, repairHints: string[] = []): AiChatMessage[] {
+function buildOrchestrationMessages(
+  prompt: string,
+  repairHints: string[] = []
+): AiChatMessage[] {
   const system = [
     "You are DM-Instamap's AI bridge: a server-side assistant that drafts strict JSON for D&D battle map planning.",
     "Always return only JSON unless the user prompt explicitly asks for prose.",
@@ -341,7 +366,11 @@ function buildOrchestrationMessages(prompt: string, repairHints: string[] = []):
   const userParts = [prompt];
 
   if (repairHints.length > 0) {
-    userParts.push("", "Previous validation errors:", ...repairHints.map((hint) => `- ${hint}`));
+    userParts.push(
+      "",
+      "Previous validation errors:",
+      ...repairHints.map((hint) => `- ${hint}`)
+    );
   }
 
   return [
@@ -377,7 +406,8 @@ const BLUEPRINT_SCHEMA_HINT = {
       suggestedAssets: ["altar", "candle"],
       suggestedLights: ["torch"],
       suggestedNotes: ["GM hint"],
-      tacticalRole: "entrance | social | combat | puzzle | treasure | hazard | boss | transition | secret | safe",
+      tacticalRole:
+        "entrance | social | combat | puzzle | treasure | hazard | boss | transition | secret | safe",
       tags: ["thematic tag"]
     }
   ],
@@ -389,13 +419,15 @@ const BLUEPRINT_SCHEMA_HINT = {
 function buildAssetSuggestionPrompt(input: AssetSuggestionInput): string {
   return [
     "Pick assets that fit a room's purpose, using only the assetIds provided below.",
-    "Return JSON only with shape: { \"suggestions\": [{ \"assetId\": string, \"reason\": string }] }.",
+    'Return JSON only with shape: { "suggestions": [{ "assetId": string, "reason": string }] }.',
     "Do not invent assetIds that are not in the available list.",
     "",
     "ROOM:",
     `- label: ${input.roomLabel}`,
     input.roomPurpose ? `- purpose: ${input.roomPurpose}` : "",
-    input.styleTags && input.styleTags.length > 0 ? `- style tags: ${input.styleTags.join(", ")}` : "",
+    input.styleTags && input.styleTags.length > 0
+      ? `- style tags: ${input.styleTags.join(", ")}`
+      : "",
     "",
     "AVAILABLE ASSET IDS:",
     JSON.stringify(input.availableAssetIds.slice(0, 200), null, 2)
@@ -411,11 +443,17 @@ function buildMapDescriptionPrompt(input: MapDescriptionInput): string {
     "",
     `MAP NAME: ${input.mapName}`,
     input.theme ? `THEME: ${input.theme}` : "",
-    input.styleTags && input.styleTags.length > 0 ? `STYLE TAGS: ${input.styleTags.join(", ")}` : "",
+    input.styleTags && input.styleTags.length > 0
+      ? `STYLE TAGS: ${input.styleTags.join(", ")}`
+      : "",
     "",
     "ROOMS:",
     JSON.stringify(
-      input.rooms.map((room) => ({ id: room.id, label: room.label, tags: room.tags ?? [] })),
+      input.rooms.map((room) => ({
+        id: room.id,
+        label: room.label,
+        tags: room.tags ?? []
+      })),
       null,
       2
     )
@@ -428,7 +466,10 @@ type ParseAndValidate<T> =
   | { data: T; ok: true }
   | { errors: string[]; ok: false };
 
-function parseAndValidate<T>(value: string, schema: z.ZodType<T>): ParseAndValidate<T> {
+function parseAndValidate<T>(
+  value: string,
+  schema: z.ZodType<T>
+): ParseAndValidate<T> {
   try {
     const parsed = JSON.parse(stripCodeFence(value));
     const result = schema.safeParse(parsed);
@@ -446,7 +487,9 @@ function parseAndValidate<T>(value: string, schema: z.ZodType<T>): ParseAndValid
     };
   } catch (error) {
     return {
-      errors: [error instanceof Error ? error.message : "Response is not valid JSON."],
+      errors: [
+        error instanceof Error ? error.message : "Response is not valid JSON."
+      ],
       ok: false
     };
   }

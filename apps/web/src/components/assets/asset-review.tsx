@@ -34,20 +34,32 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
   );
   const asset = reviewAssets[index] ?? reviewAssets[0] ?? null;
   const [draft, setDraft] = useState<AssetReviewDraft | null>(() =>
-    asset ? createReviewDraft(asset, findOverrideForAsset(overrides, asset)) : null
+    asset
+      ? createReviewDraft(asset, findOverrideForAsset(overrides, asset))
+      : null
   );
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveState, setSaveState] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset dell'indice al cambio del filtro; la dipendenza e usata come trigger, non come valore letto
   useEffect(() => {
     setIndex(0);
   }, [lowConfidenceOnly]);
 
   useEffect(() => {
-    setDraft(asset ? createReviewDraft(asset, findOverrideForAsset(overrides, asset)) : null);
+    setDraft(
+      asset
+        ? createReviewDraft(asset, findOverrideForAsset(overrides, asset))
+        : null
+    );
     setSaveState("idle");
   }, [asset, overrides]);
 
-  function setDraftField<Key extends keyof AssetReviewDraft>(key: Key, value: AssetReviewDraft[Key]) {
+  function setDraftField<Key extends keyof AssetReviewDraft>(
+    key: Key,
+    value: AssetReviewDraft[Key]
+  ) {
     setDraft((current) => (current ? { ...current, [key]: value } : current));
     setSaveState("idle");
   }
@@ -103,7 +115,10 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
     return (
       <section className="asset-empty">
         <h2>Nessun asset da revisionare</h2>
-        <p>Disattiva il filtro bassa affidabilita oppure indicizza prima gli asset.</p>
+        <p>
+          Disattiva il filtro bassa affidabilita oppure indicizza prima gli
+          asset.
+        </p>
       </section>
     );
   }
@@ -141,8 +156,14 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
 
         <div className="manifest-note">
           <span>{reviewAssets.length} in coda</span>
-          <span>{Object.keys(overrides.overrides).length} correzioni salvate</span>
-          {currentOverride ? <span>Questo asset ha gia un override</span> : <span>Nessun override</span>}
+          <span>
+            {Object.keys(overrides.overrides).length} correzioni salvate
+          </span>
+          {currentOverride ? (
+            <span>Questo asset ha gia un override</span>
+          ) : (
+            <span>Nessun override</span>
+          )}
         </div>
       </aside>
 
@@ -178,7 +199,11 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
       <aside className="asset-details review-form">
         <h2>Correzione</h2>
 
-        <div className="quick-kind-grid" aria-label="Pulsanti rapidi tipo asset">
+        <div
+          className="quick-kind-grid"
+          role="group"
+          aria-label="Pulsanti rapidi tipo asset"
+        >
           {QUICK_REVIEW_KINDS.map((kind) => (
             <button
               className={draft.classification === kind ? "active" : ""}
@@ -194,7 +219,12 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
         <label className="field">
           <span>Tipo</span>
           <select
-            onChange={(event) => setDraftField("classification", event.target.value as ReviewAssetKind)}
+            onChange={(event) =>
+              setDraftField(
+                "classification",
+                event.target.value as ReviewAssetKind
+              )
+            }
             value={draft.classification}
           >
             {ASSET_REVIEW_KINDS.map((kind) => (
@@ -226,7 +256,9 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
         <label className="field">
           <span>Usabile per</span>
           <textarea
-            onChange={(event) => setDraftField("usableForText", event.target.value)}
+            onChange={(event) =>
+              setDraftField("usableForText", event.target.value)
+            }
             placeholder="entrance, boss room, tavern..."
             rows={2}
             value={draft.usableForText}
@@ -238,19 +270,30 @@ export function AssetReview({ assets, initialOverrides }: AssetReviewProps) {
           <input
             max="100"
             min="0"
-            onChange={(event) => setDraftField("qualityScore", Number(event.target.value))}
+            onChange={(event) =>
+              setDraftField("qualityScore", Number(event.target.value))
+            }
             step="1"
             type="range"
             value={draft.qualityScore}
           />
         </label>
 
-        <button className="save-correction" disabled={saveState === "saving"} onClick={saveCurrent} type="button">
+        <button
+          className="save-correction"
+          disabled={saveState === "saving"}
+          onClick={saveCurrent}
+          type="button"
+        >
           {saveState === "saving" ? "Salvataggio..." : "Salva correzione"}
         </button>
 
-        {saveState === "saved" ? <p className="save-note">Salvato in asset-overrides.json.</p> : null}
-        {saveState === "error" ? <p className="save-note error">Impossibile salvare la correzione.</p> : null}
+        {saveState === "saved" ? (
+          <p className="save-note">Salvato in asset-overrides.json.</p>
+        ) : null}
+        {saveState === "error" ? (
+          <p className="save-note error">Impossibile salvare la correzione.</p>
+        ) : null}
 
         <CorrectionSummary correction={correction} />
       </aside>
@@ -263,7 +306,8 @@ function CorrectionSummary({ correction }: { correction: AssetCorrection }) {
     <section className="detail-block">
       <h3>Verra salvato</h3>
       <p>
-        {formatAssetKind(correction.classification)} - qualita {correction.qualityScore} - {correction.tags.length} tag
+        {formatAssetKind(correction.classification)} - qualita{" "}
+        {correction.qualityScore} - {correction.tags.length} tag
       </p>
     </section>
   );

@@ -20,7 +20,9 @@ export type GenerateAssetCliOptions = {
   styleTags: string[];
 };
 
-export function parseGenerateAssetArgs(argv: string[]): GenerateAssetCliOptions {
+export function parseGenerateAssetArgs(
+  argv: string[]
+): GenerateAssetCliOptions {
   const options: Partial<GenerateAssetCliOptions> = {
     classification: "prop",
     styleTags: []
@@ -36,7 +38,10 @@ export function parseGenerateAssetArgs(argv: string[]): GenerateAssetCliOptions 
     }
 
     if (arg === "--classification") {
-      options.classification = readRequiredValue(argv[index + 1], "--classification") as AssetClassification;
+      options.classification = readRequiredValue(
+        argv[index + 1],
+        "--classification"
+      ) as AssetClassification;
       index += 1;
       continue;
     }
@@ -60,19 +65,28 @@ export function parseGenerateAssetArgs(argv: string[]): GenerateAssetCliOptions 
     }
 
     if (arg === "--negative-prompt") {
-      options.negativePrompt = readRequiredValue(argv[index + 1], "--negative-prompt");
+      options.negativePrompt = readRequiredValue(
+        argv[index + 1],
+        "--negative-prompt"
+      );
       index += 1;
       continue;
     }
 
     if (arg === "--file-name-hint") {
-      options.fileNameHint = readRequiredValue(argv[index + 1], "--file-name-hint");
+      options.fileNameHint = readRequiredValue(
+        argv[index + 1],
+        "--file-name-hint"
+      );
       index += 1;
       continue;
     }
 
     if (arg === "--output-directory") {
-      options.outputDirectory = readRequiredValue(argv[index + 1], "--output-directory");
+      options.outputDirectory = readRequiredValue(
+        argv[index + 1],
+        "--output-directory"
+      );
       index += 1;
       continue;
     }
@@ -86,7 +100,9 @@ export function parseGenerateAssetArgs(argv: string[]): GenerateAssetCliOptions 
   }
 
   if (!options.prompt) {
-    throw new Error("Usage: pnpm assets:generate --prompt \"...\" [--classification prop] [--seed 123]");
+    throw new Error(
+      'Usage: pnpm assets:generate --prompt "..." [--classification prop] [--seed 123]'
+    );
   }
 
   return {
@@ -106,7 +122,9 @@ async function main(): Promise<void> {
   const provider = createImageGenerationProviderFromEnv(process.env);
 
   if (!provider) {
-    throw new Error("Image generation provider not configured. Set IMAGE_GEN_PROVIDER and related env vars.");
+    throw new Error(
+      "Image generation provider not configured. Set IMAGE_GEN_PROVIDER and related env vars."
+    );
   }
 
   const outputRoot = process.env.INIT_CWD ?? process.cwd();
@@ -135,20 +153,27 @@ async function main(): Promise<void> {
 
   console.log(`Generated asset: ${metadata.relativePath}`);
   console.log(`Provider: ${metadata.provider}`);
-  console.log(`Manifest ${manifestUpdate.replaced ? "updated" : "appended"}: ${entry.id}`);
+  console.log(
+    `Manifest ${manifestUpdate.replaced ? "updated" : "appended"}: ${entry.id}`
+  );
   console.log(`Total assets: ${manifestUpdate.manifest.assets.length}`);
 }
 
 async function readManifestSourceRoot(outputRoot: string): Promise<string> {
   try {
-    const raw = await readFile(path.join(outputRoot, "data", "indexes", "assets.manifest.json"), "utf8");
+    const raw = await readFile(
+      path.join(outputRoot, "data", "indexes", "assets.manifest.json"),
+      "utf8"
+    );
     const parsed = JSON.parse(raw) as { sourceRoot?: unknown };
 
     if (typeof parsed.sourceRoot === "string" && parsed.sourceRoot.trim()) {
       return parsed.sourceRoot;
     }
   } catch (error) {
-    if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) {
+    if (
+      !(error instanceof Error && "code" in error && error.code === "ENOENT")
+    ) {
       throw error;
     }
   }
@@ -185,9 +210,14 @@ function parseCsv(value: string): string[] {
   ];
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
   main().catch((error: unknown) => {
-    console.error(error instanceof Error ? error.message : "Asset generation failed.");
+    console.error(
+      error instanceof Error ? error.message : "Asset generation failed."
+    );
     process.exit(1);
   });
 }

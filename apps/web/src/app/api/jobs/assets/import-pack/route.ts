@@ -1,5 +1,8 @@
 import { findWorkspaceRoot } from "../../../../../lib/assets-manifest";
-import { LocalPathValidationError, validateLocalPath } from "../../../../../lib/local-paths";
+import {
+  LocalPathValidationError,
+  validateLocalPath
+} from "../../../../../lib/local-paths";
 import { postWorkerJob } from "../../../../../lib/worker-client";
 
 type Body = {
@@ -14,12 +17,21 @@ export async function POST(request: Request) {
     const root = typeof body.root === "string" ? body.root.trim() : "";
 
     if (!root) {
-      return Response.json({ error: "root is required.", ok: false }, { status: 400 });
+      return Response.json(
+        { error: "root is required.", ok: false },
+        { status: 400 }
+      );
     }
 
-    const preset = typeof body.preset === "string" && body.preset.trim() ? body.preset.trim() : "generic";
+    const preset =
+      typeof body.preset === "string" && body.preset.trim()
+        ? body.preset.trim()
+        : "generic";
     const defaultTags = Array.isArray(body.defaultTags)
-      ? body.defaultTags.filter((tag): tag is string => typeof tag === "string" && tag.trim().length > 0)
+      ? body.defaultTags.filter(
+          (tag): tag is string =>
+            typeof tag === "string" && tag.trim().length > 0
+        )
       : [];
     const workspaceRoot = await findWorkspaceRoot(process.cwd());
     const safeRoot = validateLocalPath({
@@ -30,7 +42,11 @@ export async function POST(request: Request) {
       workspaceRoot
     });
 
-    const job = await postWorkerJob("/jobs/assets/import-pack", { defaultTags, preset, root: safeRoot });
+    const job = await postWorkerJob("/jobs/assets/import-pack", {
+      defaultTags,
+      preset,
+      root: safeRoot
+    });
     return Response.json({ job, ok: true }, { status: 202 });
   } catch (error) {
     return Response.json(

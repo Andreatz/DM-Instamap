@@ -76,7 +76,12 @@ describe("reference review helpers", () => {
   });
 
   it("filters unknown and low-confidence references", () => {
-    const unknown = { ...reference, id: "unknown", mapType: "unknown", mapTypeConfidence: 0 };
+    const unknown = {
+      ...reference,
+      id: "unknown",
+      mapType: "unknown",
+      mapTypeConfidence: 0
+    };
     const high = { ...reference, id: "high", mapTypeConfidence: 0.9 };
 
     expect(

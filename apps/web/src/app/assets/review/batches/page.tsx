@@ -15,8 +15,9 @@ export default async function AssetReviewBatchesPage() {
           <strong>DM-Instamap</strong>
           <h1>Revisione asset a lotti</h1>
           <p>
-            Raggruppamento intelligente della coda audit. Affronta prima i problemi piu impattanti invece di
-            revisionare migliaia di asset uno per uno.
+            Raggruppamento intelligente della coda audit. Affronta prima i
+            problemi piu impattanti invece di revisionare migliaia di asset uno
+            per uno.
           </p>
         </div>
         <dl>
@@ -47,8 +48,9 @@ export default async function AssetReviewBatchesPage() {
         <section className="asset-empty" aria-live="polite">
           <h2>Nessun report audit disponibile</h2>
           <p>
-            Esegui <code>pnpm assets:audit</code> dopo aver indicizzato gli asset per generare{" "}
-            <code>data/indexes/asset-audit.json</code>. La revisione a lotti legge quel file.
+            Esegui <code>pnpm assets:audit</code> dopo aver indicizzato gli
+            asset per generare <code>data/indexes/asset-audit.json</code>. La
+            revisione a lotti legge quel file.
           </p>
         </section>
       ) : (

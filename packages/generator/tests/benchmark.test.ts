@@ -20,8 +20,13 @@ type BenchmarkSummaryFixture = {
 };
 
 function readSummary(id: string): BenchmarkSummaryFixture {
-  const url = new URL(`./fixtures/benchmark/${id}.summary.json`, import.meta.url);
-  return JSON.parse(readFileSync(fileURLToPath(url), "utf8")) as BenchmarkSummaryFixture;
+  const url = new URL(
+    `./fixtures/benchmark/${id}.summary.json`,
+    import.meta.url
+  );
+  return JSON.parse(
+    readFileSync(fileURLToPath(url), "utf8")
+  ) as BenchmarkSummaryFixture;
 }
 
 describe("generator benchmark", () => {
@@ -42,19 +47,26 @@ describe("generator benchmark", () => {
     const second = runBenchmarks();
 
     for (let index = 0; index < first.length; index += 1) {
-      expect(JSON.stringify(second[index]?.document)).toBe(JSON.stringify(first[index]?.document));
+      expect(JSON.stringify(second[index]?.document)).toBe(
+        JSON.stringify(first[index]?.document)
+      );
     }
   });
 
   it("keeps every scenario above its quality thresholds", () => {
     for (const result of runBenchmarks()) {
-      expect(result.failures, `${result.label}: ${result.failures.join("; ")}`).toEqual([]);
+      expect(
+        result.failures,
+        `${result.label}: ${result.failures.join("; ")}`
+      ).toEqual([]);
       expect(result.passed).toBe(true);
     }
   });
 
   it("rates at least five scenarios as usable or stronger", () => {
-    const usable = runBenchmarks().filter((result) => result.quality.rating !== "poor");
+    const usable = runBenchmarks().filter(
+      (result) => result.quality.rating !== "poor"
+    );
     expect(usable.length).toBeGreaterThanOrEqual(5);
   });
 
@@ -75,7 +87,10 @@ describe("generator benchmark", () => {
       throw new Error("missing scenario");
     }
 
-    const impossible = runBenchmarkScenario({ ...scenario, thresholds: { minScore: 101 } });
+    const impossible = runBenchmarkScenario({
+      ...scenario,
+      thresholds: { minScore: 101 }
+    });
     expect(impossible.passed).toBe(false);
     expect(impossible.failures[0]).toMatch(/sotto la soglia 101/);
   });
@@ -86,7 +101,11 @@ describe("generator benchmark", () => {
       throw new Error("missing scenario document");
     }
 
-    const metrics = computeBenchmarkMetrics(document, "crypt", scoreMapQuality(document));
+    const metrics = computeBenchmarkMetrics(
+      document,
+      "crypt",
+      scoreMapQuality(document)
+    );
     for (const value of Object.values(metrics)) {
       expect(value).toBeGreaterThanOrEqual(0);
       expect(value).toBeLessThanOrEqual(100);

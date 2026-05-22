@@ -7,8 +7,12 @@ describe("createSimpleDungeon", () => {
 
     expect(map.editable).toBe(true);
     expect(map.tiles).toHaveLength(16);
-    expect(map.tiles.find((tile) => tile.x === 0 && tile.y === 0)?.kind).toBe("wall");
-    expect(map.tiles.find((tile) => tile.x === 1 && tile.y === 1)?.kind).toBe("floor");
+    expect(map.tiles.find((tile) => tile.x === 0 && tile.y === 0)?.kind).toBe(
+      "wall"
+    );
+    expect(map.tiles.find((tile) => tile.x === 1 && tile.y === 1)?.kind).toBe(
+      "floor"
+    );
   });
 });
 
@@ -23,7 +27,11 @@ describe("generateDungeon", () => {
     const rooms = getRooms(map);
 
     for (let leftIndex = 0; leftIndex < rooms.length; leftIndex += 1) {
-      for (let rightIndex = leftIndex + 1; rightIndex < rooms.length; rightIndex += 1) {
+      for (
+        let rightIndex = leftIndex + 1;
+        rightIndex < rooms.length;
+        rightIndex += 1
+      ) {
         expect(rectsOverlap(rooms[leftIndex]!, rooms[rightIndex]!)).toBe(false);
       }
     }
@@ -51,7 +59,9 @@ describe("generateDungeon", () => {
       widthCells: 44
     });
 
-    expect(map.plan?.rooms.find((room) => room.id === "room-entrance")).toMatchObject({
+    expect(
+      map.plan?.rooms.find((room) => room.id === "room-entrance")
+    ).toMatchObject({
       kind: "entrance",
       label: "Entrance"
     });
@@ -66,7 +76,9 @@ describe("generateDungeon", () => {
       widthCells: 48
     });
 
-    expect(map.plan?.rooms.find((room) => room.id === "room-final")).toMatchObject({
+    expect(
+      map.plan?.rooms.find((room) => room.id === "room-final")
+    ).toMatchObject({
       label: "Final Room",
       tags: expect.arrayContaining(["boss", "final"])
     });
@@ -99,7 +111,9 @@ type BoundsLike = {
 
 function getRooms(map: ReturnType<typeof generateDungeon>) {
   return (
-    map.plan?.rooms.filter((room) => room.kind === "room" || room.kind === "entrance") ?? []
+    map.plan?.rooms.filter(
+      (room) => room.kind === "room" || room.kind === "entrance"
+    ) ?? []
   );
 }
 
@@ -112,7 +126,10 @@ function rectsOverlap(left: BoundsLike, right: BoundsLike): boolean {
   );
 }
 
-function collectReachableRoomIds(map: ReturnType<typeof generateDungeon>, startId: string): Set<string> {
+function collectReachableRoomIds(
+  map: ReturnType<typeof generateDungeon>,
+  startId: string
+): Set<string> {
   const nodes = new Map((map.plan?.rooms ?? []).map((room) => [room.id, room]));
   const queue = [startId];
   const seen = new Set<string>();

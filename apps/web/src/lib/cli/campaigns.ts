@@ -54,13 +54,17 @@ export function parseCampaignsArgs(argv: string[]): CampaignsCliCommand {
     }
 
     if (!name) {
-      throw new Error("Usage: pnpm campaigns:create --name \"Whispering Woods\" [--tags a,b]");
+      throw new Error(
+        'Usage: pnpm campaigns:create --name "Whispering Woods" [--tags a,b]'
+      );
     }
 
     return { description, name, tags, type: "create" };
   }
 
-  throw new Error("Usage: pnpm campaigns:list | pnpm campaigns:create --name \"...\"");
+  throw new Error(
+    'Usage: pnpm campaigns:list | pnpm campaigns:create --name "..."'
+  );
 }
 
 async function main(): Promise<void> {
@@ -76,7 +80,9 @@ async function main(): Promise<void> {
     }
 
     for (const campaign of campaigns) {
-      console.log(`${campaign.id}\t${campaign.name}\tmaps:${campaign.maps.length}\tsessions:${campaign.sessions.length}`);
+      console.log(
+        `${campaign.id}\t${campaign.name}\tmaps:${campaign.maps.length}\tsessions:${campaign.sessions.length}`
+      );
     }
     return;
   }
@@ -113,9 +119,14 @@ function parseCsv(value: string): string[] {
   ];
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
   main().catch((error: unknown) => {
-    console.error(error instanceof Error ? error.message : "Campaign command failed.");
+    console.error(
+      error instanceof Error ? error.message : "Campaign command failed."
+    );
     process.exit(1);
   });
 }

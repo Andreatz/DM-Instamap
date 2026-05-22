@@ -13,7 +13,9 @@ import {
   type AiCompletionResult
 } from "../src";
 
-function createScriptedProvider(responses: AiCompletionResult[]): AiCompletionProvider {
+function createScriptedProvider(
+  responses: AiCompletionResult[]
+): AiCompletionProvider {
   let index = 0;
   return createCustomProvider({
     id: "scripted",
@@ -144,7 +146,11 @@ describe("createOpenAiProvider", () => {
         { status: 200 }
       );
     };
-    const provider = createOpenAiProvider({ apiKey: "sk", fetchImpl, model: "gpt-4o-mini" });
+    const provider = createOpenAiProvider({
+      apiKey: "sk",
+      fetchImpl,
+      model: "gpt-4o-mini"
+    });
     const result = await provider.complete({
       messages: [{ content: "hi", role: "user" }]
     });
@@ -174,7 +180,10 @@ describe("generateMapPlanWithAi", () => {
   });
 
   it("retries with a repair prompt when the first attempt is invalid", async () => {
-    const provider = createScriptedProvider([{ text: "not json" }, { text: validPlanJson }]);
+    const provider = createScriptedProvider([
+      { text: "not json" },
+      { text: validPlanJson }
+    ]);
     const result = await generateMapPlanWithAi(
       {
         assetGroups: [],
@@ -193,7 +202,10 @@ describe("generateMapPlanWithAi", () => {
   });
 
   it("reports errors when all attempts fail", async () => {
-    const provider = createScriptedProvider([{ text: "still not json" }, { text: "{}" }]);
+    const provider = createScriptedProvider([
+      { text: "still not json" },
+      { text: "{}" }
+    ]);
     const result = await generateMapPlanWithAi(
       { assetGroups: [], references: [], userRequest: "fail" },
       provider,
@@ -239,8 +251,13 @@ describe("generateNarrativeBlueprintWithAi", () => {
       structure: "dungeon",
       theme: "crypt"
     };
-    const provider = createScriptedProvider([{ text: JSON.stringify(blueprint) }]);
-    const result = await generateNarrativeBlueprintWithAi("crypt below the cathedral", provider);
+    const provider = createScriptedProvider([
+      { text: JSON.stringify(blueprint) }
+    ]);
+    const result = await generateNarrativeBlueprintWithAi(
+      "crypt below the cathedral",
+      provider
+    );
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -250,8 +267,12 @@ describe("generateNarrativeBlueprintWithAi", () => {
   });
 
   it("reports validation errors when the response is malformed", async () => {
-    const provider = createScriptedProvider([{ text: "{\"invalid\": true}" }]);
-    const result = await generateNarrativeBlueprintWithAi("malformed", provider, { maxRetries: 0 });
+    const provider = createScriptedProvider([{ text: '{"invalid": true}' }]);
+    const result = await generateNarrativeBlueprintWithAi(
+      "malformed",
+      provider,
+      { maxRetries: 0 }
+    );
 
     expect(result.ok).toBe(false);
   });
@@ -281,7 +302,9 @@ describe("suggestAssetsForRoomWithAi", () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.suggestions).toEqual([{ assetId: "asset-altar", reason: "matches chapel" }]);
+      expect(result.suggestions).toEqual([
+        { assetId: "asset-altar", reason: "matches chapel" }
+      ]);
     }
   });
 
@@ -298,7 +321,9 @@ describe("suggestAssetsForRoomWithAi", () => {
 
 describe("describeMapWithAi", () => {
   it("returns the AI prose when non-empty", async () => {
-    const provider = createScriptedProvider([{ text: "  The crypt smells of cold incense.\n" }]);
+    const provider = createScriptedProvider([
+      { text: "  The crypt smells of cold incense.\n" }
+    ]);
     const result = await describeMapWithAi(
       {
         mapName: "Sealed Crypt",

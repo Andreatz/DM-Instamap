@@ -28,9 +28,7 @@
   ],
   "metadata": {
     "exportHistory": [],
-    "schemaChangelog": [
-      "v1-to-v2"
-    ],
+    "schemaChangelog": ["v1-to-v2"],
     "thumbnailPath": "data/projects/document-v2-basic/thumbnails/latest.svg"
   },
   "name": "Document V2 Basic",

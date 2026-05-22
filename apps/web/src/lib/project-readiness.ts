@@ -1,5 +1,8 @@
 import type { MapDocument } from "@dm-instamap/core/server";
-import type { ProjectExportFormat, ProjectExportMode } from "./project-export-history";
+import type {
+  ProjectExportFormat,
+  ProjectExportMode
+} from "./project-export-history";
 
 export type ReadinessLevel = "required" | "recommended";
 
@@ -35,14 +38,16 @@ export type RecommendedExport = {
  */
 export const RECOMMENDED_EXPORTS: RecommendedExport[] = [
   {
-    description: "ZIP completo per il tavolo: mappa GM, mappa giocatori, note e iniziativa.",
+    description:
+      "ZIP completo per il tavolo: mappa GM, mappa giocatori, note e iniziativa.",
     format: "session-pack",
     id: "session-pack-gm",
     label: "Session Pack",
     mode: "gm"
   },
   {
-    description: "PNG sicuro per i giocatori, senza segreti, trappole o note GM.",
+    description:
+      "PNG sicuro per i giocatori, senza segreti, trappole o note GM.",
     format: "png",
     id: "player-png",
     label: "PNG giocatori",
@@ -54,13 +59,21 @@ export const RECOMMENDED_EXPORTS: RecommendedExport[] = [
  * Inspects a MapDocument and reports whether it is ready to bring to a session.
  * Pure and deterministic so it can drive both the UI checklist and tests.
  */
-export function computeProjectReadiness(document: MapDocument): ProjectReadiness {
+export function computeProjectReadiness(
+  document: MapDocument
+): ProjectReadiness {
   const tiles = document.tiles ?? [];
   const floorCount = tiles.filter((tile) => tile.kind === "floor").length;
   const wallTileCount = tiles.filter((tile) => tile.kind === "wall").length;
-  const rooms = (document.plan?.rooms ?? []).filter((room) => room.kind === "room" || room.kind === "entrance");
-  const hasEntrance = (document.plan?.rooms ?? []).some((room) => room.kind === "entrance");
-  const labelledRooms = rooms.filter((room) => room.label.trim().length > 0).length;
+  const rooms = (document.plan?.rooms ?? []).filter(
+    (room) => room.kind === "room" || room.kind === "entrance"
+  );
+  const hasEntrance = (document.plan?.rooms ?? []).some(
+    (room) => room.kind === "entrance"
+  );
+  const labelledRooms = rooms.filter(
+    (room) => room.label.trim().length > 0
+  ).length;
   const wallSegments = document.plan?.walls.length ?? 0;
   const lights = document.plan?.lights.length ?? 0;
   const gmNotes = document.plan?.gmNotes.length ?? 0;

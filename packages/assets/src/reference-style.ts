@@ -2,7 +2,12 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { ReferenceMapType } from "./references";
 
-export type ReferencePaletteRole = "background" | "floor" | "wall" | "accent" | "unknown";
+export type ReferencePaletteRole =
+  | "background"
+  | "floor"
+  | "wall"
+  | "accent"
+  | "unknown";
 
 export type ReferenceStyleDna = {
   confidence: number;
@@ -56,10 +61,21 @@ type StyleReferenceInput = {
   width?: unknown;
 };
 
-const DEFAULT_REFERENCES_MANIFEST_PATH = path.join("data", "indexes", "references.manifest.json");
-const DEFAULT_REFERENCE_STYLE_PATH = path.join("data", "indexes", "reference-style-dna.json");
+const DEFAULT_REFERENCES_MANIFEST_PATH = path.join(
+  "data",
+  "indexes",
+  "references.manifest.json"
+);
+const DEFAULT_REFERENCE_STYLE_PATH = path.join(
+  "data",
+  "indexes",
+  "reference-style-dna.json"
+);
 
-export function buildReferenceStyleDna(reference: StyleReferenceInput, generatedAt = new Date().toISOString()): ReferenceStyleDna | null {
+export function buildReferenceStyleDna(
+  reference: StyleReferenceInput,
+  generatedAt = new Date().toISOString()
+): ReferenceStyleDna | null {
   const referenceId = readString(reference.id);
   const referencePath = readString(reference.path);
 
@@ -74,9 +90,21 @@ export function buildReferenceStyleDna(reference: StyleReferenceInput, generated
   const layoutTraits = inferLayoutTraits(reference, tags, mapType);
   const density = inferDensity(reference, tags, palette);
   const grid = detectGrid(reference, tags);
-  const visualTags = uniqueSorted([...mood, ...layoutTraits, density, mapType].filter(Boolean));
-  const recommendedAssetTags = inferRecommendedAssetTags(mapType, visualTags, tags);
-  const confidence = calculateStyleConfidence(reference, palette, mood, layoutTraits, grid);
+  const visualTags = uniqueSorted(
+    [...mood, ...layoutTraits, density, mapType].filter(Boolean)
+  );
+  const recommendedAssetTags = inferRecommendedAssetTags(
+    mapType,
+    visualTags,
+    tags
+  );
+  const confidence = calculateStyleConfidence(
+    reference,
+    palette,
+    mood,
+    layoutTraits,
+    grid
+  );
 
   return {
     confidence,
@@ -102,20 +130,33 @@ export function buildReferenceStyleDna(reference: StyleReferenceInput, generated
   };
 }
 
-export async function generateReferenceStyleDna(options: ReferenceStyleOptions = {}): Promise<ReferenceStyleDnaFile> {
+export async function generateReferenceStyleDna(
+  options: ReferenceStyleOptions = {}
+): Promise<ReferenceStyleDnaFile> {
   const outputRoot = path.resolve(options.outputRoot ?? process.cwd());
-  const manifestPath = path.resolve(outputRoot, options.manifestPath ?? DEFAULT_REFERENCES_MANIFEST_PATH);
-  const outputPath = path.resolve(outputRoot, options.outputPath ?? DEFAULT_REFERENCE_STYLE_PATH);
+  const manifestPath = path.resolve(
+    outputRoot,
+    options.manifestPath ?? DEFAULT_REFERENCES_MANIFEST_PATH
+  );
+  const outputPath = path.resolve(
+    outputRoot,
+    options.outputPath ?? DEFAULT_REFERENCE_STYLE_PATH
+  );
   const manifest = await readReferenceManifest(manifestPath);
   const generatedAt = new Date().toISOString();
   const styles = Array.isArray(manifest.references)
     ? manifest.references
-        .map((reference) => buildReferenceStyleDna(reference as StyleReferenceInput, generatedAt))
+        .map((reference) =>
+          buildReferenceStyleDna(reference as StyleReferenceInput, generatedAt)
+        )
         .filter((style): style is ReferenceStyleDna => style !== null)
     : [];
   const file: ReferenceStyleDnaFile = {
     generatedAt,
-    sourceManifest: path.relative(outputRoot, manifestPath).split(path.sep).join("/"),
+    sourceManifest: path
+      .relative(outputRoot, manifestPath)
+      .split(path.sep)
+      .join("/"),
     styles,
     version: 1
   };
@@ -126,9 +167,13 @@ export async function generateReferenceStyleDna(options: ReferenceStyleOptions =
   return file;
 }
 
-async function readReferenceManifest(manifestPath: string): Promise<ReferenceManifestFile> {
+async function readReferenceManifest(
+  manifestPath: string
+): Promise<ReferenceManifestFile> {
   try {
-    return parseJsonFile(await readFile(manifestPath, "utf8")) as ReferenceManifestFile;
+    return parseJsonFile(
+      await readFile(manifestPath, "utf8")
+    ) as ReferenceManifestFile;
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === "ENOENT") {
       return { references: [] };
@@ -163,7 +208,9 @@ function readPalette(value: unknown): ReferenceStyleDna["palette"] {
         role: inferPaletteRole(hex)
       };
     })
-    .filter((color): color is ReferenceStyleDna["palette"][number] => color !== null);
+    .filter(
+      (color): color is ReferenceStyleDna["palette"][number] => color !== null
+    );
 }
 
 function inferPaletteRole(hex: string): ReferencePaletteRole {
@@ -201,7 +248,12 @@ function inferMood(
   const moods = new Set<string>();
   const colors = palette.map((color) => hexToRgb(color.hex));
   const avgBrightness =
-    colors.length > 0 ? colors.reduce((sum, color) => sum + (color.red + color.green + color.blue) / 3, 0) / colors.length : 128;
+    colors.length > 0
+      ? colors.reduce(
+          (sum, color) => sum + (color.red + color.green + color.blue) / 3,
+          0
+        ) / colors.length
+      : 128;
 
   if (avgBrightness < 85) {
     moods.add("dark");
@@ -219,7 +271,11 @@ function inferMood(
     moods.add("cryptic");
   }
 
-  if (tags.some((tag) => ["temple", "chapel", "cathedral", "shrine"].includes(tag))) {
+  if (
+    tags.some((tag) =>
+      ["temple", "chapel", "cathedral", "shrine"].includes(tag)
+    )
+  ) {
     moods.add("sacred");
   }
 
@@ -231,7 +287,10 @@ function inferMood(
     moods.add("urban");
   }
 
-  if (["wilderness", "cave", "coast"].includes(mapType) || tags.some((tag) => ["forest", "swamp", "grass"].includes(tag))) {
+  if (
+    ["wilderness", "cave", "coast"].includes(mapType) ||
+    tags.some((tag) => ["forest", "swamp", "grass"].includes(tag))
+  ) {
     moods.add("natural");
   }
 
@@ -242,33 +301,58 @@ function inferMood(
   return uniqueSorted([...moods]);
 }
 
-function inferLayoutTraits(reference: StyleReferenceInput, tags: string[], mapType: string): string[] {
+function inferLayoutTraits(
+  reference: StyleReferenceInput,
+  tags: string[],
+  mapType: string
+): string[] {
   const traits = new Set<string>();
   const width = readNullableNumber(reference.width);
   const height = readNullableNumber(reference.height);
 
-  if (tags.some((tag) => ["corridor", "hall", "dungeon", "crypt", "sewer"].includes(tag))) {
+  if (
+    tags.some((tag) =>
+      ["corridor", "hall", "dungeon", "crypt", "sewer"].includes(tag)
+    )
+  ) {
     traits.add("corridor-heavy");
   }
 
-  if (tags.some((tag) => ["room", "rooms", "keep", "inn", "tavern", "manor"].includes(tag))) {
+  if (
+    tags.some((tag) =>
+      ["room", "rooms", "keep", "inn", "tavern", "manor"].includes(tag)
+    )
+  ) {
     traits.add("room-cluster");
   }
 
-  if (tags.some((tag) => ["symmetry", "symmetric", "temple", "cathedral"].includes(tag))) {
+  if (
+    tags.some((tag) =>
+      ["symmetry", "symmetric", "temple", "cathedral"].includes(tag)
+    )
+  ) {
     traits.add("central-axis");
     traits.add("symmetrical");
   }
 
-  if (mapType === "cave" || tags.some((tag) => ["cave", "cavern", "organic"].includes(tag))) {
+  if (
+    mapType === "cave" ||
+    tags.some((tag) => ["cave", "cavern", "organic"].includes(tag))
+  ) {
     traits.add("organic-cave");
   }
 
-  if (mapType === "city" || tags.some((tag) => ["city", "market", "street", "district"].includes(tag))) {
+  if (
+    mapType === "city" ||
+    tags.some((tag) => ["city", "market", "street", "district"].includes(tag))
+  ) {
     traits.add("dense-urban");
   }
 
-  if (mapType === "ship" || tags.some((tag) => ["ship", "deck", "boat"].includes(tag))) {
+  if (
+    mapType === "ship" ||
+    tags.some((tag) => ["ship", "deck", "boat"].includes(tag))
+  ) {
     traits.add("ship-deck");
   }
 
@@ -293,15 +377,25 @@ function inferLayoutTraits(reference: StyleReferenceInput, tags: string[], mapTy
   return uniqueSorted([...traits]);
 }
 
-function inferDensity(reference: StyleReferenceInput, tags: string[], palette: ReferenceStyleDna["palette"]): ReferenceStyleDna["density"] {
+function inferDensity(
+  reference: StyleReferenceInput,
+  tags: string[],
+  palette: ReferenceStyleDna["palette"]
+): ReferenceStyleDna["density"] {
   const width = readNullableNumber(reference.width);
   const height = readNullableNumber(reference.height);
 
-  if (tags.some((tag) => ["city", "market", "district", "crowded", "dense"].includes(tag))) {
+  if (
+    tags.some((tag) =>
+      ["city", "market", "district", "crowded", "dense"].includes(tag)
+    )
+  ) {
     return "dense";
   }
 
-  if (tags.some((tag) => ["field", "wilderness", "forest", "open"].includes(tag))) {
+  if (
+    tags.some((tag) => ["field", "wilderness", "forest", "open"].includes(tag))
+  ) {
     return "sparse";
   }
 
@@ -316,10 +410,15 @@ function inferDensity(reference: StyleReferenceInput, tags: string[], palette: R
   return "medium";
 }
 
-function detectGrid(reference: StyleReferenceInput, tags: string[]): ReferenceStyleDna["grid"] {
+function detectGrid(
+  reference: StyleReferenceInput,
+  tags: string[]
+): ReferenceStyleDna["grid"] {
   const width = readNullableNumber(reference.width);
   const height = readNullableNumber(reference.height);
-  const explicitGrid = tags.some((tag) => ["grid", "gridded", "battlemap"].includes(tag));
+  const explicitGrid = tags.some((tag) =>
+    ["grid", "gridded", "battlemap"].includes(tag)
+  );
   const candidates = [50, 64, 70, 72, 100, 128, 140, 150];
 
   if (!width || !height) {
@@ -330,7 +429,9 @@ function detectGrid(reference: StyleReferenceInput, tags: string[]): ReferenceSt
     };
   }
 
-  const match = candidates.find((cellSize) => width % cellSize === 0 && height % cellSize === 0);
+  const match = candidates.find(
+    (cellSize) => width % cellSize === 0 && height % cellSize === 0
+  );
 
   if (match) {
     return {
@@ -347,27 +448,23 @@ function detectGrid(reference: StyleReferenceInput, tags: string[]): ReferenceSt
   };
 }
 
-function inferRecommendedAssetTags(mapType: string, visualTags: string[], tags: string[]): string[] {
+function inferRecommendedAssetTags(
+  mapType: string,
+  visualTags: string[],
+  tags: string[]
+): string[] {
   const recommended = new Set<string>([...visualTags, ...tags.slice(0, 8)]);
 
-  if (mapType === "dungeon") {
-    ["stone", "wall", "door", "torch"].forEach((tag) => recommended.add(tag));
-  }
+  const recommendedByMapType: Record<string, string[]> = {
+    dungeon: ["stone", "wall", "door", "torch"],
+    building: ["floor", "furniture", "door", "window"],
+    city: ["street", "building", "market", "roof"],
+    cave: ["rock", "terrain", "water", "rubble"],
+    ship: ["wood", "deck", "rope", "crate"]
+  };
 
-  if (mapType === "building") {
-    ["floor", "furniture", "door", "window"].forEach((tag) => recommended.add(tag));
-  }
-
-  if (mapType === "city") {
-    ["street", "building", "market", "roof"].forEach((tag) => recommended.add(tag));
-  }
-
-  if (mapType === "cave") {
-    ["rock", "terrain", "water", "rubble"].forEach((tag) => recommended.add(tag));
-  }
-
-  if (mapType === "ship") {
-    ["wood", "deck", "rope", "crate"].forEach((tag) => recommended.add(tag));
+  for (const tag of recommendedByMapType[mapType] ?? []) {
+    recommended.add(tag);
   }
 
   return uniqueSorted([...recommended]).slice(0, 18);
@@ -380,14 +477,28 @@ function calculateStyleConfidence(
   layoutTraits: string[],
   grid: ReferenceStyleDna["grid"]
 ): number {
-  const mapTypeConfidence = readNullableNumber(reference.mapTypeConfidence) ?? 0;
-  const metadata = readNullableNumber(reference.width) && readNullableNumber(reference.height) ? 0.2 : 0;
+  const mapTypeConfidence =
+    readNullableNumber(reference.mapTypeConfidence) ?? 0;
+  const metadata =
+    readNullableNumber(reference.width) && readNullableNumber(reference.height)
+      ? 0.2
+      : 0;
   const paletteSignal = Math.min(0.25, palette.length * 0.05);
   const moodSignal = mood.length > 0 ? 0.15 : 0;
   const layoutSignal = layoutTraits.length > 0 ? 0.15 : 0;
   const gridSignal = grid.confidence * 0.15;
 
-  return round(Math.min(1, mapTypeConfidence * 0.1 + metadata + paletteSignal + moodSignal + layoutSignal + gridSignal));
+  return round(
+    Math.min(
+      1,
+      mapTypeConfidence * 0.1 +
+        metadata +
+        paletteSignal +
+        moodSignal +
+        layoutSignal +
+        gridSignal
+    )
+  );
 }
 
 function buildPromptSummary(input: {
@@ -408,7 +519,9 @@ function buildPromptSummary(input: {
 
   return [
     `${toTitleCase(input.mapType)} battlemap style`,
-    input.mood.length > 0 ? `with ${input.mood.join(", ")} mood` : "with neutral mood",
+    input.mood.length > 0
+      ? `with ${input.mood.join(", ")} mood`
+      : "with neutral mood",
     paletteSummary ? `using ${paletteSummary}` : "using unknown palette",
     `${input.layoutTraits.join(", ")} layout`,
     `${input.density} density`,
@@ -421,7 +534,9 @@ function inferMapType(tags: string[]): ReferenceMapType {
     return "dungeon";
   }
 
-  if (tags.some((tag) => ["city", "street", "market", "district"].includes(tag))) {
+  if (
+    tags.some((tag) => ["city", "street", "market", "district"].includes(tag))
+  ) {
     return "city";
   }
 
@@ -457,11 +572,15 @@ function readString(value: unknown): string {
 }
 
 function readStringArray(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }
 
 function parseJsonFile(content: string): unknown {
-  return JSON.parse(content.charCodeAt(0) === 0xfeff ? content.slice(1) : content);
+  return JSON.parse(
+    content.charCodeAt(0) === 0xfeff ? content.slice(1) : content
+  );
 }
 
 function round(value: number): number {
@@ -478,5 +597,7 @@ function toTitleCase(value: string): string {
 }
 
 function uniqueSorted(values: string[]): string[] {
-  return [...new Set(values.filter(Boolean))].sort((left, right) => left.localeCompare(right));
+  return [...new Set(values.filter(Boolean))].sort((left, right) =>
+    left.localeCompare(right)
+  );
 }

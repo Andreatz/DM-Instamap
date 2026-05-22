@@ -41,7 +41,9 @@ export function parseSnapshotsArgs(argv: string[]): SnapshotsCliCommand {
     }
 
     if (!projectId) {
-      throw new Error("Usage: pnpm snapshots:create <projectId> [--label label]");
+      throw new Error(
+        "Usage: pnpm snapshots:create <projectId> [--label label]"
+      );
     }
 
     return { label, projectId, type: "create" };
@@ -61,7 +63,9 @@ export function parseSnapshotsArgs(argv: string[]): SnapshotsCliCommand {
     const [projectId, contentHash] = rest;
 
     if (!projectId || !contentHash) {
-      throw new Error("Usage: pnpm snapshots:restore <projectId> <contentHash>");
+      throw new Error(
+        "Usage: pnpm snapshots:restore <projectId> <contentHash>"
+      );
     }
 
     return { contentHash, projectId, type: "restore" };
@@ -86,7 +90,9 @@ async function main(): Promise<void> {
       projectId: project.id
     });
 
-    console.log(`${writeResult.written ? "Created" : "Reused"} snapshot ${snapshot.contentHash}`);
+    console.log(
+      `${writeResult.written ? "Created" : "Reused"} snapshot ${snapshot.contentHash}`
+    );
     console.log(`Label: ${snapshot.label}`);
     return;
   }
@@ -103,7 +109,9 @@ async function main(): Promise<void> {
     }
 
     for (const snapshot of snapshots) {
-      console.log(`${snapshot.contentHash}\t${snapshot.createdAt}\t${snapshot.label}`);
+      console.log(
+        `${snapshot.contentHash}\t${snapshot.createdAt}\t${snapshot.label}`
+      );
     }
     return;
   }
@@ -117,8 +125,14 @@ async function main(): Promise<void> {
     throw new Error(`Snapshot not found: ${command.contentHash}`);
   }
 
-  await updateProject(command.projectId, { document: restored }, { outputRoot });
-  console.log(`Restored ${command.projectId} to snapshot ${command.contentHash}`);
+  await updateProject(
+    command.projectId,
+    { document: restored },
+    { outputRoot }
+  );
+  console.log(
+    `Restored ${command.projectId} to snapshot ${command.contentHash}`
+  );
 }
 
 function readRequiredValue(value: string | undefined, flag: string): string {
@@ -129,9 +143,14 @@ function readRequiredValue(value: string | undefined, flag: string): string {
   return value;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
   main().catch((error: unknown) => {
-    console.error(error instanceof Error ? error.message : "Snapshot command failed.");
+    console.error(
+      error instanceof Error ? error.message : "Snapshot command failed."
+    );
     process.exit(1);
   });
 }

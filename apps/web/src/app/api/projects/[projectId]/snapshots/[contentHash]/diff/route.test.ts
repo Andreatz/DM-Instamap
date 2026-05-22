@@ -1,36 +1,27 @@
-import {
-  describe,
-  expect,
-  it,
-  vi,
-  beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
-vi.mock("@dm-instamap/core/server",
-  () => ({
+vi.mock("@dm-instamap/core/server", () => ({
   createMapSnapshot: vi.fn(),
   diffSnapshots: vi.fn(),
   readSnapshotFromDirectory: vi.fn()
 }));
 
-vi.mock("@/lib/assets-manifest",
-  () => ({
+vi.mock("@/lib/assets-manifest", () => ({
   findWorkspaceRoot: vi.fn().mockResolvedValue("/tmp/workspace")
 }));
 
-vi.mock("@/lib/projects",
-  () => {
+vi.mock("@/lib/projects", () => {
   class FakeProjectNotFoundError extends Error {}
   class FakeInvalidProjectIdError extends Error {}
   return {
     InvalidProjectIdError: FakeInvalidProjectIdError,
-  ProjectNotFoundError: FakeProjectNotFoundError,
-  readProject: vi.fn()
+    ProjectNotFoundError: FakeProjectNotFoundError,
+    readProject: vi.fn()
   };
 });
 
 import { GET } from "./route";
-import { createMapSnapshot
-} from "@dm-instamap/core/server";
+import { createMapSnapshot } from "@dm-instamap/core/server";
 import {
   diffSnapshots,
   readSnapshotFromDirectory
@@ -38,8 +29,12 @@ import {
 import { readProject } from "@/lib/projects";
 
 const readProjectMock = readProject as unknown as ReturnType<typeof vi.fn>;
-const readSnapshotMock = readSnapshotFromDirectory as unknown as ReturnType<typeof vi.fn>;
-const createMapSnapshotMock = createMapSnapshot as unknown as ReturnType<typeof vi.fn>;
+const readSnapshotMock = readSnapshotFromDirectory as unknown as ReturnType<
+  typeof vi.fn
+>;
+const createMapSnapshotMock = createMapSnapshot as unknown as ReturnType<
+  typeof vi.fn
+>;
 const diffSnapshotsMock = diffSnapshots as unknown as ReturnType<typeof vi.fn>;
 
 function context(projectId: string, contentHash: string) {
@@ -95,15 +90,28 @@ describe("GET /api/projects/[id]/snapshots/[hash]/diff", () => {
     expect(body.against).toBe("current");
     expect(body.diff.changedFields).toEqual(["rooms", "gmNotes"]);
     expect(createMapSnapshotMock).toHaveBeenCalledWith(
-      expect.objectContaining({ document: fakeDocument, label: "current", projectId: "crypt" })
+      expect.objectContaining({
+        document: fakeDocument,
+        label: "current",
+        projectId: "crypt"
+      })
     );
-    expect(diffSnapshotsMock).toHaveBeenCalledWith(fakeBaseRecord, fakeCurrentSnapshot);
+    expect(diffSnapshotsMock).toHaveBeenCalledWith(
+      fakeBaseRecord,
+      fakeCurrentSnapshot
+    );
   });
 
   it("computes the diff against another snapshot when against=<hash>", async () => {
     readProjectMock.mockResolvedValue({ document: fakeDocument });
-    const otherSnapshot = { ...fakeBaseRecord, contentHash: "bbbb2222", label: "other" };
-    readSnapshotMock.mockResolvedValueOnce(fakeBaseRecord).mockResolvedValueOnce(otherSnapshot);
+    const otherSnapshot = {
+      ...fakeBaseRecord,
+      contentHash: "bbbb2222",
+      label: "other"
+    };
+    readSnapshotMock
+      .mockResolvedValueOnce(fakeBaseRecord)
+      .mockResolvedValueOnce(otherSnapshot);
     diffSnapshotsMock.mockReturnValue({
       changedFields: ["lights"],
       fromHash: "aaaa1111",
@@ -112,12 +120,17 @@ describe("GET /api/projects/[id]/snapshots/[hash]/diff", () => {
     });
 
     const response = await GET(
-      new Request("http://test/api/projects/crypt/snapshots/aaaa1111/diff?against=bbbb2222"),
+      new Request(
+        "http://test/api/projects/crypt/snapshots/aaaa1111/diff?against=bbbb2222"
+      ),
       context("crypt", "aaaa1111")
     );
 
     expect(response.status).toBe(200);
-    const body = (await response.json()) as { against: string; diff: { changedFields: string[] } };
+    const body = (await response.json()) as {
+      against: string;
+      diff: { changedFields: string[] };
+    };
     expect(body.against).toBe("bbbb2222");
     expect(body.diff.changedFields).toEqual(["lights"]);
     expect(createMapSnapshotMock).not.toHaveBeenCalled();
@@ -138,5 +151,3 @@ describe("GET /api/projects/[id]/snapshots/[hash]/diff", () => {
     expect(body.error).toMatch(/Snapshot not found/);
   });
 });
-
-

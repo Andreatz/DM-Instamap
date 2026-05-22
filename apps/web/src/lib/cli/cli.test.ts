@@ -4,7 +4,9 @@ import { parseSnapshotsArgs } from "./snapshots";
 
 describe("web local-data CLI argument parsing", () => {
   it("parses snapshot create", () => {
-    expect(parseSnapshotsArgs(["create", "crypt", "--label", "before boss"])).toEqual({
+    expect(
+      parseSnapshotsArgs(["create", "crypt", "--label", "before boss"])
+    ).toEqual({
       label: "before boss",
       projectId: "crypt",
       type: "create"
@@ -20,7 +22,15 @@ describe("web local-data CLI argument parsing", () => {
   });
 
   it("parses campaign create", () => {
-    expect(parseCampaignsArgs(["create", "--name", "Whispering Woods", "--tags", "fey, local"])).toEqual({
+    expect(
+      parseCampaignsArgs([
+        "create",
+        "--name",
+        "Whispering Woods",
+        "--tags",
+        "fey, local"
+      ])
+    ).toEqual({
       description: undefined,
       name: "Whispering Woods",
       tags: ["fey", "local"],

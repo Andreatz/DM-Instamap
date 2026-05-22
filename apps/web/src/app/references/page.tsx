@@ -12,7 +12,10 @@ export default async function ReferencesPage() {
         <div>
           <strong>DM-Instamap</strong>
           <h1>Mappe di riferimento</h1>
-          <p>Riferimenti locali per ispirazione di layout e pianificazione della generazione.</p>
+          <p>
+            Riferimenti locali per ispirazione di layout e pianificazione della
+            generazione.
+          </p>
         </div>
         <dl>
           <div>
@@ -37,8 +40,14 @@ export default async function ReferencesPage() {
         <>
           <section className="group-toolbar">
             <span>{manifest.references.length} riferimenti mostrati</span>
-            {manifest.generatedAt ? <span>Indicizzati {new Date(manifest.generatedAt).toLocaleString()}</span> : null}
-            {manifest.sourceRoot ? <span title={manifest.sourceRoot}>Sorgente locale caricata</span> : null}
+            {manifest.generatedAt ? (
+              <span>
+                Indicizzati {new Date(manifest.generatedAt).toLocaleString()}
+              </span>
+            ) : null}
+            {manifest.sourceRoot ? (
+              <span title={manifest.sourceRoot}>Sorgente locale caricata</span>
+            ) : null}
           </section>
 
           <section className="reference-grid" aria-label="Mappe di riferimento">
@@ -71,7 +80,10 @@ export default async function ReferencesPage() {
                   </div>
                   <div className="color-list">
                     {reference.dominantColors.map((color) => (
-                      <span key={color.hex} title={`${color.hex} (${color.population})`}>
+                      <span
+                        key={color.hex}
+                        title={`${color.hex} (${color.population})`}
+                      >
                         <i style={{ backgroundColor: color.hex }} />
                         {color.hex}
                       </span>
@@ -82,9 +94,11 @@ export default async function ReferencesPage() {
                       <h3>Style DNA</h3>
                       <p>{reference.styleDna.promptSummary}</p>
                       <div className="tag-list">
-                        {reference.styleDna.visualTags.slice(0, 8).map((tag) => (
-                          <span key={tag}>{tag}</span>
-                        ))}
+                        {reference.styleDna.visualTags
+                          .slice(0, 8)
+                          .map((tag) => (
+                            <span key={tag}>{tag}</span>
+                          ))}
                       </div>
                     </section>
                   ) : null}

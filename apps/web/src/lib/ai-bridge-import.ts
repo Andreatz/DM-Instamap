@@ -31,11 +31,17 @@ export function convertPlanToMapDocument(input: {
   source?: MapDocument | null;
 }): ImportPlanResult {
   const plan = MapPlanSchema.parse(input.plan);
-  const documentName = (input.documentName ?? input.source?.name ?? plan.name).trim() || "Imported Plan";
+  const documentName =
+    (input.documentName ?? input.source?.name ?? plan.name).trim() ||
+    "Imported Plan";
 
   if (input.mode === "update-project" && input.source) {
     const source = input.source;
-    const tiles = buildTilesFromPlan({ height: source.height, plan, width: source.width });
+    const tiles = buildTilesFromPlan({
+      height: source.height,
+      plan,
+      width: source.width
+    });
     const document = MapDocumentSchema.parse({
       ...source,
       assets: plan.assetPlacements,
@@ -54,7 +60,11 @@ export function convertPlanToMapDocument(input: {
   }
 
   const dimensions = inferDimensionsFromPlan(plan);
-  const tiles = buildTilesFromPlan({ height: dimensions.height, plan, width: dimensions.width });
+  const tiles = buildTilesFromPlan({
+    height: dimensions.height,
+    plan,
+    width: dimensions.width
+  });
   const document = createMapDocument({
     height: dimensions.height,
     id: input.documentId,
@@ -75,13 +85,22 @@ export function convertPlanToMapDocument(input: {
   };
 }
 
-export function inferDimensionsFromPlan(plan: MapPlan): { height: number; width: number } {
+export function inferDimensionsFromPlan(plan: MapPlan): {
+  height: number;
+  width: number;
+} {
   let maxX = MIN_DIMENSION;
   let maxY = MIN_DIMENSION;
 
   for (const room of plan.rooms) {
-    maxX = Math.max(maxX, Math.ceil(room.bounds.x + room.bounds.width) + DEFAULT_PADDING);
-    maxY = Math.max(maxY, Math.ceil(room.bounds.y + room.bounds.height) + DEFAULT_PADDING);
+    maxX = Math.max(
+      maxX,
+      Math.ceil(room.bounds.x + room.bounds.width) + DEFAULT_PADDING
+    );
+    maxY = Math.max(
+      maxY,
+      Math.ceil(room.bounds.y + room.bounds.height) + DEFAULT_PADDING
+    );
   }
 
   for (const door of plan.doors) {
@@ -105,7 +124,11 @@ export function inferDimensionsFromPlan(plan: MapPlan): { height: number; width:
   };
 }
 
-function buildTilesFromPlan(input: { height: number; plan: MapPlan; width: number }): MapTile[] {
+function buildTilesFromPlan(input: {
+  height: number;
+  plan: MapPlan;
+  width: number;
+}): MapTile[] {
   const grid: TileKind[][] = Array.from({ length: input.height }, () =>
     Array.from({ length: input.width }, () => "empty" as TileKind)
   );
@@ -113,8 +136,14 @@ function buildTilesFromPlan(input: { height: number; plan: MapPlan; width: numbe
   for (const room of input.plan.rooms) {
     const startX = Math.max(0, Math.floor(room.bounds.x));
     const startY = Math.max(0, Math.floor(room.bounds.y));
-    const endX = Math.min(input.width, Math.ceil(room.bounds.x + room.bounds.width));
-    const endY = Math.min(input.height, Math.ceil(room.bounds.y + room.bounds.height));
+    const endX = Math.min(
+      input.width,
+      Math.ceil(room.bounds.x + room.bounds.width)
+    );
+    const endY = Math.min(
+      input.height,
+      Math.ceil(room.bounds.y + room.bounds.height)
+    );
 
     for (let y = startY; y < endY; y += 1) {
       for (let x = startX; x < endX; x += 1) {
@@ -151,7 +180,12 @@ function buildTilesFromPlan(input: { height: number; plan: MapPlan; width: numbe
   );
 }
 
-function setTile(grid: TileKind[][], x: number, y: number, kind: TileKind): void {
+function setTile(
+  grid: TileKind[][],
+  x: number,
+  y: number,
+  kind: TileKind
+): void {
   const row = grid[y];
 
   if (!row || row[x] === undefined) {
@@ -161,7 +195,11 @@ function setTile(grid: TileKind[][], x: number, y: number, kind: TileKind): void
   row[x] = kind;
 }
 
-function hasAdjacentWalkableTile(grid: TileKind[][], x: number, y: number): boolean {
+function hasAdjacentWalkableTile(
+  grid: TileKind[][],
+  x: number,
+  y: number
+): boolean {
   for (let dy = -1; dy <= 1; dy += 1) {
     for (let dx = -1; dx <= 1; dx += 1) {
       if (dx === 0 && dy === 0) {

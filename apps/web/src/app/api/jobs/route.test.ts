@@ -7,7 +7,9 @@ vi.mock("@/lib/worker-client", () => ({
 import { GET } from "./route";
 import { fetchWorkerJobs } from "@/lib/worker-client";
 
-const fetchWorkerJobsMock = fetchWorkerJobs as unknown as ReturnType<typeof vi.fn>;
+const fetchWorkerJobsMock = fetchWorkerJobs as unknown as ReturnType<
+  typeof vi.fn
+>;
 
 describe("GET /api/jobs", () => {
   beforeEach(() => {
@@ -30,7 +32,10 @@ describe("GET /api/jobs", () => {
     const response = await GET();
 
     expect(response.status).toBe(200);
-    const body = (await response.json()) as { jobs: Array<{ id: string }>; ok: boolean };
+    const body = (await response.json()) as {
+      jobs: Array<{ id: string }>;
+      ok: boolean;
+    };
     expect(body.ok).toBe(true);
     expect(body.jobs[0]?.id).toBe("job_1");
   });

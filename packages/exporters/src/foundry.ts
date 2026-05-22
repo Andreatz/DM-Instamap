@@ -38,7 +38,10 @@ export type FoundryModuleData = {
   sceneSlug: string;
 };
 
-const FOUNDRY_COMPATIBILITY: Record<FoundryVersion, { minimum: string; verified: string }> = {
+const FOUNDRY_COMPATIBILITY: Record<
+  FoundryVersion,
+  { minimum: string; verified: string }
+> = {
   v12: { minimum: "11", verified: "12" },
   v13: { minimum: "12", verified: "13" }
 };
@@ -154,7 +157,10 @@ export type FoundryAmbientLightData = {
  * rendering the battlemap image. Pure and synchronous, so it can drive the VTT
  * comparison manifest and structural tests without invoking Sharp.
  */
-export function buildFoundryModuleData(document: MapDocument, options: FoundryExportOptions = {}): FoundryModuleData {
+export function buildFoundryModuleData(
+  document: MapDocument,
+  options: FoundryExportOptions = {}
+): FoundryModuleData {
   const moduleId = slugify(options.moduleId ?? document.id);
   const sceneSlug = slugify(options.sceneId ?? options.moduleId ?? document.id);
   const imageFormat = options.imageFormat ?? "webp";
@@ -179,7 +185,15 @@ export function buildFoundryModuleData(document: MapDocument, options: FoundryEx
     version: options.version
   });
 
-  return { imageFormat, journalJson, mapImagePath, moduleId, moduleJson, sceneJson, sceneSlug };
+  return {
+    imageFormat,
+    journalJson,
+    mapImagePath,
+    moduleId,
+    moduleJson,
+    sceneJson,
+    sceneSlug
+  };
 }
 
 export async function exportFoundryModule(
@@ -196,7 +210,10 @@ export async function exportFoundryModule(
   const zip = new JSZip();
 
   zip.file("module.json", `${JSON.stringify(data.moduleJson, null, 2)}\n`);
-  zip.file(`scenes/${data.sceneSlug}.json`, `${JSON.stringify(data.sceneJson, null, 2)}\n`);
+  zip.file(
+    `scenes/${data.sceneSlug}.json`,
+    `${JSON.stringify(data.sceneJson, null, 2)}\n`
+  );
   zip.file("packs/scenes.db", `${JSON.stringify(data.sceneJson)}\n`);
   zip.file(data.mapImagePath, image.buffer);
 
@@ -207,12 +224,18 @@ export async function exportFoundryModule(
     );
 
     for (const journal of data.journalJson) {
-      zip.file(`journal/${journal._id}.json`, `${JSON.stringify(journal, null, 2)}\n`);
+      zip.file(
+        `journal/${journal._id}.json`,
+        `${JSON.stringify(journal, null, 2)}\n`
+      );
     }
   }
 
   return {
-    buffer: await zip.generateAsync({ compression: "DEFLATE", type: "nodebuffer" }),
+    buffer: await zip.generateAsync({
+      compression: "DEFLATE",
+      type: "nodebuffer"
+    }),
     filename: `${data.moduleId}-foundry-module.zip`,
     journalJson: data.journalJson,
     mapImagePath: data.mapImagePath,
@@ -284,7 +307,10 @@ function buildJournalEntries(document: MapDocument): FoundryJournalEntryData[] {
   return entries.map((entry, index) => ({ ...entry, sort: index * 100 }));
 }
 
-function buildRoomJournalEntry(document: MapDocument, rooms: RoomNode[]): FoundryJournalEntryData {
+function buildRoomJournalEntry(
+  document: MapDocument,
+  rooms: RoomNode[]
+): FoundryJournalEntryData {
   const pages = rooms.map((room, index) => ({
     _id: toFoundryId(`room-${room.id}-${index}`),
     name: room.label,
@@ -308,7 +334,10 @@ function buildRoomJournalEntry(document: MapDocument, rooms: RoomNode[]): Foundr
   };
 }
 
-function buildGmNotesJournalEntry(document: MapDocument, notes: MapNote[]): FoundryJournalEntryData {
+function buildGmNotesJournalEntry(
+  document: MapDocument,
+  notes: MapNote[]
+): FoundryJournalEntryData {
   const pages = notes.map((note, index) => ({
     _id: toFoundryId(`gmnote-${note.id}-${index}`),
     name: note.title,
@@ -332,7 +361,10 @@ function buildGmNotesJournalEntry(document: MapDocument, notes: MapNote[]): Foun
   };
 }
 
-function buildPlanNotesJournalEntry(document: MapDocument, notes: string[]): FoundryJournalEntryData {
+function buildPlanNotesJournalEntry(
+  document: MapDocument,
+  notes: string[]
+): FoundryJournalEntryData {
   return {
     _id: toFoundryId(`journal-plan-${document.id}`),
     content: `Plan-level notes for ${document.name}.`,
@@ -357,10 +389,14 @@ function buildPlanNotesJournalEntry(document: MapDocument, notes: string[]): Fou
 }
 
 function renderRoomHtml(room: RoomNode): string {
-  const tags = room.tags.length > 0 ? `<p><strong>Tags:</strong> ${room.tags.map(escapeHtml).join(", ")}</p>` : "";
-  const connections = room.connections.length > 0
-    ? `<p><strong>Connections:</strong> ${room.connections.map(escapeHtml).join(", ")}</p>`
-    : "";
+  const tags =
+    room.tags.length > 0
+      ? `<p><strong>Tags:</strong> ${room.tags.map(escapeHtml).join(", ")}</p>`
+      : "";
+  const connections =
+    room.connections.length > 0
+      ? `<p><strong>Connections:</strong> ${room.connections.map(escapeHtml).join(", ")}</p>`
+      : "";
   const bounds = `<p><strong>Bounds:</strong> ${room.bounds.x}, ${room.bounds.y} (${room.bounds.width} x ${room.bounds.height})</p>`;
   return `<h2>${escapeHtml(room.label)}</h2>${bounds}${tags}${connections}`;
 }
@@ -418,27 +454,29 @@ function createFoundryScene(
   const width = document.width * gridSize;
   const height = document.height * gridSize;
   const sceneNotes = input.gmNoteLookup
-    ? (document.plan?.gmNotes ?? []).flatMap<FoundrySceneNoteData>((note, index) => {
-        const pageId = input.gmNoteLookup?.pageById.get(note.id);
-        if (!pageId || !input.gmNoteLookup) {
-          return [];
-        }
-
-        return [
-          {
-            _id: toFoundryId(`scenenote-${note.id}-${index}`),
-            entryId: input.gmNoteLookup.entryId,
-            icon: {
-              src: "icons/svg/book.svg",
-              tint: null
-            },
-            pageId,
-            text: note.title,
-            x: roundCoordinate(note.position.x * gridSize),
-            y: roundCoordinate(note.position.y * gridSize)
+    ? (document.plan?.gmNotes ?? []).flatMap<FoundrySceneNoteData>(
+        (note, index) => {
+          const pageId = input.gmNoteLookup?.pageById.get(note.id);
+          if (!pageId || !input.gmNoteLookup) {
+            return [];
           }
-        ];
-      })
+
+          return [
+            {
+              _id: toFoundryId(`scenenote-${note.id}-${index}`),
+              entryId: input.gmNoteLookup.entryId,
+              icon: {
+                src: "icons/svg/book.svg",
+                tint: null
+              },
+              pageId,
+              text: note.title,
+              x: roundCoordinate(note.position.x * gridSize),
+              y: roundCoordinate(note.position.y * gridSize)
+            }
+          ];
+        }
+      )
     : [];
 
   return {
@@ -455,20 +493,30 @@ function createFoundryScene(
     },
     height,
     img: input.sceneImagePath,
-    lights: (document.plan?.lights ?? []).map((light, index) => convertLight(light, index, gridSize)),
+    lights: (document.plan?.lights ?? []).map((light, index) =>
+      convertLight(light, index, gridSize)
+    ),
     name: input.sceneName,
     navigation: false,
     notes: sceneNotes,
     padding: 0,
     walls: [
-      ...(document.plan?.walls ?? []).map((wall, index) => convertWall(wall, index, gridSize)),
-      ...(document.plan?.doors ?? []).map((door, index) => convertDoor(door, index, gridSize))
+      ...(document.plan?.walls ?? []).map((wall, index) =>
+        convertWall(wall, index, gridSize)
+      ),
+      ...(document.plan?.doors ?? []).map((door, index) =>
+        convertDoor(door, index, gridSize)
+      )
     ],
     width
   };
 }
 
-function convertWall(wall: WallSegment, index: number, gridSize: number): FoundryWallData {
+function convertWall(
+  wall: WallSegment,
+  index: number,
+  gridSize: number
+): FoundryWallData {
   return {
     _id: toFoundryId(wall.id || `wall-${index + 1}`),
     c: [
@@ -484,7 +532,11 @@ function convertWall(wall: WallSegment, index: number, gridSize: number): Foundr
   };
 }
 
-function convertDoor(door: DoorSegment, index: number, gridSize: number): FoundryWallData {
+function convertDoor(
+  door: DoorSegment,
+  index: number,
+  gridSize: number
+): FoundryWallData {
   const halfWidth = (door.width * gridSize) / 2;
   const radians = (door.rotation * Math.PI) / 180;
   const dx = Math.cos(radians) * halfWidth;
@@ -507,7 +559,11 @@ function convertDoor(door: DoorSegment, index: number, gridSize: number): Foundr
   };
 }
 
-function convertLight(light: LightSource, index: number, gridSize: number): FoundryAmbientLightData {
+function convertLight(
+  light: LightSource,
+  index: number,
+  gridSize: number
+): FoundryAmbientLightData {
   return {
     _id: toFoundryId(light.id || `light-${index + 1}`),
     config: {
@@ -531,5 +587,10 @@ function roundCoordinate(value: number): number {
 }
 
 function slugify(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "") || "dm-instamap-map";
+  return (
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/gu, "-")
+      .replace(/^-|-$/gu, "") || "dm-instamap-map"
+  );
 }

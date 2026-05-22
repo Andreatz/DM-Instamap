@@ -22,7 +22,8 @@ export async function POST(request: Request) {
     if (!provider) {
       return Response.json(
         {
-          error: "AI provider not configured. Set AI_PROVIDER and AI_API_KEY in your environment.",
+          error:
+            "AI provider not configured. Set AI_PROVIDER and AI_API_KEY in your environment.",
           ok: false
         },
         { status: 503 }
@@ -30,17 +31,27 @@ export async function POST(request: Request) {
     }
 
     const body = (await request.json().catch(() => ({}))) as PlanRequest;
-    const userRequest = typeof body.userRequest === "string" ? body.userRequest : "";
+    const userRequest =
+      typeof body.userRequest === "string" ? body.userRequest : "";
 
     if (userRequest.trim().length === 0) {
-      return Response.json({ error: "userRequest is required.", ok: false }, { status: 400 });
+      return Response.json(
+        { error: "userRequest is required.", ok: false },
+        { status: 400 }
+      );
     }
 
-    const assetGroups = sanitizeArray<BridgeAssetGroupSummary>(body.assetGroups);
+    const assetGroups = sanitizeArray<BridgeAssetGroupSummary>(
+      body.assetGroups
+    );
     const references = sanitizeArray<BridgeReferenceSummary>(body.references);
-    const assetSearchResults = sanitizeArray<BridgeAssetSearchSummary>(body.assetSearchResults);
-    const maxRetries = typeof body.maxRetries === "number" ? body.maxRetries : undefined;
-    const temperature = typeof body.temperature === "number" ? body.temperature : undefined;
+    const assetSearchResults = sanitizeArray<BridgeAssetSearchSummary>(
+      body.assetSearchResults
+    );
+    const maxRetries =
+      typeof body.maxRetries === "number" ? body.maxRetries : undefined;
+    const temperature =
+      typeof body.temperature === "number" ? body.temperature : undefined;
     const result = await generateMapPlanWithAi(
       {
         assetGroups,
@@ -76,7 +87,8 @@ export async function POST(request: Request) {
       rawResponses: result.rawResponses
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "AI plan generation failed.";
+    const message =
+      error instanceof Error ? error.message : "AI plan generation failed.";
     return Response.json({ error: message, ok: false }, { status: 500 });
   }
 }

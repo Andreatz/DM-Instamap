@@ -3,9 +3,15 @@ import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
-export const SUPPORTED_REFERENCE_EXTENSIONS = ["png", "jpg", "jpeg", "webp"] as const;
+export const SUPPORTED_REFERENCE_EXTENSIONS = [
+  "png",
+  "jpg",
+  "jpeg",
+  "webp"
+] as const;
 
-export type SupportedReferenceExtension = (typeof SUPPORTED_REFERENCE_EXTENSIONS)[number];
+export type SupportedReferenceExtension =
+  (typeof SUPPORTED_REFERENCE_EXTENSIONS)[number];
 
 export type ReferenceMapType =
   | "dungeon"
@@ -59,19 +65,58 @@ export type ReferenceScannerOptions = {
   thumbnailSize?: number;
 };
 
-const DEFAULT_REFERENCES_MANIFEST_PATH = path.join("data", "indexes", "references.manifest.json");
-const DEFAULT_REFERENCES_PREVIEW_DIR = path.join("data", "previews", "references");
+const DEFAULT_REFERENCES_MANIFEST_PATH = path.join(
+  "data",
+  "indexes",
+  "references.manifest.json"
+);
+const DEFAULT_REFERENCES_PREVIEW_DIR = path.join(
+  "data",
+  "previews",
+  "references"
+);
 
-const MAP_TYPE_KEYWORDS: Record<Exclude<ReferenceMapType, "unknown">, string[]> = {
+const MAP_TYPE_KEYWORDS: Record<
+  Exclude<ReferenceMapType, "unknown">,
+  string[]
+> = {
   battlemap: ["battle", "battlemap", "encounter"],
-  building: ["building", "castle", "house", "inn", "keep", "manor", "shop", "tavern", "temple", "tower"],
+  building: [
+    "building",
+    "castle",
+    "house",
+    "inn",
+    "keep",
+    "manor",
+    "shop",
+    "tavern",
+    "temple",
+    "tower"
+  ],
   cave: ["cave", "cavern", "caves", "mine", "underdark"],
-  city: ["city", "district", "market", "settlement", "street", "town", "urban", "village"],
+  city: [
+    "city",
+    "district",
+    "market",
+    "settlement",
+    "street",
+    "town",
+    "urban",
+    "village"
+  ],
   coast: ["beach", "coast", "harbor", "island", "port", "sea", "shore"],
   dungeon: ["crypt", "dungeon", "lair", "ruin", "sewer", "tomb"],
   region: ["continent", "hex", "kingdom", "province", "region"],
   ship: ["airship", "boat", "ship", "vessel"],
-  wilderness: ["forest", "jungle", "mountain", "outdoor", "swamp", "wilderness", "woods"],
+  wilderness: [
+    "forest",
+    "jungle",
+    "mountain",
+    "outdoor",
+    "swamp",
+    "wilderness",
+    "woods"
+  ],
   world: ["atlas", "realm", "world"]
 };
 
@@ -81,8 +126,14 @@ export async function scanReferences(
 ): Promise<ReferencesManifest> {
   const sourceRoot = path.resolve(folder);
   const outputRoot = path.resolve(options.outputRoot ?? process.cwd());
-  const manifestPath = path.resolve(outputRoot, options.manifestPath ?? DEFAULT_REFERENCES_MANIFEST_PATH);
-  const previewDir = path.resolve(outputRoot, options.previewDir ?? DEFAULT_REFERENCES_PREVIEW_DIR);
+  const manifestPath = path.resolve(
+    outputRoot,
+    options.manifestPath ?? DEFAULT_REFERENCES_MANIFEST_PATH
+  );
+  const previewDir = path.resolve(
+    outputRoot,
+    options.previewDir ?? DEFAULT_REFERENCES_PREVIEW_DIR
+  );
   const thumbnailSize = options.thumbnailSize ?? 320;
   const files = await findReferenceFiles(sourceRoot);
   const references: ReferenceManifestEntry[] = [];
@@ -106,7 +157,10 @@ export async function scanReferences(
       );
     } catch (error) {
       errors.push({
-        message: error instanceof Error ? error.message : "Unknown reference scan error.",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unknown reference scan error.",
         path: relativePath
       });
     }
@@ -120,7 +174,11 @@ export async function scanReferences(
     version: 1
   };
 
-  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+  await writeFile(
+    manifestPath,
+    `${JSON.stringify(manifest, null, 2)}\n`,
+    "utf8"
+  );
 
   return manifest;
 }
@@ -136,7 +194,9 @@ async function inspectReference(input: {
   const file = await readFile(input.filePath);
   const fileHash = createHash("sha256").update(file).digest("hex");
   const id = createReferenceId(input.relativePath, fileHash);
-  const metadata = await sharp(input.filePath, { limitInputPixels: false }).metadata();
+  const metadata = await sharp(input.filePath, {
+    limitInputPixels: false
+  }).metadata();
   const thumbnailPath = path.join(input.previewDir, `${id}.webp`);
   const mapTypeGuess = guessMapType(input.relativePath);
 
@@ -181,10 +241,14 @@ async function findReferenceFiles(folder: string): Promise<string[]> {
     })
   );
 
-  return files.flat().sort((left, right) => toPosixPath(left).localeCompare(toPosixPath(right)));
+  return files
+    .flat()
+    .sort((left, right) => toPosixPath(left).localeCompare(toPosixPath(right)));
 }
 
-async function extractDominantColors(filePath: string): Promise<ReferenceDominantColor[]> {
+async function extractDominantColors(
+  filePath: string
+): Promise<ReferenceDominantColor[]> {
   const { data } = await sharp(filePath, { limitInputPixels: false })
     .resize(32, 32, { fit: "inside", withoutEnlargement: true })
     .ensureAlpha()
@@ -207,7 +271,10 @@ async function extractDominantColors(filePath: string): Promise<ReferenceDominan
 
   return [...counts.entries()]
     .map(([hex, population]) => ({ hex, population }))
-    .sort((left, right) => right.population - left.population || left.hex.localeCompare(right.hex))
+    .sort(
+      (left, right) =>
+        right.population - left.population || left.hex.localeCompare(right.hex)
+    )
     .slice(0, 5);
 }
 
@@ -257,7 +324,11 @@ function createReferenceId(relativePath: string, fileHash: string): string {
 function getSupportedExtension(filePath: string): SupportedReferenceExtension {
   const extension = path.extname(filePath).slice(1).toLowerCase();
 
-  if (SUPPORTED_REFERENCE_EXTENSIONS.includes(extension as SupportedReferenceExtension)) {
+  if (
+    SUPPORTED_REFERENCE_EXTENSIONS.includes(
+      extension as SupportedReferenceExtension
+    )
+  ) {
     return extension as SupportedReferenceExtension;
   }
 
@@ -266,7 +337,9 @@ function getSupportedExtension(filePath: string): SupportedReferenceExtension {
 
 function isSupportedReference(fileName: string): boolean {
   const extension = path.extname(fileName).slice(1).toLowerCase();
-  return SUPPORTED_REFERENCE_EXTENSIONS.includes(extension as SupportedReferenceExtension);
+  return SUPPORTED_REFERENCE_EXTENSIONS.includes(
+    extension as SupportedReferenceExtension
+  );
 }
 
 function quantizeColor(value: number): number {

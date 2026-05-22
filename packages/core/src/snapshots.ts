@@ -58,7 +58,10 @@ export type SnapshotsDirectoryOptions = {
 
 const DEFAULT_DATA_DIRECTORY = "data";
 const DEFAULT_PROJECTS_DIRECTORY = "projects";
-const DEFAULT_SNAPSHOTS_ROOT = path.join(DEFAULT_DATA_DIRECTORY, DEFAULT_PROJECTS_DIRECTORY);
+const DEFAULT_SNAPSHOTS_ROOT = path.join(
+  DEFAULT_DATA_DIRECTORY,
+  DEFAULT_PROJECTS_DIRECTORY
+);
 
 export function computeDocumentContentHash(document: MapDocument): string {
   const serialized = JSON.stringify(stableSerializeDocument(document));
@@ -81,7 +84,10 @@ export function createMapSnapshot(input: CreateSnapshotInput): SnapshotRecord {
   });
 }
 
-export function diffSnapshots(left: SnapshotRecord, right: SnapshotRecord): SnapshotDiff {
+export function diffSnapshots(
+  left: SnapshotRecord,
+  right: SnapshotRecord
+): SnapshotDiff {
   if (left.contentHash === right.contentHash) {
     return {
       changedFields: [],
@@ -151,8 +157,12 @@ export function diffSnapshots(left: SnapshotRecord, right: SnapshotRecord): Snap
   };
 }
 
-export function resolveSnapshotsDirectory(options: SnapshotsDirectoryOptions): string {
-  const outputRoot = options.outputRoot ? path.resolve(options.outputRoot) : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
+export function resolveSnapshotsDirectory(
+  options: SnapshotsDirectoryOptions
+): string {
+  const outputRoot = options.outputRoot
+    ? path.resolve(options.outputRoot)
+    : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
   const projectsRoot = options.snapshotsRoot
     ? path.resolve(outputRoot, options.snapshotsRoot)
     : resolveDefaultProjectsRoot(options.outputRoot, outputRoot);
@@ -163,13 +173,24 @@ export async function writeSnapshotToDirectory(
   snapshot: SnapshotRecord,
   options: SnapshotsDirectoryOptions
 ): Promise<{ filePath: string; written: boolean }> {
-  const directory = resolveSnapshotsDirectory({ ...options, projectId: snapshot.projectId });
+  const directory = resolveSnapshotsDirectory({
+    ...options,
+    projectId: snapshot.projectId
+  });
   await mkdir(directory, { recursive: true });
-  const existing = await listSnapshotsInDirectory({ ...options, projectId: snapshot.projectId });
-  const duplicate = existing.find((entry) => entry.contentHash === snapshot.contentHash);
+  const existing = await listSnapshotsInDirectory({
+    ...options,
+    projectId: snapshot.projectId
+  });
+  const duplicate = existing.find(
+    (entry) => entry.contentHash === snapshot.contentHash
+  );
 
   if (duplicate) {
-    return { filePath: path.join(directory, duplicate.fileName), written: false };
+    return {
+      filePath: path.join(directory, duplicate.fileName),
+      written: false
+    };
   }
 
   const fileName = buildSnapshotFileName(snapshot);
@@ -178,7 +199,9 @@ export async function writeSnapshotToDirectory(
   return { filePath, written: true };
 }
 
-export async function listSnapshotsInDirectory(options: SnapshotsDirectoryOptions): Promise<Array<SnapshotMetadata & { fileName: string }>> {
+export async function listSnapshotsInDirectory(
+  options: SnapshotsDirectoryOptions
+): Promise<Array<SnapshotMetadata & { fileName: string }>> {
   const directory = resolveSnapshotsDirectory(options);
   let files: string[];
 
@@ -210,12 +233,12 @@ export async function listSnapshotsInDirectory(options: SnapshotsDirectoryOption
         label: parsed.label,
         projectId: parsed.projectId
       });
-    } catch {
-      continue;
-    }
+    } catch {}
   }
 
-  return entries.sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  return entries.sort((left, right) =>
+    right.createdAt.localeCompare(left.createdAt)
+  );
 }
 
 export async function readSnapshotFromDirectory(
@@ -258,7 +281,10 @@ export const DeltaSnapshotRecordSchema = SnapshotMetadataSchema.extend({
   parentHash: z.string().min(8)
 }).strict();
 
-export function computeMapDocumentDelta(base: MapDocument, target: MapDocument): MapDocumentDelta {
+export function computeMapDocumentDelta(
+  base: MapDocument,
+  target: MapDocument
+): MapDocumentDelta {
   const baseParsed = stableSerializeDocument(base);
   const targetParsed = stableSerializeDocument(target);
   const fields: Partial<MapDocument> = {};
@@ -279,7 +305,10 @@ export function computeMapDocumentDelta(base: MapDocument, target: MapDocument):
   return { fields };
 }
 
-export function applyMapDocumentDelta(base: MapDocument, delta: MapDocumentDelta): MapDocument {
+export function applyMapDocumentDelta(
+  base: MapDocument,
+  delta: MapDocumentDelta
+): MapDocument {
   const merged: Record<string, unknown> = {
     ...stableSerializeDocument(base),
     ...delta.fields
@@ -311,7 +340,10 @@ export function createDeltaSnapshot(input: {
   });
 }
 
-export function restoreDeltaSnapshot(base: SnapshotRecord, delta: DeltaSnapshotRecord): MapDocument {
+export function restoreDeltaSnapshot(
+  base: SnapshotRecord,
+  delta: DeltaSnapshotRecord
+): MapDocument {
   return applyMapDocumentDelta(base.document, delta.delta);
 }
 
@@ -320,7 +352,10 @@ function buildSnapshotFileName(snapshot: SnapshotRecord): string {
   return `${timestamp}__${snapshot.contentHash}.json`;
 }
 
-function resolveDefaultProjectsRoot(outputRoot: string | undefined, resolvedOutputRoot: string): string {
+function resolveDefaultProjectsRoot(
+  outputRoot: string | undefined,
+  resolvedOutputRoot: string
+): string {
   return outputRoot
     ? path.resolve(resolvedOutputRoot, DEFAULT_SNAPSHOTS_ROOT)
     : path.resolve(resolvedOutputRoot, DEFAULT_PROJECTS_DIRECTORY);

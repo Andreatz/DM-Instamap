@@ -11,7 +11,10 @@ export default async function AssetGroupsPage() {
         <div>
           <strong>DM-Instamap</strong>
           <h1>Gruppi di asset</h1>
-          <p>Set generati per navigazione, suggerimenti di generazione e futura curatela manuale.</p>
+          <p>
+            Set generati per navigazione, suggerimenti di generazione e futura
+            curatela manuale.
+          </p>
         </div>
         <dl>
           <div>
@@ -29,14 +32,19 @@ export default async function AssetGroupsPage() {
         <section className="asset-empty" aria-live="polite">
           <h2>Nessun gruppo trovato</h2>
           <p>
-            Esegui <code>pnpm assets:group</code> dopo aver indicizzato gli asset.
+            Esegui <code>pnpm assets:group</code> dopo aver indicizzato gli
+            asset.
           </p>
         </section>
       ) : (
         <>
           <section className="group-toolbar">
             <span>{groups.groups.length} gruppi mostrati</span>
-            {groups.generatedAt ? <span>Raggruppati {new Date(groups.generatedAt).toLocaleString()}</span> : null}
+            {groups.generatedAt ? (
+              <span>
+                Raggruppati {new Date(groups.generatedAt).toLocaleString()}
+              </span>
+            ) : null}
             <a href="/asset-groups/review">Revisiona gruppi a lotti</a>
           </section>
 
@@ -44,7 +52,9 @@ export default async function AssetGroupsPage() {
             {groups.groups.map((group) => (
               <article className="group-card" key={group.id}>
                 <div className="group-preview">
-                  {group.previewUrl ? <img alt="" loading="lazy" src={group.previewUrl} /> : null}
+                  {group.previewUrl ? (
+                    <img alt="" loading="lazy" src={group.previewUrl} />
+                  ) : null}
                 </div>
                 <div className="group-card-body">
                   <div className="group-title-row">
@@ -66,7 +76,10 @@ export default async function AssetGroupsPage() {
                       <span key={tag}>{tag}</span>
                     ))}
                   </div>
-                  <p>{group.sourceFolders.slice(0, 2).join(", ") || "Nessuna cartella sorgente"}</p>
+                  <p>
+                    {group.sourceFolders.slice(0, 2).join(", ") ||
+                      "Nessuna cartella sorgente"}
+                  </p>
                 </div>
               </article>
             ))}

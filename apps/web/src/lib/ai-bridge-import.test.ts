@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { MapPlanSchema, createMapDocument } from "@dm-instamap/core/browser";
-import { convertPlanToMapDocument, inferDimensionsFromPlan } from "./ai-bridge-import";
+import {
+  convertPlanToMapDocument,
+  inferDimensionsFromPlan
+} from "./ai-bridge-import";
 
 const samplePlan = MapPlanSchema.parse({
   assetPlacements: [
@@ -79,9 +82,15 @@ describe("convertPlanToMapDocument", () => {
       plan: samplePlan
     });
 
-    const floorTiles = result.document.tiles.filter((tile) => tile.kind === "floor");
-    const wallTiles = result.document.tiles.filter((tile) => tile.kind === "wall");
-    const doorTiles = result.document.tiles.filter((tile) => tile.kind === "door");
+    const floorTiles = result.document.tiles.filter(
+      (tile) => tile.kind === "floor"
+    );
+    const wallTiles = result.document.tiles.filter(
+      (tile) => tile.kind === "wall"
+    );
+    const doorTiles = result.document.tiles.filter(
+      (tile) => tile.kind === "door"
+    );
 
     expect(floorTiles.length).toBeGreaterThan(0);
     expect(wallTiles.length).toBeGreaterThan(0);
@@ -91,7 +100,12 @@ describe("convertPlanToMapDocument", () => {
   });
 
   it("preserves source dimensions when updating an existing project", () => {
-    const source = createMapDocument({ height: 20, id: "source", name: "Source", width: 20 });
+    const source = createMapDocument({
+      height: 20,
+      id: "source",
+      name: "Source",
+      width: 20
+    });
     const result = convertPlanToMapDocument({
       documentId: "source",
       mode: "update-project",

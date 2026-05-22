@@ -37,11 +37,12 @@
     "generate": "tsx src/cli/generate.ts",
     "group": "tsx src/cli/group.ts",
     "import-pack": "tsx src/cli/import-pack.ts",
-    "lint": "tsc -p tsconfig.json --noEmit",
     "references:scan": "tsx src/cli/references-scan.ts",
     "references:style": "tsx src/cli/references-style.ts",
     "scan": "tsx src/cli/scan.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@dm-instamap/core": "workspace:*",

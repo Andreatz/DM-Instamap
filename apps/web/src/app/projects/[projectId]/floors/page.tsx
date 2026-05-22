@@ -44,9 +44,12 @@ export default async function ProjectFloorsPage({ params }: FloorsPageProps) {
       }
     })
   );
-  const floors = [project, ...linkedProjects.filter((entry): entry is DmInstamapProject => entry !== null)].sort(
-    (left, right) => floorIndex(left) - floorIndex(right)
-  );
+  const floors = [
+    project,
+    ...linkedProjects.filter(
+      (entry): entry is DmInstamapProject => entry !== null
+    )
+  ].sort((left, right) => floorIndex(left) - floorIndex(right));
 
   return (
     <main className="asset-page">
@@ -55,8 +58,9 @@ export default async function ProjectFloorsPage({ params }: FloorsPageProps) {
           <strong>DM-Instamap</strong>
           <h1>{project.name} - Piani</h1>
           <p>
-            Dungeon multipiano con {floors.length} progetti collegati. Ogni scheda apre il progetto corrispondente;
-            usali durante la sessione per saltare tra i piani.
+            Dungeon multipiano con {floors.length} progetti collegati. Ogni
+            scheda apre il progetto corrispondente; usali durante la sessione
+            per saltare tra i piani.
           </p>
         </div>
         <dl>
@@ -66,7 +70,12 @@ export default async function ProjectFloorsPage({ params }: FloorsPageProps) {
           </div>
           <div>
             <dt>Stanze totali</dt>
-            <dd>{floors.reduce((sum, floor) => sum + (floor.document.plan?.rooms.length ?? 0), 0)}</dd>
+            <dd>
+              {floors.reduce(
+                (sum, floor) => sum + (floor.document.plan?.rooms.length ?? 0),
+                0
+              )}
+            </dd>
           </div>
         </dl>
       </header>
@@ -125,8 +134,14 @@ function FloorMinimap({ floor }: { floor: DmInstamapProject }) {
   const wallRatio = Math.round((wallCount / totalCells) * 100);
 
   return (
-    <div className="manifest-note" aria-label="Statistiche minimap piano">
-      <span className="pill">griglia {width}x{height}</span>
+    <div
+      className="manifest-note"
+      role="group"
+      aria-label="Statistiche minimap piano"
+    >
+      <span className="pill">
+        griglia {width}x{height}
+      </span>
       <span className="pill">pavimento {floorRatio}%</span>
       <span className="pill">muri {wallRatio}%</span>
     </div>
@@ -135,13 +150,15 @@ function FloorMinimap({ floor }: { floor: DmInstamapProject }) {
 
 function floorIndex(project: DmInstamapProject): number {
   const match = project.id.match(/-floor-(\d+)$/u);
-  if (!match || !match[1]) {
+  if (!match?.[1]) {
     return 0;
   }
   return Number.parseInt(match[1], 10);
 }
 
-async function loadProjectOrNotFound(projectId: string): Promise<DmInstamapProject> {
+async function loadProjectOrNotFound(
+  projectId: string
+): Promise<DmInstamapProject> {
   try {
     return await readProject(projectId);
   } catch (error) {

@@ -14,6 +14,8 @@ try {
     `Scanned ${manifest.references.length} reference maps with ${manifest.errors.length} errors. Manifest written to data/indexes/references.manifest.json.`
   );
 } catch (error) {
-  console.error(error instanceof Error ? error.message : "Reference scan failed.");
+  console.error(
+    error instanceof Error ? error.message : "Reference scan failed."
+  );
   process.exit(1);
 }

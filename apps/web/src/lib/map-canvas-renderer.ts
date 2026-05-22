@@ -9,14 +9,21 @@ import type {
   RoomNode,
   WallSegment
 } from "@dm-instamap/core/browser";
-import { CANVAS_CELL_SIZE, assetToLayerKind, createSelectionBounds } from "./map-editor-view";
+import {
+  CANVAS_CELL_SIZE,
+  assetToLayerKind,
+  createSelectionBounds
+} from "./map-editor-view";
 
 export type MapCanvasRenderInput = {
   canvasSize: { height: number; width: number };
   document: MapDocument;
   hoverCell: { x: number; y: number } | null;
   layers: MapLayer[];
-  marqueeSelection: { current: { x: number; y: number }; start: { x: number; y: number } } | null;
+  marqueeSelection: {
+    current: { x: number; y: number };
+    start: { x: number; y: number };
+  } | null;
   selectedAssetId: string | null;
   selectedAssetIds: string[];
   selectedDoor: DoorSegment | null;
@@ -27,7 +34,10 @@ export type MapCanvasRenderInput = {
   viewport: { offsetX: number; offsetY: number; zoom: number };
 };
 
-export function drawMapCanvas(canvas: HTMLCanvasElement, input: MapCanvasRenderInput): void {
+export function drawMapCanvas(
+  canvas: HTMLCanvasElement,
+  input: MapCanvasRenderInput
+): void {
   const context = canvas.getContext("2d");
 
   if (!context) {
@@ -70,7 +80,12 @@ export function drawMapCanvas(canvas: HTMLCanvasElement, input: MapCanvasRenderI
         }
 
         context.fillStyle = getTileColor(kind);
-        context.fillRect(x * CANVAS_CELL_SIZE, y * CANVAS_CELL_SIZE, CANVAS_CELL_SIZE, CANVAS_CELL_SIZE);
+        context.fillRect(
+          x * CANVAS_CELL_SIZE,
+          y * CANVAS_CELL_SIZE,
+          CANVAS_CELL_SIZE,
+          CANVAS_CELL_SIZE
+        );
       }
     }
   });
@@ -85,21 +100,40 @@ export function drawMapCanvas(canvas: HTMLCanvasElement, input: MapCanvasRenderI
         }
 
         context.fillStyle = getTileColor(tile.kind);
-        context.fillRect(x * CANVAS_CELL_SIZE, y * CANVAS_CELL_SIZE, CANVAS_CELL_SIZE, CANVAS_CELL_SIZE);
+        context.fillRect(
+          x * CANVAS_CELL_SIZE,
+          y * CANVAS_CELL_SIZE,
+          CANVAS_CELL_SIZE,
+          CANVAS_CELL_SIZE
+        );
       }
     }
   });
 
   drawGrid(context, document, viewport.zoom);
-  drawLayer(context, layerState, "notes", () => drawRooms(context, document.plan?.rooms ?? [], selectedRoomId));
+  drawLayer(context, layerState, "notes", () =>
+    drawRooms(context, document.plan?.rooms ?? [], selectedRoomId)
+  );
   drawLayer(context, layerState, "walls", () => {
     drawWalls(context, document.plan?.walls ?? []);
     drawDoors(context, document.plan?.doors ?? [], selectedDoor?.id ?? null);
   });
-  drawLayer(context, layerState, "lighting", () => drawLights(context, document.plan?.lights ?? [], selectedLight?.id ?? null));
-  drawPlacedAssets(context, document.assets, selectedAssetId, selectedAssetIds, layerState);
-  drawLayer(context, layerState, "notes", () => drawNotes(context, document.plan?.gmNotes ?? [], selectedNote?.id ?? null));
-  drawLayer(context, layerState, "lighting", () => drawFogPreview(context, document, visibleCellKeys));
+  drawLayer(context, layerState, "lighting", () =>
+    drawLights(context, document.plan?.lights ?? [], selectedLight?.id ?? null)
+  );
+  drawPlacedAssets(
+    context,
+    document.assets,
+    selectedAssetId,
+    selectedAssetIds,
+    layerState
+  );
+  drawLayer(context, layerState, "notes", () =>
+    drawNotes(context, document.plan?.gmNotes ?? [], selectedNote?.id ?? null)
+  );
+  drawLayer(context, layerState, "lighting", () =>
+    drawFogPreview(context, document, visibleCellKeys)
+  );
 
   if (hoverCell) {
     context.strokeStyle = "rgba(244, 239, 231, 0.85)";
@@ -113,7 +147,10 @@ export function drawMapCanvas(canvas: HTMLCanvasElement, input: MapCanvasRenderI
   }
 
   if (marqueeSelection) {
-    const bounds = createSelectionBounds(marqueeSelection.start, marqueeSelection.current);
+    const bounds = createSelectionBounds(
+      marqueeSelection.start,
+      marqueeSelection.current
+    );
     context.strokeStyle = "rgba(215, 164, 71, 0.95)";
     context.lineWidth = 2 / viewport.zoom;
     context.setLineDash([6 / viewport.zoom, 4 / viewport.zoom]);
@@ -137,7 +174,6 @@ export function getTileColor(kind: string): string {
       return "#394348";
     case "door":
       return "#8a6431";
-    case "empty":
     default:
       return "#080a0b";
   }
@@ -148,10 +184,19 @@ function createTileLookup(tiles: MapTile[]): Map<string, MapTile> {
 }
 
 function getAssetLabel(assetId: string): string {
-  return assetId.replace(/^asset[_-]?/u, "").charAt(0).toUpperCase() || "A";
+  return (
+    assetId
+      .replace(/^asset[_-]?/u, "")
+      .charAt(0)
+      .toUpperCase() || "A"
+  );
 }
 
-function drawGrid(context: CanvasRenderingContext2D, document: MapDocument, zoom: number) {
+function drawGrid(
+  context: CanvasRenderingContext2D,
+  document: MapDocument,
+  zoom: number
+) {
   if (zoom < 0.45) {
     return;
   }
@@ -173,9 +218,16 @@ function drawGrid(context: CanvasRenderingContext2D, document: MapDocument, zoom
   context.stroke();
 }
 
-function drawRooms(context: CanvasRenderingContext2D, rooms: RoomNode[], selectedRoomId: string | null) {
+function drawRooms(
+  context: CanvasRenderingContext2D,
+  rooms: RoomNode[],
+  selectedRoomId: string | null
+) {
   for (const room of rooms) {
-    context.strokeStyle = room.id === selectedRoomId ? "rgba(215, 164, 71, 0.95)" : "rgba(120, 168, 144, 0.4)";
+    context.strokeStyle =
+      room.id === selectedRoomId
+        ? "rgba(215, 164, 71, 0.95)"
+        : "rgba(120, 168, 144, 0.4)";
     context.lineWidth = room.id === selectedRoomId ? 3 : 1.5;
     context.strokeRect(
       room.bounds.x * CANVAS_CELL_SIZE,
@@ -193,13 +245,23 @@ function drawWalls(context: CanvasRenderingContext2D, walls: WallSegment[]) {
   for (const wall of walls) {
     context.lineWidth = Math.max(2, wall.thickness * 2);
     context.beginPath();
-    context.moveTo(wall.start.x * CANVAS_CELL_SIZE, wall.start.y * CANVAS_CELL_SIZE);
-    context.lineTo(wall.end.x * CANVAS_CELL_SIZE, wall.end.y * CANVAS_CELL_SIZE);
+    context.moveTo(
+      wall.start.x * CANVAS_CELL_SIZE,
+      wall.start.y * CANVAS_CELL_SIZE
+    );
+    context.lineTo(
+      wall.end.x * CANVAS_CELL_SIZE,
+      wall.end.y * CANVAS_CELL_SIZE
+    );
     context.stroke();
   }
 }
 
-function drawDoors(context: CanvasRenderingContext2D, doors: DoorSegment[], selectedDoorId: string | null) {
+function drawDoors(
+  context: CanvasRenderingContext2D,
+  doors: DoorSegment[],
+  selectedDoorId: string | null
+) {
   for (const door of doors) {
     const size = CANVAS_CELL_SIZE * 0.56;
     const x = door.position.x * CANVAS_CELL_SIZE - size / 2;
@@ -212,7 +274,11 @@ function drawDoors(context: CanvasRenderingContext2D, doors: DoorSegment[], sele
   }
 }
 
-function drawLights(context: CanvasRenderingContext2D, lights: LightSource[], selectedLightId: string | null) {
+function drawLights(
+  context: CanvasRenderingContext2D,
+  lights: LightSource[],
+  selectedLightId: string | null
+) {
   for (const light of lights) {
     const x = light.position.x * CANVAS_CELL_SIZE;
     const y = light.position.y * CANVAS_CELL_SIZE;
@@ -224,12 +290,22 @@ function drawLights(context: CanvasRenderingContext2D, lights: LightSource[], se
     context.strokeStyle = "rgba(215, 164, 71, 0.25)";
     context.lineWidth = 1.5;
     context.beginPath();
-    context.arc(x, y, light.radius * CANVAS_CELL_SIZE * flickerScale, 0, Math.PI * 2);
+    context.arc(
+      x,
+      y,
+      light.radius * CANVAS_CELL_SIZE * flickerScale,
+      0,
+      Math.PI * 2
+    );
     context.stroke();
   }
 }
 
-function drawNotes(context: CanvasRenderingContext2D, notes: MapNote[], selectedNoteId: string | null) {
+function drawNotes(
+  context: CanvasRenderingContext2D,
+  notes: MapNote[],
+  selectedNoteId: string | null
+) {
   for (const note of notes) {
     const x = (note.position.x + 0.5) * CANVAS_CELL_SIZE;
     const y = (note.position.y + 0.5) * CANVAS_CELL_SIZE;
@@ -249,7 +325,11 @@ function drawNotes(context: CanvasRenderingContext2D, notes: MapNote[], selected
   }
 }
 
-function drawFogPreview(context: CanvasRenderingContext2D, document: MapDocument, visibleCellKeys: string[]) {
+function drawFogPreview(
+  context: CanvasRenderingContext2D,
+  document: MapDocument,
+  visibleCellKeys: string[]
+) {
   if (visibleCellKeys.length === 0) {
     return;
   }
@@ -261,7 +341,12 @@ function drawFogPreview(context: CanvasRenderingContext2D, document: MapDocument
   for (let y = 0; y < document.height; y += 1) {
     for (let x = 0; x < document.width; x += 1) {
       if (!visibleCells.has(cellKey(x, y))) {
-        context.fillRect(x * CANVAS_CELL_SIZE, y * CANVAS_CELL_SIZE, CANVAS_CELL_SIZE, CANVAS_CELL_SIZE);
+        context.fillRect(
+          x * CANVAS_CELL_SIZE,
+          y * CANVAS_CELL_SIZE,
+          CANVAS_CELL_SIZE,
+          CANVAS_CELL_SIZE
+        );
       }
     }
   }
@@ -295,7 +380,10 @@ function drawPlacedAssets(
     context.rotate((asset.rotation * Math.PI) / 180);
     context.scale(asset.flipX ? -1 : 1, asset.flipY ? -1 : 1);
     context.beginPath();
-    context.fillStyle = asset.id === selectedAssetId || selectedAssetSet.has(asset.id) ? "#d7a447" : "#78a890";
+    context.fillStyle =
+      asset.id === selectedAssetId || selectedAssetSet.has(asset.id)
+        ? "#d7a447"
+        : "#78a890";
     context.arc(0, 0, radius, 0, Math.PI * 2);
     context.fill();
     context.strokeStyle = "rgba(244, 239, 231, 0.8)";
@@ -310,8 +398,15 @@ function drawPlacedAssets(
   }
 }
 
-function createLayerState(layers: MapLayer[]): Map<MapLayerKind, { opacity: number; visible: boolean }> {
-  return new Map(layers.map((layer) => [layer.kind, { opacity: layer.opacity, visible: layer.visible }]));
+function createLayerState(
+  layers: MapLayer[]
+): Map<MapLayerKind, { opacity: number; visible: boolean }> {
+  return new Map(
+    layers.map((layer) => [
+      layer.kind,
+      { opacity: layer.opacity, visible: layer.visible }
+    ])
+  );
 }
 
 function drawLayer(

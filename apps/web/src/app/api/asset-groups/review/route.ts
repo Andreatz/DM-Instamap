@@ -30,7 +30,10 @@ export async function POST(request: Request) {
   const action = parseAction(body);
 
   if (!action) {
-    return Response.json({ error: "Invalid group review payload." }, { status: 400 });
+    return Response.json(
+      { error: "Invalid group review payload." },
+      { status: 400 }
+    );
   }
 
   const [groups, manifest, reviews] = await Promise.all([
@@ -51,33 +54,50 @@ export async function POST(request: Request) {
   if (action.action === "correct" && item) {
     const correction = buildGroupCorrectionFromDraft(action.draft);
     await saveAssetOverrides(
-      buildAssetCorrectionsForGroup(item, correction).map(({ asset, correction: assetCorrection }) => ({
-        assetId: asset.id,
-        correction: assetCorrection,
-        relativePath: asset.relativePath
-      }))
+      buildAssetCorrectionsForGroup(item, correction).map(
+        ({ asset, correction: assetCorrection }) => ({
+          assetId: asset.id,
+          correction: assetCorrection,
+          relativePath: asset.relativePath
+        })
+      )
     );
   }
 
   if (action.action === "add-tags" && item) {
     const existingDraft = {
       kind: item.review?.correction?.kind ?? item.group.kind,
-      qualityScore: item.review?.correction?.qualityScore ?? item.group.qualityScore ?? 50,
-      tagsText: [...new Set([...item.group.tags, ...action.tagsText.split(",").map((tag) => tag.trim()).filter(Boolean)])].join(", "),
+      qualityScore:
+        item.review?.correction?.qualityScore ?? item.group.qualityScore ?? 50,
+      tagsText: [
+        ...new Set([
+          ...item.group.tags,
+          ...action.tagsText
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean)
+        ])
+      ].join(", "),
       theme: item.review?.correction?.theme ?? item.group.theme ?? "",
-      usableForText: (item.review?.correction?.usableFor ?? item.group.usableFor).join(", ")
+      usableForText: (
+        item.review?.correction?.usableFor ?? item.group.usableFor
+      ).join(", ")
     } as AssetGroupReviewDraft;
     const correction = buildGroupCorrectionFromDraft(existingDraft);
     await saveAssetOverrides(
-      buildAssetCorrectionsForGroup(item, correction).map(({ asset, correction: assetCorrection }) => ({
-        assetId: asset.id,
-        correction: assetCorrection,
-        relativePath: asset.relativePath
-      }))
+      buildAssetCorrectionsForGroup(item, correction).map(
+        ({ asset, correction: assetCorrection }) => ({
+          assetId: asset.id,
+          correction: assetCorrection,
+          relativePath: asset.relativePath
+        })
+      )
     );
   }
 
-  const savedReviews = await saveAssetGroupReviews(applyGroupReviewAction(reviews, action));
+  const savedReviews = await saveAssetGroupReviews(
+    applyGroupReviewAction(reviews, action)
+  );
 
   return Response.json({
     reviews: savedReviews,
@@ -101,17 +121,36 @@ function parseAction(body: RequestBody): BatchGroupAction | null {
     return { action, groupId, tagsText: body.tagsText };
   }
 
-  if (action === "remove-asset" && groupId && typeof body.assetId === "string") {
+  if (
+    action === "remove-asset" &&
+    groupId &&
+    typeof body.assetId === "string"
+  ) {
     return { action, assetId: body.assetId, groupId };
   }
 
-  if (action === "split" && groupId && typeof body.name === "string" && Array.isArray(body.assetIds)) {
-    const assetIds = body.assetIds.filter((assetId): assetId is string => typeof assetId === "string");
-    return assetIds.length > 0 ? { action, assetIds, groupId, name: body.name } : null;
+  if (
+    action === "split" &&
+    groupId &&
+    typeof body.name === "string" &&
+    Array.isArray(body.assetIds)
+  ) {
+    const assetIds = body.assetIds.filter(
+      (assetId): assetId is string => typeof assetId === "string"
+    );
+    return assetIds.length > 0
+      ? { action, assetIds, groupId, name: body.name }
+      : null;
   }
 
-  if (action === "merge" && typeof body.name === "string" && Array.isArray(body.groupIds)) {
-    const groupIds = body.groupIds.filter((assetId): assetId is string => typeof assetId === "string");
+  if (
+    action === "merge" &&
+    typeof body.name === "string" &&
+    Array.isArray(body.groupIds)
+  ) {
+    const groupIds = body.groupIds.filter(
+      (assetId): assetId is string => typeof assetId === "string"
+    );
     return groupIds.length >= 2 ? { action, groupIds, name: body.name } : null;
   }
 

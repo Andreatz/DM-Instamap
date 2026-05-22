@@ -14,6 +14,10 @@ export default defineConfig({
   },
   webServer: {
     command: "pnpm --filter @dm-instamap/web dev",
+    // Provider AI locale e deterministico per gli E2E: nessuna chiamata esterna.
+    env: {
+      AI_PROVIDER: "mock"
+    },
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     url: "http://127.0.0.1:3000"

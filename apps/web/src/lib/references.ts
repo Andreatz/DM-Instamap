@@ -90,8 +90,18 @@ type RawReferenceStyleDna = {
 
 export async function loadReferenceMaps(): Promise<LoadedReferenceMaps> {
   const workspaceRoot = await findWorkspaceRoot(process.cwd());
-  const manifestPath = path.join(workspaceRoot, "data", "indexes", "references.manifest.json");
-  const styleDnaPath = path.join(workspaceRoot, "data", "indexes", "reference-style-dna.json");
+  const manifestPath = path.join(
+    workspaceRoot,
+    "data",
+    "indexes",
+    "references.manifest.json"
+  );
+  const styleDnaPath = path.join(
+    workspaceRoot,
+    "data",
+    "indexes",
+    "reference-style-dna.json"
+  );
 
   try {
     const [raw, styleDnaByReferenceId] = await Promise.all([
@@ -104,11 +114,13 @@ export async function loadReferenceMaps(): Promise<LoadedReferenceMaps> {
       : [];
 
     return {
-      generatedAt: typeof manifest.generatedAt === "string" ? manifest.generatedAt : null,
+      generatedAt:
+        typeof manifest.generatedAt === "string" ? manifest.generatedAt : null,
       manifestPath,
       missing: false,
       references,
-      sourceRoot: typeof manifest.sourceRoot === "string" ? manifest.sourceRoot : null
+      sourceRoot:
+        typeof manifest.sourceRoot === "string" ? manifest.sourceRoot : null
     };
   } catch (error) {
     if (isMissingFileError(error)) {
@@ -159,12 +171,20 @@ export function normalizeReferenceMaps(
       };
     })
     .filter((reference): reference is ReferenceMapView => reference !== null)
-    .sort((left, right) => left.mapType.localeCompare(right.mapType) || left.path.localeCompare(right.path));
+    .sort(
+      (left, right) =>
+        left.mapType.localeCompare(right.mapType) ||
+        left.path.localeCompare(right.path)
+    );
 }
 
-async function loadReferenceStyleDna(styleDnaPath: string): Promise<Map<string, ReferenceStyleDnaView>> {
+async function loadReferenceStyleDna(
+  styleDnaPath: string
+): Promise<Map<string, ReferenceStyleDnaView>> {
   try {
-    const file = parseJsonFileContent(await readFile(styleDnaPath, "utf8")) as ReferenceStyleDnaFile;
+    const file = parseJsonFileContent(
+      await readFile(styleDnaPath, "utf8")
+    ) as ReferenceStyleDnaFile;
     const styles = Array.isArray(file.styles) ? file.styles : [];
     const normalized = new Map<string, ReferenceStyleDnaView>();
 
@@ -186,7 +206,9 @@ async function loadReferenceStyleDna(styleDnaPath: string): Promise<Map<string, 
   }
 }
 
-function normalizeReferenceStyleDna(style: unknown): ReferenceStyleDnaView | null {
+function normalizeReferenceStyleDna(
+  style: unknown
+): ReferenceStyleDnaView | null {
   if (!style || typeof style !== "object") {
     return null;
   }
@@ -223,7 +245,11 @@ function normalizeGrid(value: unknown): ReferenceStyleDnaView["grid"] {
     };
   }
 
-  const input = value as { confidence?: unknown; detected?: unknown; estimatedCellSizePx?: unknown };
+  const input = value as {
+    confidence?: unknown;
+    detected?: unknown;
+    estimatedCellSizePx?: unknown;
+  };
 
   return {
     confidence: readConfidence(input.confidence),
@@ -243,7 +269,11 @@ function normalizePalette(value: unknown): ReferenceStyleDnaView["palette"] {
         return null;
       }
 
-      const input = item as { hex?: unknown; population?: unknown; role?: unknown };
+      const input = item as {
+        hex?: unknown;
+        population?: unknown;
+        role?: unknown;
+      };
       const hex = readString(input.hex);
       const population = readNullableNumber(input.population);
 
@@ -257,10 +287,14 @@ function normalizePalette(value: unknown): ReferenceStyleDnaView["palette"] {
         role: readString(input.role) || "unknown"
       };
     })
-    .filter((item): item is ReferenceStyleDnaView["palette"][number] => item !== null);
+    .filter(
+      (item): item is ReferenceStyleDnaView["palette"][number] => item !== null
+    );
 }
 
-function readDominantColors(value: unknown): ReferenceMapView["dominantColors"] {
+function readDominantColors(
+  value: unknown
+): ReferenceMapView["dominantColors"] {
   if (!Array.isArray(value)) {
     return [];
   }
@@ -281,7 +315,9 @@ function readDominantColors(value: unknown): ReferenceMapView["dominantColors"] 
 
       return { hex, population };
     })
-    .filter((color): color is { hex: string; population: number } => color !== null);
+    .filter(
+      (color): color is { hex: string; population: number } => color !== null
+    );
 }
 
 function readNullableNumber(value: unknown): number | null {
@@ -301,7 +337,9 @@ function readString(value: unknown): string {
 }
 
 function readStringArray(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }
 
 function isMissingFileError(error: unknown): boolean {

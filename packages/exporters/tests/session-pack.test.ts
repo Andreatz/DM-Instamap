@@ -38,21 +38,29 @@ describe("exportSessionPack", () => {
       ])
     );
 
-    const manifest = JSON.parse(await zip.file("manifest.json")!.async("string")) as {
+    const manifest = JSON.parse(
+      await zip.file("manifest.json")!.async("string")
+    ) as {
       artifacts: Array<{ path: string }>;
       documentId: string;
       rooms: Array<{ id: string }>;
     };
     expect(manifest.documentId).toBe("session-fixture");
-    expect(manifest.rooms.map((room) => room.id)).toEqual(expect.arrayContaining(["room-public", "room-secret"]));
+    expect(manifest.rooms.map((room) => room.id)).toEqual(
+      expect.arrayContaining(["room-public", "room-secret"])
+    );
     expect(manifest.artifacts.length).toBeGreaterThanOrEqual(7);
 
-    const gmNotes = JSON.parse(await zip.file("notes/gm-notes.json")!.async("string")) as {
+    const gmNotes = JSON.parse(
+      await zip.file("notes/gm-notes.json")!.async("string")
+    ) as {
       entries: Array<{ title: string }>;
     };
     expect(gmNotes.entries.map((entry) => entry.title)).toEqual(["Trap"]);
 
-    const initiative = JSON.parse(await zip.file("initiative/initiative.json")!.async("string")) as {
+    const initiative = JSON.parse(
+      await zip.file("initiative/initiative.json")!.async("string")
+    ) as {
       entries: Array<{ name: string }>;
     };
     expect(initiative.entries.map((entry) => entry.name)).toEqual(["Goblin"]);

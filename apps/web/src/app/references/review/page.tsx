@@ -5,7 +5,10 @@ import { loadReferenceMaps } from "@/lib/references";
 export const dynamic = "force-dynamic";
 
 export default async function ReferenceReviewPage() {
-  const [manifest, overrides] = await Promise.all([loadReferenceMaps(), loadReferenceOverrides()]);
+  const [manifest, overrides] = await Promise.all([
+    loadReferenceMaps(),
+    loadReferenceOverrides()
+  ]);
 
   return (
     <main className="asset-page review-page">
@@ -13,7 +16,10 @@ export default async function ReferenceReviewPage() {
         <div>
           <strong>DM-Instamap</strong>
           <h1>Revisione riferimenti</h1>
-          <p>Correggi tipo mappa, tag, punteggio e note delle mappe di riferimento locali.</p>
+          <p>
+            Correggi tipo mappa, tag, punteggio e note delle mappe di
+            riferimento locali.
+          </p>
         </div>
         <dl>
           <div>
@@ -35,7 +41,10 @@ export default async function ReferenceReviewPage() {
           </p>
         </section>
       ) : (
-        <ReferenceReview initialOverrides={overrides} references={manifest.references} />
+        <ReferenceReview
+          initialOverrides={overrides}
+          references={manifest.references}
+        />
       )}
     </main>
   );

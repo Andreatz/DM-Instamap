@@ -54,7 +54,10 @@ export function PackImporterForm() {
           headers: { "Content-Type": "application/json" },
           method: "POST"
         });
-        const payload = (await response.json()) as { error?: string; job?: WorkerJobRecord };
+        const payload = (await response.json()) as {
+          error?: string;
+          job?: WorkerJobRecord;
+        };
 
         if (!response.ok || !payload.job) {
           throw new Error(payload.error ?? "Import tramite worker fallito.");
@@ -74,7 +77,10 @@ export function PackImporterForm() {
         headers: { "Content-Type": "application/json" },
         method: "POST"
       });
-      const payload = (await response.json()) as { error?: string; summary?: ImportSummary };
+      const payload = (await response.json()) as {
+        error?: string;
+        summary?: ImportSummary;
+      };
 
       if (!response.ok || !payload.summary) {
         throw new Error(payload.error ?? "Importazione fallita.");
@@ -83,7 +89,9 @@ export function PackImporterForm() {
       setSummary(payload.summary);
       setStatus(`Importati ${payload.summary.assetCount} asset.`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Importazione fallita.");
+      setStatus(
+        error instanceof Error ? error.message : "Importazione fallita."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -93,8 +101,9 @@ export function PackImporterForm() {
     <section className="asset-details">
       <h2>Importa pacchetto di asset</h2>
       <p className="muted">
-        Analizza una cartella locale e applica regole di tagging specifiche del preset. Le classificazioni esistenti
-        restano manuali; solo gli asset sconosciuti vengono riclassificati.
+        Analizza una cartella locale e applica regole di tagging specifiche del
+        preset. Le classificazioni esistenti restano manuali; solo gli asset
+        sconosciuti vengono riclassificati.
       </p>
 
       <label className="field">
@@ -108,7 +117,10 @@ export function PackImporterForm() {
 
       <label className="field">
         <span>Preset</span>
-        <select onChange={(event) => setPreset(event.target.value as PresetValue)} value={preset}>
+        <select
+          onChange={(event) => setPreset(event.target.value as PresetValue)}
+          value={preset}
+        >
           {PRESETS.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -132,7 +144,9 @@ export function PackImporterForm() {
           onChange={(event) => setRunOnWorker(event.target.checked)}
           type="checkbox"
         />
-        <span>Esegui sul worker locale (fire-and-forget, richiede il worker attivo)</span>
+        <span>
+          Esegui sul worker locale (fire-and-forget, richiede il worker attivo)
+        </span>
       </label>
 
       <button

@@ -4,7 +4,11 @@ import {
   writeSnapshotToDirectory
 } from "@dm-instamap/core/server";
 import { findWorkspaceRoot } from "@/lib/assets-manifest";
-import { InvalidProjectIdError, ProjectNotFoundError, readProject } from "@/lib/projects";
+import {
+  InvalidProjectIdError,
+  ProjectNotFoundError,
+  readProject
+} from "@/lib/projects";
 
 type RouteContext = {
   params: Promise<{
@@ -42,14 +46,20 @@ export async function POST(request: Request, context: RouteContext) {
     const { projectId } = await context.params;
     const project = await readProject(projectId);
     const body = (await request.json().catch(() => ({}))) as CreateSnapshotBody;
-    const label = typeof body.label === "string" && body.label.trim().length > 0 ? body.label.trim() : "manual";
+    const label =
+      typeof body.label === "string" && body.label.trim().length > 0
+        ? body.label.trim()
+        : "manual";
     const outputRoot = await findWorkspaceRoot(process.cwd());
     const snapshot = createMapSnapshot({
       document: project.document,
       label,
       projectId
     });
-    const persisted = await writeSnapshotToDirectory(snapshot, { outputRoot, projectId });
+    const persisted = await writeSnapshotToDirectory(snapshot, {
+      outputRoot,
+      projectId
+    });
 
     return Response.json({
       ok: true,
@@ -75,6 +85,7 @@ function snapshotErrorResponse(error: unknown): Response {
     return Response.json({ error: error.message, ok: false }, { status: 400 });
   }
 
-  const message = error instanceof Error ? error.message : "Snapshot operation failed.";
+  const message =
+    error instanceof Error ? error.message : "Snapshot operation failed.";
   return Response.json({ error: message, ok: false }, { status: 500 });
 }

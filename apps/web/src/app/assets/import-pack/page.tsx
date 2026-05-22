@@ -11,8 +11,9 @@ export default function ImportPackPage() {
           <strong>DM-Instamap</strong>
           <h1>Importa pacchetto di asset</h1>
           <p>
-            Applica tag automatici specifici del preset sopra lo scanner standard. Funziona con Forgotten Adventures,
-            2-Minute Tabletop, layout Czepeku o come fallback generico.
+            Applica tag automatici specifici del preset sopra lo scanner
+            standard. Funziona con Forgotten Adventures, 2-Minute Tabletop,
+            layout Czepeku o come fallback generico.
           </p>
         </div>
       </header>

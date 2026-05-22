@@ -35,23 +35,42 @@ export type AssetLibraryStatus = {
  * Folds the manifest, group index and audit reports into a single, display
  * friendly status. Pure so the home and library pages stay consistent.
  */
-export function summarizeAssetLibrary(input: AssetLibraryStatusInput): AssetLibraryStatus {
-  const assetCount = Math.max(input.manifest.assetCount, input.audit.assetCount);
+export function summarizeAssetLibrary(
+  input: AssetLibraryStatusInput
+): AssetLibraryStatus {
+  const assetCount = Math.max(
+    input.manifest.assetCount,
+    input.audit.assetCount
+  );
   const duplicateGroupCount = input.audit.duplicateGroupCount;
   const needsReviewCount = input.audit.needsReviewCount;
   const lowQualityCount = input.audit.lowQualityCount;
-  const issueCount = duplicateGroupCount + needsReviewCount + lowQualityCount + input.audit.classificationWarnings.length;
+  const issueCount =
+    duplicateGroupCount +
+    needsReviewCount +
+    lowQualityCount +
+    input.audit.classificationWarnings.length;
   const lastScan = input.audit.generatedAt ?? input.manifest.generatedAt;
-  const empty = assetCount === 0 || (input.manifest.missing && input.audit.missing);
+  const empty =
+    assetCount === 0 || (input.manifest.missing && input.audit.missing);
 
-  const tone: AssetLibraryStatusTone = empty ? "empty" : issueCount > 0 ? "warning" : "ready";
+  const tone: AssetLibraryStatusTone = empty
+    ? "empty"
+    : issueCount > 0
+      ? "warning"
+      : "ready";
   const ready = tone === "ready";
 
   return {
     assetCount,
     duplicateGroupCount,
     groupCount: input.groupCount,
-    headline: buildHeadline({ assetCount, empty, groupCount: input.groupCount, issueCount }),
+    headline: buildHeadline({
+      assetCount,
+      empty,
+      groupCount: input.groupCount,
+      issueCount
+    }),
     issueCount,
     lastScan,
     lowQualityCount,
@@ -61,7 +80,12 @@ export function summarizeAssetLibrary(input: AssetLibraryStatusInput): AssetLibr
   };
 }
 
-function buildHeadline(input: { assetCount: number; empty: boolean; groupCount: number; issueCount: number }): string {
+function buildHeadline(input: {
+  assetCount: number;
+  empty: boolean;
+  groupCount: number;
+  issueCount: number;
+}): string {
   if (input.empty) {
     return "Nessun asset indicizzato: avvia una scansione per iniziare.";
   }

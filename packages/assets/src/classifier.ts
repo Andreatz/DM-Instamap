@@ -40,9 +40,29 @@ export type AssetOverride = Partial<{
 }>;
 
 const KEYWORDS: Record<Exclude<AssetClassification, "unknown">, string[]> = {
-  decoration: ["banner", "banners", "carpet", "decor", "decoration", "ornament", "painting", "rubble", "statue"],
+  decoration: [
+    "banner",
+    "banners",
+    "carpet",
+    "decor",
+    "decoration",
+    "ornament",
+    "painting",
+    "rubble",
+    "statue"
+  ],
   door: ["door", "doors", "gate", "gates", "hatch", "portcullis"],
-  floor: ["cobble", "floor", "floors", "ground", "mosaic", "parquet", "stonefloor", "tile", "tiles"],
+  floor: [
+    "cobble",
+    "floor",
+    "floors",
+    "ground",
+    "mosaic",
+    "parquet",
+    "stonefloor",
+    "tile",
+    "tiles"
+  ],
   furniture: [
     "barrel",
     "bed",
@@ -57,12 +77,53 @@ const KEYWORDS: Record<Exclude<AssetClassification, "unknown">, string[]> = {
     "table",
     "throne"
   ],
-  light: ["brazier", "candle", "fire", "lamp", "lantern", "light", "lights", "sconce", "torch"],
-  prop: ["asset", "item", "object", "objects", "prop", "props", "token", "tokens"],
+  light: [
+    "brazier",
+    "candle",
+    "fire",
+    "lamp",
+    "lantern",
+    "light",
+    "lights",
+    "sconce",
+    "torch"
+  ],
+  prop: [
+    "asset",
+    "item",
+    "object",
+    "objects",
+    "prop",
+    "props",
+    "token",
+    "tokens"
+  ],
   roof: ["roof", "roofs", "shingle", "thatch", "tile-roof"],
-  terrain: ["boulder", "bush", "cliff", "grass", "hill", "mud", "rock", "rocks", "sand", "terrain", "tree", "trees"],
+  terrain: [
+    "boulder",
+    "bush",
+    "cliff",
+    "grass",
+    "hill",
+    "mud",
+    "rock",
+    "rocks",
+    "sand",
+    "terrain",
+    "tree",
+    "trees"
+  ],
   wall: ["barrier", "fence", "palisade", "wall", "walls"],
-  water: ["creek", "lake", "pond", "river", "sea", "stream", "water", "waterfall"],
+  water: [
+    "creek",
+    "lake",
+    "pond",
+    "river",
+    "sea",
+    "stream",
+    "water",
+    "waterfall"
+  ],
   window: ["glass", "shutter", "window", "windows"]
 };
 
@@ -123,7 +184,8 @@ function classifyAutomatically(
     (left, right) => right[1] - left[1] || left[0].localeCompare(right[0])
   );
   const [classification, rawConfidence] = ranked[0] ?? ["unknown", 0.05];
-  const confidence = classification === "unknown" ? 0.1 : clampConfidence(rawConfidence);
+  const confidence =
+    classification === "unknown" ? 0.1 : clampConfidence(rawConfidence);
 
   return {
     classification,
@@ -133,7 +195,10 @@ function classifyAutomatically(
   };
 }
 
-function applyShapeHeuristics(scores: Map<AssetClassification, number>, input: AssetClassifierInput): void {
+function applyShapeHeuristics(
+  scores: Map<AssetClassification, number>,
+  input: AssetClassifierInput
+): void {
   if (!input.width || !input.height) {
     return;
   }
@@ -199,7 +264,9 @@ function tokenizeText(text: string): string[] {
 }
 
 function normalizeTags(tags: string[]): string[] {
-  return [...new Set(tags.flatMap(tokenizeText))].sort((left, right) => left.localeCompare(right));
+  return [...new Set(tags.flatMap(tokenizeText))].sort((left, right) =>
+    left.localeCompare(right)
+  );
 }
 
 function clampConfidence(value: number): number {

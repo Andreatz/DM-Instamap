@@ -14,7 +14,12 @@ type AiAutoWorkspaceProps = {
 
 type AiStatus =
   | { enabled: false; mode: "manual-only"; reason?: string }
-  | { enabled: true; mode: "api"; model?: string; provider: "anthropic" | "openai" };
+  | {
+      enabled: true;
+      mode: "api";
+      model?: string;
+      provider: "anthropic" | "openai";
+    };
 
 type PlanResult = {
   attempts: number;
@@ -40,20 +45,30 @@ type BlueprintResult = {
   ok: boolean;
 };
 
-export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProps) {
+export function AiAutoWorkspace({
+  assetGroups,
+  references
+}: AiAutoWorkspaceProps) {
   const router = useRouter();
   const [aiStatus, setAiStatus] = useState<AiStatus | null>(null);
   const [request, setRequest] = useState(
     "Cripta sotto la cattedrale. I morti sono vincolati, non ostili. Sei stanze."
   );
   const [planResult, setPlanResult] = useState<PlanResult | null>(null);
-  const [blueprintResult, setBlueprintResult] = useState<BlueprintResult | null>(null);
+  const [blueprintResult, setBlueprintResult] =
+    useState<BlueprintResult | null>(null);
   const [planBusy, setPlanBusy] = useState(false);
   const [blueprintBusy, setBlueprintBusy] = useState(false);
   const [importBusy, setImportBusy] = useState(false);
   const [status, setStatus] = useState("");
-  const groupSummaries = useMemo(() => assetGroups.map(toBridgeAssetGroup), [assetGroups]);
-  const referenceSummaries = useMemo(() => references.map(toBridgeReference), [references]);
+  const groupSummaries = useMemo(
+    () => assetGroups.map(toBridgeAssetGroup),
+    [assetGroups]
+  );
+  const referenceSummaries = useMemo(
+    () => references.map(toBridgeReference),
+    [references]
+  );
 
   useEffect(() => {
     void (async () => {
@@ -104,7 +119,11 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
       });
       const payload = (await response.json()) as PlanResult;
       setPlanResult(payload);
-      setStatus(payload.ok ? `Piano ricevuto in ${payload.attempts} tentativi.` : "Piano fallito.");
+      setStatus(
+        payload.ok
+          ? `Piano ricevuto in ${payload.attempts} tentativi.`
+          : "Piano fallito."
+      );
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Piano fallito.");
     } finally {
@@ -132,7 +151,10 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
         headers: { "Content-Type": "application/json" },
         method: "POST"
       });
-      const payload = (await response.json()) as { error?: string; project?: { id: string } };
+      const payload = (await response.json()) as {
+        error?: string;
+        project?: { id: string };
+      };
 
       if (!response.ok || !payload.project) {
         throw new Error(payload.error ?? "Importazione fallita.");
@@ -140,7 +162,9 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
 
       router.push(`/projects/${payload.project.id}/editor`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Importazione fallita.");
+      setStatus(
+        error instanceof Error ? error.message : "Importazione fallita."
+      );
     } finally {
       setImportBusy(false);
     }
@@ -152,8 +176,10 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
     <section className="asset-details">
       <h2>Modalita AI automatica (D1)</h2>
       <p className="muted">
-        Chiama direttamente il provider configurato (senza copia/incolla manuale). Configura con variabili ambiente:{" "}
-        <code>AI_PROVIDER=anthropic|openai</code>, <code>AI_API_KEY=...</code>, optional <code>AI_MODEL</code>.
+        Chiama direttamente il provider configurato (senza copia/incolla
+        manuale). Configura con variabili ambiente:{" "}
+        <code>AI_PROVIDER=anthropic|openai</code>, <code>AI_API_KEY=...</code>,
+        optional <code>AI_MODEL</code>.
       </p>
 
       <div className="manifest-note">
@@ -161,11 +187,15 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
         {aiStatus?.enabled ? (
           <>
             <span className="pill">provider: {aiStatus.provider}</span>
-            {aiStatus.model ? <span className="pill">modello: {aiStatus.model}</span> : null}
+            {aiStatus.model ? (
+              <span className="pill">modello: {aiStatus.model}</span>
+            ) : null}
           </>
         ) : null}
         {aiStatus && !aiStatus.enabled ? (
-          <span className="pill">disattivato: {aiStatus.reason ?? "config env mancante"}</span>
+          <span className="pill">
+            disattivato: {aiStatus.reason ?? "config env mancante"}
+          </span>
         ) : null}
         <span className="pill">{groupSummaries.length} gruppi asset</span>
         <span className="pill">{referenceSummaries.length} riferimenti</span>
@@ -173,7 +203,11 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
 
       <label className="field">
         <span>Richiesta</span>
-        <textarea onChange={(event) => setRequest(event.target.value)} rows={4} value={request} />
+        <textarea
+          onChange={(event) => setRequest(event.target.value)}
+          rows={4}
+          value={request}
+        />
       </label>
 
       <div className="field-row">
@@ -201,8 +235,10 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
           {blueprintResult.ok && blueprintResult.blueprint ? (
             <>
               <p>
-                <strong>{blueprintResult.blueprint.name}</strong> - struttura {blueprintResult.blueprint.structure},
-                scala {blueprintResult.blueprint.scale}, mood {blueprintResult.blueprint.mood}.
+                <strong>{blueprintResult.blueprint.name}</strong> - struttura{" "}
+                {blueprintResult.blueprint.structure}, scala{" "}
+                {blueprintResult.blueprint.scale}, mood{" "}
+                {blueprintResult.blueprint.mood}.
               </p>
               <div className="tag-list">
                 {blueprintResult.blueprint.globalTags.map((tag) => (
@@ -211,8 +247,10 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
               </div>
               <ul>
                 {blueprintResult.blueprint.rooms.map((room, index) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: anteprima statica, le stanze del blueprint non vengono riordinate
                   <li key={`${room.label}-${index}`}>
-                    <strong>{room.label}</strong> <span className="muted">({room.tacticalRole})</span>
+                    <strong>{room.label}</strong>{" "}
+                    <span className="muted">({room.tacticalRole})</span>
                     <p>{room.purpose}</p>
                   </li>
                 ))}
@@ -221,6 +259,7 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
           ) : (
             <ul>
               {(blueprintResult.errors ?? []).map((message, index) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: lista di errori statica e di sola lettura
                 <li key={index}>{message}</li>
               ))}
             </ul>
@@ -234,8 +273,10 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
           {planResult.ok && planResult.plan ? (
             <>
               <p>
-                Piano <strong>{planResult.plan.name}</strong> - {planResult.plan.rooms.length} stanze,{" "}
-                {planResult.plan.walls.length} muri, {planResult.plan.doors.length} porte. Provider:{" "}
+                Piano <strong>{planResult.plan.name}</strong> -{" "}
+                {planResult.plan.rooms.length} stanze,{" "}
+                {planResult.plan.walls.length} muri,{" "}
+                {planResult.plan.doors.length} porte. Provider:{" "}
                 {planResult.providerId}.
               </p>
               <button
@@ -250,6 +291,7 @@ export function AiAutoWorkspace({ assetGroups, references }: AiAutoWorkspaceProp
           ) : (
             <ul>
               {(planResult.errors ?? []).map((message, index) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: lista di errori statica e di sola lettura
                 <li key={index}>{message}</li>
               ))}
             </ul>

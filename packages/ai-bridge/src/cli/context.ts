@@ -14,20 +14,27 @@ type ReferenceStyleDnaFile = {
   styles?: unknown;
 };
 
-export async function loadBridgeContextFromIndexes(outputRoot: string): Promise<{
+export async function loadBridgeContextFromIndexes(
+  outputRoot: string
+): Promise<{
   assetGroups: BridgeAssetGroupSummary[];
   references: BridgeReferenceSummary[];
 }> {
   const indexesRoot = path.join(outputRoot, "data", "indexes");
   const [assetGroups, references] = await Promise.all([
     loadAssetGroups(path.join(indexesRoot, "asset-groups.json")),
-    loadReferences(path.join(indexesRoot, "references.manifest.json"), path.join(indexesRoot, "reference-style-dna.json"))
+    loadReferences(
+      path.join(indexesRoot, "references.manifest.json"),
+      path.join(indexesRoot, "reference-style-dna.json")
+    )
   ]);
 
   return { assetGroups, references };
 }
 
-async function loadAssetGroups(filePath: string): Promise<BridgeAssetGroupSummary[]> {
+async function loadAssetGroups(
+  filePath: string
+): Promise<BridgeAssetGroupSummary[]> {
   const file = (await readJsonFile(filePath)) as AssetGroupsFile | null;
   const groups = Array.isArray(file?.groups) ? file.groups : [];
 
@@ -46,7 +53,9 @@ async function loadAssetGroups(filePath: string): Promise<BridgeAssetGroupSummar
       }
 
       const summary: BridgeAssetGroupSummary = {
-        assetCount: readNumber(input.assetCount) ?? readStringArray(input.assetIds).length,
+        assetCount:
+          readNumber(input.assetCount) ??
+          readStringArray(input.assetIds).length,
         id,
         kind: readString(input.kind) || "unknown",
         name,
@@ -61,12 +70,17 @@ async function loadAssetGroups(filePath: string): Promise<BridgeAssetGroupSummar
     .filter((group): group is BridgeAssetGroupSummary => group !== null);
 }
 
-async function loadReferences(manifestPath: string, stylePath: string): Promise<BridgeReferenceSummary[]> {
+async function loadReferences(
+  manifestPath: string,
+  stylePath: string
+): Promise<BridgeReferenceSummary[]> {
   const [manifest, stylesByReferenceId] = await Promise.all([
     readJsonFile(manifestPath) as Promise<ReferencesManifestFile | null>,
     loadStylesByReferenceId(stylePath)
   ]);
-  const references = Array.isArray(manifest?.references) ? manifest.references : [];
+  const references = Array.isArray(manifest?.references)
+    ? manifest.references
+    : [];
 
   return references
     .map<BridgeReferenceSummary | null>((reference) => {
@@ -95,13 +109,20 @@ async function loadReferences(manifestPath: string, stylePath: string): Promise<
 
       return summary;
     })
-    .filter((reference): reference is BridgeReferenceSummary => reference !== null);
+    .filter(
+      (reference): reference is BridgeReferenceSummary => reference !== null
+    );
 }
 
-async function loadStylesByReferenceId(filePath: string): Promise<Map<string, NonNullable<BridgeReferenceSummary["styleDna"]>>> {
+async function loadStylesByReferenceId(
+  filePath: string
+): Promise<Map<string, NonNullable<BridgeReferenceSummary["styleDna"]>>> {
   const file = (await readJsonFile(filePath)) as ReferenceStyleDnaFile | null;
   const styles = Array.isArray(file?.styles) ? file.styles : [];
-  const byReferenceId = new Map<string, NonNullable<BridgeReferenceSummary["styleDna"]>>();
+  const byReferenceId = new Map<
+    string,
+    NonNullable<BridgeReferenceSummary["styleDna"]>
+  >();
 
   for (const style of styles) {
     if (!style || typeof style !== "object") {
@@ -146,7 +167,9 @@ function readString(value: unknown): string {
 }
 
 function readStringArray(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }
 
 function readNumber(value: unknown): number | null {

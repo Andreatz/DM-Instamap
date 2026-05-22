@@ -24,10 +24,7 @@ body {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family:
-    Arial,
-    Helvetica,
-    sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 a {
@@ -166,7 +163,10 @@ a {
   align-items: start;
   display: grid;
   gap: 16px;
-  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(260px, 340px);
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(
+      260px,
+      340px
+    );
 }
 
 .bridge-shell {
@@ -533,7 +533,10 @@ a {
   align-items: start;
   display: grid;
   gap: 16px;
-  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(280px, 360px);
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(
+      280px,
+      360px
+    );
 }
 
 .review-sidebar .filter-header span {
@@ -714,7 +717,10 @@ a {
   align-items: start;
   display: grid;
   gap: 16px;
-  grid-template-columns: minmax(220px, 280px) minmax(280px, 420px) minmax(340px, 1fr);
+  grid-template-columns: minmax(220px, 280px) minmax(280px, 420px) minmax(
+      340px,
+      1fr
+    );
 }
 
 .group-review-sidebar,
@@ -999,7 +1005,10 @@ a {
   align-items: start;
   display: grid;
   gap: 16px;
-  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(260px, 340px);
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(
+      260px,
+      340px
+    );
 }
 
 .generate-preview-panel {
@@ -1056,7 +1065,10 @@ a {
   align-items: start;
   display: grid;
   gap: 16px;
-  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(280px, 380px);
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(
+      280px,
+      380px
+    );
 }
 
 .editor-sidebar,
@@ -1421,6 +1433,7 @@ a {
 
 .editor-checkbox {
   align-items: center;
+  /* biome-ignore lint/complexity/noImportantStyles: override deliberato per forzare il layout flex della checkbox sopra stili piu generici */
   display: flex !important;
   flex-direction: row;
   gap: 8px;
@@ -1784,6 +1797,7 @@ a {
   padding-left: 18px;
 }
 
+/* biome-ignore lint/style/noDescendingSpecificity: utility globale, l'ordine di specificita rispetto ai selettori discendenti e accettato */
 .muted {
   color: var(--muted);
   font-size: 12px;

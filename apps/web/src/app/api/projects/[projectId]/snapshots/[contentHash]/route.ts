@@ -1,8 +1,11 @@
-import {
-  readSnapshotFromDirectory
-} from "@dm-instamap/core/server";
+import { readSnapshotFromDirectory } from "@dm-instamap/core/server";
 import { findWorkspaceRoot } from "@/lib/assets-manifest";
-import { InvalidProjectIdError, ProjectNotFoundError, readProject, updateProject } from "@/lib/projects";
+import {
+  InvalidProjectIdError,
+  ProjectNotFoundError,
+  readProject,
+  updateProject
+} from "@/lib/projects";
 
 type RouteContext = {
   params: Promise<{
@@ -16,10 +19,16 @@ export async function GET(_request: Request, context: RouteContext) {
     const { contentHash, projectId } = await context.params;
     await readProject(projectId);
     const outputRoot = await findWorkspaceRoot(process.cwd());
-    const record = await readSnapshotFromDirectory(contentHash, { outputRoot, projectId });
+    const record = await readSnapshotFromDirectory(contentHash, {
+      outputRoot,
+      projectId
+    });
 
     if (!record) {
-      return Response.json({ error: "Snapshot not found.", ok: false }, { status: 404 });
+      return Response.json(
+        { error: "Snapshot not found.", ok: false },
+        { status: 404 }
+      );
     }
 
     return Response.json({
@@ -41,13 +50,21 @@ export async function POST(_request: Request, context: RouteContext) {
     const { contentHash, projectId } = await context.params;
     await readProject(projectId);
     const outputRoot = await findWorkspaceRoot(process.cwd());
-    const record = await readSnapshotFromDirectory(contentHash, { outputRoot, projectId });
+    const record = await readSnapshotFromDirectory(contentHash, {
+      outputRoot,
+      projectId
+    });
 
     if (!record) {
-      return Response.json({ error: "Snapshot not found.", ok: false }, { status: 404 });
+      return Response.json(
+        { error: "Snapshot not found.", ok: false },
+        { status: 404 }
+      );
     }
 
-    const updated = await updateProject(projectId, { document: record.document });
+    const updated = await updateProject(projectId, {
+      document: record.document
+    });
 
     return Response.json({
       ok: true,
@@ -72,6 +89,7 @@ function snapshotErrorResponse(error: unknown): Response {
     return Response.json({ error: error.message, ok: false }, { status: 400 });
   }
 
-  const message = error instanceof Error ? error.message : "Snapshot restore failed.";
+  const message =
+    error instanceof Error ? error.message : "Snapshot restore failed.";
   return Response.json({ error: message, ok: false }, { status: 500 });
 }

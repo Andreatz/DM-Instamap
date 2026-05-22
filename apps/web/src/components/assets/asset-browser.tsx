@@ -27,18 +27,36 @@ const DEFAULT_FILTERS: AssetFilterState = {
   tag: "all"
 };
 
-export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: AssetBrowserProps) {
+export function AssetBrowser({
+  assets,
+  generatedAt,
+  options,
+  sourceRoot
+}: AssetBrowserProps) {
   const [filters, setFilters] = useState<AssetFilterState>(DEFAULT_FILTERS);
   const [visualSearchQuery, setVisualSearchQuery] = useState("");
   const [imageSearchPath, setImageSearchPath] = useState("");
-  const [searchResults, setSearchResults] = useState<AssetSearchApiResult[]>([]);
+  const [searchResults, setSearchResults] = useState<AssetSearchApiResult[]>(
+    []
+  );
   const [searchStatus, setSearchStatus] = useState("Ricerca locale pronta");
-  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(assets[0]?.id ?? null);
-  const visibleAssets = useMemo(() => filterAssets(assets, filters), [assets, filters]);
+  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(
+    assets[0]?.id ?? null
+  );
+  const visibleAssets = useMemo(
+    () => filterAssets(assets, filters),
+    [assets, filters]
+  );
   const selectedAsset =
-    assets.find((asset) => asset.id === selectedAssetId) ?? visibleAssets[0] ?? assets[0] ?? null;
+    assets.find((asset) => asset.id === selectedAssetId) ??
+    visibleAssets[0] ??
+    assets[0] ??
+    null;
 
-  function updateFilter<Key extends keyof AssetFilterState>(key: Key, value: AssetFilterState[Key]) {
+  function updateFilter<Key extends keyof AssetFilterState>(
+    key: Key,
+    value: AssetFilterState[Key]
+  ) {
     setFilters((current) => ({
       ...current,
       [key]: value
@@ -57,8 +75,13 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
     setSearchStatus("Ricerca negli asset locali");
 
     try {
-      const response = await fetch(`/api/assets/search?q=${encodeURIComponent(query)}&limit=24`);
-      const payload = (await response.json()) as { results?: AssetSearchApiResult[]; error?: string };
+      const response = await fetch(
+        `/api/assets/search?q=${encodeURIComponent(query)}&limit=24`
+      );
+      const payload = (await response.json()) as {
+        results?: AssetSearchApiResult[];
+        error?: string;
+      };
 
       if (!response.ok) {
         throw new Error(payload.error ?? "Ricerca fallita");
@@ -68,7 +91,9 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
       setSearchStatus(`${payload.results?.length ?? 0} risultati locali`);
     } catch (error) {
       setSearchResults([]);
-      setSearchStatus(error instanceof Error ? error.message : "Ricerca fallita");
+      setSearchStatus(
+        error instanceof Error ? error.message : "Ricerca fallita"
+      );
     }
   }
 
@@ -77,7 +102,9 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
 
     if (!imagePath) {
       setSearchResults([]);
-      setSearchStatus("Inserisci un percorso immagine locale dentro il workspace");
+      setSearchStatus(
+        "Inserisci un percorso immagine locale dentro il workspace"
+      );
       return;
     }
 
@@ -91,7 +118,10 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
         },
         method: "POST"
       });
-      const payload = (await response.json()) as { results?: AssetSearchApiResult[]; error?: string };
+      const payload = (await response.json()) as {
+        results?: AssetSearchApiResult[];
+        error?: string;
+      };
 
       if (!response.ok) {
         throw new Error(payload.error ?? "Ricerca per immagine fallita");
@@ -101,7 +131,9 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
       setSearchStatus(`${payload.results?.length ?? 0} asset locali simili`);
     } catch (error) {
       setSearchResults([]);
-      setSearchStatus(error instanceof Error ? error.message : "Ricerca per immagine fallita");
+      setSearchStatus(
+        error instanceof Error ? error.message : "Ricerca per immagine fallita"
+      );
     }
   }
 
@@ -156,7 +188,10 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
 
         <label className="field">
           <span>Tipo</span>
-          <select onChange={(event) => updateFilter("kind", event.target.value)} value={filters.kind}>
+          <select
+            onChange={(event) => updateFilter("kind", event.target.value)}
+            value={filters.kind}
+          >
             <option value="all">Tutti i tipi</option>
             {options.kinds.map((kind) => (
               <option key={kind} value={kind}>
@@ -168,7 +203,10 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
 
         <label className="field">
           <span>Tag</span>
-          <select onChange={(event) => updateFilter("tag", event.target.value)} value={filters.tag}>
+          <select
+            onChange={(event) => updateFilter("tag", event.target.value)}
+            value={filters.tag}
+          >
             <option value="all">Tutti i tag</option>
             {options.tags.slice(0, 500).map((tag) => (
               <option key={tag} value={tag}>
@@ -181,7 +219,9 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
         <label className="field">
           <span>Cartella sorgente</span>
           <select
-            onChange={(event) => updateFilter("sourceFolder", event.target.value)}
+            onChange={(event) =>
+              updateFilter("sourceFolder", event.target.value)
+            }
             value={filters.sourceFolder}
           >
             <option value="all">Tutte le cartelle</option>
@@ -198,7 +238,9 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
           <input
             max="1"
             min="0"
-            onChange={(event) => updateFilter("confidence", Number(event.target.value))}
+            onChange={(event) =>
+              updateFilter("confidence", Number(event.target.value))
+            }
             step="0.05"
             type="range"
             value={filters.confidence}
@@ -207,8 +249,12 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
 
         <div className="manifest-note">
           <span>{visibleAssets.length} mostrati</span>
-          {generatedAt ? <span>Indicizzati {new Date(generatedAt).toLocaleString()}</span> : null}
-          {sourceRoot ? <span title={sourceRoot}>Sorgente locale caricata</span> : null}
+          {generatedAt ? (
+            <span>Indicizzati {new Date(generatedAt).toLocaleString()}</span>
+          ) : null}
+          {sourceRoot ? (
+            <span title={sourceRoot}>Sorgente locale caricata</span>
+          ) : null}
         </div>
       </aside>
 
@@ -216,7 +262,11 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
         {searchResults.length > 0 ? (
           <section className="detail-block">
             <h2>Risultati ricerca locale</h2>
-            <div className="asset-grid" aria-label="Risultati della ricerca visuale locale">
+            <div
+              className="asset-grid"
+              role="group"
+              aria-label="Risultati della ricerca visuale locale"
+            >
               {searchResults.map((result) => (
                 <button
                   className="asset-card"
@@ -227,9 +277,12 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
                   <span className="asset-thumb">
                     <img alt="" loading="lazy" src={result.thumbnailUrl} />
                   </span>
-                  <span className="asset-card-name">{getFileName(result.relativePath)}</span>
+                  <span className="asset-card-name">
+                    {getFileName(result.relativePath)}
+                  </span>
                   <span className="asset-card-meta">
-                    {formatAssetKind(result.classification)} - {Math.round(result.score * 100)}%
+                    {formatAssetKind(result.classification)} -{" "}
+                    {Math.round(result.score * 100)}%
                   </span>
                   <span className="asset-card-meta">{result.reason}</span>
                 </button>
@@ -238,7 +291,7 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
           </section>
         ) : null}
 
-        <div className="asset-grid" aria-label="Anteprime asset">
+        <div className="asset-grid" role="group" aria-label="Anteprime asset">
           {visibleAssets.map((asset) => (
             <button
               aria-pressed={selectedAsset?.id === asset.id}
@@ -250,9 +303,12 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
               <span className="asset-thumb">
                 <img alt="" loading="lazy" src={asset.thumbnailUrl} />
               </span>
-              <span className="asset-card-name">{getFileName(asset.relativePath)}</span>
+              <span className="asset-card-name">
+                {getFileName(asset.relativePath)}
+              </span>
               <span className="asset-card-meta">
-                {formatAssetKind(asset.classification)} - {formatPercent(asset.confidence)}
+                {formatAssetKind(asset.classification)} -{" "}
+                {formatPercent(asset.confidence)}
               </span>
             </button>
           ))}
@@ -261,7 +317,9 @@ export function AssetBrowser({ assets, generatedAt, options, sourceRoot }: Asset
         {visibleAssets.length === 0 ? (
           <div className="asset-empty">
             <h2>Nessun asset corrisponde</h2>
-            <p>Modifica i filtri o il testo di ricerca per ampliare la vista.</p>
+            <p>
+              Modifica i filtri o il testo di ricerca per ampliare la vista.
+            </p>
           </div>
         ) : null}
       </div>
@@ -308,7 +366,13 @@ function AssetDetails({ asset }: { asset: AssetBrowserEntry | null }) {
         </div>
         <div>
           <dt>Trasparenza</dt>
-          <dd>{asset.hasTransparency === null ? "sconosciuta" : asset.hasTransparency ? "si" : "no"}</dd>
+          <dd>
+            {asset.hasTransparency === null
+              ? "sconosciuta"
+              : asset.hasTransparency
+                ? "si"
+                : "no"}
+          </dd>
         </div>
         <div>
           <dt>Estensione</dt>

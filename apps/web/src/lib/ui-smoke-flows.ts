@@ -19,7 +19,10 @@ export const UI_SMOKE_FLOWS: UiSmokeFlow[] = [
     route: "/"
   },
   {
-    coveredBy: ["apps/web/src/lib/projects.test.ts", "apps/web/src/app/api/projects/route.test.ts"],
+    coveredBy: [
+      "apps/web/src/lib/projects.test.ts",
+      "apps/web/src/app/api/projects/route.test.ts"
+    ],
     critical: true,
     id: "create-project-wizard",
     localOnly: true,
@@ -28,7 +31,9 @@ export const UI_SMOKE_FLOWS: UiSmokeFlow[] = [
     route: "/projects/new"
   },
   {
-    coveredBy: ["apps/web/src/components/generate/dungeon-generator-preview.test.ts"],
+    coveredBy: [
+      "apps/web/src/components/generate/dungeon-generator-preview.test.ts"
+    ],
     critical: true,
     id: "generate-preview",
     localOnly: true,
@@ -37,7 +42,10 @@ export const UI_SMOKE_FLOWS: UiSmokeFlow[] = [
     route: "/generate"
   },
   {
-    coveredBy: ["apps/web/src/lib/map-editor.test.ts", "apps/web/src/lib/projects.test.ts"],
+    coveredBy: [
+      "apps/web/src/lib/map-editor.test.ts",
+      "apps/web/src/lib/projects.test.ts"
+    ],
     critical: true,
     id: "editor-save-reopen",
     localOnly: true,
@@ -85,7 +93,10 @@ export const UI_SMOKE_FLOWS: UiSmokeFlow[] = [
     route: "/assets"
   },
   {
-    coveredBy: ["apps/web/src/lib/references.test.ts", "apps/web/src/lib/reference-review.test.ts"],
+    coveredBy: [
+      "apps/web/src/lib/references.test.ts",
+      "apps/web/src/lib/reference-review.test.ts"
+    ],
     critical: false,
     id: "references-review",
     localOnly: true,
@@ -94,7 +105,10 @@ export const UI_SMOKE_FLOWS: UiSmokeFlow[] = [
     route: "/references"
   },
   {
-    coveredBy: ["apps/web/src/lib/ai-bridge-import.test.ts", "apps/web/src/app/api/ai/blueprint/route.test.ts"],
+    coveredBy: [
+      "apps/web/src/lib/ai-bridge-import.test.ts",
+      "apps/web/src/app/api/ai/blueprint/route.test.ts"
+    ],
     critical: false,
     id: "manual-ai-bridge",
     localOnly: true,
@@ -104,7 +118,9 @@ export const UI_SMOKE_FLOWS: UiSmokeFlow[] = [
   }
 ];
 
-export function validateUiSmokeFlows(flows: UiSmokeFlow[] = UI_SMOKE_FLOWS): string[] {
+export function validateUiSmokeFlows(
+  flows: UiSmokeFlow[] = UI_SMOKE_FLOWS
+): string[] {
   const errors: string[] = [];
   const ids = new Set<string>();
 

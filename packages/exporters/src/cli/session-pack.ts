@@ -67,7 +67,9 @@ export function parseSessionPackArgs(argv: string[]): SessionPackCliOptions {
   }
 
   if (!options.projectId) {
-    throw new Error("Usage: pnpm exports:session-pack <projectId> [--scale 2] [--output path]");
+    throw new Error(
+      "Usage: pnpm exports:session-pack <projectId> [--scale 2] [--output path]"
+    );
   }
 
   return {
@@ -84,7 +86,12 @@ export function parseSessionPackArgs(argv: string[]): SessionPackCliOptions {
 async function main(): Promise<void> {
   const options = parseSessionPackArgs(process.argv.slice(2));
   const outputRoot = process.env.INIT_CWD ?? process.cwd();
-  const projectDir = path.join(outputRoot, "data", "projects", options.projectId);
+  const projectDir = path.join(
+    outputRoot,
+    "data",
+    "projects",
+    options.projectId
+  );
   const raw = await readFile(path.join(projectDir, "map.dmimap.json"), "utf8");
   const document = migrateMapDocument(JSON.parse(raw));
   const result = await exportSessionPack(document, {
@@ -94,21 +101,44 @@ async function main(): Promise<void> {
     includeInitiative: options.includeInitiative,
     scale: options.scale
   });
-  const outputPath = resolveOutputPath(outputRoot, options.output, options.projectId, result.filename);
+  const outputPath = resolveOutputPath(
+    outputRoot,
+    options.output,
+    options.projectId,
+    result.filename
+  );
 
   await mkdir(path.dirname(outputPath), { recursive: true });
   await writeFile(outputPath, result.buffer);
-  console.log(`Session pack written to ${path.relative(outputRoot, outputPath).split(path.sep).join("/")}`);
+  console.log(
+    `Session pack written to ${path.relative(outputRoot, outputPath).split(path.sep).join("/")}`
+  );
   console.log(`Artifacts: ${result.artifacts.length}`);
 }
 
-function resolveOutputPath(outputRoot: string, output: string | undefined, projectId: string, filename: string): string {
+function resolveOutputPath(
+  outputRoot: string,
+  output: string | undefined,
+  projectId: string,
+  filename: string
+): string {
   if (!output) {
-    return path.join(outputRoot, "data", "projects", projectId, "exports", filename);
+    return path.join(
+      outputRoot,
+      "data",
+      "projects",
+      projectId,
+      "exports",
+      filename
+    );
   }
 
-  const resolved = path.isAbsolute(output) ? output : path.resolve(outputRoot, output);
-  return path.extname(resolved).toLowerCase() === ".zip" ? resolved : path.join(resolved, filename);
+  const resolved = path.isAbsolute(output)
+    ? output
+    : path.resolve(outputRoot, output);
+  return path.extname(resolved).toLowerCase() === ".zip"
+    ? resolved
+    : path.join(resolved, filename);
 }
 
 function readRequiredValue(value: string | undefined, flag: string): string {
@@ -129,9 +159,14 @@ function readNumber(value: string | undefined, flag: string): number {
   return parsed;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
   main().catch((error: unknown) => {
-    console.error(error instanceof Error ? error.message : "Session pack export failed.");
+    console.error(
+      error instanceof Error ? error.message : "Session pack export failed."
+    );
     process.exit(1);
   });
 }

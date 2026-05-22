@@ -5,7 +5,11 @@ import { ProjectDescribeButton } from "@/components/projects/project-describe-bu
 import { ProjectQuickExport } from "@/components/projects/project-quick-export";
 import { ProjectSnapshotsPanel } from "@/components/projects/project-snapshots-panel";
 import { ProjectThumbnail } from "@/components/projects/project-thumbnail";
-import { describeExportFormat, describeExportMode, readProjectExportHistory } from "@/lib/project-export-history";
+import {
+  describeExportFormat,
+  describeExportMode,
+  readProjectExportHistory
+} from "@/lib/project-export-history";
 import { computeProjectReadiness } from "@/lib/project-readiness";
 import { ProjectNotFoundError, readProject } from "@/lib/projects";
 
@@ -34,7 +38,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         <dl>
           <div>
             <dt>Griglia</dt>
-            <dd>{project.document.width} x {project.document.height}</dd>
+            <dd>
+              {project.document.width} x {project.document.height}
+            </dd>
           </div>
           <div>
             <dt>Stanze</dt>
@@ -45,7 +51,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
       <section className="group-toolbar">
         <Link href={`/projects/${project.id}/editor`}>Apri editor</Link>
-        <Link href={`/projects/${project.id}/session-ready`}>Pronto per la sessione</Link>
+        <Link href={`/projects/${project.id}/session-ready`}>
+          Pronto per la sessione
+        </Link>
         <Link href={`/projects/${project.id}/export`}>Esporta</Link>
         <Link href="/projects">Tutti i progetti</Link>
       </section>
@@ -54,12 +62,22 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         <div className="reference-preview project-overview-preview">
           <ProjectThumbnail document={project.document} />
         </div>
-        <div className={`session-ready-banner ${readiness.isSessionReady ? "is-ready" : "is-blocked"}`} role="status">
-          <strong>{readiness.isSessionReady ? "Pronto per la sessione" : "Da completare prima della sessione"}</strong>
+        <div
+          className={`session-ready-banner ${readiness.isSessionReady ? "is-ready" : "is-blocked"}`}
+          role="status"
+        >
+          <strong>
+            {readiness.isSessionReady
+              ? "Pronto per la sessione"
+              : "Da completare prima della sessione"}
+          </strong>
           <span className="muted">
-            Requisiti {readiness.requiredPassed}/{readiness.requiredTotal} - preparazione {Math.round(readiness.score * 100)}%
+            Requisiti {readiness.requiredPassed}/{readiness.requiredTotal} -
+            preparazione {Math.round(readiness.score * 100)}%
           </span>
-          <Link href={`/projects/${project.id}/session-ready`}>Apri la checklist</Link>
+          <Link href={`/projects/${project.id}/session-ready`}>
+            Apri la checklist
+          </Link>
         </div>
       </section>
 
@@ -68,14 +86,20 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       <section className="asset-details">
         <h2>Export recenti</h2>
         {exportHistory.length === 0 ? (
-          <p className="muted">Nessun export registrato. Usa "Esporta per la sessione" qui sopra.</p>
+          <p className="muted">
+            Nessun export registrato. Usa "Esporta per la sessione" qui sopra.
+          </p>
         ) : (
           <ul className="export-history-list">
             {exportHistory.slice(0, 6).map((entry) => (
               <li key={entry.id}>
-                <span className="pill">{describeExportFormat(entry.format)}</span>
+                <span className="pill">
+                  {describeExportFormat(entry.format)}
+                </span>
                 <span className="pill">{describeExportMode(entry.mode)}</span>
-                <span className="muted">{new Date(entry.createdAt).toLocaleString()}</span>
+                <span className="muted">
+                  {new Date(entry.createdAt).toLocaleString()}
+                </span>
                 <span>{entry.filename}</span>
               </li>
             ))}
@@ -101,9 +125,14 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       {project.relatedProjectIds.length > 0 ? (
         <section className="asset-details">
           <h2>Piani collegati</h2>
-          <p>Questo progetto e collegato a {project.relatedProjectIds.length} altro/i piano/i dello stesso dungeon.</p>
           <p>
-            <Link href={`/projects/${project.id}/floors`}>Apri panoramica piani</Link>
+            Questo progetto e collegato a {project.relatedProjectIds.length}{" "}
+            altro/i piano/i dello stesso dungeon.
+          </p>
+          <p>
+            <Link href={`/projects/${project.id}/floors`}>
+              Apri panoramica piani
+            </Link>
           </p>
           <ul>
             {project.relatedProjectIds.map((relatedId) => (
@@ -129,8 +158,14 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
       <section className="asset-details">
         <h2>Azioni progetto</h2>
-        <p>L'eliminazione di un progetto rimuove la cartella locale da data/projects.</p>
-        <DeleteProjectButton projectId={project.id} projectName={project.name} />
+        <p>
+          L'eliminazione di un progetto rimuove la cartella locale da
+          data/projects.
+        </p>
+        <DeleteProjectButton
+          projectId={project.id}
+          projectName={project.name}
+        />
       </section>
     </main>
   );

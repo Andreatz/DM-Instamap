@@ -1,4 +1,10 @@
-import { deleteProject, InvalidProjectIdError, ProjectNotFoundError, readProject, updateProject } from "@/lib/projects";
+import {
+  deleteProject,
+  InvalidProjectIdError,
+  ProjectNotFoundError,
+  readProject,
+  updateProject
+} from "@/lib/projects";
 
 type RouteContext = {
   params: Promise<{
@@ -24,7 +30,10 @@ export async function PUT(request: Request, context: RouteContext) {
   try {
     const { projectId } = await context.params;
     const body = (await request.json()) as unknown;
-    const project = await updateProject(projectId, body && typeof body === "object" ? body : {});
+    const project = await updateProject(
+      projectId,
+      body && typeof body === "object" ? body : {}
+    );
 
     return Response.json({
       ok: true,

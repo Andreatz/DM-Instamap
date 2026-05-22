@@ -121,13 +121,16 @@ pnpm ai:plan "..."               # piano AI opzionale o mock
 
 ## Qualita E Test
 
-Comandi di base oggi disponibili:
+Gate di qualita (comandi distinti):
 
 ```bash
 pnpm repo:audit
-pnpm lint
-pnpm test
+pnpm format:check   # Biome: formattazione
+pnpm lint           # Biome: lint reale (no piu tsc)
+pnpm typecheck      # tsc --noEmit
+pnpm test:coverage  # test + soglie di coverage
 pnpm build
+pnpm --filter @dm-instamap/worker lint   # ruff + mypy --strict
 pnpm --filter @dm-instamap/worker test
 ```
 
@@ -138,11 +141,13 @@ pnpm exec playwright install chromium
 pnpm test:e2e
 ```
 
-Nota: al momento `pnpm lint` e ancora il gate TypeScript/compileall dei package.
-La Fase A della roadmap introduce lint reale, format check, typecheck separato,
-coverage e lint Python con ruff/mypy.
+Il lint TypeScript/JS/CSS usa **Biome**; il worker Python usa **ruff** + **mypy
+--strict**. La CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) esegue
+l'intero gate su `ubuntu-latest` e `windows-latest`, con soglie di coverage.
 
-Dettagli in [docs/TESTING.md](docs/TESTING.md).
+Dettagli, regole disattivate, soglie e branch protection in
+[docs/CODE_QUALITY.md](docs/CODE_QUALITY.md); flussi di test in
+[docs/TESTING.md](docs/TESTING.md).
 
 ## Dati Locali
 
@@ -158,8 +163,9 @@ data/exports/
 data/campaigns/
 ```
 
-Vedi [docs/LOCAL_DATA.md](docs/LOCAL_DATA.md) per rigenerazione, audit e policy
-di validazione path.
+Vedi [docs/LOCAL_DATA.md](docs/LOCAL_DATA.md) per rigenerazione e audit, e
+[docs/PATH_SECURITY.md](docs/PATH_SECURITY.md) per la policy unica di
+validazione path (anti traversal, cartelle di sistema, web vs worker).
 
 ## Documentazione
 

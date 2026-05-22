@@ -5,9 +5,19 @@ on:
     branches: [main]
   pull_request:
 
+# Percorso unico per i browser Playwright: identico su Linux e Windows,
+# cosi la cache funziona allo stesso modo sui due runner.
+env:
+  PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  ci:
+    name: ci
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
@@ -35,11 +45,54 @@ jobs:
       - name: Install worker dependencies
         run: pnpm worker:install
 
-      - name: Lint
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Lint (Biome)
         run: pnpm lint
 
-      - name: Test
-        run: pnpm test
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: File size audit
+        run: pnpm audit:size
+
+      - name: Lint worker (ruff + mypy)
+        run: pnpm --filter @dm-instamap/worker lint
+
+      - name: Test with coverage
+        run: pnpm test:coverage
+
+      - name: Test worker
+        run: pnpm --filter @dm-instamap/worker test
 
       - name: Build
         run: pnpm build
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install Playwright browsers (Linux)
+        if: runner.os == 'Linux'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Playwright browsers (Windows)
+        if: runner.os == 'Windows'
+        run: pnpm exec playwright install chromium
+
+      - name: E2E (Playwright)
+        run: pnpm test:e2e
+
+      - name: Upload Playwright report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.os }}
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore

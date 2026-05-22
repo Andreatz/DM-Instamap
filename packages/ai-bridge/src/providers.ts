@@ -54,17 +54,24 @@ const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-6";
 const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
 const DEFAULT_MAX_TOKENS = 4096;
 
-export function createAnthropicProvider(config: AnthropicProviderConfig): AiCompletionProvider {
+export function createAnthropicProvider(
+  config: AnthropicProviderConfig
+): AiCompletionProvider {
   if (!config.apiKey) {
     throw new Error("createAnthropicProvider: apiKey is required.");
   }
 
-  const baseUrl = (config.baseUrl ?? "https://api.anthropic.com").replace(/\/$/u, "");
+  const baseUrl = (config.baseUrl ?? "https://api.anthropic.com").replace(
+    /\/$/u,
+    ""
+  );
   const model = config.model ?? DEFAULT_ANTHROPIC_MODEL;
   const fetchImpl = config.fetchImpl ?? globalThis.fetch;
 
   if (!fetchImpl) {
-    throw new Error("createAnthropicProvider: fetch is not available in this runtime.");
+    throw new Error(
+      "createAnthropicProvider: fetch is not available in this runtime."
+    );
   }
 
   return {
@@ -72,7 +79,9 @@ export function createAnthropicProvider(config: AnthropicProviderConfig): AiComp
     model,
     vendor: "anthropic",
     async complete(request) {
-      const system = request.messages.find((message) => message.role === "system")?.content;
+      const system = request.messages.find(
+        (message) => message.role === "system"
+      )?.content;
       const turns = request.messages
         .filter((message) => message.role !== "system")
         .map((message) => ({
@@ -81,7 +90,8 @@ export function createAnthropicProvider(config: AnthropicProviderConfig): AiComp
         }));
       const response = await fetchImpl(`${baseUrl}/v1/messages`, {
         body: JSON.stringify({
-          max_tokens: request.maxTokens ?? config.maxTokens ?? DEFAULT_MAX_TOKENS,
+          max_tokens:
+            request.maxTokens ?? config.maxTokens ?? DEFAULT_MAX_TOKENS,
           messages: turns,
           model,
           system,
@@ -97,7 +107,9 @@ export function createAnthropicProvider(config: AnthropicProviderConfig): AiComp
 
       if (!response.ok) {
         const errorText = await safeReadText(response);
-        throw new Error(`Anthropic request failed (${response.status}): ${errorText}`);
+        throw new Error(
+          `Anthropic request failed (${response.status}): ${errorText}`
+        );
       }
 
       const payload = (await response.json()) as {
@@ -105,7 +117,9 @@ export function createAnthropicProvider(config: AnthropicProviderConfig): AiComp
         stop_reason?: string;
       };
       const text = (payload.content ?? [])
-        .filter((block) => block.type === "text" && typeof block.text === "string")
+        .filter(
+          (block) => block.type === "text" && typeof block.text === "string"
+        )
         .map((block) => block.text ?? "")
         .join("");
 
@@ -118,17 +132,24 @@ export function createAnthropicProvider(config: AnthropicProviderConfig): AiComp
   };
 }
 
-export function createOpenAiProvider(config: OpenAiProviderConfig): AiCompletionProvider {
+export function createOpenAiProvider(
+  config: OpenAiProviderConfig
+): AiCompletionProvider {
   if (!config.apiKey) {
     throw new Error("createOpenAiProvider: apiKey is required.");
   }
 
-  const baseUrl = (config.baseUrl ?? "https://api.openai.com").replace(/\/$/u, "");
+  const baseUrl = (config.baseUrl ?? "https://api.openai.com").replace(
+    /\/$/u,
+    ""
+  );
   const model = config.model ?? DEFAULT_OPENAI_MODEL;
   const fetchImpl = config.fetchImpl ?? globalThis.fetch;
 
   if (!fetchImpl) {
-    throw new Error("createOpenAiProvider: fetch is not available in this runtime.");
+    throw new Error(
+      "createOpenAiProvider: fetch is not available in this runtime."
+    );
   }
 
   return {
@@ -138,7 +159,8 @@ export function createOpenAiProvider(config: OpenAiProviderConfig): AiCompletion
     async complete(request) {
       const response = await fetchImpl(`${baseUrl}/v1/chat/completions`, {
         body: JSON.stringify({
-          max_tokens: request.maxTokens ?? config.maxTokens ?? DEFAULT_MAX_TOKENS,
+          max_tokens:
+            request.maxTokens ?? config.maxTokens ?? DEFAULT_MAX_TOKENS,
           messages: request.messages.map((message) => ({
             content: message.content,
             role: message.role
@@ -155,7 +177,9 @@ export function createOpenAiProvider(config: OpenAiProviderConfig): AiCompletion
 
       if (!response.ok) {
         const errorText = await safeReadText(response);
-        throw new Error(`OpenAI request failed (${response.status}): ${errorText}`);
+        throw new Error(
+          `OpenAI request failed (${response.status}): ${errorText}`
+        );
       }
 
       const payload = (await response.json()) as {
@@ -177,7 +201,9 @@ export function createOpenAiProvider(config: OpenAiProviderConfig): AiCompletion
   };
 }
 
-export function createCustomProvider(config: CustomProviderConfig): AiCompletionProvider {
+export function createCustomProvider(
+  config: CustomProviderConfig
+): AiCompletionProvider {
   return {
     id: config.id ?? "custom",
     model: config.model ?? "custom",
@@ -186,8 +212,13 @@ export function createCustomProvider(config: CustomProviderConfig): AiCompletion
   };
 }
 
-export function createMockProvider(config: MockProviderConfig = {}): AiCompletionProvider {
-  const responses = config.responses && config.responses.length > 0 ? config.responses : [DEFAULT_MOCK_PLAN_RESPONSE];
+export function createMockProvider(
+  config: MockProviderConfig = {}
+): AiCompletionProvider {
+  const responses =
+    config.responses && config.responses.length > 0
+      ? config.responses
+      : [DEFAULT_MOCK_PLAN_RESPONSE];
   let index = 0;
 
   return {
@@ -195,7 +226,9 @@ export function createMockProvider(config: MockProviderConfig = {}): AiCompletio
     model: config.model ?? "offline-mock",
     vendor: "mock",
     async complete() {
-      const text = responses[Math.min(index, responses.length - 1)] ?? DEFAULT_MOCK_PLAN_RESPONSE;
+      const text =
+        responses[Math.min(index, responses.length - 1)] ??
+        DEFAULT_MOCK_PLAN_RESPONSE;
       index += 1;
       return {
         finishReason: "stop",
@@ -214,7 +247,9 @@ export type ResolvedAiConfig = {
   provider: "anthropic" | "openai" | "mock";
 };
 
-export function resolveAiConfigFromEnv(env: NodeJS.ProcessEnv = process.env): ResolvedAiConfig | null {
+export function resolveAiConfigFromEnv(
+  env: NodeJS.ProcessEnv = process.env
+): ResolvedAiConfig | null {
   const provider = (env.AI_PROVIDER ?? "").trim().toLowerCase();
 
   if (provider === "mock") {
@@ -237,7 +272,9 @@ export function resolveAiConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Re
   const model = (env.AI_MODEL ?? "").trim() || undefined;
   const baseUrl = (env.AI_BASE_URL ?? "").trim() || undefined;
   const maxTokensRaw = (env.AI_MAX_TOKENS ?? "").trim();
-  const maxTokens = maxTokensRaw ? Number.parseInt(maxTokensRaw, 10) : undefined;
+  const maxTokens = maxTokensRaw
+    ? Number.parseInt(maxTokensRaw, 10)
+    : undefined;
 
   return {
     apiKey,
@@ -248,7 +285,9 @@ export function resolveAiConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Re
   };
 }
 
-export function createProviderFromEnv(env: NodeJS.ProcessEnv = process.env): AiCompletionProvider | null {
+export function createProviderFromEnv(
+  env: NodeJS.ProcessEnv = process.env
+): AiCompletionProvider | null {
   const resolved = resolveAiConfigFromEnv(env);
 
   if (!resolved) {

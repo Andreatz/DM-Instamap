@@ -8,7 +8,9 @@ vi.mock("@/lib/campaigns", () => ({
 import { GET, POST } from "./route";
 import { createCampaignProject, listCampaigns } from "@/lib/campaigns";
 
-const createCampaignMock = createCampaignProject as unknown as ReturnType<typeof vi.fn>;
+const createCampaignMock = createCampaignProject as unknown as ReturnType<
+  typeof vi.fn
+>;
 const listCampaignsMock = listCampaigns as unknown as ReturnType<typeof vi.fn>;
 
 describe("GET /api/campaigns", () => {
@@ -17,7 +19,9 @@ describe("GET /api/campaigns", () => {
   });
 
   it("returns the campaign list", async () => {
-    listCampaignsMock.mockResolvedValue([{ id: "whispering-woods", name: "Whispering Woods" }]);
+    listCampaignsMock.mockResolvedValue([
+      { id: "whispering-woods", name: "Whispering Woods" }
+    ]);
     const response = await GET();
 
     expect(response.status).toBe(200);

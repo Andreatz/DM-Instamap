@@ -3,7 +3,10 @@ import { CampaignSchema, createCampaign } from "../src";
 
 describe("createCampaign", () => {
   it("returns a valid campaign with defaults", () => {
-    const campaign = createCampaign({ id: "campaign-1", name: "Whispering Woods" });
+    const campaign = createCampaign({
+      id: "campaign-1",
+      name: "Whispering Woods"
+    });
 
     expect(campaign.id).toBe("campaign-1");
     expect(campaign.name).toBe("Whispering Woods");

@@ -1,7 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ASSET_REVIEW_KINDS, formatAssetKind, type ReviewAssetKind } from "@/lib/asset-browser";
+import {
+  ASSET_REVIEW_KINDS,
+  formatAssetKind,
+  type ReviewAssetKind
+} from "@/lib/asset-browser";
 import type {
   AssetGroupReviewDraft,
   AssetGroupReviewItem,
@@ -33,10 +37,15 @@ export function AssetGroupReviewWorkspace({
   const [reviews, setReviews] = useState(initialReviews);
   const [stats, setStats] = useState(initialStats);
   const [queue, setQueue] = useState<GroupReviewQueue>("largest-unreviewed");
-  const [selectedGroupId, setSelectedGroupId] = useState(initialItems[0]?.group.id ?? "");
+  const [selectedGroupId, setSelectedGroupId] = useState(
+    initialItems[0]?.group.id ?? ""
+  );
   const [thumbLimit, setThumbLimit] = useState<12 | 24>(12);
-  const selectedItem = items.find((item) => item.group.id === selectedGroupId) ?? items[0] ?? null;
-  const [draft, setDraft] = useState<AssetGroupReviewDraft>(() => createDraft(selectedItem));
+  const selectedItem =
+    items.find((item) => item.group.id === selectedGroupId) ?? items[0] ?? null;
+  const [draft, setDraft] = useState<AssetGroupReviewDraft>(() =>
+    createDraft(selectedItem)
+  );
   const [tagBatchText, setTagBatchText] = useState("");
   const [removeAssetId, setRemoveAssetId] = useState("");
   const [splitAssetIdsText, setSplitAssetIdsText] = useState("");
@@ -47,7 +56,8 @@ export function AssetGroupReviewWorkspace({
   const queueItems = useMemo(() => selectQueue(items, queue), [items, queue]);
 
   function selectGroup(groupId: string) {
-    const item = items.find((candidate) => candidate.group.id === groupId) ?? null;
+    const item =
+      items.find((candidate) => candidate.group.id === groupId) ?? null;
     setSelectedGroupId(groupId);
     setDraft(createDraft(item));
     setRemoveAssetId(item?.visibleAssetIds[0] ?? "");
@@ -71,13 +81,19 @@ export function AssetGroupReviewWorkspace({
         throw new Error("Impossibile salvare l'azione di revisione gruppo.");
       }
 
-      const payload = (await response.json()) as { reviews: AssetGroupReviewsFile };
+      const payload = (await response.json()) as {
+        reviews: AssetGroupReviewsFile;
+      };
       setReviews(payload.reviews);
       setItems((current) => applyLocalAction(current, action));
       setStats(calculateStats(applyLocalAction(items, action)));
       setStatus(label);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Impossibile salvare l'azione di revisione gruppo.");
+      setStatus(
+        error instanceof Error
+          ? error.message
+          : "Impossibile salvare l'azione di revisione gruppo."
+      );
     }
   }
 
@@ -140,19 +156,28 @@ export function AssetGroupReviewWorkspace({
       <section className="group-review-list">
         {queueItems.map((item) => (
           <button
-            className={selectedItem.group.id === item.group.id ? "group-review-row active" : "group-review-row"}
+            className={
+              selectedItem.group.id === item.group.id
+                ? "group-review-row active"
+                : "group-review-row"
+            }
             key={item.group.id}
             onClick={() => selectGroup(item.group.id)}
             type="button"
           >
             <span className="group-review-row-thumb">
-              {item.group.previewUrl ? <img alt="" src={item.group.previewUrl} /> : null}
+              {item.group.previewUrl ? (
+                <img alt="" src={item.group.previewUrl} />
+              ) : null}
             </span>
             <span>
               <strong>{item.group.name}</strong>
               <small>
-                {formatAssetKind(item.group.kind)} - {item.assetCount} asset - affidabilita{" "}
-                {item.confidenceAverage === null ? "n/d" : `${Math.round(item.confidenceAverage * 100)}%`}
+                {formatAssetKind(item.group.kind)} - {item.assetCount} asset -
+                affidabilita{" "}
+                {item.confidenceAverage === null
+                  ? "n/d"
+                  : `${Math.round(item.confidenceAverage * 100)}%`}
               </small>
             </span>
             {item.reviewed ? <em>revisionato</em> : null}
@@ -193,7 +218,10 @@ export function AssetGroupReviewWorkspace({
 
         <div className="group-review-thumb-toolbar">
           <span>{thumbLimit} anteprime rappresentative</span>
-          <button onClick={() => setThumbLimit(thumbLimit === 12 ? 24 : 12)} type="button">
+          <button
+            onClick={() => setThumbLimit(thumbLimit === 12 ? 24 : 12)}
+            type="button"
+          >
             Mostra {thumbLimit === 12 ? 24 : 12}
           </button>
         </div>
@@ -210,7 +238,12 @@ export function AssetGroupReviewWorkspace({
         <div className="group-review-actions">
           <button
             className="save-correction"
-            onClick={() => submit({ action: "confirm", groupId: selectedItem.group.id }, "Gruppo confermato")}
+            onClick={() =>
+              submit(
+                { action: "confirm", groupId: selectedItem.group.id },
+                "Gruppo confermato"
+              )
+            }
             type="button"
           >
             Conferma gruppo
@@ -218,7 +251,15 @@ export function AssetGroupReviewWorkspace({
 
           <label className="field">
             <span>Tipo</span>
-            <select onChange={(event) => setDraft({ ...draft, kind: event.target.value as ReviewAssetKind })} value={draft.kind}>
+            <select
+              onChange={(event) =>
+                setDraft({
+                  ...draft,
+                  kind: event.target.value as ReviewAssetKind
+                })
+              }
+              value={draft.kind}
+            >
               {ASSET_REVIEW_KINDS.map((kind) => (
                 <option key={kind} value={kind}>
                   {formatAssetKind(kind)}
@@ -229,18 +270,31 @@ export function AssetGroupReviewWorkspace({
 
           <label className="field">
             <span>Tags</span>
-            <textarea onChange={(event) => setDraft({ ...draft, tagsText: event.target.value })} rows={2} value={draft.tagsText} />
+            <textarea
+              onChange={(event) =>
+                setDraft({ ...draft, tagsText: event.target.value })
+              }
+              rows={2}
+              value={draft.tagsText}
+            />
           </label>
 
           <label className="field">
             <span>Tema</span>
-            <input onChange={(event) => setDraft({ ...draft, theme: event.target.value })} value={draft.theme} />
+            <input
+              onChange={(event) =>
+                setDraft({ ...draft, theme: event.target.value })
+              }
+              value={draft.theme}
+            />
           </label>
 
           <label className="field">
             <span>Usabile per</span>
             <textarea
-              onChange={(event) => setDraft({ ...draft, usableForText: event.target.value })}
+              onChange={(event) =>
+                setDraft({ ...draft, usableForText: event.target.value })
+              }
               rows={2}
               value={draft.usableForText}
             />
@@ -251,7 +305,9 @@ export function AssetGroupReviewWorkspace({
             <input
               max="100"
               min="0"
-              onChange={(event) => setDraft({ ...draft, qualityScore: Number(event.target.value) })}
+              onChange={(event) =>
+                setDraft({ ...draft, qualityScore: Number(event.target.value) })
+              }
               type="range"
               value={draft.qualityScore}
             />
@@ -260,7 +316,10 @@ export function AssetGroupReviewWorkspace({
           <button
             className="save-correction"
             onClick={() =>
-              submit({ action: "correct", draft, groupId: selectedItem.group.id }, "Correzione gruppo salvata")
+              submit(
+                { action: "correct", draft, groupId: selectedItem.group.id },
+                "Correzione gruppo salvata"
+              )
             }
             type="button"
           >
@@ -273,12 +332,19 @@ export function AssetGroupReviewWorkspace({
 
           <label className="field">
             <span>Aggiungi tag</span>
-            <input onChange={(event) => setTagBatchText(event.target.value)} value={tagBatchText} />
+            <input
+              onChange={(event) => setTagBatchText(event.target.value)}
+              value={tagBatchText}
+            />
           </label>
           <button
             onClick={() =>
               submit(
-                { action: "add-tags", groupId: selectedItem.group.id, tagsText: tagBatchText },
+                {
+                  action: "add-tags",
+                  groupId: selectedItem.group.id,
+                  tagsText: tagBatchText
+                },
                 "Tag aggiunti al gruppo"
               )
             }
@@ -289,7 +355,10 @@ export function AssetGroupReviewWorkspace({
 
           <label className="field">
             <span>Rimuovi asset errato</span>
-            <select onChange={(event) => setRemoveAssetId(event.target.value)} value={removeAssetId}>
+            <select
+              onChange={(event) => setRemoveAssetId(event.target.value)}
+              value={removeAssetId}
+            >
               {selectedItem.assets.slice(0, 100).map((asset) => (
                 <option key={asset.id} value={asset.id}>
                   {asset.relativePath}
@@ -300,7 +369,11 @@ export function AssetGroupReviewWorkspace({
           <button
             onClick={() =>
               submit(
-                { action: "remove-asset", assetId: removeAssetId, groupId: selectedItem.group.id },
+                {
+                  action: "remove-asset",
+                  assetId: removeAssetId,
+                  groupId: selectedItem.group.id
+                },
                 "Asset rimosso dalla revisione gruppo"
               )
             }
@@ -320,7 +393,10 @@ export function AssetGroupReviewWorkspace({
           </label>
           <label className="field">
             <span>Nome separazione</span>
-            <input onChange={(event) => setSplitName(event.target.value)} value={splitName} />
+            <input
+              onChange={(event) => setSplitName(event.target.value)}
+              value={splitName}
+            />
           </label>
           <button
             onClick={() =>
@@ -350,11 +426,21 @@ export function AssetGroupReviewWorkspace({
           </label>
           <label className="field">
             <span>Nome unione</span>
-            <input onChange={(event) => setMergeName(event.target.value)} value={mergeName} />
+            <input
+              onChange={(event) => setMergeName(event.target.value)}
+              value={mergeName}
+            />
           </label>
           <button
             onClick={() =>
-              submit({ action: "merge", groupIds: parseList(mergeGroupIdsText), name: mergeName }, "Unione salvata")
+              submit(
+                {
+                  action: "merge",
+                  groupIds: parseList(mergeGroupIdsText),
+                  name: mergeName
+                },
+                "Unione salvata"
+              )
             }
             type="button"
           >
@@ -364,7 +450,8 @@ export function AssetGroupReviewWorkspace({
 
         <p className="save-note">{status}</p>
         <p className="manifest-note">
-          Metadati salvati: {Object.keys(reviews.reviewedGroups).length} revisioni gruppo, {reviews.splits.length} separazioni,{" "}
+          Metadati salvati: {Object.keys(reviews.reviewedGroups).length}{" "}
+          revisioni gruppo, {reviews.splits.length} separazioni,{" "}
           {reviews.merges.length} unioni.
         </p>
       </aside>
@@ -387,36 +474,53 @@ function createDraft(item: AssetGroupReviewItem | null): AssetGroupReviewDraft {
 
   return {
     kind: normalizeKind(correction?.kind ?? item.group.kind),
-    qualityScore: correction?.qualityScore ?? item.group.qualityScore ?? Math.round((item.confidenceAverage ?? 0.5) * 100),
+    qualityScore:
+      correction?.qualityScore ??
+      item.group.qualityScore ??
+      Math.round((item.confidenceAverage ?? 0.5) * 100),
     tagsText: (correction?.tags ?? item.group.tags).join(", "),
     theme: correction?.theme ?? item.group.theme ?? "",
     usableForText: (correction?.usableFor ?? item.group.usableFor).join(", ")
   };
 }
 
-function selectQueue(items: AssetGroupReviewItem[], queue: GroupReviewQueue): AssetGroupReviewItem[] {
+function selectQueue(
+  items: AssetGroupReviewItem[],
+  queue: GroupReviewQueue
+): AssetGroupReviewItem[] {
   const unreviewed = items.filter((item) => !item.reviewed);
 
   if (queue === "low-confidence") {
-    return unreviewed.filter((item) => item.lowConfidenceCount > 0).sort((a, b) => (a.confidenceAverage ?? 1) - (b.confidenceAverage ?? 1));
+    return unreviewed
+      .filter((item) => item.lowConfidenceCount > 0)
+      .sort((a, b) => (a.confidenceAverage ?? 1) - (b.confidenceAverage ?? 1));
   }
 
   if (queue === "unknown") {
-    return unreviewed.filter((item) => item.unknownCount > 0).sort((a, b) => b.unknownCount - a.unknownCount);
+    return unreviewed
+      .filter((item) => item.unknownCount > 0)
+      .sort((a, b) => b.unknownCount - a.unknownCount);
   }
 
   if (queue === "most-used") {
-    return unreviewed.sort((a, b) => b.usageCount - a.usageCount || b.assetCount - a.assetCount);
+    return unreviewed.sort(
+      (a, b) => b.usageCount - a.usageCount || b.assetCount - a.assetCount
+    );
   }
 
   if (queue === "random-sample") {
-    return [...unreviewed].sort((a, b) => stableScore(a.group.id) - stableScore(b.group.id));
+    return [...unreviewed].sort(
+      (a, b) => stableScore(a.group.id) - stableScore(b.group.id)
+    );
   }
 
   return unreviewed.sort((a, b) => b.assetCount - a.assetCount);
 }
 
-function applyLocalAction(items: AssetGroupReviewItem[], action: Record<string, unknown>): AssetGroupReviewItem[] {
+function applyLocalAction(
+  items: AssetGroupReviewItem[],
+  action: Record<string, unknown>
+): AssetGroupReviewItem[] {
   if (typeof action.groupId !== "string") {
     return items;
   }
@@ -426,7 +530,10 @@ function applyLocalAction(items: AssetGroupReviewItem[], action: Record<string, 
       return item;
     }
 
-    if (action.action === "remove-asset" && typeof action.assetId === "string") {
+    if (
+      action.action === "remove-asset" &&
+      typeof action.assetId === "string"
+    ) {
       const assets = item.assets.filter((asset) => asset.id !== action.assetId);
       return {
         ...item,
@@ -437,7 +544,11 @@ function applyLocalAction(items: AssetGroupReviewItem[], action: Record<string, 
       };
     }
 
-    if (action.action === "confirm" || action.action === "correct" || action.action === "add-tags") {
+    if (
+      action.action === "confirm" ||
+      action.action === "correct" ||
+      action.action === "add-tags"
+    ) {
       return {
         ...item,
         reviewed: true,
@@ -457,25 +568,42 @@ function calculateStats(items: AssetGroupReviewItem[]): AssetGroupReviewStats {
 
   for (const item of items) {
     if (item.reviewed) {
-      item.visibleAssetIds.forEach((assetId) => reviewedAssets.add(assetId));
+      for (const assetId of item.visibleAssetIds) {
+        reviewedAssets.add(assetId);
+      }
     }
   }
 
   return {
-    lowConfidenceRemaining: items.reduce((sum, item) => sum + (item.reviewed ? 0 : item.lowConfidenceCount), 0),
+    lowConfidenceRemaining: items.reduce(
+      (sum, item) => sum + (item.reviewed ? 0 : item.lowConfidenceCount),
+      0
+    ),
     reviewedAssets: reviewedAssets.size,
     reviewedGroups: items.filter((item) => item.reviewed).length,
     totalAssets: new Set(items.flatMap((item) => item.visibleAssetIds)).size,
-    unknownRemaining: items.reduce((sum, item) => sum + (item.reviewed ? 0 : item.unknownCount), 0)
+    unknownRemaining: items.reduce(
+      (sum, item) => sum + (item.reviewed ? 0 : item.unknownCount),
+      0
+    )
   };
 }
 
 function parseList(value: string): string[] {
-  return [...new Set(value.split(",").map((item) => item.trim()).filter(Boolean))];
+  return [
+    ...new Set(
+      value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    )
+  ];
 }
 
 function normalizeKind(value: string): ReviewAssetKind {
-  return ASSET_REVIEW_KINDS.includes(value as ReviewAssetKind) ? (value as ReviewAssetKind) : "unknown";
+  return ASSET_REVIEW_KINDS.includes(value as ReviewAssetKind)
+    ? (value as ReviewAssetKind)
+    : "unknown";
 }
 
 function stableScore(value: string): number {

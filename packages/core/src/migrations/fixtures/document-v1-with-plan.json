@@ -23,9 +23,7 @@
     "initiative": [],
     "lights": [],
     "name": "Plan 1",
-    "notes": [
-      "fixture"
-    ],
+    "notes": ["fixture"],
     "requestId": "request-1",
     "rooms": [
       {

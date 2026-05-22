@@ -13,7 +13,10 @@ export default async function CampaignsPage() {
         <div>
           <strong>DM-Instamap</strong>
           <h1>Campagne</h1>
-          <p>Raggruppa mappe locali e registra sessioni per campagna. Salvate in data/campaigns.</p>
+          <p>
+            Raggruppa mappe locali e registra sessioni per campagna. Salvate in
+            data/campaigns.
+          </p>
         </div>
       </header>
 
@@ -24,7 +27,9 @@ export default async function CampaignsPage() {
 
       <section className="asset-details">
         <h2>Campagne esistenti</h2>
-        {campaigns.length === 0 ? <p className="muted">Nessuna campagna.</p> : null}
+        {campaigns.length === 0 ? (
+          <p className="muted">Nessuna campagna.</p>
+        ) : null}
         {campaigns.length > 0 ? (
           <ul className="campaign-list">
             {campaigns.map((campaign) => (
@@ -33,7 +38,8 @@ export default async function CampaignsPage() {
                   <strong>{campaign.name}</strong>
                   <span className="muted">
                     {" "}
-                    - {campaign.maps.length} mappe, {campaign.sessions.length} sessioni
+                    - {campaign.maps.length} mappe, {campaign.sessions.length}{" "}
+                    sessioni
                   </span>
                 </Link>
               </li>

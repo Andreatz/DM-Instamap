@@ -17,9 +17,12 @@ export function getWorkerBaseUrl(): string {
 }
 
 export async function fetchWorkerJob(jobId: string): Promise<WorkerJobRecord> {
-  const response = await fetch(`${getWorkerBaseUrl()}/jobs/${encodeURIComponent(jobId)}`, {
-    cache: "no-store"
-  });
+  const response = await fetch(
+    `${getWorkerBaseUrl()}/jobs/${encodeURIComponent(jobId)}`,
+    {
+      cache: "no-store"
+    }
+  );
 
   if (!response.ok) {
     throw new Error(`Worker returned ${response.status} for job ${jobId}.`);
@@ -40,7 +43,10 @@ export async function fetchWorkerJobs(): Promise<WorkerJobRecord[]> {
   return (await response.json()) as WorkerJobRecord[];
 }
 
-export async function postWorkerJob(path: string, payload: unknown): Promise<WorkerJobRecord> {
+export async function postWorkerJob(
+  path: string,
+  payload: unknown
+): Promise<WorkerJobRecord> {
   const response = await fetch(`${getWorkerBaseUrl()}${path}`, {
     body: JSON.stringify(payload),
     cache: "no-store",
@@ -50,7 +56,9 @@ export async function postWorkerJob(path: string, payload: unknown): Promise<Wor
 
   if (!response.ok) {
     const text = await response.text().catch(() => "");
-    throw new Error(`Worker returned ${response.status}: ${text || response.statusText}`);
+    throw new Error(
+      `Worker returned ${response.status}: ${text || response.statusText}`
+    );
   }
 
   return (await response.json()) as WorkerJobRecord;

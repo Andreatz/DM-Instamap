@@ -5,7 +5,6 @@ import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
 
 export type DoctorStatus = "pass" | "warn" | "fail";
 
@@ -42,7 +41,8 @@ export function buildDoctorChecks(env: DoctorEnvironment): DoctorCheck[] {
   const pythonMajorMinor = env.pythonVersion?.match(/Python\s+(\d+)\.(\d+)/u);
   const pythonOk = pythonMajorMinor
     ? Number.parseInt(pythonMajorMinor[1] ?? "0", 10) > 3 ||
-      (Number.parseInt(pythonMajorMinor[1] ?? "0", 10) === 3 && Number.parseInt(pythonMajorMinor[2] ?? "0", 10) >= 12)
+      (Number.parseInt(pythonMajorMinor[1] ?? "0", 10) === 3 &&
+        Number.parseInt(pythonMajorMinor[2] ?? "0", 10) >= 12)
     : false;
 
   return [
@@ -62,46 +62,66 @@ export function buildDoctorChecks(env: DoctorEnvironment): DoctorCheck[] {
       status: pythonOk ? "pass" : "warn"
     },
     {
-      details: env.workerRequirementsExist ? "apps/worker/requirements-dev.txt presente" : "file requirements worker mancante",
+      details: env.workerRequirementsExist
+        ? "apps/worker/requirements-dev.txt presente"
+        : "file requirements worker mancante",
       name: "Dipendenze worker",
       status: env.workerRequirementsExist ? "pass" : "fail"
     },
     {
-      details: env.sharpInstalled ? "sharp risolvibile da node_modules" : "sharp non risolto, esegui pnpm install",
+      details: env.sharpInstalled
+        ? "sharp risolvibile da node_modules"
+        : "sharp non risolto, esegui pnpm install",
       name: "Sharp",
       status: env.sharpInstalled ? "pass" : "fail"
     },
     {
-      details: env.envExampleExists && env.envLocalExampleExists ? ".env.example e .env.local.example presenti" : "template env incompleti",
+      details:
+        env.envExampleExists && env.envLocalExampleExists
+          ? ".env.example e .env.local.example presenti"
+          : "template env incompleti",
       name: "Template env",
-      status: env.envExampleExists && env.envLocalExampleExists ? "pass" : "warn"
+      status:
+        env.envExampleExists && env.envLocalExampleExists ? "pass" : "warn"
     },
     {
-      details: env.webPortAvailable ? "porta 3000 libera" : "porta 3000 occupata",
+      details: env.webPortAvailable
+        ? "porta 3000 libera"
+        : "porta 3000 occupata",
       name: "Porta web",
       status: env.webPortAvailable ? "pass" : "warn"
     },
     {
-      details: env.workerPortAvailable ? "porta 8000 libera" : "porta 8000 occupata",
+      details: env.workerPortAvailable
+        ? "porta 8000 libera"
+        : "porta 8000 occupata",
       name: "Porta worker",
       status: env.workerPortAvailable ? "pass" : "warn"
     }
   ];
 }
 
-export async function collectDoctorEnvironment(root = process.cwd()): Promise<DoctorEnvironment> {
+export async function collectDoctorEnvironment(
+  root = process.cwd()
+): Promise<DoctorEnvironment> {
   return {
     envExampleExists: await pathExists(path.join(root, ".env.example")),
-    envLocalExampleExists: await pathExists(path.join(root, ".env.local.example")),
+    envLocalExampleExists: await pathExists(
+      path.join(root, ".env.local.example")
+    ),
     nodeVersion: process.version,
     pnpmVersion:
-      readCommandVersion(process.platform === "win32" ? "pnpm.cmd" : "pnpm", ["--version"]) ??
+      readCommandVersion(process.platform === "win32" ? "pnpm.cmd" : "pnpm", [
+        "--version"
+      ]) ??
       readPnpmVersionFromEnv() ??
       readPnpmVersionFromPackageJson(root),
     pythonVersion: readCommandVersion("python", ["--version"]),
     sharpInstalled: canResolveSharp(root),
     workerPortAvailable: await isPortAvailable(8000),
-    workerRequirementsExist: await pathExists(path.join(root, "apps", "worker", "requirements-dev.txt")),
+    workerRequirementsExist: await pathExists(
+      path.join(root, "apps", "worker", "requirements-dev.txt")
+    ),
     webPortAvailable: await isPortAvailable(3000)
   };
 }
@@ -121,7 +141,10 @@ async function pathExists(filePath: string): Promise<boolean> {
 
 function readCommandVersion(command: string, args: string[]): string | null {
   try {
-    return execFileSync(command, args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+    return execFileSync(command, args, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"]
+    }).trim();
   } catch {
     return null;
   }
@@ -135,7 +158,9 @@ function readPnpmVersionFromEnv(): string | null {
 
 function readPnpmVersionFromPackageJson(root: string): string | null {
   try {
-    const manifest = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")) as {
+    const manifest = JSON.parse(
+      readFileSync(path.join(root, "package.json"), "utf8")
+    ) as {
       packageManager?: string;
     };
     const match = manifest.packageManager?.match(/^pnpm@([0-9.]+)/u);
@@ -168,12 +193,21 @@ async function isPortAvailable(port: number): Promise<boolean> {
 
 function printChecks(checks: DoctorCheck[]): void {
   for (const check of checks) {
-    const marker = check.status === "pass" ? "PASS" : check.status === "warn" ? "WARN" : "FAIL";
+    const marker =
+      check.status === "pass"
+        ? "PASS"
+        : check.status === "warn"
+          ? "WARN"
+          : "FAIL";
     console.log(`${marker} ${check.name}: ${check.details}`);
   }
 }
 
-if (process.argv.some((arg) => arg.replace(/\\/gu, "/").endsWith("scripts/doctor.ts"))) {
+if (
+  process.argv.some((arg) =>
+    arg.replace(/\\/gu, "/").endsWith("scripts/doctor.ts")
+  )
+) {
   void runDoctor().then((checks) => {
     printChecks(checks);
     process.exitCode = checks.some((check) => check.status === "fail") ? 1 : 0;

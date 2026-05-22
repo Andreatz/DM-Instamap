@@ -28,7 +28,10 @@ type NewProjectWizardProps = {
   references: ReferenceMapView[];
 };
 
-export function NewProjectWizard({ assetGroups, references }: NewProjectWizardProps) {
+export function NewProjectWizard({
+  assetGroups,
+  references
+}: NewProjectWizardProps) {
   const router = useRouter();
   const [step, setStep] = useState<WizardStep>("describe");
   const [name, setName] = useState("Cripta sotto la cattedrale");
@@ -36,22 +39,34 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
     "Una cripta sotto una cattedrale con non-morti prigionieri ma non ostili."
   );
   const [theme, setTheme] = useState("cripta");
-  const [requiredRooms, setRequiredRooms] = useState("chapel, prison, reliquary, boss");
+  const [requiredRooms, setRequiredRooms] = useState(
+    "chapel, prison, reliquary, boss"
+  );
   const [mapKind, setMapKind] = useState<MapKind>("dungeon");
   const [widthCells, setWidthCells] = useState(52);
   const [heightCells, setHeightCells] = useState(36);
   const [roomCount, setRoomCount] = useState(8);
-  const [selectedReferenceIds, setSelectedReferenceIds] = useState<string[]>([]);
-  const [selectedAssetGroupIds, setSelectedAssetGroupIds] = useState<string[]>([]);
-  const [status, setStatus] = useState("Step 1: descrivi la mappa che vuoi creare.");
+  const [selectedReferenceIds, setSelectedReferenceIds] = useState<string[]>(
+    []
+  );
+  const [selectedAssetGroupIds, setSelectedAssetGroupIds] = useState<string[]>(
+    []
+  );
+  const [status, setStatus] = useState(
+    "Step 1: descrivi la mappa che vuoi creare."
+  );
   const [busy, setBusy] = useState(false);
   const stepIndex = STEPS.findIndex((entry) => entry.id === step);
   const selectedReferences = useMemo(
-    () => references.filter((reference) => selectedReferenceIds.includes(reference.id)),
+    () =>
+      references.filter((reference) =>
+        selectedReferenceIds.includes(reference.id)
+      ),
     [references, selectedReferenceIds]
   );
   const selectedGroups = useMemo(
-    () => assetGroups.filter((group) => selectedAssetGroupIds.includes(group.id)),
+    () =>
+      assetGroups.filter((group) => selectedAssetGroupIds.includes(group.id)),
     [assetGroups, selectedAssetGroupIds]
   );
 
@@ -60,7 +75,9 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
 
     if (next) {
       setStep(next.id);
-      setStatus(`Step ${stepIndex + 2}: ${next.label.replace(/^\d+\.\s*/u, "")}.`);
+      setStatus(
+        `Step ${stepIndex + 2}: ${next.label.replace(/^\d+\.\s*/u, "")}.`
+      );
     }
   }
 
@@ -69,19 +86,25 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
 
     if (previous) {
       setStep(previous.id);
-      setStatus(`Step ${stepIndex}: ${previous.label.replace(/^\d+\.\s*/u, "")}.`);
+      setStatus(
+        `Step ${stepIndex}: ${previous.label.replace(/^\d+\.\s*/u, "")}.`
+      );
     }
   }
 
   function toggleReference(id: string) {
     setSelectedReferenceIds((current) =>
-      current.includes(id) ? current.filter((entry) => entry !== id) : [...current, id]
+      current.includes(id)
+        ? current.filter((entry) => entry !== id)
+        : [...current, id]
     );
   }
 
   function toggleAssetGroup(id: string) {
     setSelectedAssetGroupIds((current) =>
-      current.includes(id) ? current.filter((entry) => entry !== id) : [...current, id]
+      current.includes(id)
+        ? current.filter((entry) => entry !== id)
+        : [...current, id]
     );
   }
 
@@ -114,7 +137,11 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
       setStatus("Progetto creato. Apertura dell'editor...");
       router.push(`/projects/${payload.project.id}/editor`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Impossibile creare il progetto.");
+      setStatus(
+        error instanceof Error
+          ? error.message
+          : "Impossibile creare il progetto."
+      );
     } finally {
       setBusy(false);
     }
@@ -148,7 +175,11 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
             <h2>Descrivi la mappa</h2>
             <label className="field">
               <span>Nome del progetto</span>
-              <input onChange={(event) => setName(event.target.value)} required value={name} />
+              <input
+                onChange={(event) => setName(event.target.value)}
+                required
+                value={name}
+              />
             </label>
             <label className="field">
               <span>Testo della richiesta</span>
@@ -160,7 +191,10 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
             </label>
             <label className="field">
               <span>Stanze richieste (separate da virgola)</span>
-              <input onChange={(event) => setRequiredRooms(event.target.value)} value={requiredRooms} />
+              <input
+                onChange={(event) => setRequiredRooms(event.target.value)}
+                value={requiredRooms}
+              />
             </label>
           </>
         ) : null}
@@ -170,7 +204,10 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
             <h2>Tipo di mappa</h2>
             <label className="field">
               <span>Tipo</span>
-              <select onChange={(event) => setMapKind(event.target.value as MapKind)} value={mapKind}>
+              <select
+                onChange={(event) => setMapKind(event.target.value as MapKind)}
+                value={mapKind}
+              >
                 <option value="dungeon">Dungeon</option>
                 <option value="building">Edificio</option>
                 <option value="city">Citta</option>
@@ -178,7 +215,10 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
             </label>
             <label className="field">
               <span>Tema</span>
-              <input onChange={(event) => setTheme(event.target.value)} value={theme} />
+              <input
+                onChange={(event) => setTheme(event.target.value)}
+                value={theme}
+              />
             </label>
             <label className="field">
               <span>Larghezza (celle)</span>
@@ -217,12 +257,23 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
           <>
             <h2>Stile di riferimento</h2>
             <p className="muted">
-              Opzionale. Seleziona una o piu mappe di riferimento il cui Style DNA dovrebbe guidare il prompt.
+              Opzionale. Seleziona una o piu mappe di riferimento il cui Style
+              DNA dovrebbe guidare il prompt.
             </p>
             {references.length === 0 ? (
-              <p>Nessuna mappa di riferimento indicizzata. Esegui prima `pnpm references:scan`.</p>
+              <p>
+                Nessuna mappa di riferimento indicizzata. Esegui prima `pnpm
+                references:scan`.
+              </p>
             ) : (
-              <ul style={{ display: "grid", gap: "6px", listStyle: "none", padding: 0 }}>
+              <ul
+                style={{
+                  display: "grid",
+                  gap: "6px",
+                  listStyle: "none",
+                  padding: 0
+                }}
+              >
                 {references.map((reference) => (
                   <li key={reference.id}>
                     <label className="editor-checkbox">
@@ -232,8 +283,14 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
                         type="checkbox"
                       />
                       <span>
-                        {reference.path} - <span className="muted">{reference.mapType}</span>
-                        {reference.styleDna ? <span className="muted"> - {reference.styleDna.promptSummary}</span> : null}
+                        {reference.path} -{" "}
+                        <span className="muted">{reference.mapType}</span>
+                        {reference.styleDna ? (
+                          <span className="muted">
+                            {" "}
+                            - {reference.styleDna.promptSummary}
+                          </span>
+                        ) : null}
                       </span>
                     </label>
                   </li>
@@ -247,12 +304,23 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
           <>
             <h2>Gruppi di asset</h2>
             <p className="muted">
-              Opzionale. Restringi quali gruppi di asset il generatore dovrebbe considerare.
+              Opzionale. Restringi quali gruppi di asset il generatore dovrebbe
+              considerare.
             </p>
             {assetGroups.length === 0 ? (
-              <p>Nessun gruppo di asset disponibile. Esegui prima `pnpm assets:group`.</p>
+              <p>
+                Nessun gruppo di asset disponibile. Esegui prima `pnpm
+                assets:group`.
+              </p>
             ) : (
-              <ul style={{ display: "grid", gap: "6px", listStyle: "none", padding: 0 }}>
+              <ul
+                style={{
+                  display: "grid",
+                  gap: "6px",
+                  listStyle: "none",
+                  padding: 0
+                }}
+              >
                 {assetGroups.slice(0, 60).map((group) => (
                   <li key={group.id}>
                     <label className="editor-checkbox">
@@ -262,7 +330,10 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
                         type="checkbox"
                       />
                       <span>
-                        {group.name} <span className="muted">- {group.kind}, {group.assetCount} asset</span>
+                        {group.name}{" "}
+                        <span className="muted">
+                          - {group.kind}, {group.assetCount} asset
+                        </span>
                       </span>
                     </label>
                   </li>
@@ -314,7 +385,12 @@ export function NewProjectWizard({ assetGroups, references }: NewProjectWizardPr
       </section>
 
       <section className="wizard-actions">
-        <button className="secondary" disabled={stepIndex === 0 || busy} onClick={goBack} type="button">
+        <button
+          className="secondary"
+          disabled={stepIndex === 0 || busy}
+          onClick={goBack}
+          type="button"
+        >
           Indietro
         </button>
         {step === "review" ? (

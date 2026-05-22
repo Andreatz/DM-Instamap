@@ -14,7 +14,9 @@ def create_image_analysis_job(
     background_tasks: BackgroundTasks,
     store: JobStore = Depends(get_job_store),
 ) -> JobRecord:
-    image_path = validate_local_path(payload.imagePath, repo_root=find_repo_root(), must_exist=True)
+    image_path = validate_local_path(
+        payload.imagePath, repo_root=find_repo_root(), must_exist=True
+    )
     job = store.create_job("images.analyze", "Queued local image analysis.")
     background_tasks.add_task(run_image_analysis_job, store, job.id, image_path)
     return job

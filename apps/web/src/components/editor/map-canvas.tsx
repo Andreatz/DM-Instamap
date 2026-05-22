@@ -47,9 +47,15 @@ export function MapCanvas({ editor }: { editor: MapEditorController }) {
       </div>
       <footer className="editor-canvas-status">
         <span>Strumento: {formatToolName(editorTool)}</span>
-        <span>Annulla {undoStack.length} / Ripristina {redoStack.length}</span>
-        <span>{hoverCell ? `Cella ${hoverCell.x}, ${hoverCell.y}` : "Cella -"}</span>
-        <span>{document.width} x {document.height}</span>
+        <span>
+          Annulla {undoStack.length} / Ripristina {redoStack.length}
+        </span>
+        <span>
+          {hoverCell ? `Cella ${hoverCell.x}, ${hoverCell.y}` : "Cella -"}
+        </span>
+        <span>
+          {document.width} x {document.height}
+        </span>
       </footer>
     </>
   );

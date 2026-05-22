@@ -21,19 +21,25 @@ describe("exportFoundryModule", () => {
       sceneName: "Exported Scene"
     });
     const zip = await JSZip.loadAsync(result.buffer);
-    const moduleJson = JSON.parse(await zip.file("module.json")!.async("string")) as {
+    const moduleJson = JSON.parse(
+      await zip.file("module.json")!.async("string")
+    ) as {
       id: string;
       packs: Array<{ path: string; type: string }>;
       title: string;
     };
-    const sceneJson = JSON.parse(await zip.file("scenes/test-dungeon.json")!.async("string")) as {
+    const sceneJson = JSON.parse(
+      await zip.file("scenes/test-dungeon.json")!.async("string")
+    ) as {
       grid: { size: number };
       img: string;
       lights: unknown[];
       walls: Array<{ door: number; ds: number }>;
     };
     const packLine = await zip.file("packs/scenes.db")!.async("string");
-    const mapImage = await zip.file("maps/test-dungeon.webp")!.async("uint8array");
+    const mapImage = await zip
+      .file("maps/test-dungeon.webp")!
+      .async("uint8array");
 
     expect(result.filename).toBe("test-dungeon-foundry-module.zip");
     expect(moduleJson).toMatchObject({
@@ -54,7 +60,7 @@ describe("exportFoundryModule", () => {
     expect(sceneJson.walls.filter((wall) => wall.door === 1)).toHaveLength(1);
     expect(sceneJson.walls.find((wall) => wall.door === 1)?.ds).toBe(2);
     expect(sceneJson.lights).toHaveLength(1);
-    expect(packLine.trim()).toContain("\"Exported Scene\"");
+    expect(packLine.trim()).toContain('"Exported Scene"');
     expect(Buffer.from(mapImage).subarray(0, 4).toString("ascii")).toBe("RIFF");
   });
 
@@ -84,11 +90,16 @@ describe("exportFoundryModule", () => {
   });
 
   it("emits journal entries for rooms, GM notes, and plan notes", async () => {
-    const result = await exportFoundryModule(createFoundryFixtureWithJournals(), {
-      moduleId: "journal-test"
-    });
+    const result = await exportFoundryModule(
+      createFoundryFixtureWithJournals(),
+      {
+        moduleId: "journal-test"
+      }
+    );
     const zip = await JSZip.loadAsync(result.buffer);
-    const moduleJson = JSON.parse(await zip.file("module.json")!.async("string")) as {
+    const moduleJson = JSON.parse(
+      await zip.file("module.json")!.async("string")
+    ) as {
       packs: Array<{ name: string; type: string }>;
     };
 
@@ -97,16 +108,25 @@ describe("exportFoundryModule", () => {
       "Foundry Journal Test — GM Notes",
       "Foundry Journal Test — Plan Notes"
     ]);
-    expect(result.journalJson[0]?.pages[0]?.text.content).toContain("Entrance Hall");
-    expect(result.journalJson[1]?.pages[0]?.text.content).toContain("pressure plate");
-    expect(moduleJson.packs.find((pack) => pack.type === "JournalEntry")).toBeDefined();
+    expect(result.journalJson[0]?.pages[0]?.text.content).toContain(
+      "Entrance Hall"
+    );
+    expect(result.journalJson[1]?.pages[0]?.text.content).toContain(
+      "pressure plate"
+    );
+    expect(
+      moduleJson.packs.find((pack) => pack.type === "JournalEntry")
+    ).toBeDefined();
     expect(zip.file("packs/journal.db")).not.toBeNull();
   });
 
   it("adds scene notes that link GM notes to their journal pages", async () => {
-    const result = await exportFoundryModule(createFoundryFixtureWithJournals(), {
-      moduleId: "scene-notes-test"
-    });
+    const result = await exportFoundryModule(
+      createFoundryFixtureWithJournals(),
+      {
+        moduleId: "scene-notes-test"
+      }
+    );
 
     expect(result.sceneJson.notes).toHaveLength(1);
     const note = result.sceneJson.notes[0]!;
@@ -116,27 +136,37 @@ describe("exportFoundryModule", () => {
     expect(note.entryId).toHaveLength(16);
     expect(note.pageId).toHaveLength(16);
 
-    const gmJournal = result.journalJson.find((entry) => entry.name.endsWith("— GM Notes"));
+    const gmJournal = result.journalJson.find((entry) =>
+      entry.name.endsWith("— GM Notes")
+    );
     expect(gmJournal?._id).toBe(note.entryId);
     expect(gmJournal?.pages[0]?._id).toBe(note.pageId);
   });
 
   it("emits empty scene notes when journals are disabled", async () => {
-    const result = await exportFoundryModule(createFoundryFixtureWithJournals(), {
-      includeJournals: false,
-      moduleId: "scene-notes-skip-test"
-    });
+    const result = await exportFoundryModule(
+      createFoundryFixtureWithJournals(),
+      {
+        includeJournals: false,
+        moduleId: "scene-notes-skip-test"
+      }
+    );
 
     expect(result.sceneJson.notes).toHaveLength(0);
   });
 
   it("skips journal output when includeJournals is false", async () => {
-    const result = await exportFoundryModule(createFoundryFixtureWithJournals(), {
-      includeJournals: false,
-      moduleId: "no-journal-test"
-    });
+    const result = await exportFoundryModule(
+      createFoundryFixtureWithJournals(),
+      {
+        includeJournals: false,
+        moduleId: "no-journal-test"
+      }
+    );
     const zip = await JSZip.loadAsync(result.buffer);
-    const moduleJson = JSON.parse(await zip.file("module.json")!.async("string")) as {
+    const moduleJson = JSON.parse(
+      await zip.file("module.json")!.async("string")
+    ) as {
       packs: Array<{ type: string }>;
     };
 
@@ -266,7 +296,14 @@ function createFoundryFixtureWithJournals() {
   };
 
   return createMapDocument({
-    grid: { cellSize: 5, height: 4, pixelsPerCell: 70, type: "square", unit: "ft", width: 10 },
+    grid: {
+      cellSize: 5,
+      height: 4,
+      pixelsPerCell: 70,
+      type: "square",
+      unit: "ft",
+      width: 10
+    },
     height: 4,
     id: "foundry-journal-test",
     name: "Foundry Journal Test",

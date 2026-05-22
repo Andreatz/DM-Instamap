@@ -17,10 +17,20 @@ export type VttExportManifest = {
   dd2vtt: {
     format: number;
     imageSize: { x: number; y: number };
-    lights: Array<{ color: string; intensity: number; position: Point; range: number }>;
+    lights: Array<{
+      color: string;
+      intensity: number;
+      position: Point;
+      range: number;
+    }>;
     mapSize: { x: number; y: number };
     pixelsPerGrid: number;
-    portals: Array<{ closed: boolean; position: Point; rotation: number; width: number }>;
+    portals: Array<{
+      closed: boolean;
+      position: Point;
+      rotation: number;
+      width: number;
+    }>;
     wallSegments: number;
   };
   foundry: {
@@ -44,23 +54,37 @@ export async function buildVttExportManifest(
   document: MapDocument,
   options: VttManifestOptions = {}
 ): Promise<VttExportManifest> {
-  const dd2vtt = await exportMapDocumentDd2Vtt(document, { embedImage: false, scale: options.scale });
+  const dd2vtt = await exportMapDocumentDd2Vtt(document, {
+    embedImage: false,
+    scale: options.scale
+  });
   const foundry = buildFoundryModuleData(document, options.foundry);
 
   const doorCount = document.plan?.doors.length ?? 0;
   const lightCount = document.plan?.lights.length ?? 0;
-  const foundryDoorCount = foundry.sceneJson.walls.filter((wall) => wall.door === 1).length;
-  const foundryWallCount = foundry.sceneJson.walls.filter((wall) => wall.door === 0).length;
+  const foundryDoorCount = foundry.sceneJson.walls.filter(
+    (wall) => wall.door === 1
+  ).length;
+  const foundryWallCount = foundry.sceneJson.walls.filter(
+    (wall) => wall.door === 0
+  ).length;
   const resolution = dd2vtt.object.resolution;
 
   return {
     consistency: {
       dd2vttGridMatchesImage:
-        resolution.image_size.x === resolution.map_size.x * resolution.pixels_per_grid &&
-        resolution.image_size.y === resolution.map_size.y * resolution.pixels_per_grid,
-      doorsMatch: dd2vtt.object.portals.length === doorCount && foundryDoorCount === doorCount,
-      lightsMatch: dd2vtt.object.lights.length === lightCount && foundry.sceneJson.lights.length === lightCount,
-      wallsPresent: dd2vtt.object.line_of_sight.length > 0 && foundryWallCount > 0
+        resolution.image_size.x ===
+          resolution.map_size.x * resolution.pixels_per_grid &&
+        resolution.image_size.y ===
+          resolution.map_size.y * resolution.pixels_per_grid,
+      doorsMatch:
+        dd2vtt.object.portals.length === doorCount &&
+        foundryDoorCount === doorCount,
+      lightsMatch:
+        dd2vtt.object.lights.length === lightCount &&
+        foundry.sceneJson.lights.length === lightCount,
+      wallsPresent:
+        dd2vtt.object.line_of_sight.length > 0 && foundryWallCount > 0
     },
     dd2vtt: {
       format: dd2vtt.object.format,

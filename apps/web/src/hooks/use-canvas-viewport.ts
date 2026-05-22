@@ -1,16 +1,29 @@
 import { useCallback, useState } from "react";
 import type { Dispatch, RefObject, SetStateAction, WheelEvent } from "react";
-import { CANVAS_CELL_SIZE, MAX_ZOOM, MIN_ZOOM, clamp } from "@/lib/map-editor-view";
+import {
+  CANVAS_CELL_SIZE,
+  MAX_ZOOM,
+  MIN_ZOOM,
+  clamp
+} from "@/lib/map-editor-view";
 
 export type Viewport = { offsetX: number; offsetY: number; zoom: number };
 
-export type PanStart = { offsetX: number; offsetY: number; pointerX: number; pointerY: number } | null;
+export type PanStart = {
+  offsetX: number;
+  offsetY: number;
+  pointerX: number;
+  pointerY: number;
+} | null;
 
 export type CanvasViewport = {
   handleWheel: (event: WheelEvent<HTMLCanvasElement>) => void;
   panStart: PanStart;
   resetViewport: () => void;
-  screenToCell: (clientX: number, clientY: number) => { x: number; y: number } | null;
+  screenToCell: (
+    clientX: number,
+    clientY: number
+  ) => { x: number; y: number } | null;
   setPanStart: Dispatch<SetStateAction<PanStart>>;
   setViewport: Dispatch<SetStateAction<Viewport>>;
   viewport: Viewport;
@@ -46,8 +59,12 @@ export function useCanvasViewport(options: {
       const scaleY = canvas.height / rect.height;
       const canvasX = (clientX - rect.left) * scaleX;
       const canvasY = (clientY - rect.top) * scaleY;
-      const x = Math.floor((canvasX - viewport.offsetX) / viewport.zoom / CANVAS_CELL_SIZE);
-      const y = Math.floor((canvasY - viewport.offsetY) / viewport.zoom / CANVAS_CELL_SIZE);
+      const x = Math.floor(
+        (canvasX - viewport.offsetX) / viewport.zoom / CANVAS_CELL_SIZE
+      );
+      const y = Math.floor(
+        (canvasY - viewport.offsetY) / viewport.zoom / CANVAS_CELL_SIZE
+      );
 
       if (x < 0 || y < 0 || x >= documentWidth || y >= documentHeight) {
         return null;
@@ -55,11 +72,21 @@ export function useCanvasViewport(options: {
 
       return { x, y };
     },
-    [canvasRef, documentHeight, documentWidth, viewport.offsetX, viewport.offsetY, viewport.zoom]
+    [
+      canvasRef,
+      documentHeight,
+      documentWidth,
+      viewport.offsetX,
+      viewport.offsetY,
+      viewport.zoom
+    ]
   );
 
   const zoomBy = useCallback((delta: number) => {
-    setViewport((current) => ({ ...current, zoom: clamp(current.zoom + delta, MIN_ZOOM, MAX_ZOOM) }));
+    setViewport((current) => ({
+      ...current,
+      zoom: clamp(current.zoom + delta, MIN_ZOOM, MAX_ZOOM)
+    }));
   }, []);
 
   const handleWheel = useCallback(
@@ -74,5 +101,14 @@ export function useCanvasViewport(options: {
     setViewport(DEFAULT_VIEWPORT);
   }, []);
 
-  return { handleWheel, panStart, resetViewport, screenToCell, setPanStart, setViewport, viewport, zoomBy };
+  return {
+    handleWheel,
+    panStart,
+    resetViewport,
+    screenToCell,
+    setPanStart,
+    setViewport,
+    viewport,
+    zoomBy
+  };
 }

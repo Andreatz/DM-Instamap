@@ -10,7 +10,9 @@ type ProjectExportPageProps = {
 
 export const dynamic = "force-dynamic";
 
-export default async function ProjectExportPage({ params }: ProjectExportPageProps) {
+export default async function ProjectExportPage({
+  params
+}: ProjectExportPageProps) {
   const { projectId } = await params;
   const project = await loadProjectOrNotFound(projectId);
 

@@ -2,7 +2,10 @@ import { notFound } from "next/navigation";
 import { MapEditor } from "@/components/editor/map-editor";
 import { loadAssetGroups } from "@/lib/asset-groups";
 import { loadAssetManifest } from "@/lib/assets-manifest";
-import { createFallbackPalette, type EditorPaletteAsset } from "@/lib/map-editor";
+import {
+  createFallbackPalette,
+  type EditorPaletteAsset
+} from "@/lib/map-editor";
 import { ProjectNotFoundError, readProject } from "@/lib/projects";
 
 const EDITOR_ASSET_GROUP_LIMIT = 500;
@@ -15,7 +18,9 @@ type ProjectEditorPageProps = {
 
 export const dynamic = "force-dynamic";
 
-export default async function ProjectEditorPage({ params }: ProjectEditorPageProps) {
+export default async function ProjectEditorPage({
+  params
+}: ProjectEditorPageProps) {
   const { projectId } = await params;
   const [project, manifest, groups] = await Promise.all([
     loadProjectOrNotFound(projectId),
@@ -58,13 +63,21 @@ async function loadProjectOrNotFound(projectId: string) {
   }
 }
 
-function createPalette(assets: Array<{
-  classification: string;
-  id: string;
-  relativePath: string;
-  thumbnailUrl: string;
-}>): EditorPaletteAsset[] {
-  const preferredKinds = new Set(["prop", "furniture", "light", "terrain", "decoration"]);
+function createPalette(
+  assets: Array<{
+    classification: string;
+    id: string;
+    relativePath: string;
+    thumbnailUrl: string;
+  }>
+): EditorPaletteAsset[] {
+  const preferredKinds = new Set([
+    "prop",
+    "furniture",
+    "light",
+    "terrain",
+    "decoration"
+  ]);
   const palette = assets
     .filter((asset) => preferredKinds.has(asset.classification))
     .slice(0, 16)

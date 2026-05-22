@@ -2,7 +2,12 @@ import { mkdtempSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { validateLocalPath } from "./local-paths";
+import {
+  assertSafeWorkspaceId,
+  LocalPathValidationError,
+  resolveWithinWorkspace,
+  validateLocalPath
+} from "./local-paths";
 
 describe("local path validation", () => {
   function workspaceRoot() {
@@ -78,5 +83,76 @@ describe("local path validation", () => {
         workspaceRoot: root
       })
     ).toThrow(/does not exist/);
+  });
+
+  it("rejects the drive root even when absolute paths are enabled", () => {
+    const root = workspaceRoot();
+    const driveRoot = path.parse(os.tmpdir()).root;
+
+    expect(() =>
+      validateLocalPath({
+        allowAbsoluteOutsideWorkspace: true,
+        inputPath: driveRoot,
+        workspaceRoot: root
+      })
+    ).toThrow(/broad or system/);
+  });
+
+  it("rejects system folders even when absolute paths are enabled", () => {
+    const root = workspaceRoot();
+    const systemFolder =
+      process.platform === "win32" ? "C:\\Windows\\System32" : "/etc";
+
+    expect(() =>
+      validateLocalPath({
+        allowAbsoluteOutsideWorkspace: true,
+        inputPath: systemFolder,
+        workspaceRoot: root
+      })
+    ).toThrow(/broad or system/);
+  });
+});
+
+describe("assertSafeWorkspaceId", () => {
+  it("accepts safe id segments", () => {
+    expect(assertSafeWorkspaceId("dungeon-01")).toBe("dungeon-01");
+    expect(assertSafeWorkspaceId("Asset_42.webp", "assetId")).toBe(
+      "Asset_42.webp"
+    );
+  });
+
+  it("rejects traversal and separators", () => {
+    for (const value of [
+      "",
+      "..",
+      "../secret",
+      "a/b",
+      "a\\b",
+      ".hidden",
+      "with space",
+      "x".repeat(200)
+    ]) {
+      expect(() => assertSafeWorkspaceId(value)).toThrow(
+        LocalPathValidationError
+      );
+    }
+  });
+});
+
+describe("resolveWithinWorkspace", () => {
+  it("joins segments inside the workspace", () => {
+    const root = path.resolve("/tmp/dm-instamap-ws");
+
+    expect(resolveWithinWorkspace(root, "data", "previews", "a.webp")).toBe(
+      path.resolve(root, "data", "previews", "a.webp")
+    );
+  });
+
+  it("rejects segments that escape the workspace", () => {
+    const root = path.resolve("/tmp/dm-instamap-ws");
+
+    expect(() => resolveWithinWorkspace(root, "..", "..", "etc")).toThrow(
+      LocalPathValidationError
+    );
   });
 });

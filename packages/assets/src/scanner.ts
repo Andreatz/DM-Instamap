@@ -9,11 +9,23 @@ import {
   type AssetClassificationSource,
   type AssetOverride
 } from "./classifier";
-import { enrichAssetWithAuditFields, findDuplicateGroups, type AssetQualitySignals, type ReviewPriority } from "./audit";
+import {
+  enrichAssetWithAuditFields,
+  findDuplicateGroups,
+  type AssetQualitySignals,
+  type ReviewPriority
+} from "./audit";
 
-export const SUPPORTED_ASSET_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "svg"] as const;
+export const SUPPORTED_ASSET_EXTENSIONS = [
+  "png",
+  "jpg",
+  "jpeg",
+  "webp",
+  "svg"
+] as const;
 
-export type SupportedAssetExtension = (typeof SUPPORTED_ASSET_EXTENSIONS)[number];
+export type SupportedAssetExtension =
+  (typeof SUPPORTED_ASSET_EXTENSIONS)[number];
 
 export type DominantColor = {
   hex: string;
@@ -70,7 +82,10 @@ const DEFAULT_ASSET_PREVIEW_DIRECTORY = "assets";
 const DEFAULT_MANIFEST_FILE = "assets.manifest.json";
 const DEFAULT_OVERRIDES_FILE = "asset-overrides.json";
 
-export async function scanAssets(folder: string, options: AssetScannerOptions = {}): Promise<AssetManifest> {
+export async function scanAssets(
+  folder: string,
+  options: AssetScannerOptions = {}
+): Promise<AssetManifest> {
   const sourceRoot = path.resolve(folder);
   const outputRoot = resolveOutputRoot(options.outputRoot);
   const indexRoot = resolveIndexRoot(options.outputRoot);
@@ -108,15 +123,17 @@ export async function scanAssets(folder: string, options: AssetScannerOptions = 
       assets.push(asset);
     } catch (error) {
       errors.push({
-        message: error instanceof Error ? error.message : "Unknown asset scan error.",
+        message:
+          error instanceof Error ? error.message : "Unknown asset scan error.",
         relativePath
       });
     }
   }
 
   const duplicateLookup = createDuplicateLookup(findDuplicateGroups(assets));
-  const enrichedAssets = assets.map((asset) =>
-    enrichAssetWithAuditFields(asset, duplicateLookup) as AssetManifestEntry
+  const enrichedAssets = assets.map(
+    (asset) =>
+      enrichAssetWithAuditFields(asset, duplicateLookup) as AssetManifestEntry
   );
 
   const manifest: AssetManifest = {
@@ -127,7 +144,11 @@ export async function scanAssets(folder: string, options: AssetScannerOptions = 
     version: 1
   };
 
-  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+  await writeFile(
+    manifestPath,
+    `${JSON.stringify(manifest, null, 2)}\n`,
+    "utf8"
+  );
 
   return manifest;
 }
@@ -196,7 +217,9 @@ export async function appendAssetToManifest(
     const raw = await readFile(manifestPath, "utf8");
     existing = JSON.parse(raw) as AssetManifest;
   } catch (error) {
-    if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) {
+    if (
+      !(error instanceof Error && "code" in error && error.code === "ENOENT")
+    ) {
       throw error;
     }
   }
@@ -209,7 +232,8 @@ export async function appendAssetToManifest(
     version: 1
   };
   const existingIndex = baseManifest.assets.findIndex(
-    (entry) => entry.id === asset.id || entry.relativePath === asset.relativePath
+    (entry) =>
+      entry.id === asset.id || entry.relativePath === asset.relativePath
   );
   const nextAssets = [...baseManifest.assets];
 
@@ -222,9 +246,12 @@ export async function appendAssetToManifest(
     nextAssets.push(asset);
   }
 
-  const duplicateLookup = createDuplicateLookup(findDuplicateGroups(nextAssets));
-  const enriched = nextAssets.map((entry) =>
-    enrichAssetWithAuditFields(entry, duplicateLookup) as AssetManifestEntry
+  const duplicateLookup = createDuplicateLookup(
+    findDuplicateGroups(nextAssets)
+  );
+  const enriched = nextAssets.map(
+    (entry) =>
+      enrichAssetWithAuditFields(entry, duplicateLookup) as AssetManifestEntry
   );
   const manifest: AssetManifest = {
     ...baseManifest,
@@ -233,7 +260,11 @@ export async function appendAssetToManifest(
   };
 
   await mkdir(path.dirname(manifestPath), { recursive: true });
-  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+  await writeFile(
+    manifestPath,
+    `${JSON.stringify(manifest, null, 2)}\n`,
+    "utf8"
+  );
 
   return { appended: !replaced, manifest, replaced };
 }
@@ -253,7 +284,9 @@ function createDuplicateLookup(
 }
 
 function resolveOutputRoot(outputRoot?: string): string {
-  return outputRoot ? path.resolve(outputRoot) : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
+  return outputRoot
+    ? path.resolve(outputRoot)
+    : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
 }
 
 function resolveIndexRoot(outputRoot?: string): string {
@@ -262,7 +295,10 @@ function resolveIndexRoot(outputRoot?: string): string {
     : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY, DEFAULT_INDEX_DIRECTORY);
 }
 
-function resolvePreviewDirectory(outputRoot: string | undefined, resolvedOutputRoot: string): string {
+function resolvePreviewDirectory(
+  outputRoot: string | undefined,
+  resolvedOutputRoot: string
+): string {
   return outputRoot
     ? path.resolve(
         resolvedOutputRoot,
@@ -270,7 +306,11 @@ function resolvePreviewDirectory(outputRoot: string | undefined, resolvedOutputR
         DEFAULT_PREVIEW_DIRECTORY,
         DEFAULT_ASSET_PREVIEW_DIRECTORY
       )
-    : path.resolve(resolvedOutputRoot, DEFAULT_PREVIEW_DIRECTORY, DEFAULT_ASSET_PREVIEW_DIRECTORY);
+    : path.resolve(
+        resolvedOutputRoot,
+        DEFAULT_PREVIEW_DIRECTORY,
+        DEFAULT_ASSET_PREVIEW_DIRECTORY
+      );
 }
 
 async function inspectAsset(input: {
@@ -289,7 +329,10 @@ async function inspectAsset(input: {
   const metadata = await image.metadata();
   const thumbnailPath = path.join(input.previewDir, `${id}.webp`);
   const dominantColors = await extractDominantColors(input.filePath);
-  const hasTransparency = await detectTransparency(input.filePath, metadata.hasAlpha);
+  const hasTransparency = await detectTransparency(
+    input.filePath,
+    metadata.hasAlpha
+  );
   const classification = classifyAsset(
     {
       hasTransparency,
@@ -327,7 +370,9 @@ async function inspectAsset(input: {
 
 type AssetOverrides = Record<string, AssetOverride>;
 
-async function readAssetOverrides(overridesPath: string): Promise<AssetOverrides> {
+async function readAssetOverrides(
+  overridesPath: string
+): Promise<AssetOverrides> {
   try {
     const raw = await readFile(overridesPath, "utf8");
     const parsed = JSON.parse(raw) as unknown;
@@ -347,10 +392,15 @@ function normalizeOverrides(parsed: unknown): AssetOverrides {
   }
 
   const candidate = parsed as { overrides?: unknown };
-  const overrides = candidate.overrides && typeof candidate.overrides === "object" ? candidate.overrides : parsed;
+  const overrides =
+    candidate.overrides && typeof candidate.overrides === "object"
+      ? candidate.overrides
+      : parsed;
   const normalized: AssetOverrides = {};
 
-  for (const [assetKey, override] of Object.entries(overrides as Record<string, unknown>)) {
+  for (const [assetKey, override] of Object.entries(
+    overrides as Record<string, unknown>
+  )) {
     const normalizedOverride = normalizeOverride(override);
 
     if (normalizedOverride) {
@@ -385,7 +435,9 @@ function normalizeOverride(override: unknown): AssetOverride | null {
   }
 
   if (Array.isArray(input.tags)) {
-    normalized.tags = input.tags.filter((tag): tag is string => typeof tag === "string");
+    normalized.tags = input.tags.filter(
+      (tag): tag is string => typeof tag === "string"
+    );
   }
 
   return Object.keys(normalized).length > 0 ? normalized : null;
@@ -409,10 +461,14 @@ async function findAssetFiles(folder: string): Promise<string[]> {
     })
   );
 
-  return files.flat().sort((a, b) => toPosixPath(a).localeCompare(toPosixPath(b)));
+  return files
+    .flat()
+    .sort((a, b) => toPosixPath(a).localeCompare(toPosixPath(b)));
 }
 
-async function extractDominantColors(filePath: string): Promise<DominantColor[]> {
+async function extractDominantColors(
+  filePath: string
+): Promise<DominantColor[]> {
   const { data } = await sharp(filePath, { limitInputPixels: false })
     .resize(32, 32, { fit: "inside", withoutEnlargement: true })
     .ensureAlpha()
@@ -436,11 +492,17 @@ async function extractDominantColors(filePath: string): Promise<DominantColor[]>
 
   return [...counts.entries()]
     .map(([hex, population]) => ({ hex, population }))
-    .sort((left, right) => right.population - left.population || left.hex.localeCompare(right.hex))
+    .sort(
+      (left, right) =>
+        right.population - left.population || left.hex.localeCompare(right.hex)
+    )
     .slice(0, 5);
 }
 
-async function detectTransparency(filePath: string, hasAlpha?: boolean): Promise<boolean | null> {
+async function detectTransparency(
+  filePath: string,
+  hasAlpha?: boolean
+): Promise<boolean | null> {
   if (hasAlpha === false) {
     return false;
   }
@@ -472,7 +534,9 @@ function createAssetId(relativePath: string, fileHash: string): string {
 function getSupportedExtension(filePath: string): SupportedAssetExtension {
   const extension = path.extname(filePath).slice(1).toLowerCase();
 
-  if (SUPPORTED_ASSET_EXTENSIONS.includes(extension as SupportedAssetExtension)) {
+  if (
+    SUPPORTED_ASSET_EXTENSIONS.includes(extension as SupportedAssetExtension)
+  ) {
     return extension as SupportedAssetExtension;
   }
 
@@ -481,7 +545,9 @@ function getSupportedExtension(filePath: string): SupportedAssetExtension {
 
 function isSupportedAsset(fileName: string): boolean {
   const extension = path.extname(fileName).slice(1).toLowerCase();
-  return SUPPORTED_ASSET_EXTENSIONS.includes(extension as SupportedAssetExtension);
+  return SUPPORTED_ASSET_EXTENSIONS.includes(
+    extension as SupportedAssetExtension
+  );
 }
 
 function quantizeColor(value: number): number {

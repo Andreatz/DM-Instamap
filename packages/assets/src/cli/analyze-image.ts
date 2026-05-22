@@ -11,6 +11,8 @@ try {
   const analysis = await analyzeLocalImage(imagePath);
   process.stdout.write(`${JSON.stringify(analysis, null, 2)}\n`);
 } catch (error) {
-  console.error(error instanceof Error ? error.message : "Image analysis failed.");
+  console.error(
+    error instanceof Error ? error.message : "Image analysis failed."
+  );
   process.exit(1);
 }

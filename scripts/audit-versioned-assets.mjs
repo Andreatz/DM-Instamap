@@ -46,7 +46,9 @@ const allowedBinaryPrefixes = ["packages/", "apps/", "tests/"];
 const maxVersionedBinaryBytes = 1024 * 1024;
 
 const forbiddenFiles = trackedFiles.filter((file) =>
-  forbiddenPrefixes.some((prefix) => file === prefix.slice(0, -1) || file.startsWith(prefix))
+  forbiddenPrefixes.some(
+    (prefix) => file === prefix.slice(0, -1) || file.startsWith(prefix)
+  )
 );
 
 const oversizedBinaries = trackedFiles.filter((file) => {
@@ -88,7 +90,9 @@ if (forbiddenFiles.length > 0 || oversizedBinaries.length > 0) {
     }
   }
 
-  console.error("\nUse local data folders for asset libraries and generated previews.");
+  console.error(
+    "\nUse local data folders for asset libraries and generated previews."
+  );
   process.exit(1);
 }
 

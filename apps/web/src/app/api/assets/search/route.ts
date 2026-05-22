@@ -4,8 +4,12 @@ import {
   searchAssetsByImage,
   searchAssetsByText
 } from "@dm-instamap/assets/embeddings";
-import { NextRequest, NextResponse } from "next/server";
-import { enrichAssetSearchResults, normalizeSearchLimit, resolveWorkspaceFilePath } from "@/lib/asset-search";
+import { type NextRequest, NextResponse } from "next/server";
+import {
+  enrichAssetSearchResults,
+  normalizeSearchLimit,
+  resolveWorkspaceFilePath
+} from "@/lib/asset-search";
 import { findWorkspaceRoot, loadAssetManifest } from "@/lib/assets-manifest";
 
 type SearchByImagePayload = {
@@ -43,10 +47,16 @@ export async function POST(request: NextRequest) {
   try {
     const workspaceRoot = await findWorkspaceRoot(process.cwd());
     const payload = (await request.json()) as SearchByImagePayload;
-    const imagePath = typeof payload.imagePath === "string" ? payload.imagePath : "";
-    const resolvedImagePath = resolveWorkspaceFilePath(workspaceRoot, imagePath);
+    const imagePath =
+      typeof payload.imagePath === "string" ? payload.imagePath : "";
+    const resolvedImagePath = resolveWorkspaceFilePath(
+      workspaceRoot,
+      imagePath
+    );
     const limit = normalizeSearchLimit(
-      typeof payload.limit === "string" || typeof payload.limit === "number" ? payload.limit : undefined
+      typeof payload.limit === "string" || typeof payload.limit === "number"
+        ? payload.limit
+        : undefined
     );
     const manifest = await loadAssetManifest();
     const provider = createEmbeddingProviderFromEnv(process.env);
@@ -68,7 +78,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Could not search by image.",
+        error:
+          error instanceof Error ? error.message : "Could not search by image.",
         ok: false
       },
       { status: 400 }

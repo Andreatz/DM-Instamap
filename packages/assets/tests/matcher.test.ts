@@ -81,7 +81,9 @@ describe("matchAssetGroupsForRoom", () => {
     });
 
     expect(matches[0]?.group.id).toBe("group-altar");
-    expect(matches[0]?.reasons.some((reason) => reason.label === "theme")).toBe(true);
+    expect(matches[0]?.reasons.some((reason) => reason.label === "theme")).toBe(
+      true
+    );
   });
 
   it("supports explicit preferred kind filters", () => {

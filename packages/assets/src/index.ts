@@ -5,7 +5,9 @@ export type AssetCandidate = {
 };
 
 export function createAssetCandidate(path: string): AssetCandidate {
-  const extension = path.includes(".") ? path.split(".").at(-1)?.toLowerCase() : "";
+  const extension = path.includes(".")
+    ? path.split(".").at(-1)?.toLowerCase()
+    : "";
 
   return {
     extension: extension ?? "",

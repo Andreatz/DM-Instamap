@@ -5,7 +5,10 @@ import { ensureEditorLayers, serializeMapDocument } from "@/lib/map-editor";
 import { HISTORY_LIMIT } from "@/lib/map-editor-view";
 
 export type EditorHistory = {
-  commitDocument: (updater: (current: MapDocument) => MapDocument, message?: string) => void;
+  commitDocument: (
+    updater: (current: MapDocument) => MapDocument,
+    message?: string
+  ) => void;
   document: MapDocument;
   redo: () => void;
   redoStack: MapDocument[];
@@ -25,7 +28,9 @@ export function useEditorHistory(
   options: { onNavigate: () => void; setStatus: (message: string) => void }
 ): EditorHistory {
   const { onNavigate, setStatus } = options;
-  const [document, setDocument] = useState(() => ensureEditorLayers(initialDocument));
+  const [document, setDocument] = useState(() =>
+    ensureEditorLayers(initialDocument)
+  );
   const [undoStack, setUndoStack] = useState<MapDocument[]>([]);
   const [redoStack, setRedoStack] = useState<MapDocument[]>([]);
 
@@ -35,11 +40,17 @@ export function useEditorHistory(
         const normalizedCurrent = ensureEditorLayers(current);
         const next = ensureEditorLayers(updater(normalizedCurrent));
 
-        if (next === current || serializeMapDocument(next) === serializeMapDocument(normalizedCurrent)) {
+        if (
+          next === current ||
+          serializeMapDocument(next) === serializeMapDocument(normalizedCurrent)
+        ) {
           return current;
         }
 
-        setUndoStack((history) => [...history.slice(-(HISTORY_LIMIT - 1)), normalizedCurrent]);
+        setUndoStack((history) => [
+          ...history.slice(-(HISTORY_LIMIT - 1)),
+          normalizedCurrent
+        ]);
         setRedoStack([]);
 
         if (message) {
@@ -61,7 +72,10 @@ export function useEditorHistory(
         return history;
       }
 
-      setRedoStack((redoHistory) => [document, ...redoHistory.slice(0, HISTORY_LIMIT - 1)]);
+      setRedoStack((redoHistory) => [
+        document,
+        ...redoHistory.slice(0, HISTORY_LIMIT - 1)
+      ]);
       setDocument(previous);
       onNavigate();
       setStatus("Annullato");
@@ -78,7 +92,10 @@ export function useEditorHistory(
         return history;
       }
 
-      setUndoStack((undoHistory) => [...undoHistory.slice(-(HISTORY_LIMIT - 1)), document]);
+      setUndoStack((undoHistory) => [
+        ...undoHistory.slice(-(HISTORY_LIMIT - 1)),
+        document
+      ]);
       setDocument(next);
       onNavigate();
       setStatus("Ripristinato");
@@ -92,5 +109,14 @@ export function useEditorHistory(
     setRedoStack([]);
   }, []);
 
-  return { commitDocument, document, redo, redoStack, resetHistory, setDocument, undo, undoStack };
+  return {
+    commitDocument,
+    document,
+    redo,
+    redoStack,
+    resetHistory,
+    setDocument,
+    undo,
+    undoStack
+  };
 }

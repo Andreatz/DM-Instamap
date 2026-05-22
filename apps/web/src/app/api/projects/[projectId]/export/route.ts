@@ -11,8 +11,15 @@ import {
   type MapVisibilityMode,
   type RasterExportFormat
 } from "@dm-instamap/exporters";
-import { InvalidProjectIdError, ProjectNotFoundError, readProject } from "@/lib/projects";
-import { recordProjectExport, type ProjectExportFormat } from "@/lib/project-export-history";
+import {
+  InvalidProjectIdError,
+  ProjectNotFoundError,
+  readProject
+} from "@/lib/projects";
+import {
+  recordProjectExport,
+  type ProjectExportFormat
+} from "@/lib/project-export-history";
 
 type WebExportFormat = ExportFormat | "session-pack";
 
@@ -35,7 +42,14 @@ type RouteContext = {
 };
 
 const RASTER_FORMATS = new Set<WebExportFormat>(["png", "webp"]);
-const VALID_FORMATS = new Set<WebExportFormat>(["png", "webp", "dd2vtt", "foundry", "dmimap", "session-pack"]);
+const VALID_FORMATS = new Set<WebExportFormat>([
+  "png",
+  "webp",
+  "dd2vtt",
+  "foundry",
+  "dmimap",
+  "session-pack"
+]);
 const VALID_MODES = new Set<MapVisibilityMode>(["player", "gm", "clean"]);
 
 export async function POST(request: Request, context: RouteContext) {
@@ -46,18 +60,31 @@ export async function POST(request: Request, context: RouteContext) {
     const format = parseFormat(body.format);
 
     if (!format) {
-      return Response.json({ error: "Export format must be png, webp, dd2vtt, foundry, or dmimap.", ok: false }, { status: 400 });
+      return Response.json(
+        {
+          error: "Export format must be png, webp, dd2vtt, foundry, or dmimap.",
+          ok: false
+        },
+        { status: 400 }
+      );
     }
 
     const mode = parseMode(body.mode);
     const document = applyVisibilityMode(project.document, mode);
-    const includeGrid = typeof body.includeGrid === "boolean" ? body.includeGrid : true;
+    const includeGrid =
+      typeof body.includeGrid === "boolean" ? body.includeGrid : true;
     const scale = typeof body.scale === "number" ? body.scale : 1;
-    const splitLayers = typeof body.splitLayers === "boolean" ? body.splitLayers : false;
-    const webpQuality = typeof body.webpQuality === "number" ? body.webpQuality : undefined;
+    const splitLayers =
+      typeof body.splitLayers === "boolean" ? body.splitLayers : false;
+    const webpQuality =
+      typeof body.webpQuality === "number" ? body.webpQuality : undefined;
     const assetResolver = createAssetManifestResolver();
 
-    const finalize = async (buffer: Buffer, contentType: string, filename: string): Promise<Response> => {
+    const finalize = async (
+      buffer: Buffer,
+      contentType: string,
+      filename: string
+    ): Promise<Response> => {
       await recordProjectExport(projectId, {
         filename,
         format: format as ProjectExportFormat,
@@ -79,7 +106,11 @@ export async function POST(request: Request, context: RouteContext) {
           webpQuality
         });
 
-        return finalize(result.buffer, result.contentType, namedFilename(result.filename, mode));
+        return finalize(
+          result.buffer,
+          result.contentType,
+          namedFilename(result.filename, mode)
+        );
       }
 
       const result = await exportMapDocumentRaster(document, {
@@ -90,7 +121,11 @@ export async function POST(request: Request, context: RouteContext) {
         webpQuality
       });
 
-      return finalize(result.buffer, result.contentType, namedFilename(result.filename, mode));
+      return finalize(
+        result.buffer,
+        result.contentType,
+        namedFilename(result.filename, mode)
+      );
     }
 
     if (format === "dd2vtt") {
@@ -110,7 +145,8 @@ export async function POST(request: Request, context: RouteContext) {
     }
 
     if (format === "foundry") {
-      const includeJournals = typeof body.includeJournals === "boolean" ? body.includeJournals : true;
+      const includeJournals =
+        typeof body.includeJournals === "boolean" ? body.includeJournals : true;
       const result = await exportFoundryModule(document, {
         assetResolver,
         imageFormat: "webp",
@@ -119,12 +155,20 @@ export async function POST(request: Request, context: RouteContext) {
         scale
       });
 
-      return finalize(result.buffer, "application/zip", namedFilename(result.filename, mode));
+      return finalize(
+        result.buffer,
+        "application/zip",
+        namedFilename(result.filename, mode)
+      );
     }
 
     if (format === "session-pack") {
-      const description = typeof body.description === "string" ? body.description : undefined;
-      const includeInitiative = typeof body.includeInitiative === "boolean" ? body.includeInitiative : true;
+      const description =
+        typeof body.description === "string" ? body.description : undefined;
+      const includeInitiative =
+        typeof body.includeInitiative === "boolean"
+          ? body.includeInitiative
+          : true;
       const result = await exportSessionPack(document, {
         assetResolver,
         description,
@@ -134,21 +178,32 @@ export async function POST(request: Request, context: RouteContext) {
         scale
       });
 
-      return finalize(result.buffer, "application/zip", namedFilename(result.filename, mode));
+      return finalize(
+        result.buffer,
+        "application/zip",
+        namedFilename(result.filename, mode)
+      );
     }
 
     const result = exportDmImap(document, { mode });
     return finalize(result.buffer, result.contentType, result.filename);
   } catch (error) {
     if (error instanceof ProjectNotFoundError) {
-      return Response.json({ error: error.message, ok: false }, { status: 404 });
+      return Response.json(
+        { error: error.message, ok: false },
+        { status: 404 }
+      );
     }
 
     if (error instanceof InvalidProjectIdError) {
-      return Response.json({ error: error.message, ok: false }, { status: 400 });
+      return Response.json(
+        { error: error.message, ok: false },
+        { status: 400 }
+      );
     }
 
-    const message = error instanceof Error ? error.message : "Could not export project.";
+    const message =
+      error instanceof Error ? error.message : "Could not export project.";
     return Response.json({ error: message, ok: false }, { status: 400 });
   }
 }
@@ -158,11 +213,16 @@ function parseFormat(value: unknown): WebExportFormat | null {
     return null;
   }
 
-  return VALID_FORMATS.has(value as WebExportFormat) ? (value as WebExportFormat) : null;
+  return VALID_FORMATS.has(value as WebExportFormat)
+    ? (value as WebExportFormat)
+    : null;
 }
 
 function parseMode(value: unknown): MapVisibilityMode {
-  if (typeof value === "string" && VALID_MODES.has(value as MapVisibilityMode)) {
+  if (
+    typeof value === "string" &&
+    VALID_MODES.has(value as MapVisibilityMode)
+  ) {
     return value as MapVisibilityMode;
   }
 
@@ -183,7 +243,12 @@ function namedFilename(filename: string, mode: MapVisibilityMode): string {
   return `${filename.slice(0, dotIndex)}-${mode}${filename.slice(dotIndex)}`;
 }
 
-function responseFromBuffer(buffer: Buffer, contentType: string, filename: string, mode: MapVisibilityMode): Response {
+function responseFromBuffer(
+  buffer: Buffer,
+  contentType: string,
+  filename: string,
+  mode: MapVisibilityMode
+): Response {
   return new Response(toArrayBuffer(buffer), {
     headers: {
       "Content-Disposition": `attachment; filename="${filename}"`,
@@ -194,9 +259,17 @@ function responseFromBuffer(buffer: Buffer, contentType: string, filename: strin
 }
 
 function toArrayBuffer(buffer: Buffer): ArrayBuffer {
-  return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer;
+  return buffer.buffer.slice(
+    buffer.byteOffset,
+    buffer.byteOffset + buffer.byteLength
+  ) as ArrayBuffer;
 }
 
 function slugify(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "") || "dm-instamap-map";
+  return (
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/gu, "-")
+      .replace(/^-|-$/gu, "") || "dm-instamap-map"
+  );
 }

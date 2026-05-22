@@ -22,7 +22,11 @@ export function MapEditor(props: MapEditorProps) {
   const editor = useMapEditorState(props);
 
   return (
-    <section className="editor-shell" aria-label="Editor mappa" data-hydrated={editor.isHydrated ? "true" : "false"}>
+    <section
+      className="editor-shell"
+      aria-label="Editor mappa"
+      data-hydrated={editor.isHydrated ? "true" : "false"}
+    >
       <EditorAssetSidebar editor={editor} />
 
       <section className="editor-map-panel">

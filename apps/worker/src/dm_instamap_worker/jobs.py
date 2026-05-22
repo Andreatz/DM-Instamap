@@ -15,7 +15,6 @@ from uuid import uuid4
 
 from .models import JobRecord, JobStatus, utc_now_iso
 
-
 type CommandStep = tuple[list[str], str, int]
 
 
@@ -29,7 +28,9 @@ class JobStore:
         self._processes: dict[str, subprocess.Popen[str]] = {}
         self._lock = RLock()
         self._db_path = Path(db_path) if db_path is not None else default_jobs_db_path()
-        self._max_concurrent_jobs = read_positive_int_env("DM_INSTAMAP_WORKER_CONCURRENCY", 2)
+        self._max_concurrent_jobs = read_positive_int_env(
+            "DM_INSTAMAP_WORKER_CONCURRENCY", 2
+        )
         self._semaphore = BoundedSemaphore(self._max_concurrent_jobs)
         self._initialize_db()
         self._load_jobs()
@@ -37,7 +38,9 @@ class JobStore:
 
     def list_jobs(self) -> list[JobRecord]:
         with self._lock:
-            return sorted(self._jobs.values(), key=lambda job: job.createdAt, reverse=True)
+            return sorted(
+                self._jobs.values(), key=lambda job: job.createdAt, reverse=True
+            )
 
     @property
     def db_path(self) -> Path:
@@ -49,7 +52,9 @@ class JobStore:
 
     def running_job_ids(self) -> list[str]:
         with self._lock:
-            return sorted(job.id for job in self._jobs.values() if job.status == JobStatus.running)
+            return sorted(
+                job.id for job in self._jobs.values() if job.status == JobStatus.running
+            )
 
     def status_counts(self) -> dict[str, int]:
         counts = {status.value: 0 for status in JobStatus}
@@ -117,7 +122,11 @@ class JobStore:
     def cancel_job(self, job_id: str) -> JobRecord:
         with self._lock:
             job = self.get_job(job_id)
-            if job.status in {JobStatus.completed, JobStatus.failed, JobStatus.cancelled}:
+            if job.status in {
+                JobStatus.completed,
+                JobStatus.failed,
+                JobStatus.cancelled,
+            }:
                 return job
 
             updated = job.model_copy(
@@ -156,24 +165,42 @@ class JobStore:
     def release_worker_slot(self) -> None:
         self._semaphore.release()
 
-    def cleanup_old_jobs(self, *, max_age_days: int | None = None, max_terminal_jobs: int | None = None) -> int:
-        age_days = max_age_days if max_age_days is not None else read_positive_int_env("DM_INSTAMAP_JOBS_RETENTION_DAYS", 30)
-        keep_terminal = max_terminal_jobs if max_terminal_jobs is not None else read_positive_int_env("DM_INSTAMAP_JOBS_MAX_TERMINAL", 500)
+    def cleanup_old_jobs(
+        self, *, max_age_days: int | None = None, max_terminal_jobs: int | None = None
+    ) -> int:
+        age_days = (
+            max_age_days
+            if max_age_days is not None
+            else read_positive_int_env("DM_INSTAMAP_JOBS_RETENTION_DAYS", 30)
+        )
+        keep_terminal = (
+            max_terminal_jobs
+            if max_terminal_jobs is not None
+            else read_positive_int_env("DM_INSTAMAP_JOBS_MAX_TERMINAL", 500)
+        )
         cutoff = datetime.now(UTC) - timedelta(days=age_days)
 
         with self._lock:
             terminal = [
                 job
                 for job in self._jobs.values()
-                if job.status in {JobStatus.completed, JobStatus.failed, JobStatus.cancelled}
+                if job.status
+                in {JobStatus.completed, JobStatus.failed, JobStatus.cancelled}
             ]
             expired_ids = {
                 job.id
                 for job in terminal
-                if parse_iso_datetime(job.updatedAt) is not None and parse_iso_datetime(job.updatedAt) < cutoff
+                if (updated := parse_iso_datetime(job.updatedAt)) is not None
+                and updated < cutoff
             }
-            terminal_sorted = sorted(terminal, key=lambda job: job.updatedAt, reverse=True)
-            overflow_ids = {job.id for job in terminal_sorted[keep_terminal:]} if keep_terminal >= 0 else set()
+            terminal_sorted = sorted(
+                terminal, key=lambda job: job.updatedAt, reverse=True
+            )
+            overflow_ids = (
+                {job.id for job in terminal_sorted[keep_terminal:]}
+                if keep_terminal >= 0
+                else set()
+            )
             ids_to_delete = expired_ids | overflow_ids
 
             if not ids_to_delete:
@@ -184,7 +211,10 @@ class JobStore:
 
             with closing(sqlite3.connect(self._db_path)) as connection:
                 with connection:
-                    connection.executemany("DELETE FROM jobs WHERE id = ?", [(job_id,) for job_id in ids_to_delete])
+                    connection.executemany(
+                        "DELETE FROM jobs WHERE id = ?",
+                        [(job_id,) for job_id in ids_to_delete],
+                    )
 
             return len(ids_to_delete)
 
@@ -208,7 +238,10 @@ class JobStore:
                     )
                     """
                 )
-                columns = {row[1] for row in connection.execute("PRAGMA table_info(jobs)").fetchall()}
+                columns = {
+                    row[1]
+                    for row in connection.execute("PRAGMA table_info(jobs)").fetchall()
+                }
                 if "log" not in columns:
                     connection.execute("ALTER TABLE jobs ADD COLUMN log TEXT")
 
@@ -309,7 +342,9 @@ def parse_iso_datetime(value: str) -> datetime | None:
         return None
 
 
-def merge_log(existing: dict[str, Any] | None, update: dict[str, Any] | None) -> dict[str, Any] | None:
+def merge_log(
+    existing: dict[str, Any] | None, update: dict[str, Any] | None
+) -> dict[str, Any] | None:
     if update is None:
         return existing
     return {**(existing or {}), **update}
@@ -325,7 +360,9 @@ def summarize_output(value: str, *, max_chars: int = 1200) -> str:
 def find_repo_root(start: Path | None = None) -> Path:
     current = (start or Path(__file__)).resolve()
     for candidate in [current, *current.parents]:
-        if (candidate / "pnpm-workspace.yaml").exists() and (candidate / "package.json").exists():
+        if (candidate / "pnpm-workspace.yaml").exists() and (
+            candidate / "package.json"
+        ).exists():
             return candidate
     raise RuntimeError("Could not find the DM-Instamap monorepo root.")
 
@@ -347,7 +384,14 @@ def run_asset_import_pack_job(
     preset: str,
     default_tags: list[str],
 ) -> None:
-    command: list[str] = ["pnpm", "assets:import-pack", "--root", root, "--preset", preset]
+    command: list[str] = [
+        "pnpm",
+        "assets:import-pack",
+        "--root",
+        root,
+        "--preset",
+        preset,
+    ]
     if default_tags:
         command.extend(["--default-tags", ",".join(default_tags)])
 
@@ -487,7 +531,9 @@ def run_subprocess_job(
     *,
     cwd: Path | None = None,
 ) -> None:
-    run_subprocess_steps_job(store, job_id, [(command, running_message, 85)], result_context, cwd=cwd)
+    run_subprocess_steps_job(
+        store, job_id, [(command, running_message, 85)], result_context, cwd=cwd
+    )
 
 
 def run_subprocess_steps_job(
@@ -545,7 +591,9 @@ def run_subprocess_steps_job(
                         "stderr": step_result["stderr"],
                         "stdout": step_result["stdout"],
                     },
-                    error=step_result["stderr"] or step_result["stdout"] or f"Command exited with code {step_result['exitCode']}.",
+                    error=step_result["stderr"]
+                    or step_result["stdout"]
+                    or f"Command exited with code {step_result['exitCode']}.",
                     log={
                         "durationMs": int((time.monotonic() - started) * 1000),
                         "lastCommand": command,
@@ -579,15 +627,21 @@ def run_subprocess_steps_job(
                 "commands": [step[0] for step in steps],
                 "exitCode": 0,
                 "steps": step_results,
-                "stderr": "\n".join(step["stderr"] for step in step_results if step["stderr"]).strip(),
-                "stdout": "\n".join(step["stdout"] for step in step_results if step["stdout"]).strip(),
+                "stderr": "\n".join(
+                    step["stderr"] for step in step_results if step["stderr"]
+                ).strip(),
+                "stdout": "\n".join(
+                    step["stdout"] for step in step_results if step["stdout"]
+                ).strip(),
             },
             log={
                 "durationMs": int((time.monotonic() - started) * 1000),
                 "lastCommand": steps[-1][0] if steps else [],
             },
         )
-    except Exception as error:  # pragma: no cover - defensive guard for background tasks.
+    except (
+        Exception
+    ) as error:  # pragma: no cover - defensive guard for background tasks.
         store.update_job(
             job_id,
             status=JobStatus.failed,
@@ -600,7 +654,9 @@ def run_subprocess_steps_job(
         store.release_worker_slot()
 
 
-def run_command_step(store: JobStore, job_id: str, command: list[str], cwd: Path) -> dict[str, Any]:
+def run_command_step(
+    store: JobStore, job_id: str, command: list[str], cwd: Path
+) -> dict[str, Any]:
     process: subprocess.Popen[str] | None = None
     resolved_command = resolve_command(command)
     process = subprocess.Popen(
@@ -648,7 +704,12 @@ def run_image_analysis_job(store: JobStore, job_id: str, image_path: str) -> Non
             },
         )
         started = time.monotonic()
-        step_result = run_command_step(store, job_id, ["pnpm", "assets:analyze-image", image_path], find_repo_root())
+        step_result = run_command_step(
+            store,
+            job_id,
+            ["pnpm", "assets:analyze-image", image_path],
+            find_repo_root(),
+        )
         if store.is_cancelled(job_id):
             return
         if step_result["exitCode"] != 0:
@@ -658,7 +719,9 @@ def run_image_analysis_job(store: JobStore, job_id: str, image_path: str) -> Non
                 progress=100,
                 message="Job failed.",
                 result={"imagePath": image_path, **step_result},
-                error=step_result["stderr"] or step_result["stdout"] or f"Command exited with code {step_result['exitCode']}.",
+                error=step_result["stderr"]
+                or step_result["stdout"]
+                or f"Command exited with code {step_result['exitCode']}.",
                 log={
                     "durationMs": int((time.monotonic() - started) * 1000),
                     "stderrTail": summarize_output(step_result["stderr"]),
@@ -685,7 +748,9 @@ def run_image_analysis_job(store: JobStore, job_id: str, image_path: str) -> Non
                 "stdoutTail": summarize_output(step_result["stdout"]),
             },
         )
-    except Exception as error:  # pragma: no cover - defensive guard for background tasks.
+    except (
+        Exception
+    ) as error:  # pragma: no cover - defensive guard for background tasks.
         store.update_job(
             job_id,
             status=JobStatus.failed,
@@ -756,7 +821,21 @@ def read_jpeg_size(data: bytes) -> tuple[int | None, int | None]:
         if marker in {0xD8, 0xD9}:
             continue
         segment_length = int.from_bytes(data[index : index + 2], "big")
-        if marker in {0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF}:
+        if marker in {
+            0xC0,
+            0xC1,
+            0xC2,
+            0xC3,
+            0xC5,
+            0xC6,
+            0xC7,
+            0xC9,
+            0xCA,
+            0xCB,
+            0xCD,
+            0xCE,
+            0xCF,
+        }:
             height = int.from_bytes(data[index + 3 : index + 5], "big")
             width = int.from_bytes(data[index + 5 : index + 7], "big")
             return width, height
@@ -805,7 +884,9 @@ def run_placeholder_job(store: JobStore, job_id: str, result: dict[str, Any]) ->
             message="Job completed.",
             result=result,
         )
-    except Exception as error:  # pragma: no cover - defensive guard for background tasks.
+    except (
+        Exception
+    ) as error:  # pragma: no cover - defensive guard for background tasks.
         store.update_job(
             job_id,
             status=JobStatus.failed,

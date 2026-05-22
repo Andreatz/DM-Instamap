@@ -4,7 +4,11 @@ import {
   readSnapshotFromDirectory
 } from "@dm-instamap/core/server";
 import { findWorkspaceRoot } from "@/lib/assets-manifest";
-import { InvalidProjectIdError, ProjectNotFoundError, readProject } from "@/lib/projects";
+import {
+  InvalidProjectIdError,
+  ProjectNotFoundError,
+  readProject
+} from "@/lib/projects";
 
 type RouteContext = {
   params: Promise<{
@@ -18,10 +22,16 @@ export async function GET(request: Request, context: RouteContext) {
     const { contentHash, projectId } = await context.params;
     const project = await readProject(projectId);
     const outputRoot = await findWorkspaceRoot(process.cwd());
-    const baseRecord = await readSnapshotFromDirectory(contentHash, { outputRoot, projectId });
+    const baseRecord = await readSnapshotFromDirectory(contentHash, {
+      outputRoot,
+      projectId
+    });
 
     if (!baseRecord) {
-      return Response.json({ error: "Snapshot not found.", ok: false }, { status: 404 });
+      return Response.json(
+        { error: "Snapshot not found.", ok: false },
+        { status: 404 }
+      );
     }
 
     const url = new URL(request.url);
@@ -36,7 +46,10 @@ export async function GET(request: Request, context: RouteContext) {
         : await readSnapshotFromDirectory(against, { outputRoot, projectId });
 
     if (!compareRecord) {
-      return Response.json({ error: "Comparison snapshot not found.", ok: false }, { status: 404 });
+      return Response.json(
+        { error: "Comparison snapshot not found.", ok: false },
+        { status: 404 }
+      );
     }
 
     const diff = diffSnapshots(baseRecord, compareRecord);
@@ -48,16 +61,21 @@ export async function GET(request: Request, context: RouteContext) {
     });
   } catch (error) {
     if (error instanceof ProjectNotFoundError) {
-      return Response.json({ error: error.message, ok: false }, { status: 404 });
+      return Response.json(
+        { error: error.message, ok: false },
+        { status: 404 }
+      );
     }
 
     if (error instanceof InvalidProjectIdError) {
-      return Response.json({ error: error.message, ok: false }, { status: 400 });
+      return Response.json(
+        { error: error.message, ok: false },
+        { status: 400 }
+      );
     }
 
-    const message = error instanceof Error ? error.message : "Snapshot diff failed.";
+    const message =
+      error instanceof Error ? error.message : "Snapshot diff failed.";
     return Response.json({ error: message, ok: false }, { status: 500 });
   }
 }
-
-
