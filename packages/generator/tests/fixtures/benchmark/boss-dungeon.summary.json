@@ -1,0 +1,26 @@
+{
+  "id": "boss-dungeon",
+  "label": "Dungeon con boss",
+  "metrics": {
+    "assetDensity": 100,
+    "readability": 100,
+    "roomVariety": 87,
+    "routing": 100,
+    "tacticalAffordance": 100,
+    "themeAlignment": 100
+  },
+  "rating": "strong",
+  "roomCount": 8,
+  "score": 100,
+  "size": {
+    "height": 36,
+    "width": 52
+  },
+  "theme": "dungeon",
+  "thresholds": {
+    "minScore": 60,
+    "routing": 80,
+    "tacticalAffordance": 40,
+    "themeAlignment": 70
+  }
+}

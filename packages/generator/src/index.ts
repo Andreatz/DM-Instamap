@@ -466,3 +466,31 @@ export {
   type OutdoorMapOptions,
   type VillageMapOptions
 } from "./algorithms";
+
+export {
+  generateRoomRoleNotes,
+  inferRoomRole,
+  withRoomRoleNotes
+} from "./gm-notes";
+
+export {
+  applyStyleDna,
+  deriveFurnishingDensity,
+  describeStyleDna,
+  type StyleDensityBias,
+  type StyleDnaHint,
+  type StyleLayoutBias
+} from "./style-dna";
+
+export {
+  BENCHMARK_SCENARIOS,
+  benchmarkMetricLabel,
+  computeBenchmarkMetrics,
+  runBenchmarkScenario,
+  runBenchmarks,
+  type BenchmarkMetricKey,
+  type BenchmarkMetrics,
+  type BenchmarkResult,
+  type BenchmarkScenario,
+  type BenchmarkThresholds
+} from "./benchmark";

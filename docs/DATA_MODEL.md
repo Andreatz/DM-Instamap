@@ -24,6 +24,28 @@ migrated through the same path.
 Future schema changes require a new incremental migration and fixture before
 saved projects are considered compatible.
 
+## v2 preparation
+
+`packages/core` now includes `MapDocumentV2Schema` and
+`upgradeMapDocumentToV2(input)` as an explicit preparation path. The app still
+persists current project maps as `version: 1`, but tests cover automatic v1 to
+v2 upgrade so a future bump can be introduced without breaking older saves.
+
+The v2 preparation schema adds `metadata` for:
+
+- `exportHistory` entries (`png`, `webp`, `dd2vtt`, `foundry`, `dmimap`,
+  `session-pack`);
+- `thumbnailPath`;
+- `schemaChangelog`, currently seeded with `v1-to-v2`.
+
+`validateMapDocumentAssetReferences(document, knownAssetIds)` reports missing
+asset references from both document-level placements and plan placements. Each
+issue includes a usage category:
+
+- `tile-texture` for floor/wall texture placements;
+- `semantic-object` for object and lighting placements;
+- `asset-placement` for generic annotation or fallback placements.
+
 ## AssetMetadata
 
 Describes one local asset discovered by the scanner, such as a tile, prop, wall,
@@ -98,6 +120,10 @@ and optional notes.
 
 Defines a concrete asset placement on the editable map, including position,
 layer, rotation, scale, lock state, optional group id, and tags.
+
+Placed assets are also classified by usage for future migrations: floor/wall
+placements behave as tile textures, object/lighting placements behave as
+semantic objects, and annotations remain generic asset placements.
 
 ## GridConfig
 

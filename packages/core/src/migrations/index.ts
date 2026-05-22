@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MapDocumentSchema, type MapDocument } from "../index";
+import { MapDocumentSchema, MapDocumentV2Schema, type MapDocument, type MapDocumentV2 } from "../index";
 import { migrateV0ToV1 } from "./v0-to-v1";
 
 export const CURRENT_MAP_DOCUMENT_VERSION = 1 as const;
@@ -37,6 +37,25 @@ export function migrateMapDocument(input: unknown): MapDocument {
   }
 }
 
+export function upgradeMapDocumentToV2(input: unknown): MapDocumentV2 {
+  const candidate = unwrapDmimapPayload(input);
+  const candidateVersion = readMapDocumentVersion(candidate);
+
+  if (candidateVersion === 2) {
+    return MapDocumentV2Schema.parse(candidate);
+  }
+
+  const v1 = migrateMapDocument(candidate);
+  return MapDocumentV2Schema.parse({
+    ...v1,
+    metadata: {
+      exportHistory: [],
+      schemaChangelog: ["v1-to-v2"]
+    },
+    version: 2
+  });
+}
+
 function unwrapDmimapPayload(input: unknown): unknown {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     return input;
@@ -51,7 +70,7 @@ function unwrapDmimapPayload(input: unknown): unknown {
   return input;
 }
 
-function readMapDocumentVersion(input: unknown): 0 | 1 {
+function readMapDocumentVersion(input: unknown): 0 | 1 | 2 {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     throw new MapDocumentMigrationError("MapDocument input must be a JSON object.");
   }
@@ -64,6 +83,10 @@ function readMapDocumentVersion(input: unknown): 0 | 1 {
 
   if (version === CURRENT_MAP_DOCUMENT_VERSION) {
     return CURRENT_MAP_DOCUMENT_VERSION;
+  }
+
+  if (version === 2) {
+    return 2;
   }
 
   throw new MapDocumentMigrationError(`Unsupported MapDocument version: ${String(version)}.`);

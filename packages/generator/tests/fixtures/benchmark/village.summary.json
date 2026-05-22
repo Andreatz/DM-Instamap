@@ -1,0 +1,24 @@
+{
+  "id": "village",
+  "label": "Villaggio",
+  "metrics": {
+    "assetDensity": 80,
+    "readability": 100,
+    "roomVariety": 87,
+    "routing": 100,
+    "tacticalAffordance": 95,
+    "themeAlignment": 100
+  },
+  "rating": "strong",
+  "roomCount": 6,
+  "score": 99,
+  "size": {
+    "height": 34,
+    "width": 48
+  },
+  "theme": "village",
+  "thresholds": {
+    "minScore": 55,
+    "roomVariety": 40
+  }
+}

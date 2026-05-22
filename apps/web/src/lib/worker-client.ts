@@ -2,6 +2,7 @@ export type WorkerJobRecord = {
   createdAt: string;
   error?: string | null;
   id: string;
+  log?: Record<string, unknown> | null;
   message: string;
   progress: number;
   result?: Record<string, unknown> | null;
@@ -25,6 +26,18 @@ export async function fetchWorkerJob(jobId: string): Promise<WorkerJobRecord> {
   }
 
   return (await response.json()) as WorkerJobRecord;
+}
+
+export async function fetchWorkerJobs(): Promise<WorkerJobRecord[]> {
+  const response = await fetch(`${getWorkerBaseUrl()}/jobs`, {
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error(`Worker returned ${response.status} while listing jobs.`);
+  }
+
+  return (await response.json()) as WorkerJobRecord[];
 }
 
 export async function postWorkerJob(path: string, payload: unknown): Promise<WorkerJobRecord> {

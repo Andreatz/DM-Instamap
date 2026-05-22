@@ -20,7 +20,15 @@
       "Bash(pnpm --filter @dm-instamap/worker test)",
       "Bash(grep -n \"editor-map-panel\\\\|editor-details-panel\\\\|</section>\\\\s*$\\\\|editor-canvas-status\" apps/web/src/components/editor/map-editor.tsx)",
       "Bash(pnpm --filter @dm-instamap/web test)",
-      "Bash(pnpm --filter @dm-instamap/core test)"
+      "Bash(pnpm --filter @dm-instamap/core test)",
+      "Bash(ls vitest* vite*)",
+      "Bash(ls ../../vitest*)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(pnpm test:e2e)",
+      "Bash(pnpm benchmark *)",
+      "Bash(pnpm test:e2e -- -g \"export API returns WEBP dd2vtt\")",
+      "Bash(pnpm exec *)",
+      "Bash(grep -n \"Avanzamento Fase 5\\\\|generator:benchmark\\\\` \\(7/7\\)\\\\|^## Fase 6\\\\|^| Export \" docs/ROADMAP.md)"
     ]
   }
 }

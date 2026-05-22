@@ -1,0 +1,26 @@
+{
+  "id": "crypt",
+  "label": "Cripta",
+  "metrics": {
+    "assetDensity": 100,
+    "readability": 100,
+    "roomVariety": 87,
+    "routing": 100,
+    "tacticalAffordance": 100,
+    "themeAlignment": 100
+  },
+  "rating": "strong",
+  "roomCount": 7,
+  "score": 100,
+  "size": {
+    "height": 34,
+    "width": 48
+  },
+  "theme": "crypt",
+  "thresholds": {
+    "minScore": 60,
+    "readability": 55,
+    "routing": 80,
+    "themeAlignment": 70
+  }
+}

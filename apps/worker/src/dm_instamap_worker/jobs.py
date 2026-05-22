@@ -5,9 +5,11 @@ import os
 import sqlite3
 import struct
 import subprocess
+import time
 from contextlib import closing
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from threading import RLock
+from threading import BoundedSemaphore, RLock
 from typing import Any
 from uuid import uuid4
 
@@ -27,12 +29,34 @@ class JobStore:
         self._processes: dict[str, subprocess.Popen[str]] = {}
         self._lock = RLock()
         self._db_path = Path(db_path) if db_path is not None else default_jobs_db_path()
+        self._max_concurrent_jobs = read_positive_int_env("DM_INSTAMAP_WORKER_CONCURRENCY", 2)
+        self._semaphore = BoundedSemaphore(self._max_concurrent_jobs)
         self._initialize_db()
         self._load_jobs()
+        self.cleanup_old_jobs()
 
     def list_jobs(self) -> list[JobRecord]:
         with self._lock:
             return sorted(self._jobs.values(), key=lambda job: job.createdAt, reverse=True)
+
+    @property
+    def db_path(self) -> Path:
+        return self._db_path
+
+    @property
+    def max_concurrent_jobs(self) -> int:
+        return self._max_concurrent_jobs
+
+    def running_job_ids(self) -> list[str]:
+        with self._lock:
+            return sorted(job.id for job in self._jobs.values() if job.status == JobStatus.running)
+
+    def status_counts(self) -> dict[str, int]:
+        counts = {status.value: 0 for status in JobStatus}
+        with self._lock:
+            for job in self._jobs.values():
+                counts[job.status.value] += 1
+        return counts
 
     def create_job(self, job_type: str, message: str) -> JobRecord:
         now = utc_now_iso()
@@ -68,6 +92,7 @@ class JobStore:
         message: str | None = None,
         result: dict[str, Any] | None = None,
         error: str | None = None,
+        log: dict[str, Any] | None = None,
     ) -> JobRecord:
         with self._lock:
             job = self.get_job(job_id)
@@ -81,6 +106,7 @@ class JobStore:
                     "message": message if message is not None else job.message,
                     "result": result if result is not None else job.result,
                     "error": error if error is not None else job.error,
+                    "log": merge_log(job.log, log),
                     "updatedAt": utc_now_iso(),
                 }
             )
@@ -124,6 +150,44 @@ class JobStore:
     def is_cancelled(self, job_id: str) -> bool:
         return self.get_job(job_id).status == JobStatus.cancelled
 
+    def acquire_worker_slot(self) -> None:
+        self._semaphore.acquire()
+
+    def release_worker_slot(self) -> None:
+        self._semaphore.release()
+
+    def cleanup_old_jobs(self, *, max_age_days: int | None = None, max_terminal_jobs: int | None = None) -> int:
+        age_days = max_age_days if max_age_days is not None else read_positive_int_env("DM_INSTAMAP_JOBS_RETENTION_DAYS", 30)
+        keep_terminal = max_terminal_jobs if max_terminal_jobs is not None else read_positive_int_env("DM_INSTAMAP_JOBS_MAX_TERMINAL", 500)
+        cutoff = datetime.now(UTC) - timedelta(days=age_days)
+
+        with self._lock:
+            terminal = [
+                job
+                for job in self._jobs.values()
+                if job.status in {JobStatus.completed, JobStatus.failed, JobStatus.cancelled}
+            ]
+            expired_ids = {
+                job.id
+                for job in terminal
+                if parse_iso_datetime(job.updatedAt) is not None and parse_iso_datetime(job.updatedAt) < cutoff
+            }
+            terminal_sorted = sorted(terminal, key=lambda job: job.updatedAt, reverse=True)
+            overflow_ids = {job.id for job in terminal_sorted[keep_terminal:]} if keep_terminal >= 0 else set()
+            ids_to_delete = expired_ids | overflow_ids
+
+            if not ids_to_delete:
+                return 0
+
+            for job_id in ids_to_delete:
+                self._jobs.pop(job_id, None)
+
+            with closing(sqlite3.connect(self._db_path)) as connection:
+                with connection:
+                    connection.executemany("DELETE FROM jobs WHERE id = ?", [(job_id,) for job_id in ids_to_delete])
+
+            return len(ids_to_delete)
+
     def _initialize_db(self) -> None:
         self._db_path.parent.mkdir(parents=True, exist_ok=True)
         with closing(sqlite3.connect(self._db_path)) as connection:
@@ -139,16 +203,20 @@ class JobStore:
                         createdAt TEXT NOT NULL,
                         updatedAt TEXT NOT NULL,
                         result TEXT,
-                        error TEXT
+                        error TEXT,
+                        log TEXT
                     )
                     """
                 )
+                columns = {row[1] for row in connection.execute("PRAGMA table_info(jobs)").fetchall()}
+                if "log" not in columns:
+                    connection.execute("ALTER TABLE jobs ADD COLUMN log TEXT")
 
     def _load_jobs(self) -> None:
         with closing(sqlite3.connect(self._db_path)) as connection:
             rows = connection.execute(
                 """
-                SELECT id, type, status, progress, message, createdAt, updatedAt, result, error
+                SELECT id, type, status, progress, message, createdAt, updatedAt, result, error, log
                 FROM jobs
                 """
             ).fetchall()
@@ -156,11 +224,13 @@ class JobStore:
         with self._lock:
             for row in rows:
                 result = json.loads(row[7]) if row[7] is not None else None
+                log = json.loads(row[9]) if row[9] is not None else None
                 status = JobStatus(row[2])
                 if status == JobStatus.running:
                     status = JobStatus.failed
                     message = "Worker restarted before the job completed."
                     error = "Job interrupted by worker restart."
+                    log = merge_log(log, {"interrupted": True})
                 else:
                     message = row[4]
                     error = row[8]
@@ -175,6 +245,7 @@ class JobStore:
                     updatedAt=row[6],
                     result=result,
                     error=error,
+                    log=log,
                 )
                 self._jobs[job.id] = job
                 if status != JobStatus(row[2]):
@@ -185,8 +256,8 @@ class JobStore:
             with connection:
                 connection.execute(
                     """
-                    INSERT INTO jobs (id, type, status, progress, message, createdAt, updatedAt, result, error)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO jobs (id, type, status, progress, message, createdAt, updatedAt, result, error, log)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(id) DO UPDATE SET
                         type=excluded.type,
                         status=excluded.status,
@@ -195,7 +266,8 @@ class JobStore:
                         createdAt=excluded.createdAt,
                         updatedAt=excluded.updatedAt,
                         result=excluded.result,
-                        error=excluded.error
+                        error=excluded.error,
+                        log=excluded.log
                     """,
                     (
                         job.id,
@@ -207,6 +279,7 @@ class JobStore:
                         job.updatedAt,
                         json.dumps(job.result) if job.result is not None else None,
                         job.error,
+                        json.dumps(job.log) if job.log is not None else None,
                     ),
                 )
 
@@ -216,6 +289,37 @@ def default_jobs_db_path() -> Path:
     if override:
         return Path(override)
     return Path.home() / ".dm-instamap" / "jobs.db"
+
+
+def read_positive_int_env(name: str, fallback: int) -> int:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return fallback
+    try:
+        value = int(raw)
+    except ValueError:
+        return fallback
+    return value if value > 0 else fallback
+
+
+def parse_iso_datetime(value: str) -> datetime | None:
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def merge_log(existing: dict[str, Any] | None, update: dict[str, Any] | None) -> dict[str, Any] | None:
+    if update is None:
+        return existing
+    return {**(existing or {}), **update}
+
+
+def summarize_output(value: str, *, max_chars: int = 1200) -> str:
+    stripped = value.strip()
+    if len(stripped) <= max_chars:
+        return stripped
+    return stripped[-max_chars:]
 
 
 def find_repo_root(start: Path | None = None) -> Path:
@@ -395,6 +499,8 @@ def run_subprocess_steps_job(
     cwd: Path | None = None,
 ) -> None:
     step_results: list[dict[str, Any]] = []
+    store.acquire_worker_slot()
+    started = time.monotonic()
 
     try:
         if store.is_cancelled(job_id):
@@ -411,6 +517,12 @@ def run_subprocess_steps_job(
                 status=JobStatus.running,
                 progress=max(5, min(95, progress - 20)),
                 message=message,
+                log={
+                    "lastCommand": command,
+                    "startedAt": utc_now_iso(),
+                    "step": index + 1,
+                    "stepCount": len(steps),
+                },
             )
             step_result = run_command_step(store, job_id, command, repo_root)
             step_results.append(step_result)
@@ -434,6 +546,12 @@ def run_subprocess_steps_job(
                         "stdout": step_result["stdout"],
                     },
                     error=step_result["stderr"] or step_result["stdout"] or f"Command exited with code {step_result['exitCode']}.",
+                    log={
+                        "durationMs": int((time.monotonic() - started) * 1000),
+                        "lastCommand": command,
+                        "stderrTail": summarize_output(step_result["stderr"]),
+                        "stdoutTail": summarize_output(step_result["stdout"]),
+                    },
                 )
                 return
 
@@ -442,6 +560,12 @@ def run_subprocess_steps_job(
                 status=JobStatus.running,
                 progress=max(5, min(99, progress)),
                 message=f"Completed step {index + 1} of {len(steps)}.",
+                log={
+                    "durationMs": int((time.monotonic() - started) * 1000),
+                    "lastCommand": command,
+                    "stderrTail": summarize_output(step_result["stderr"]),
+                    "stdoutTail": summarize_output(step_result["stdout"]),
+                },
             )
 
         store.update_job(
@@ -458,6 +582,10 @@ def run_subprocess_steps_job(
                 "stderr": "\n".join(step["stderr"] for step in step_results if step["stderr"]).strip(),
                 "stdout": "\n".join(step["stdout"] for step in step_results if step["stdout"]).strip(),
             },
+            log={
+                "durationMs": int((time.monotonic() - started) * 1000),
+                "lastCommand": steps[-1][0] if steps else [],
+            },
         )
     except Exception as error:  # pragma: no cover - defensive guard for background tasks.
         store.update_job(
@@ -466,7 +594,10 @@ def run_subprocess_steps_job(
             progress=100,
             message="Job failed.",
             error=str(error),
+            log={"durationMs": int((time.monotonic() - started) * 1000)},
         )
+    finally:
+        store.release_worker_slot()
 
 
 def run_command_step(store: JobStore, job_id: str, command: list[str], cwd: Path) -> dict[str, Any]:
@@ -511,7 +642,12 @@ def run_image_analysis_job(store: JobStore, job_id: str, image_path: str) -> Non
             status=JobStatus.running,
             progress=25,
             message="Analyzing local image metadata with Sharp.",
+            log={
+                "lastCommand": ["pnpm", "assets:analyze-image", image_path],
+                "startedAt": utc_now_iso(),
+            },
         )
+        started = time.monotonic()
         step_result = run_command_step(store, job_id, ["pnpm", "assets:analyze-image", image_path], find_repo_root())
         if store.is_cancelled(job_id):
             return
@@ -523,6 +659,11 @@ def run_image_analysis_job(store: JobStore, job_id: str, image_path: str) -> Non
                 message="Job failed.",
                 result={"imagePath": image_path, **step_result},
                 error=step_result["stderr"] or step_result["stdout"] or f"Command exited with code {step_result['exitCode']}.",
+                log={
+                    "durationMs": int((time.monotonic() - started) * 1000),
+                    "stderrTail": summarize_output(step_result["stderr"]),
+                    "stdoutTail": summarize_output(step_result["stdout"]),
+                },
             )
             return
 
@@ -537,6 +678,11 @@ def run_image_analysis_job(store: JobStore, job_id: str, image_path: str) -> Non
                 "analysis": analysis,
                 "command": step_result["command"],
                 "exitCode": step_result["exitCode"],
+            },
+            log={
+                "durationMs": int((time.monotonic() - started) * 1000),
+                "stderrTail": summarize_output(step_result["stderr"]),
+                "stdoutTail": summarize_output(step_result["stdout"]),
             },
         )
     except Exception as error:  # pragma: no cover - defensive guard for background tasks.

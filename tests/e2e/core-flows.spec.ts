@@ -254,6 +254,41 @@ test("project export API returns WEBP dd2vtt and Session Pack artifacts", async 
   }
 });
 
+test("session-ready page exports a player map and records export history", async ({ page, request }) => {
+  const project = await createPlaywrightProject(request, `Playwright Session ${Date.now()}`, {
+    heightCells: 16,
+    roomCount: 4,
+    widthCells: 22
+  });
+
+  try {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await expect(page.getByText(/asset indicizzati/)).toBeVisible();
+
+    await page.goto(`/projects/${project.id}`, { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: project.name })).toBeVisible();
+    await page.getByRole("link", { name: "Pronto per la sessione" }).first().click();
+
+    await expect(page).toHaveURL(new RegExp(`/projects/${project.id}/session-ready$`));
+    await expect(page.getByRole("heading", { name: /Pronto per la sessione/ })).toBeVisible();
+    await expect(page.getByRole("heading", { exact: true, name: "Requisiti" })).toBeVisible();
+
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByRole("button", { name: "PNG giocatori" }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toMatch(/\.png$/);
+
+    const historyResponse = await request.get(`/api/projects/${project.id}`);
+    expect(historyResponse.status()).toBe(200);
+
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: "Export recenti" })).toBeVisible();
+    await expect(page.locator(".export-history-list li").first()).toContainText("Giocatori");
+  } finally {
+    await deleteProjectQuietly(request, project.id);
+  }
+});
+
 async function createPlaywrightProject(
   request: APIRequestContext,
   name: string,

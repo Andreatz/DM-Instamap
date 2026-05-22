@@ -23,15 +23,24 @@ export {
 } from "./dd2vtt";
 
 export {
+  buildFoundryModuleData,
   exportFoundryModule,
   type FoundryAmbientLightData,
   type FoundryExportOptions,
   type FoundryJournalEntryData,
+  type FoundryModuleData,
   type FoundryModuleExportResult,
   type FoundryModuleManifest,
   type FoundrySceneData,
+  type FoundryVersion,
   type FoundryWallData
 } from "./foundry";
+
+export {
+  buildVttExportManifest,
+  type VttExportManifest,
+  type VttManifestOptions
+} from "./vtt-manifest";
 
 export {
   exportSessionPack,

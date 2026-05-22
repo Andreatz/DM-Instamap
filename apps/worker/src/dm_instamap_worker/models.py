@@ -25,6 +25,7 @@ class JobRecord(BaseModel):
     updatedAt: str
     result: dict[str, Any] | None = None
     error: str | None = None
+    log: dict[str, Any] | None = None
 
 
 class AssetScanRequest(BaseModel):

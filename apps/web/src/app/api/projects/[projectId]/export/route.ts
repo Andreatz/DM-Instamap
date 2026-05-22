@@ -12,6 +12,7 @@ import {
   type RasterExportFormat
 } from "@dm-instamap/exporters";
 import { InvalidProjectIdError, ProjectNotFoundError, readProject } from "@/lib/projects";
+import { recordProjectExport, type ProjectExportFormat } from "@/lib/project-export-history";
 
 type WebExportFormat = ExportFormat | "session-pack";
 
@@ -56,6 +57,18 @@ export async function POST(request: Request, context: RouteContext) {
     const webpQuality = typeof body.webpQuality === "number" ? body.webpQuality : undefined;
     const assetResolver = createAssetManifestResolver();
 
+    const finalize = async (buffer: Buffer, contentType: string, filename: string): Promise<Response> => {
+      await recordProjectExport(projectId, {
+        filename,
+        format: format as ProjectExportFormat,
+        includeGrid,
+        mode,
+        scale
+      });
+
+      return responseFromBuffer(buffer, contentType, filename, mode);
+    };
+
     if (RASTER_FORMATS.has(format)) {
       if (splitLayers) {
         const result = await exportMapDocumentRasterLayerBundle(document, {
@@ -66,7 +79,7 @@ export async function POST(request: Request, context: RouteContext) {
           webpQuality
         });
 
-        return responseFromBuffer(result.buffer, result.contentType, namedFilename(result.filename, mode), mode);
+        return finalize(result.buffer, result.contentType, namedFilename(result.filename, mode));
       }
 
       const result = await exportMapDocumentRaster(document, {
@@ -77,7 +90,7 @@ export async function POST(request: Request, context: RouteContext) {
         webpQuality
       });
 
-      return responseFromBuffer(result.buffer, result.contentType, namedFilename(result.filename, mode), mode);
+      return finalize(result.buffer, result.contentType, namedFilename(result.filename, mode));
     }
 
     if (format === "dd2vtt") {
@@ -89,11 +102,10 @@ export async function POST(request: Request, context: RouteContext) {
         scale
       });
 
-      return responseFromBuffer(
+      return finalize(
         Buffer.from(result.json, "utf8"),
         "application/json",
-        namedFilename(`${slugify(document.name || document.id)}.dd2vtt`, mode),
-        mode
+        namedFilename(`${slugify(document.name || document.id)}.dd2vtt`, mode)
       );
     }
 
@@ -107,7 +119,7 @@ export async function POST(request: Request, context: RouteContext) {
         scale
       });
 
-      return responseFromBuffer(result.buffer, "application/zip", namedFilename(result.filename, mode), mode);
+      return finalize(result.buffer, "application/zip", namedFilename(result.filename, mode));
     }
 
     if (format === "session-pack") {
@@ -122,11 +134,11 @@ export async function POST(request: Request, context: RouteContext) {
         scale
       });
 
-      return responseFromBuffer(result.buffer, "application/zip", namedFilename(result.filename, mode), mode);
+      return finalize(result.buffer, "application/zip", namedFilename(result.filename, mode));
     }
 
     const result = exportDmImap(document, { mode });
-    return responseFromBuffer(result.buffer, result.contentType, result.filename, mode);
+    return finalize(result.buffer, result.contentType, result.filename);
   } catch (error) {
     if (error instanceof ProjectNotFoundError) {
       return Response.json({ error: error.message, ok: false }, { status: 404 });

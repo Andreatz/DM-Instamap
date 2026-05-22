@@ -1,25 +1,8 @@
 # DM-Instamap - Analisi critica e nuova roadmap
 
-Data revisione: 2026-05-21
-
-## Giudizio sintetico
-
-DM-Instamap e gia oltre lo stadio di MVP tecnico: ha un monorepo coerente,
-moduli separati, test automatici, test E2E manuali passati, editor, worker,
-scanner asset, generatore, esportatori e documentazione ampia.
-
-Il progetto pero non e ancora "maturo" come prodotto mantenibile nel tempo. I
-punti piu fragili sono: igiene del repository, copertura E2E ancora leggera,
-editor troppo monolitico, sicurezza dei path non uniforme tra web e worker,
-qualita generativa ancora euristica e UX operativa ancora densa.
-
-## Punteggio
-
-Punteggio complessivo: **7.2 / 10**
-
 ## Stato avanzamento
 
-Aggiornamento 2026-05-22:
+Aggiornamento Fase 0:
 
 - Fase 0 completata: `.gitignore` ora esclude `data/indexes/` e
   `data/previews/`;
@@ -58,106 +41,149 @@ Avanzamento Fase 2:
 - restano da coprire undo/redo esplicito, copy/paste asset, Foundry e import
   pack fixture.
 
-| Area | Voto | Motivo |
-|---|---:|---|
-| Visione prodotto | 8.0 | Direzione chiara: local-first, mappe editabili, asset reali, export VTT. |
-| Architettura | 7.5 | Monorepo ben diviso; boundary browser/server migliorato; alcuni moduli sono ancora troppo grandi. |
-| Core data model | 7.5 | Schemi Zod e migrazioni presenti; serve una strategia piu esplicita per versioni future. |
-| Asset pipeline | 7.0 | Scanner, classificazione, gruppi, audit e preview funzionano; serve migliore gestione di dataset grandi. |
-| Generator | 6.7 | Molte modalita, seed deterministici e scoring; qualita ancora piu tecnica che artistica/tattica. |
-| Editor | 6.5 | Molte funzioni utili; componente principale troppo grande e difficile da estendere in sicurezza. |
-| Export | 7.5 | PNG, WEBP, dd2vtt, Foundry, dmimap e Session Pack coperti; serve regression suite con fixture VTT reali. |
-| Worker | 7.0 | FastAPI locale con SQLite e job cancellabili; manca robustezza operativa su code, log e cleanup. |
-| Test | 7.0 | Buona base unitaria e manual E2E positivo; Playwright copre solo smoke flow. |
-| Sicurezza locale | 6.8 | Host guard presente; validazione path buona nel worker ma non uniforme nelle route web. |
-| Igiene repository | 4.0 | `data/` risulta tracciata con oltre 50.000 file e circa 321 MB di preview/indici. |
-| Documentazione | 8.0 | Molto ampia; va resa piu decisionale e meno storica. |
+Avanzamento Fase 3:
 
-## Cosa funziona bene
+- `apps/web/src/components/editor/map-editor.tsx` e passato da 2391 a 38 righe e
+  ora e solo un orchestratore che compone i sottocomponenti;
+- estratto il rendering canvas puro in `apps/web/src/lib/map-canvas-renderer.ts`
+  (testabile senza DOM tramite context 2D mock);
+- estratte le funzioni di supporto pure in `apps/web/src/lib/map-editor-view.ts`
+  (mappatura livelli, label IT, clamp/parse, bounds marquee, drag payload,
+  storage asset generati);
+- estratti gli hook `useEditorHistory`, `useCanvasViewport` e l'hook master
+  `useMapEditorState` sotto `apps/web/src/hooks/`;
+- estratti i pannelli React `EditorAssetSidebar`, `EditorCanvasToolbar`,
+  `MapCanvas`, `EditorAiPanel`, `EditorInspector`;
+- nessuna feature editor rimossa: strumenti, undo/redo, selezione, copy/paste,
+  layer, luci, note, iniziativa, arredamento, export e JSON restano invariati;
+- aggiunti test unitari per `map-editor-view` e `map-canvas-renderer`
+  (rendering base + helper puri);
+- verifiche passate: `pnpm lint`, `pnpm test` (108 test), `pnpm build`,
+  `pnpm test:e2e` (8/8, incluso save canvas + export PNG dell'editor reale);
+- restano da estrarre, se servira, sotto-pannelli piu granulari dall'inspector
+  (522 righe) e da valutare uno split ulteriore dell'hook master.
 
-- La visione local-first e rispettata: le funzioni principali lavorano su file
-  locali e non richiedono API esterne.
-- Il workspace e leggibile: `apps/web`, `apps/worker`, `packages/core`,
-  `packages/assets`, `packages/generator`, `packages/exporters`,
-  `packages/ai-bridge`.
-- Gli schemi condivisi in `packages/core` sono una buona base per mantenere le
-  mappe editabili.
-- Gli export principali sono gia presenti e testati a livello automatico e
-  manuale.
-- La baseline manuale del 2026-05-21 indica E2E-01..E2E-12 tutti PASS.
-- Il worker locale evita che alcuni task pesanti blocchino necessariamente una
-  request Next.js.
-- La documentazione e ricca e rende il progetto recuperabile anche dopo pause
-  lunghe.
+Avanzamento Fase 4:
 
-## Critica principale
+- aggiunta cronologia export per progetto: `apps/web/src/lib/project-export-history.ts`
+  registra ogni export in `data/projects/<id>/exports/history.json` (best-effort,
+  non blocca il download); la route `POST /api/projects/[projectId]/export` la
+  scrive dopo ogni export riuscito;
+- aggiunta thumbnail progetto come mini-mappa SVG deterministica
+  (`apps/web/src/lib/project-thumbnail.ts`, run-length per riga, nessun testo
+  utente inline) con il componente server `ProjectThumbnail`;
+- aggiunta pagina "Pronto per la sessione"
+  (`/projects/[projectId]/session-ready`) con checklist requisiti/consigliati
+  (`apps/web/src/lib/project-readiness.ts`) ed export consigliati;
+- aggiunto `ProjectQuickExport`: Session Pack e PNG giocatori esportabili in un
+  clic dalla pagina progetto (rispetta il limite dei 3 clic);
+- la pagina progetto mostra ora preview, stato di preparazione, export recenti e
+  azioni principali; la lista progetti mostra thumbnail e stato per card;
+- aggiunto stato libreria asset in home (`apps/web/src/lib/asset-library-status.ts`):
+  numero asset, ultima scansione, duplicati ed elementi da rivedere;
+- migliorati i messaggi vuoti (home, lista progetti) con call-to-action;
+- progress feedback job lunghi gia coperto da `JobProgressBar` + `useJob`
+  (polling worker), riutilizzato dove servono job;
+- aggiunti test unitari per readiness, export history, asset library status e
+  thumbnail; aggiunto E2E `home -> progetto -> session ready -> export` che
+  verifica anche la registrazione della cronologia;
+- verifiche passate: `pnpm lint`, `pnpm test` (122 test), `pnpm build`,
+  `pnpm test:e2e` (9/9).
 
-### 1. Repository troppo pesante
+Avanzamento Fase 5:
 
-`data/` contiene asset derivati e preview tracciati in Git. La scansione ha
-rilevato circa 50.930 file tracciati sotto `data/`, quasi tutti immagini
-generate, per circa 321 MB.
+- aggiunto harness benchmark in `packages/generator/src/benchmark.ts` con 7
+  scenari deterministici (cripta, dungeon con boss, rovina, caverna, villaggio,
+  accampamento, taverna) a input/seed fissi;
+- introdotte 6 metriche DM (allineamento tema, varieta stanze, densita elementi,
+  routing, leggibilita, affordance tattica) che riusano il quality scorer del
+  core ed estendono con metriche di struttura;
+- ogni scenario ha soglie codificate: il test `tests/benchmark.test.ts` fallisce
+  se il punteggio scende sotto soglia o si discosta dalle sintesi salvate in
+  `tests/fixtures/benchmark/` (snapshot seed-based);
+- aggiunte note GM deterministiche per ruolo stanza
+  (`packages/generator/src/gm-notes.ts`): `inferRoomRole`, `generateRoomRoleNotes`,
+  `withRoomRoleNotes`, idempotenti e senza randomness;
+- aggiunto un primo aggancio Reference Style DNA
+  (`packages/generator/src/style-dna.ts`): palette tags e densita influenzano i
+  tag stanza e la densita di arredamento; influenza sul layout ancora parziale;
+- aggiunto report CLI `pnpm generator:benchmark` (stampa tabella, `--write`
+  rigenera le sintesi, esce non-zero sotto soglia);
+- run del 2026-05-22: 7/7 scenari sopra soglia, 5 "strong" e 2 "usable";
+  report manuale in `docs/manual-test-reports/generator-benchmark-2026-05-22.md`;
+- verifiche passate: `pnpm lint`, `pnpm test` (generator 46 test; workspace
+  intero verde, incluso worker), `pnpm build`, `pnpm generator:benchmark` (7/7).
 
-Questo e il problema piu urgente per la salute del progetto. Non e un bug
-funzionale immediato, ma peggiora checkout, diff, backup, review e rischio di
-committare materiale locale o coperto da licenze asset.
+Avanzamento Fase 6:
 
-### 2. Playwright non prova ancora i veri flussi critici
+- corretto un disallineamento di fidelity dd2vtt: l'immagine incorporata ora e
+  renderizzata a `grid.pixelsPerCell * scale` px/cella e `pixels_per_grid` /
+  `image_size` derivano dai pixel reali, garantendo
+  `image_size = map_size * pixels_per_grid` (prima l'immagine era a 28 px/cella
+  ma il file dichiarava 70: griglia disallineata all'import);
+- aggiunta opzione `cellPixels` al raster exporter per render a risoluzione
+  griglia esatta;
+- estratto `buildFoundryModuleData` (dati strutturali Foundry senza render) e
+  aggiunta opzione `foundryVersion` (`v12` default = 11/12, `v13` = 12/13);
+- aggiunto `buildVttExportManifest`: confronto strutturale image-free tra dd2vtt
+  e Foundry con controlli di coerenza (porte, luci, muri, allineamento griglia);
+- aggiunta fixture realistica versionata
+  (`packages/exporters/tests/fixtures/realistic-map.ts`) e snapshot manifest;
+- nuovi test: allineamento griglia/immagine (immagine decodificata con sharp),
+  scala, round-trip dd2vtt, compatibilita Foundry 12/13, dimensioni scena,
+  coordinate muri/porte/luci/note;
+- documentazione: `docs/VTT_EXPORT.md` (incluso Foundry 12 vs 13) e report
+  manuale `docs/manual-test-reports/vtt-export-2026-05-22.md`;
+- verifiche passate: `pnpm lint`, `pnpm test` (exporters 43 test; workspace
+  intero verde, incluso worker), `pnpm build`, e l'E2E export dd2vtt del web.
 
-I test Playwright attuali sono smoke test: home, generator, wizard, campagne e
-progetti. Sono utili, ma non provano ancora i flussi che determinano se il tool
-regge una sessione reale:
+Avanzamento Fase 7:
 
-- creazione progetto completa;
-- apertura editor;
-- modifica canvas;
-- undo/redo;
-- salvataggio e riapertura;
-- export PNG/WEBP/dd2vtt/Foundry;
-- import pack via worker;
-- snapshot restore.
+- aggiunto log sintetico persistente sui job worker (`log.lastCommand`,
+  `durationMs`, `stdoutTail`, `stderrTail`, `interrupted`);
+- health worker arricchito con versione, repo root, db path, conteggi job,
+  job running e limite concorrenza;
+- aggiunto limite concorrenza configurabile
+  `DM_INSTAMAP_WORKER_CONCURRENCY`;
+- aggiunto cleanup automatico dei job terminali vecchi o in eccesso
+  (`DM_INSTAMAP_JOBS_RETENTION_DAYS`,
+  `DM_INSTAMAP_JOBS_MAX_TERMINAL`);
+- i job running interrotti da restart vengono marcati failed con
+  `log.interrupted`;
+- aggiunto proxy web `GET /api/jobs` e visualizzazione stderr sintetico in
+  `JobProgressBar`;
+- documentata recovery dopo crash in `docs/WORKER.md`.
 
-### 3. Editor molto potente ma monolitico
+Avanzamento Fase 8:
 
-`apps/web/src/components/editor/map-editor.tsx` supera le 2.100 righe. Dentro
-convivono stato React, canvas rendering, input handling, export, AI assist,
-snapshot, localStorage, palette e UI.
+- aggiunti `MapDocumentV2Schema` e `upgradeMapDocumentToV2` come percorso
+  esplicito di preparazione v2 senza forzare ancora il salvataggio dei
+  progetti a v2;
+- aggiunta metadata v2 per export history, thumbnail e schema changelog;
+- aggiunto validator `validateMapDocumentAssetReferences` per asset mancanti
+  in document asset placements e plan asset placements;
+- aggiunta classificazione usage asset: `tile-texture`, `semantic-object`,
+  `asset-placement`;
+- aggiunta fixture `document-v2-basic.json` e test v1 -> v2.
 
-La feature density e buona, ma ogni nuova modifica rischia regressioni. Il
-prossimo salto di qualita richiede separare engine, rendering, comandi, toolbar
-e pannelli.
+Avanzamento Fase 9:
 
-### 4. Sicurezza path non uniforme
+- aggiunto `pnpm run doctor` (`scripts/doctor.ts`) con controlli Node, pnpm,
+  Python, worker requirements, Sharp, template env e porte 3000/8000;
+- aggiunta `.env.local.example` con variabili locali worker/AI;
+- aggiunta guida `docs/WINDOWS_SETUP.md`;
+- aggiunto report manuale
+  `docs/manual-test-reports/local-packaging-2026-05-22.md`;
+- aggiunti test per parsing versioni e classificazione check doctor.
 
-Il worker ha `validate_local_path`, blocca path larghi o di sistema e controlla
-i path relativi. Alcune route web, invece, risolvono path assoluti o relativi
-in modo piu permissivo. In un tool locale questo e accettabile solo finche non
-si espone la LAN, ma il progetto prevede `DM_INSTAMAP_ALLOW_REMOTE=true`.
+Avanzamento Fase 10:
 
-La regola dovrebbe essere unica: ogni input file-system passa dallo stesso
-validatore.
-
-### 5. Qualita generativa ancora da misurare con scenari reali
-
-Il generatore ha modalita interessanti e scoring, ma il punteggio e ancora
-basato su euristiche tecniche: connettivita, dead-end, coperture, POI. Mancano
-benchmark "da DM":
-
-- mappa leggibile al tavolo;
-- spazi tattici vari;
-- stanze con scopo;
-- asset coerenti con tema;
-- export VTT usabile senza correzioni;
-- tempo medio per arrivare a una mappa pronta.
-
-### 6. Documentazione molto ampia ma poco gerarchica
-
-La documentazione copre quasi tutto, ma deve diventare piu operativa:
-
-- una guida "happy path" breve;
-- una guida troubleshooting;
-- una matrice feature -> test -> documento;
-- changelog manuale delle baseline.
+- aggiunto provider AI mock locale (`AI_PROVIDER=mock`) senza chiavi e senza
+  chiamate esterne;
+- `getBridgeStatus` espone `localOnly` e distingue `manual-only`, `api` e
+  `mock`;
+- `createProviderFromEnv` crea il provider mock per test e demo offline;
+- documentato il mock provider in `docs/AI_BRIDGE.md`.
 
 ## Nuova roadmap
 

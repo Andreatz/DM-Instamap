@@ -1,0 +1,24 @@
+{
+  "id": "cave",
+  "label": "Caverna",
+  "metrics": {
+    "assetDensity": 40,
+    "readability": 60,
+    "roomVariety": 73,
+    "routing": 100,
+    "tacticalAffordance": 90,
+    "themeAlignment": 100
+  },
+  "rating": "usable",
+  "roomCount": 1,
+  "score": 76,
+  "size": {
+    "height": 34,
+    "width": 48
+  },
+  "theme": "cave",
+  "thresholds": {
+    "minScore": 55,
+    "routing": 70
+  }
+}

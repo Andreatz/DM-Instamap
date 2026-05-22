@@ -40,7 +40,19 @@ Expected response:
 {
   "service": "dm-instamap-worker",
   "status": "ok",
-  "mode": "local-first"
+  "mode": "local-first",
+  "version": "0.1.0",
+  "repoRoot": "C:/path/to/DM-Instamap",
+  "dbPath": "C:/Users/you/.dm-instamap/jobs.db",
+  "jobCounts": {
+    "queued": 0,
+    "running": 0,
+    "completed": 12,
+    "failed": 1,
+    "cancelled": 0
+  },
+  "runningJobIds": [],
+  "maxConcurrentJobs": 2
 }
 ```
 
@@ -73,6 +85,8 @@ Each job has:
 - `updatedAt`
 - `result`
 - `error`
+- `log` with `lastCommand`, `durationMs`, `stdoutTail`, `stderrTail`, and
+  restart interruption metadata when available
 
 ## Task endpoints
 
@@ -111,6 +125,38 @@ curl -X POST http://127.0.0.1:8000/jobs/images/analyze \
 The job payload captures command output, per-step results and exit codes so the
 web app can inspect failures without reading terminal logs.
 
+## Long-job robustness
+
+The worker keeps a short log summary directly on each job record. It stores the
+last command, command tails for stdout/stderr, and duration in milliseconds.
+The web `JobProgressBar` displays the stderr tail on failures so UI errors are
+actionable without opening a terminal.
+
+Concurrency is bounded by `DM_INSTAMAP_WORKER_CONCURRENCY` (default `2`). This
+keeps large pack imports or exports from starting too many local subprocesses
+at once.
+
+Old terminal jobs are cleaned on worker startup:
+
+```bash
+DM_INSTAMAP_JOBS_RETENTION_DAYS=30
+DM_INSTAMAP_JOBS_MAX_TERMINAL=500
+```
+
+Only `completed`, `failed`, and `cancelled` jobs are removed by cleanup. Queued
+or running jobs stay visible. If the worker restarts while a job is running,
+the job is marked `failed` with `log.interrupted: true`.
+
+## Crash recovery
+
+1. Restart the worker with `pnpm worker:dev`.
+2. Check `GET /health` for `dbPath`, `jobCounts`, and `runningJobIds`.
+3. Open `GET /jobs` or the web proxy `GET /api/jobs` to inspect failed jobs.
+4. Re-run idempotent jobs such as scans/imports after confirming the local
+   source folder still exists.
+5. For exports, verify whether the target zip/image was written before
+   starting a new export.
+
 ## Worker offload (H1–H4)
 
 The following endpoints expose longer-running tasks as background jobs. Each
@@ -142,4 +188,7 @@ Configure the worker base URL on the web side with:
 ```bash
 DM_INSTAMAP_WORKER_URL=http://127.0.0.1:8000
 DM_INSTAMAP_ALLOW_REMOTE=false
+DM_INSTAMAP_WORKER_CONCURRENCY=2
+DM_INSTAMAP_JOBS_RETENTION_DAYS=30
+DM_INSTAMAP_JOBS_MAX_TERMINAL=500
 ```

@@ -1,0 +1,25 @@
+{
+  "id": "ruin",
+  "label": "Rovina",
+  "metrics": {
+    "assetDensity": 100,
+    "readability": 100,
+    "roomVariety": 87,
+    "routing": 100,
+    "tacticalAffordance": 100,
+    "themeAlignment": 100
+  },
+  "rating": "strong",
+  "roomCount": 6,
+  "score": 100,
+  "size": {
+    "height": 30,
+    "width": 44
+  },
+  "theme": "ruin",
+  "thresholds": {
+    "minScore": 58,
+    "routing": 75,
+    "themeAlignment": 70
+  }
+}

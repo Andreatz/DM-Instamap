@@ -248,6 +248,8 @@ class WorkerJobTests(unittest.TestCase):
         self.assertEqual(completed.status, JobStatus.completed)
         self.assertEqual(completed.result["exitCode"], 0)
         self.assertEqual(completed.result["stdout"], "scanner ok")
+        self.assertEqual(completed.log["lastCommand"][0], sys.executable)
+        self.assertGreaterEqual(completed.log["durationMs"], 0)
 
     def test_subprocess_runner_marks_failures(self) -> None:
         job = self.store.create_job("test.subprocess", "Queued.")
@@ -264,6 +266,28 @@ class WorkerJobTests(unittest.TestCase):
         self.assertEqual(failed.status, JobStatus.failed)
         self.assertEqual(failed.result["exitCode"], 2)
         self.assertEqual(failed.error, "bad folder")
+        self.assertEqual(failed.log["stderrTail"], "bad folder")
+
+    def test_running_jobs_are_marked_failed_after_restart(self) -> None:
+        job = self.store.create_job("test.restart", "Queued.")
+        self.store.update_job(job.id, status=JobStatus.running, progress=25, message="Running.")
+
+        reloaded_store = JobStore(self.db_path)
+        reloaded_job = reloaded_store.get_job(job.id)
+
+        self.assertEqual(reloaded_job.status, JobStatus.failed)
+        self.assertEqual(reloaded_job.error, "Job interrupted by worker restart.")
+        self.assertTrue(reloaded_job.log["interrupted"])
+
+    def test_cleanup_old_terminal_jobs(self) -> None:
+        job = self.store.create_job("test.cleanup", "Queued.")
+        self.store.update_job(job.id, status=JobStatus.completed, progress=100, message="Done.")
+
+        removed = self.store.cleanup_old_jobs(max_age_days=0, max_terminal_jobs=500)
+
+        self.assertEqual(removed, 1)
+        with self.assertRaises(KeyError):
+            self.store.get_job(job.id)
 
 
 if __name__ == "__main__":

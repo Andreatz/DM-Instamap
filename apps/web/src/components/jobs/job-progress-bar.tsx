@@ -33,6 +33,9 @@ export function JobProgressBar({ jobId, pollIntervalMs }: JobProgressBarProps) {
       <span className="pill">avanzamento: {job.progress}%</span>
       <p>{job.message}</p>
       {job.status === "failed" && job.error ? <p className="muted">Errore: {job.error}</p> : null}
+      {job.status === "failed" && typeof job.log?.stderrTail === "string" && job.log.stderrTail ? (
+        <pre className="job-log">{job.log.stderrTail}</pre>
+      ) : null}
     </section>
   );
 }

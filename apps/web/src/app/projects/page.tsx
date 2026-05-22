@@ -1,10 +1,23 @@
 import Link from "next/link";
-import { listProjects } from "@/lib/projects";
+import { ProjectThumbnail } from "@/components/projects/project-thumbnail";
+import { computeProjectReadiness } from "@/lib/project-readiness";
+import { listProjects, readProject, type DmInstamapProject } from "@/lib/projects";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProjectsPage() {
-  const projects = await listProjects();
+  const summaries = await listProjects();
+  const projects = (
+    await Promise.all(
+      summaries.map(async (summary) => {
+        try {
+          return await readProject(summary.id);
+        } catch {
+          return null;
+        }
+      })
+    )
+  ).filter((project): project is DmInstamapProject => project !== null);
 
   return (
     <main className="asset-page">
@@ -29,35 +42,51 @@ export default async function ProjectsPage() {
       {projects.length === 0 ? (
         <section className="asset-empty">
           <h2>Nessun progetto</h2>
-          <p>Crea un progetto locale per salvare, riaprire, modificare ed esportare un MapDocument.</p>
+          <p>Crea la tua prima mappa locale: potrai modificarla nel canvas, salvarla ed esportarla per il tavolo.</p>
+          <p>
+            <Link href="/projects/new">Crea il primo progetto</Link>
+          </p>
         </section>
       ) : (
         <section className="reference-grid">
-          {projects.map((project) => (
-            <article className="reference-card" key={project.id}>
-              <div className="reference-card-body">
-                <div className="group-title-row">
-                  <h2>{project.name}</h2>
-                  <span>{project.size.width} x {project.size.height}</span>
+          {projects.map((project) => {
+            const readiness = computeProjectReadiness(project.document);
+
+            return (
+              <article className="reference-card" key={project.id}>
+                <div className="reference-preview">
+                  <ProjectThumbnail document={project.document} />
                 </div>
-                <dl>
-                  <div>
-                    <dt>Stanze</dt>
-                    <dd>{project.roomCount}</dd>
+                <div className="reference-card-body">
+                  <div className="group-title-row">
+                    <h2>{project.name}</h2>
+                    <span>
+                      {project.document.width} x {project.document.height}
+                    </span>
                   </div>
-                  <div>
-                    <dt>Aggiornato</dt>
-                    <dd>{new Date(project.updatedAt).toLocaleString()}</dd>
+                  <dl>
+                    <div>
+                      <dt>Stanze</dt>
+                      <dd>{project.document.plan?.rooms.length ?? 0}</dd>
+                    </div>
+                    <div>
+                      <dt>Stato</dt>
+                      <dd>{readiness.isSessionReady ? "Pronto" : `${readiness.requiredPassed}/${readiness.requiredTotal} requisiti`}</dd>
+                    </div>
+                    <div>
+                      <dt>Aggiornato</dt>
+                      <dd>{new Date(project.updatedAt).toLocaleString()}</dd>
+                    </div>
+                  </dl>
+                  <div className="tag-list">
+                    <Link href={`/projects/${project.id}`}>Apri</Link>
+                    <Link href={`/projects/${project.id}/editor`}>Editor</Link>
+                    <Link href={`/projects/${project.id}/session-ready`}>Sessione</Link>
                   </div>
-                </dl>
-                <div className="tag-list">
-                  <Link href={`/projects/${project.id}`}>Apri</Link>
-                  <Link href={`/projects/${project.id}/editor`}>Editor</Link>
-                  <Link href={`/projects/${project.id}/export`}>Esporta</Link>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </section>
       )}
     </main>

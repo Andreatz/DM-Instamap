@@ -9,6 +9,12 @@ export type RasterExportLayer = "floor" | "walls" | "doors" | "props" | "lightin
 export type RasterExportOptions = {
   assetResolver?: AssetResolver;
   background?: "default" | "transparent";
+  /**
+   * Explicit pixels-per-cell. Overrides `scale` when set. Used by the VTT
+   * exporters to render the battlemap at the document's true grid resolution so
+   * the embedded image lines up with `pixels_per_grid`.
+   */
+  cellPixels?: number;
   format: RasterExportFormat;
   includeGrid?: boolean;
   layers?: readonly RasterExportLayer[];
@@ -46,7 +52,10 @@ export async function exportMapDocumentRaster(
 ): Promise<RasterExportResult> {
   const format = options.format;
   const scale = normalizeScale(options.scale);
-  const cellPixels = Math.max(8, Math.round(BASE_CELL_PIXELS * scale));
+  const cellPixels =
+    options.cellPixels !== undefined
+      ? Math.max(8, Math.round(options.cellPixels))
+      : Math.max(8, Math.round(BASE_CELL_PIXELS * scale));
   const width = document.width * cellPixels;
   const height = document.height * cellPixels;
   const assetRenderPlan = await resolveRasterAssets(document, {

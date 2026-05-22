@@ -1,17 +1,39 @@
 import Link from "next/link";
 import { listProjects } from "@/lib/projects";
 import { loadAssetGroups } from "@/lib/asset-groups";
+import { loadAssetManifest } from "@/lib/assets-manifest";
+import { loadAssetAudit } from "@/lib/asset-audit";
+import { summarizeAssetLibrary } from "@/lib/asset-library-status";
 import { loadReferenceMaps } from "@/lib/references";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [projects, assetGroups, references] = await Promise.all([
+  const [projects, assetGroups, manifest, audit, references] = await Promise.all([
     listProjects(),
     loadAssetGroups(),
+    loadAssetManifest(),
+    loadAssetAudit(),
     loadReferenceMaps()
   ]);
   const recentProjects = projects.slice(0, 4);
+  const libraryStatus = summarizeAssetLibrary({
+    audit: {
+      assetCount: audit.assetCount,
+      classificationWarnings: audit.classificationWarnings,
+      duplicateGroupCount: audit.duplicateGroupCount,
+      generatedAt: audit.generatedAt,
+      lowQualityCount: audit.lowQualityCount,
+      missing: audit.missing,
+      needsReviewCount: audit.needsReviewCount
+    },
+    groupCount: assetGroups.groupCount,
+    manifest: {
+      assetCount: manifest.assets.length,
+      generatedAt: manifest.generatedAt,
+      missing: manifest.missing
+    }
+  });
 
   return (
     <main className="home-shell">
@@ -24,6 +46,7 @@ export default async function Home() {
           login, nessuna API richiesta.
         </p>
         <div className="home-status">
+          <span className="pill">{libraryStatus.assetCount} asset indicizzati</span>
           <span className="pill">{assetGroups.groupCount} gruppi di asset</span>
           <span className="pill">{references.references.length} mappe di riferimento</span>
           <span className="pill">{projects.length} progetti salvati</span>
@@ -43,7 +66,9 @@ export default async function Home() {
         <section className="home-card">
           <h2>Progetti recenti</h2>
           {recentProjects.length === 0 ? (
-            <p className="muted">Nessun progetto salvato. Il wizard ne crea uno per te.</p>
+            <p className="muted">
+              Nessun progetto salvato. <Link href="/projects/new">Crea la tua prima mappa</Link> con il wizard.
+            </p>
           ) : (
             <ul>
               {recentProjects.map((project) => (
@@ -62,7 +87,14 @@ export default async function Home() {
 
         <section className="home-card">
           <h2>Libreria asset</h2>
-          <p className="muted">{assetGroups.groupCount} gruppi indicizzati da cartelle locali.</p>
+          <p className={`library-status library-status-${libraryStatus.tone}`}>{libraryStatus.headline}</p>
+          <p className="muted">
+            {libraryStatus.lastScan
+              ? `Ultima scansione: ${new Date(libraryStatus.lastScan).toLocaleString()}`
+              : "Nessuna scansione registrata."}
+            {libraryStatus.duplicateGroupCount > 0 ? ` - ${libraryStatus.duplicateGroupCount} gruppi duplicati` : ""}
+            {libraryStatus.needsReviewCount > 0 ? ` - ${libraryStatus.needsReviewCount} da rivedere` : ""}
+          </p>
           <ul>
             <li>
               <Link href="/assets">Sfoglia la libreria asset</Link>

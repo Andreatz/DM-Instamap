@@ -6,13 +6,15 @@ import { resolveAiConfigFromEnv } from "./providers";
 export type BridgeStatus =
   | {
       enabled: false;
+      localOnly: true;
       mode: "manual-only";
       reason?: string;
     }
   | {
       enabled: true;
-      mode: "api";
-      provider: "anthropic" | "openai";
+      localOnly: boolean;
+      mode: "api" | "mock";
+      provider: "anthropic" | "openai" | "mock";
       model?: string;
     };
 
@@ -89,6 +91,7 @@ export function getBridgeStatus(env: NodeJS.ProcessEnv = process.env): BridgeSta
   if (!config) {
     return {
       enabled: false,
+      localOnly: true,
       mode: "manual-only",
       reason: "AI_PROVIDER or AI_API_KEY is not set."
     };
@@ -96,7 +99,8 @@ export function getBridgeStatus(env: NodeJS.ProcessEnv = process.env): BridgeSta
 
   return {
     enabled: true,
-    mode: "api",
+    localOnly: config.provider === "mock",
+    mode: config.provider === "mock" ? "mock" : "api",
     model: config.model,
     provider: config.provider
   };
@@ -105,6 +109,7 @@ export function getBridgeStatus(env: NodeJS.ProcessEnv = process.env): BridgeSta
 export {
   createAnthropicProvider,
   createCustomProvider,
+  createMockProvider,
   createOpenAiProvider,
   createProviderFromEnv,
   resolveAiConfigFromEnv,
@@ -114,6 +119,7 @@ export {
   type AiCompletionResult,
   type AnthropicProviderConfig,
   type CustomProviderConfig,
+  type MockProviderConfig,
   type OpenAiProviderConfig,
   type ResolvedAiConfig
 } from "./providers";

@@ -1,0 +1,40 @@
+{
+  "assets": [],
+  "editable": true,
+  "grid": {
+    "cellSize": 5,
+    "height": 2,
+    "origin": {
+      "x": 0,
+      "y": 0
+    },
+    "pixelsPerCell": 70,
+    "type": "square",
+    "unit": "ft",
+    "width": 2
+  },
+  "height": 2,
+  "id": "document-v2-basic",
+  "layers": [
+    {
+      "id": "layer-terrain",
+      "kind": "terrain",
+      "locked": false,
+      "name": "Terrain",
+      "opacity": 1,
+      "order": 1,
+      "visible": true
+    }
+  ],
+  "metadata": {
+    "exportHistory": [],
+    "schemaChangelog": [
+      "v1-to-v2"
+    ],
+    "thumbnailPath": "data/projects/document-v2-basic/thumbnails/latest.svg"
+  },
+  "name": "Document V2 Basic",
+  "tiles": [],
+  "version": 2,
+  "width": 2
+}

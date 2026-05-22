@@ -1,0 +1,24 @@
+{
+  "id": "tavern",
+  "label": "Taverna",
+  "metrics": {
+    "assetDensity": 100,
+    "readability": 49,
+    "roomVariety": 72,
+    "routing": 100,
+    "tacticalAffordance": 100,
+    "themeAlignment": 100
+  },
+  "rating": "strong",
+  "roomCount": 4,
+  "score": 86,
+  "size": {
+    "height": 44,
+    "width": 64
+  },
+  "theme": "tavern",
+  "thresholds": {
+    "minScore": 55,
+    "themeAlignment": 50
+  }
+}

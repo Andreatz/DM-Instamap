@@ -229,6 +229,7 @@ pnpm lint
 pnpm test
 pnpm test:e2e   # starts the local Next.js app and runs Playwright Chromium smoke tests
 pnpm build
+pnpm run doctor  # checks local Node/pnpm/Python/Sharp/env/ports
 pnpm dev          # binds Next.js to 127.0.0.1
 pnpm worker:dev   # binds FastAPI to 127.0.0.1
 ```
@@ -237,6 +238,7 @@ Testing details and the lightweight UI smoke-flow contract live in
 [docs/TESTING.md](docs/TESTING.md).
 
 Local runtime data policy lives in [docs/LOCAL_DATA.md](docs/LOCAL_DATA.md).
+Windows setup notes live in [docs/WINDOWS_SETUP.md](docs/WINDOWS_SETUP.md).
 Before committing, run `pnpm repo:audit` to catch generated previews, indexes,
 local projects, exports, or large unintended binary assets that slipped back
 into Git.

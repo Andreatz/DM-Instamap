@@ -3,6 +3,7 @@ import {
   buildChatGptBridgePrompt,
   buildPromptPacket,
   buildRepairPrompt,
+  createProviderFromEnv,
   getBridgeStatus,
   repairPlanLocally,
   searchBridgeContext,
@@ -70,6 +71,7 @@ describe("getBridgeStatus", () => {
     const status = getBridgeStatus({});
 
     expect(status.enabled).toBe(false);
+    expect(status.localOnly).toBe(true);
     expect(status.mode).toBe("manual-only");
   });
 
@@ -82,10 +84,33 @@ describe("getBridgeStatus", () => {
 
     expect(status).toEqual({
       enabled: true,
+      localOnly: false,
       mode: "api",
       model: "claude-opus-4-7",
       provider: "anthropic"
     });
+  });
+
+  it("reports local mock mode without requiring API keys", () => {
+    const status = getBridgeStatus({
+      AI_PROVIDER: "mock"
+    });
+
+    expect(status).toEqual({
+      enabled: true,
+      localOnly: true,
+      mode: "mock",
+      model: "offline-mock",
+      provider: "mock"
+    });
+  });
+
+  it("creates a mock provider from env for tests and demos", async () => {
+    const provider = createProviderFromEnv({ AI_PROVIDER: "mock" });
+    const response = await provider?.complete({ messages: [{ content: "hello", role: "user" }] });
+
+    expect(provider?.vendor).toBe("mock");
+    expect(response?.text).toContain("plan-mock");
   });
 });
 

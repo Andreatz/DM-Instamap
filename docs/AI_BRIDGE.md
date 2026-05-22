@@ -32,6 +32,16 @@ AI_MAX_TOKENS=...
 The API mode remains optional. The app still works locally with the manual
 bridge when no provider is configured.
 
+For offline demos and tests, use the built-in mock provider:
+
+```bash
+AI_PROVIDER=mock
+```
+
+The mock provider does not require `AI_API_KEY`, does not call a network
+provider, and returns deterministic local responses. `GET /api/ai/status`
+reports this as `mode: "mock"` and `localOnly: true`.
+
 ## CLI Smoke Tests
 
 ```bash
@@ -51,6 +61,8 @@ When API mode is enabled (env configured):
   `manual-only` payload when env is missing.
 - `POST /api/ai/blueprint` — body `{ "request": "..." }`. Returns a validated
   `MapGenerationBlueprint`.
+  Status payloads include `localOnly`, so the UI can distinguish external API
+  mode from local-only mock/manual mode.
 - `POST /api/ai/plan` — body `{ "userRequest": "...", "assetGroups": [...], "references": [...], "maxRetries": 2 }`.
   The `assetGroups` and `references` are converted to bridge summaries on the
   client (see `apps/web/src/lib/bridge-mappers.ts`) and let the model reference

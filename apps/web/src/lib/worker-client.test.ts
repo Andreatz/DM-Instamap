@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fetchWorkerJob, getWorkerBaseUrl, postWorkerJob } from "./worker-client";
+import { fetchWorkerJob, fetchWorkerJobs, getWorkerBaseUrl, postWorkerJob } from "./worker-client";
 
 describe("worker-client", () => {
   const originalEnv = process.env.DM_INSTAMAP_WORKER_URL;
@@ -41,6 +41,31 @@ describe("worker-client", () => {
     expect(fetchSpy).toHaveBeenCalledWith("https://worker.test/jobs/job_1", expect.any(Object));
     expect(job.status).toBe("completed");
     expect(job.progress).toBe(100);
+  });
+
+  it("lists jobs from the worker", async () => {
+    process.env.DM_INSTAMAP_WORKER_URL = "https://worker.test";
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify([
+          {
+            id: "job_1",
+            type: "assets.scan",
+            status: "queued",
+            progress: 0,
+            message: "queued",
+            createdAt: "2026-05-21T00:00:00.000Z",
+            updatedAt: "2026-05-21T00:00:00.000Z"
+          }
+        ]),
+        { status: 200 }
+      )
+    );
+
+    const jobs = await fetchWorkerJobs();
+
+    expect(fetchSpy).toHaveBeenCalledWith("https://worker.test/jobs", expect.any(Object));
+    expect(jobs[0]?.id).toBe("job_1");
   });
 
   it("posts a job and surfaces non-2xx errors", async () => {

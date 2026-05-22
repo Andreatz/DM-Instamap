@@ -124,8 +124,31 @@ export async function exportMapDocumentDd2Vtt(
   document: MapDocument,
   options: Dd2VttExportOptions = {}
 ): Promise<Dd2VttExportResult> {
-  const pixelsPerGrid = Math.max(1, Math.round(document.grid.pixelsPerCell));
+  const userScale = options.scale && options.scale > 0 ? options.scale : 1;
+  // Universal VTT requires the embedded image to be exactly pixels_per_grid per
+  // cell. Render the battlemap at the document grid resolution (scaled) and let
+  // the actual image dimensions drive pixels_per_grid so the grid lines up.
+  const targetPixelsPerGrid = Math.max(1, Math.round(document.grid.pixelsPerCell * userScale));
   const walls = document.plan?.walls.length ? document.plan.walls : createWallsFromTiles(document.tiles);
+
+  let pixelsPerGrid = targetPixelsPerGrid;
+  let imageWidth = document.width * targetPixelsPerGrid;
+  let imageHeight = document.height * targetPixelsPerGrid;
+  let imageDataUrl: string | undefined;
+
+  if (options.embedImage ?? true) {
+    const image = await exportMapDocumentRaster(document, {
+      assetResolver: options.assetResolver,
+      cellPixels: targetPixelsPerGrid,
+      format: options.imageFormat ?? "png",
+      includeGrid: options.includeGrid ?? false
+    });
+    imageWidth = image.width;
+    imageHeight = image.height;
+    pixelsPerGrid = Math.max(1, Math.round(image.width / Math.max(1, document.width)));
+    imageDataUrl = `data:${image.contentType};base64,${image.buffer.toString("base64")}`;
+  }
+
   const object: Dd2VttExportObject = {
     format: 0.3,
     lights: (document.plan?.lights ?? []).map((light) => ({
@@ -147,8 +170,8 @@ export async function exportMapDocumentDd2Vtt(
     }),
     resolution: {
       image_size: {
-        x: document.width * pixelsPerGrid,
-        y: document.height * pixelsPerGrid
+        x: imageWidth,
+        y: imageHeight
       },
       map_origin: {
         x: document.grid.origin.x,
@@ -162,14 +185,8 @@ export async function exportMapDocumentDd2Vtt(
     }
   };
 
-  if (options.embedImage ?? true) {
-    const image = await exportMapDocumentRaster(document, {
-      assetResolver: options.assetResolver,
-      format: options.imageFormat ?? "png",
-      includeGrid: options.includeGrid ?? false,
-      scale: options.scale ?? 1
-    });
-    object.image = `data:${image.contentType};base64,${image.buffer.toString("base64")}`;
+  if (imageDataUrl) {
+    object.image = imageDataUrl;
   }
 
   return {

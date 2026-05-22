@@ -289,6 +289,22 @@ export const PlacedAssetSchema = z
 
 export type PlacedAsset = z.infer<typeof PlacedAssetSchema>;
 
+export const AssetUsageKindSchema = z.enum(["asset-placement", "tile-texture", "semantic-object"]);
+
+export type AssetUsageKind = z.infer<typeof AssetUsageKindSchema>;
+
+export function classifyPlacedAssetUsage(asset: PlacedAsset): AssetUsageKind {
+  if (asset.layer === "floor" || asset.layer === "wall") {
+    return "tile-texture";
+  }
+
+  if (asset.layer === "object" || asset.layer === "lighting") {
+    return "semantic-object";
+  }
+
+  return "asset-placement";
+}
+
 export const MapPlanSchema = z
   .object({
     assetPlacements: z.array(PlacedAssetSchema).default([]),
@@ -334,6 +350,82 @@ export const MapDocumentSchema = z
   .strict();
 
 export type MapDocument = z.infer<typeof MapDocumentSchema>;
+
+export const MapDocumentExportHistoryMetadataSchema = z
+  .object({
+    exportedAt: TimestampSchema,
+    format: z.enum(["png", "webp", "dd2vtt", "foundry", "dmimap", "session-pack"]),
+    id: IdSchema,
+    mode: z.enum(["gm", "player", "clean"]).optional(),
+    outputPath: LocalPathSchema.optional()
+  })
+  .strict();
+
+export type MapDocumentExportHistoryMetadata = z.infer<typeof MapDocumentExportHistoryMetadataSchema>;
+
+export const MapDocumentV2MetadataSchema = z
+  .object({
+    exportHistory: z.array(MapDocumentExportHistoryMetadataSchema).default([]),
+    schemaChangelog: z.array(z.string().trim().min(1)).default(["v1-to-v2"]),
+    thumbnailPath: LocalPathSchema.optional()
+  })
+  .strict();
+
+export type MapDocumentV2Metadata = z.infer<typeof MapDocumentV2MetadataSchema>;
+
+export const MapDocumentV2Schema = MapDocumentSchema.omit({ version: true })
+  .extend({
+    metadata: MapDocumentV2MetadataSchema.default({
+      exportHistory: [],
+      schemaChangelog: ["v1-to-v2"]
+    }),
+    version: z.literal(2)
+  })
+  .strict();
+
+export type MapDocumentV2 = z.infer<typeof MapDocumentV2Schema>;
+
+export type AssetReferenceIssue = {
+  assetId: string;
+  path: string;
+  placedAssetId: string;
+  usage: AssetUsageKind;
+};
+
+export type AssetReferenceValidationResult = {
+  issues: AssetReferenceIssue[];
+  missingAssetIds: string[];
+  ok: boolean;
+};
+
+export function validateMapDocumentAssetReferences(
+  document: MapDocument | MapDocumentV2,
+  knownAssetIds: Iterable<string>
+): AssetReferenceValidationResult {
+  const known = new Set(knownAssetIds);
+  const issues: AssetReferenceIssue[] = [];
+  const inspect = (asset: PlacedAsset, path: string) => {
+    if (known.has(asset.assetId)) {
+      return;
+    }
+
+    issues.push({
+      assetId: asset.assetId,
+      path,
+      placedAssetId: asset.id,
+      usage: classifyPlacedAssetUsage(asset)
+    });
+  };
+
+  document.assets.forEach((asset, index) => inspect(asset, `assets[${index}].assetId`));
+  document.plan?.assetPlacements.forEach((asset, index) => inspect(asset, `plan.assetPlacements[${index}].assetId`));
+
+  return {
+    issues,
+    missingAssetIds: [...new Set(issues.map((issue) => issue.assetId))].sort(),
+    ok: issues.length === 0
+  };
+}
 
 export const ExportJobSchema = z
   .object({
@@ -404,5 +496,6 @@ export { CampaignSchema, createCampaign, type Campaign, type CampaignSession, ty
 export {
   CURRENT_MAP_DOCUMENT_VERSION,
   MapDocumentMigrationError,
-  migrateMapDocument
+  migrateMapDocument,
+  upgradeMapDocumentToV2
 } from "./migrations";

@@ -10,10 +10,13 @@ import type {
 import type { AssetResolver } from "./asset-resolver";
 import { exportMapDocumentRaster, type RasterExportFormat } from "./raster";
 
+export type FoundryVersion = "v12" | "v13";
+
 export type FoundryExportOptions = {
   author?: string;
   assetResolver?: AssetResolver;
   description?: string;
+  foundryVersion?: FoundryVersion;
   imageFormat?: RasterExportFormat;
   includeGridInImage?: boolean;
   includeJournals?: boolean;
@@ -23,6 +26,21 @@ export type FoundryExportOptions = {
   sceneId?: string;
   sceneName?: string;
   version?: string;
+};
+
+export type FoundryModuleData = {
+  imageFormat: RasterExportFormat;
+  journalJson: FoundryJournalEntryData[];
+  mapImagePath: string;
+  moduleId: string;
+  moduleJson: FoundryModuleManifest;
+  sceneJson: FoundrySceneData;
+  sceneSlug: string;
+};
+
+const FOUNDRY_COMPATIBILITY: Record<FoundryVersion, { minimum: string; verified: string }> = {
+  v12: { minimum: "11", verified: "12" },
+  v13: { minimum: "12", verified: "13" }
 };
 
 export type FoundryModuleExportResult = {
@@ -131,19 +149,15 @@ export type FoundryAmbientLightData = {
   y: number;
 };
 
-export async function exportFoundryModule(
-  document: MapDocument,
-  options: FoundryExportOptions = {}
-): Promise<FoundryModuleExportResult> {
+/**
+ * Builds the structural Foundry module data (manifest, scene, journals) without
+ * rendering the battlemap image. Pure and synchronous, so it can drive the VTT
+ * comparison manifest and structural tests without invoking Sharp.
+ */
+export function buildFoundryModuleData(document: MapDocument, options: FoundryExportOptions = {}): FoundryModuleData {
   const moduleId = slugify(options.moduleId ?? document.id);
   const sceneSlug = slugify(options.sceneId ?? options.moduleId ?? document.id);
   const imageFormat = options.imageFormat ?? "webp";
-  const image = await exportMapDocumentRaster(document, {
-    assetResolver: options.assetResolver,
-    format: imageFormat,
-    includeGrid: options.includeGridInImage ?? false,
-    scale: options.scale ?? 1
-  });
   const mapImagePath = `maps/${sceneSlug}.${imageFormat}`;
   const sceneImagePath = `modules/${moduleId}/${mapImagePath}`;
   const includeJournals = options.includeJournals ?? true;
@@ -158,42 +172,59 @@ export async function exportFoundryModule(
   const moduleJson = createModuleManifest({
     author: options.author,
     description: options.description,
+    foundryVersion: options.foundryVersion ?? "v12",
     hasJournals: journalJson.length > 0,
     moduleId,
     moduleTitle: options.moduleTitle ?? document.name,
     version: options.version
   });
+
+  return { imageFormat, journalJson, mapImagePath, moduleId, moduleJson, sceneJson, sceneSlug };
+}
+
+export async function exportFoundryModule(
+  document: MapDocument,
+  options: FoundryExportOptions = {}
+): Promise<FoundryModuleExportResult> {
+  const data = buildFoundryModuleData(document, options);
+  const image = await exportMapDocumentRaster(document, {
+    assetResolver: options.assetResolver,
+    format: data.imageFormat,
+    includeGrid: options.includeGridInImage ?? false,
+    scale: options.scale ?? 1
+  });
   const zip = new JSZip();
 
-  zip.file("module.json", `${JSON.stringify(moduleJson, null, 2)}\n`);
-  zip.file(`scenes/${sceneSlug}.json`, `${JSON.stringify(sceneJson, null, 2)}\n`);
-  zip.file("packs/scenes.db", `${JSON.stringify(sceneJson)}\n`);
-  zip.file(mapImagePath, image.buffer);
+  zip.file("module.json", `${JSON.stringify(data.moduleJson, null, 2)}\n`);
+  zip.file(`scenes/${data.sceneSlug}.json`, `${JSON.stringify(data.sceneJson, null, 2)}\n`);
+  zip.file("packs/scenes.db", `${JSON.stringify(data.sceneJson)}\n`);
+  zip.file(data.mapImagePath, image.buffer);
 
-  if (journalJson.length > 0) {
+  if (data.journalJson.length > 0) {
     zip.file(
       "packs/journal.db",
-      `${journalJson.map((entry) => JSON.stringify(entry)).join("\n")}\n`
+      `${data.journalJson.map((entry) => JSON.stringify(entry)).join("\n")}\n`
     );
 
-    for (const journal of journalJson) {
+    for (const journal of data.journalJson) {
       zip.file(`journal/${journal._id}.json`, `${JSON.stringify(journal, null, 2)}\n`);
     }
   }
 
   return {
     buffer: await zip.generateAsync({ compression: "DEFLATE", type: "nodebuffer" }),
-    filename: `${moduleId}-foundry-module.zip`,
-    journalJson,
-    mapImagePath,
-    moduleJson,
-    sceneJson
+    filename: `${data.moduleId}-foundry-module.zip`,
+    journalJson: data.journalJson,
+    mapImagePath: data.mapImagePath,
+    moduleJson: data.moduleJson,
+    sceneJson: data.sceneJson
   };
 }
 
 function createModuleManifest(input: {
   author?: string;
   description?: string;
+  foundryVersion: FoundryVersion;
   hasJournals: boolean;
   moduleId: string;
   moduleTitle: string;
@@ -223,10 +254,7 @@ function createModuleManifest(input: {
         name: input.author ?? "DM-Instamap"
       }
     ],
-    compatibility: {
-      minimum: "11",
-      verified: "12"
-    },
+    compatibility: FOUNDRY_COMPATIBILITY[input.foundryVersion],
     description: input.description ?? "Generated locally by DM-Instamap.",
     id: input.moduleId,
     packs,

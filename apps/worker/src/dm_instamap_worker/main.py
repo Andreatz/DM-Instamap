@@ -21,8 +21,8 @@ def create_app(job_store: JobStore | None = None) -> FastAPI:
     )
 
     @app.get("/health", tags=["system"])
-    def health() -> dict[str, str]:
-        return health_payload()
+    def health() -> dict[str, object]:
+        return health_payload(app.state.job_store)
 
     app.middleware("http")(reject_remote_requests)
     app.state.job_store = job_store or JobStore()

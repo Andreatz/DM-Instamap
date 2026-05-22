@@ -1,0 +1,23 @@
+{
+  "id": "camp",
+  "label": "Accampamento",
+  "metrics": {
+    "assetDensity": 100,
+    "readability": 91,
+    "roomVariety": 87,
+    "routing": 50,
+    "tacticalAffordance": 80,
+    "themeAlignment": 100
+  },
+  "rating": "usable",
+  "roomCount": 2,
+  "score": 73,
+  "size": {
+    "height": 32,
+    "width": 46
+  },
+  "theme": "camp",
+  "thresholds": {
+    "minScore": 50
+  }
+}
