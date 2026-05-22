@@ -96,7 +96,8 @@
       "Bash(pnpm --filter @dm-instamap/generator typecheck)",
       "Bash(pnpm --filter @dm-instamap/generator test)",
       "Bash(echo \"exit=$?\")",
-      "Bash(pnpm --filter @dm-instamap/generator test:coverage)"
+      "Bash(pnpm --filter @dm-instamap/generator test:coverage)",
+      "Bash(pnpm --filter @dm-instamap/ai-bridge test:coverage)"
     ]
   }
 }

@@ -21,11 +21,6 @@ const ALLOWLIST = {
     maxLines: 1430,
     reason: "Hook editor monolitico; split in sotto-hook previsto in Fase C."
   },
-  "packages/ai-bridge/src/index.ts": {
-    maxLines: 1155,
-    reason:
-      "Provider/orchestrazione/prompt AI; split in moduli previsto in Fase C."
-  },
   "apps/web/src/lib/map-editor.ts": {
     maxLines: 1090,
     reason: "Operazioni documento editor; candidato a split incrementale."
