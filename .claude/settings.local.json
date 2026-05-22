@@ -91,7 +91,12 @@
       "Bash(pnpm repo:audit)",
       "Bash(pnpm test:coverage)",
       "Bash(node scripts/audit-file-size.mjs)",
-      "Bash(pnpm audit:size)"
+      "Bash(pnpm audit:size)",
+      "Bash(git diff-tree *)",
+      "Bash(pnpm --filter @dm-instamap/generator typecheck)",
+      "Bash(pnpm --filter @dm-instamap/generator test)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(pnpm --filter @dm-instamap/generator test:coverage)"
     ]
   }
 }

@@ -26,11 +26,6 @@ const ALLOWLIST = {
     reason:
       "Provider/orchestrazione/prompt AI; split in moduli previsto in Fase C."
   },
-  "packages/generator/src/algorithms.ts": {
-    maxLines: 1115,
-    reason:
-      "Generatori cave/village/multi-floor/outdoor; split per-algoritmo previsto in Fase C."
-  },
   "apps/web/src/lib/map-editor.ts": {
     maxLines: 1090,
     reason: "Operazioni documento editor; candidato a split incrementale."
