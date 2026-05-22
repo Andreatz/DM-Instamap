@@ -106,7 +106,14 @@
       "Bash(pnpm --filter @dm-instamap/web exec vitest run src/lib/data-archive.test.ts src/lib/cli/cli.test.ts)",
       "Bash(pnpm --filter @dm-instamap/generator exec vitest run src/invariants.test.ts)",
       "Bash(pnpm generator:benchmark)",
-      "Bash(pnpm --filter @dm-instamap/generator benchmark --write)"
+      "Bash(pnpm --filter @dm-instamap/generator benchmark --write)",
+      "Bash(grep -vE \"//|console|className\")",
+      "Bash(node scripts/audit-ui-language.mjs)",
+      "Bash(xargs cat)",
+      "Bash(pnpm audit:ui-language)",
+      "Bash(grep -nA12 \"export async function importAssetPack\" packages/assets/src/pack-importer.ts)",
+      "Bash(pnpm --filter @dm-instamap/assets typecheck)",
+      "Bash(pnpm --filter @dm-instamap/assets exec vitest run tests/seed-demo.test.ts)"
     ]
   }
 }

@@ -8,6 +8,7 @@ import {
   type TileKind,
   type WallSegment
 } from "@dm-instamap/core";
+import type { StyleDnaHint, StyleLayoutBias } from "./style-dna";
 
 export {
   autoFurnishMap,
@@ -33,9 +34,29 @@ export type DungeonGeneratorInput = {
   heightCells: number;
   requiredRooms?: string[];
   roomCount: number;
+  styleDna?: StyleDnaHint;
   theme?: string;
   widthCells: number;
 };
+
+/**
+ * Room footprint caps per layout intent. The Reference Style DNA layout bias
+ * modulates the geometry deterministically: a compact layout yields smaller,
+ * denser rooms; a sprawling one yields larger rooms (bounded by the grid cell).
+ */
+function layoutSizeCaps(bias: StyleLayoutBias | undefined): {
+  maxHeight: number;
+  maxWidth: number;
+} {
+  switch (bias) {
+    case "compact":
+      return { maxHeight: 5, maxWidth: 6 };
+    case "sprawling":
+      return { maxHeight: 10, maxWidth: 12 };
+    default:
+      return { maxHeight: 7, maxWidth: 8 };
+  }
+}
 
 type RectRoom = {
   center: { x: number; y: number };
@@ -105,6 +126,7 @@ export function generateDungeon(input: DungeonGeneratorInput): MapDocument {
     heightCells,
     requiredRooms,
     roomCount,
+    styleDna: input.styleDna,
     theme: input.theme,
     widthCells
   });
@@ -214,6 +236,7 @@ function createRooms(input: {
   heightCells: number;
   requiredRooms: string[];
   roomCount: number;
+  styleDna?: StyleDnaHint;
   theme?: string;
   widthCells: number;
 }): RectRoom[] {
@@ -221,6 +244,7 @@ function createRooms(input: {
   const rows = Math.ceil(input.roomCount / columns);
   const cellWidth = Math.max(5, Math.floor((input.widthCells - 2) / columns));
   const cellHeight = Math.max(5, Math.floor((input.heightCells - 2) / rows));
+  const sizeCaps = layoutSizeCaps(input.styleDna?.layoutBias);
   const requiredLabels = input.requiredRooms.filter(
     (room) => !/entrance|boss|final/i.test(room)
   );
@@ -229,8 +253,11 @@ function createRooms(input: {
   for (let index = 0; index < input.roomCount; index += 1) {
     const gridX = index % columns;
     const gridY = Math.floor(index / columns);
-    const roomWidth = Math.max(3, Math.min(8, cellWidth - 2));
-    const roomHeight = Math.max(3, Math.min(7, cellHeight - 2));
+    const roomWidth = Math.max(3, Math.min(sizeCaps.maxWidth, cellWidth - 2));
+    const roomHeight = Math.max(
+      3,
+      Math.min(sizeCaps.maxHeight, cellHeight - 2)
+    );
     const x = Math.min(
       input.widthCells - roomWidth - 2,
       Math.max(

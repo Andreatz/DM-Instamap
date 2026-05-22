@@ -245,3 +245,22 @@ soglie di qualita "strong" (almeno 8 mappe `strong`); le sintesi golden, con
 content hash, sono congelate in `packages/generator/tests/fixtures/benchmark/`
 come regression guard. Rigenerale con `pnpm --filter @dm-instamap/generator
 benchmark --write` dopo cambi intenzionali al generatore.
+
+## Reference Style DNA: tag e geometria
+
+La Style DNA (`StyleDnaHint`: `densityBias`, `layoutBias`, `paletteTags`)
+influenza il generatore su due piani, in modo deterministico:
+
+- **Tag** (post-process `applyStyleDna`): i `paletteTags` vengono uniti ai tag
+  di ogni stanza (matching asset e allineamento tema) e l'intento e annotato
+  nelle note del piano.
+- **Geometria** (input di `generateDungeon`): il `layoutBias` modula i cap delle
+  dimensioni stanza — `compact` -> stanze piu piccole e dense, `balanced` ->
+  default, `sprawling` -> stanze piu grandi (entro la cella di griglia). A
+  parita di input, `compact` produce meno area calpestabile di `sprawling`.
+- **Arredamento**: `deriveFurnishingDensity` mappa il `densityBias` sulla
+  densita usata da `autoFurnishMap`.
+
+A parita di input, attivare la DNA produce un layout misurabilmente diverso e
+coerente col riferimento; con gli stessi input la generazione resta
+riproducibile. Vedi `packages/generator/tests/style-dna.test.ts`.

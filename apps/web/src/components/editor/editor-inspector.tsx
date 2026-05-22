@@ -690,6 +690,7 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
           </button>
         </div>
         <textarea
+          aria-label="Documento mappa (JSON)"
           className="editor-json"
           onChange={(event) => setJsonText(event.target.value)}
           spellCheck={false}
