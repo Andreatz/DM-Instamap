@@ -116,10 +116,13 @@ con la loro baseline e una motivazione; non possono crescere oltre quella
 baseline e vanno rimossi man mano che vengono spezzati. Un file nuovo oltre 700
 righe, o un file allowlist che cresce, fa fallire il gate (incluso in CI).
 
-I moduli grandi noti (es. `use-map-editor-state.ts`, `ai-bridge/src/index.ts`,
-`generator/src/algorithms.ts`) sono eccezioni documentate: lo split in
-sotto-moduli e lavoro incrementale tracciato dall'allowlist. Per rientrare nel
-budget si spezza il file e si rimuove la voce corrispondente.
+Stato split Fase C: `generator/src/algorithms.ts` (per-algoritmo) e
+`ai-bridge/src/index.ts` (types/prompt/validation) sono stati spezzati e rimossi
+dall'allowlist. `use-map-editor-state.ts` e stato decomposto nei sotto-hook
+`useAssetSelection`, `useAssetClipboard`, `useNotesAndInitiative`,
+`useLightingTools` (ognuno con test dedicati): resta un'eccezione con baseline
+ridotta perche canvas handler e AI verranno estratti in seguito. Per rientrare
+nel budget si spezza il file e si rimuove/abbassa la voce corrispondente.
 
 ## Soglie di coverage
 

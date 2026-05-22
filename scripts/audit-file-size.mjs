@@ -18,18 +18,9 @@ const IGNORED_SEGMENTS = new Set(["node_modules", "dist", ".next", "coverage"]);
 // tetto massimo. Vanno ridotti e rimossi nelle iterazioni della Fase C.
 const ALLOWLIST = {
   "apps/web/src/hooks/use-map-editor-state.ts": {
-    maxLines: 1430,
-    reason: "Hook editor monolitico; split in sotto-hook previsto in Fase C."
-  },
-  "packages/ai-bridge/src/index.ts": {
-    maxLines: 1155,
+    maxLines: 1150,
     reason:
-      "Provider/orchestrazione/prompt AI; split in moduli previsto in Fase C."
-  },
-  "packages/generator/src/algorithms.ts": {
-    maxLines: 1115,
-    reason:
-      "Generatori cave/village/multi-floor/outdoor; split per-algoritmo previsto in Fase C."
+      "Composizione editor; estratti useAssetSelection/useAssetClipboard/useNotesAndInitiative/useLightingTools (Fase C). Canvas handlers e AI da estrarre in seguito."
   },
   "apps/web/src/lib/map-editor.ts": {
     maxLines: 1090,

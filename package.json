@@ -41,8 +41,10 @@
   "devDependencies": {
     "@biomejs/biome": "2.4.15",
     "@playwright/test": "^1.60.0",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^24.10.1",
     "@vitest/coverage-v8": "4.0.14",
+    "happy-dom": "^15.11.7",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.14"
