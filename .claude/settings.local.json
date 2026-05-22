@@ -28,7 +28,20 @@
       "Bash(pnpm benchmark *)",
       "Bash(pnpm test:e2e -- -g \"export API returns WEBP dd2vtt\")",
       "Bash(pnpm exec *)",
-      "Bash(grep -n \"Avanzamento Fase 5\\\\|generator:benchmark\\\\` \\(7/7\\)\\\\|^## Fase 6\\\\|^| Export \" docs/ROADMAP.md)"
+      "Bash(grep -n \"Avanzamento Fase 5\\\\|generator:benchmark\\\\` \\(7/7\\)\\\\|^## Fase 6\\\\|^| Export \" docs/ROADMAP.md)",
+      "Bash(awk -F/ '{print $1}')",
+      "Bash(grep -oE '\\\\.[a-zA-Z0-9]+$')",
+      "Bash(cat pnpm-workspace.yaml)",
+      "Bash(cat tsconfig.json)",
+      "Bash(cat .gitignore)",
+      "Bash(awk -F/ '{print $1\"/\"$2}')",
+      "Bash(grep -E '\\\\.\\(ts|tsx|py\\)$')",
+      "Bash(grep -iE '\\\\.\\(test|spec\\)\\\\.\\(ts|tsx\\)$')",
+      "Bash(xargs grep -hcE \"\\\\b\\(it|test\\)\\\\\\(\")",
+      "Bash(awk '{s+=$1} END {print s\" test cases \\(ts/tsx\\)\"}')",
+      "Bash(pnpm -r --if-present test)",
+      "Bash(grep -E '\\\\.tsx?$')",
+      "Bash(xargs grep -nE \":\\\\s*any\\\\b|as any\")"
     ]
   }
 }
