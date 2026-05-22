@@ -116,13 +116,14 @@ con la loro baseline e una motivazione; non possono crescere oltre quella
 baseline e vanno rimossi man mano che vengono spezzati. Un file nuovo oltre 700
 righe, o un file allowlist che cresce, fa fallire il gate (incluso in CI).
 
-Stato split Fase C: `generator/src/algorithms.ts` (per-algoritmo) e
-`ai-bridge/src/index.ts` (types/prompt/validation) sono stati spezzati e rimossi
-dall'allowlist. `use-map-editor-state.ts` e stato decomposto nei sotto-hook
-`useAssetSelection`, `useAssetClipboard`, `useNotesAndInitiative`,
-`useLightingTools` (ognuno con test dedicati): resta un'eccezione con baseline
-ridotta perche canvas handler e AI verranno estratti in seguito. Per rientrare
-nel budget si spezza il file e si rimuove/abbassa la voce corrispondente.
+Stato split Fase C (tutti rientrati nel budget e rimossi dall'allowlist):
+`generator/src/algorithms.ts` (per-algoritmo), `ai-bridge/src/index.ts`
+(types/prompt/validation) e `use-map-editor-state.ts` (1430 -> 591 righe),
+decomposto nei sotto-hook `useAssetSelection`, `useAssetClipboard`,
+`useNotesAndInitiative`, `useLightingTools`, `useCanvasInteraction`,
+`useEditorAi`, `useEditorPersistence`, `useEditorExport`, ognuno con test
+dedicati. Per rientrare nel budget si spezza il file e si rimuove/abbassa la
+voce corrispondente nell'allowlist.
 
 ## Soglie di coverage
 

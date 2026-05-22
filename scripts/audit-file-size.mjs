@@ -17,11 +17,6 @@ const IGNORED_SEGMENTS = new Set(["node_modules", "dist", ".next", "coverage"]);
 // Eccezioni motivate: file gia sopra il limite, con la baseline corrente come
 // tetto massimo. Vanno ridotti e rimossi nelle iterazioni della Fase C.
 const ALLOWLIST = {
-  "apps/web/src/hooks/use-map-editor-state.ts": {
-    maxLines: 1150,
-    reason:
-      "Composizione editor; estratti useAssetSelection/useAssetClipboard/useNotesAndInitiative/useLightingTools (Fase C). Canvas handlers e AI da estrarre in seguito."
-  },
   "apps/web/src/lib/map-editor.ts": {
     maxLines: 1090,
     reason: "Operazioni documento editor; candidato a split incrementale."

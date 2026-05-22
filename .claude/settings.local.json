@@ -99,7 +99,10 @@
       "Bash(pnpm --filter @dm-instamap/generator test:coverage)",
       "Bash(pnpm --filter @dm-instamap/ai-bridge test:coverage)",
       "Bash(pnpm --filter @dm-instamap/web exec vitest run src/hooks/use-notes-and-initiative.test.ts)",
-      "Bash(pnpm --filter @dm-instamap/web test:coverage)"
+      "Bash(pnpm --filter @dm-instamap/web test:coverage)",
+      "Bash(gh auth *)",
+      "Bash(grep -n \"= useLightingTools\\({\\\\|setStatus\\\\s*$\\\\|}\\);\" apps/web/src/hooks/use-map-editor-state.ts)",
+      "Bash(grep -nE \"createSnapshot = useCallback|exportSessionPackQuick = useCallback|async function handleExport|^  \\\\}, \\\\[|function handleAutoFurnish|return \\\\{\" apps/web/src/hooks/use-map-editor-state.ts)"
     ]
   }
 }
