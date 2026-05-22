@@ -57,6 +57,9 @@ jobs:
       - name: File size audit
         run: pnpm audit:size
 
+      - name: UI language audit
+        run: pnpm audit:ui-language
+
       - name: Lint worker (ruff + mypy)
         run: pnpm --filter @dm-instamap/worker lint
 

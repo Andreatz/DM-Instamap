@@ -13,6 +13,7 @@
     "assets:embed": "pnpm --filter @dm-instamap/assets embed",
     "assets:scan": "pnpm --filter @dm-instamap/assets scan",
     "audit:size": "node scripts/audit-file-size.mjs",
+    "audit:ui-language": "node scripts/audit-ui-language.mjs",
     "ai:blueprint": "pnpm --filter @dm-instamap/ai-bridge blueprint",
     "ai:plan": "pnpm --filter @dm-instamap/ai-bridge plan",
     "build": "pnpm -r --if-present build",
@@ -41,6 +42,7 @@
     "worker:install": "python -m pip install -r apps/worker/requirements-dev.txt"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@biomejs/biome": "2.4.15",
     "@playwright/test": "^1.60.0",
     "@testing-library/react": "^16.3.2",
