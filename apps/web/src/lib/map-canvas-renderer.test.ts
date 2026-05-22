@@ -1,7 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import { generateDungeon } from "@dm-instamap/generator";
-import { addLightAtCell, addPlacedAsset, ensureEditorLayers, setTileKind, updateMapLayer } from "./map-editor";
-import { drawMapCanvas, getTileColor, type MapCanvasRenderInput } from "./map-canvas-renderer";
+import {
+  addLightAtCell,
+  addPlacedAsset,
+  ensureEditorLayers,
+  setTileKind,
+  updateMapLayer
+} from "./map-editor";
+import {
+  drawMapCanvas,
+  getTileColor,
+  type MapCanvasRenderInput
+} from "./map-canvas-renderer";
 
 function createMockContext() {
   const calls: Record<string, number> = {};
@@ -84,7 +94,14 @@ describe("map canvas renderer", () => {
 
   it("clears, transforms, and paints the scene without throwing", () => {
     const { calls, context } = createMockContext();
-    const withAsset = addLightAtCell(addPlacedAsset(document, { id: "asset-z", kind: "prop", name: "Crate", thumbnailUrl: null }, { x: 3, y: 3 }), { x: 5, y: 5 });
+    const withAsset = addLightAtCell(
+      addPlacedAsset(
+        document,
+        { id: "asset-z", kind: "prop", name: "Crate", thumbnailUrl: null },
+        { x: 3, y: 3 }
+      ),
+      { x: 5, y: 5 }
+    );
     const painted = setTileKind(withAsset, { x: 1, y: 1 }, "floor");
 
     drawMapCanvas(createMockCanvas(context), createInput(painted));
@@ -100,7 +117,11 @@ describe("map canvas renderer", () => {
 
   it("skips drawing layers that are hidden", () => {
     const hidden = updateMapLayer(
-      updateMapLayer(updateMapLayer(document, "terrain", { visible: false }), "walls", { visible: false }),
+      updateMapLayer(
+        updateMapLayer(document, "terrain", { visible: false }),
+        "walls",
+        { visible: false }
+      ),
       "notes",
       { visible: false }
     );
@@ -114,6 +135,8 @@ describe("map canvas renderer", () => {
   });
 
   it("ignores canvases without a 2d context", () => {
-    expect(() => drawMapCanvas(createMockCanvas(null), createInput())).not.toThrow();
+    expect(() =>
+      drawMapCanvas(createMockCanvas(null), createInput())
+    ).not.toThrow();
   });
 });

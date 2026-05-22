@@ -1,5 +1,8 @@
 import { saveAssetOverride } from "@/lib/asset-overrides";
-import { buildCorrectionFromDraft, type AssetReviewDraft } from "@/lib/asset-review";
+import {
+  buildCorrectionFromDraft,
+  type AssetReviewDraft
+} from "@/lib/asset-review";
 import { loadAssetManifest } from "@/lib/assets-manifest";
 
 export const dynamic = "force-dynamic";
@@ -13,19 +16,27 @@ type OverrideRequestBody = {
 export async function POST(request: Request) {
   const body = (await request.json()) as OverrideRequestBody;
   const assetId = typeof body.assetId === "string" ? body.assetId : "";
-  const relativePath = typeof body.relativePath === "string" ? body.relativePath : "";
+  const relativePath =
+    typeof body.relativePath === "string" ? body.relativePath : "";
 
   if (!assetId || !relativePath || !isDraft(body.draft)) {
-    return Response.json({ error: "Invalid asset override payload." }, { status: 400 });
+    return Response.json(
+      { error: "Invalid asset override payload." },
+      { status: 400 }
+    );
   }
 
   const manifest = await loadAssetManifest();
   const asset = manifest.assets.find(
-    (candidate) => candidate.id === assetId && candidate.relativePath === relativePath
+    (candidate) =>
+      candidate.id === assetId && candidate.relativePath === relativePath
   );
 
   if (!asset) {
-    return Response.json({ error: "Asset not found in manifest." }, { status: 404 });
+    return Response.json(
+      { error: "Asset not found in manifest." },
+      { status: 404 }
+    );
   }
 
   const correction = buildCorrectionFromDraft(body.draft, asset);

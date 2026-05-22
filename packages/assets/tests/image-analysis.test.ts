@@ -7,7 +7,9 @@ import { analyzeLocalImage } from "../src";
 
 describe("analyzeLocalImage", () => {
   it("extracts local metadata, transparency and dominant colors with Sharp", async () => {
-    const tempDir = await mkdtemp(path.join(os.tmpdir(), "dm-instamap-image-analysis-"));
+    const tempDir = await mkdtemp(
+      path.join(os.tmpdir(), "dm-instamap-image-analysis-")
+    );
     const imagePath = path.join(tempDir, "glow.png");
 
     await sharp({

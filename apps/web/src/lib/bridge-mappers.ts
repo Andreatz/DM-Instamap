@@ -1,8 +1,13 @@
-import type { BridgeAssetGroupSummary, BridgeReferenceSummary } from "@dm-instamap/ai-bridge";
+import type {
+  BridgeAssetGroupSummary,
+  BridgeReferenceSummary
+} from "@dm-instamap/ai-bridge";
 import type { AssetGroupView } from "./asset-groups";
 import type { ReferenceMapView } from "./references";
 
-export function toBridgeAssetGroup(group: AssetGroupView): BridgeAssetGroupSummary {
+export function toBridgeAssetGroup(
+  group: AssetGroupView
+): BridgeAssetGroupSummary {
   return {
     assetCount: group.assetCount,
     id: group.id,
@@ -15,7 +20,9 @@ export function toBridgeAssetGroup(group: AssetGroupView): BridgeAssetGroupSumma
   };
 }
 
-export function toBridgeReference(reference: ReferenceMapView): BridgeReferenceSummary {
+export function toBridgeReference(
+  reference: ReferenceMapView
+): BridgeReferenceSummary {
   return {
     height: reference.height,
     id: reference.id,

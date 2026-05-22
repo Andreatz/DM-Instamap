@@ -16,10 +16,14 @@ export function EditorAiPanel({ editor }: { editor: MapEditorController }) {
   } = editor;
 
   return (
-    <aside className="asset-details editor-ai-drawer" aria-label="Pannello assistente AI">
+    <aside
+      className="asset-details editor-ai-drawer"
+      aria-label="Pannello assistente AI"
+    >
       <h2>Assistente AI</h2>
       <p className="muted">
-        Accesso rapido al provider AI configurato. Configura <code>AI_PROVIDER</code>, <code>AI_API_KEY</code>.
+        Accesso rapido al provider AI configurato. Configura{" "}
+        <code>AI_PROVIDER</code>, <code>AI_API_KEY</code>.
       </p>
       <label className="field">
         <span>Richiesta</span>
@@ -31,13 +35,25 @@ export function EditorAiPanel({ editor }: { editor: MapEditorController }) {
         />
       </label>
       <div className="field-row">
-        <button disabled={aiBusy} onClick={() => void runAiDescribeMap()} type="button">
+        <button
+          disabled={aiBusy}
+          onClick={() => void runAiDescribeMap()}
+          type="button"
+        >
           {aiBusy ? "Elaborazione..." : "Descrivi mappa"}
         </button>
-        <button disabled={aiBusy || !selectedRoom} onClick={() => void runAiSuggestForSelectedRoom()} type="button">
+        <button
+          disabled={aiBusy || !selectedRoom}
+          onClick={() => void runAiSuggestForSelectedRoom()}
+          type="button"
+        >
           {aiBusy ? "Elaborazione..." : "Suggerisci asset per la stanza"}
         </button>
-        <button disabled={aiBusy || aiRequest.trim().length === 0} onClick={() => void generateAssetFromPrompt()} type="button">
+        <button
+          disabled={aiBusy || aiRequest.trim().length === 0}
+          onClick={() => void generateAssetFromPrompt()}
+          type="button"
+        >
           {aiBusy ? "Elaborazione..." : "Genera asset da prompt"}
         </button>
       </div>
@@ -52,6 +68,7 @@ export function EditorAiPanel({ editor }: { editor: MapEditorController }) {
           <h3>Suggerimenti</h3>
           <ul>
             {aiSuggestions.map((suggestion, index) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: lista di suggerimenti statica e di sola lettura
               <li key={`${suggestion}-${index}`}>{suggestion}</li>
             ))}
           </ul>

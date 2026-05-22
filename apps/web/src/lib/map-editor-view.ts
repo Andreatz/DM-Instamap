@@ -3,7 +3,11 @@ import type { MapDocument, MapLayerKind } from "@dm-instamap/core/browser";
 import type { MatchableAssetGroup } from "@dm-instamap/assets/matcher";
 import type { FurnishingAsset } from "@dm-instamap/generator";
 import type { AssetSearchApiResult } from "./asset-search";
-import type { EditorPaletteAsset, EditorSelection, EditorTool } from "./map-editor";
+import type {
+  EditorPaletteAsset,
+  EditorSelection,
+  EditorTool
+} from "./map-editor";
 import { isEditorLayerLocked, isEditorLayerVisible } from "./map-editor";
 
 export type ExportFormat = "png" | "webp";
@@ -20,7 +24,8 @@ export type DragPayload =
 
 export const CANVAS_CELL_SIZE = 24;
 export const CLIPBOARD_STORAGE_KEY = "dm-instamap-editor-asset-clipboard";
-export const RECENT_GENERATED_STORAGE_KEY = "dm-instamap-editor-recent-generated";
+export const RECENT_GENERATED_STORAGE_KEY =
+  "dm-instamap-editor-recent-generated";
 export const DOCUMENT_STORAGE_KEY = "dm-instamap-editor-document";
 export const MIN_ZOOM = 0.35;
 export const MAX_ZOOM = 3;
@@ -34,8 +39,12 @@ export function writeDragPayload(event: DragEvent, payload: DragPayload): void {
 
 export function readDragPayload(event: DragEvent): DragPayload | null {
   try {
-    const parsed = JSON.parse(event.dataTransfer.getData("application/json")) as DragPayload;
-    return parsed.type === "palette" || parsed.type === "placed" ? parsed : null;
+    const parsed = JSON.parse(
+      event.dataTransfer.getData("application/json")
+    ) as DragPayload;
+    return parsed.type === "palette" || parsed.type === "placed"
+      ? parsed
+      : null;
   } catch {
     return null;
   }
@@ -73,7 +82,9 @@ export function createFurnishingAssets(
   }));
 }
 
-export function createFurnishingAssetGroups(assetGroups: MatchableAssetGroup[]) {
+export function createFurnishingAssetGroups(
+  assetGroups: MatchableAssetGroup[]
+) {
   return assetGroups
     .filter((group) => group.assetIds?.[0])
     .map((group) => ({
@@ -98,7 +109,9 @@ export function createPaletteAsset(
     return paletteAsset;
   }
 
-  const searchResult = searchResults.find((result) => result.assetId === assetId);
+  const searchResult = searchResults.find(
+    (result) => result.assetId === assetId
+  );
 
   if (!searchResult) {
     return null;
@@ -119,19 +132,36 @@ export function tokenizeText(value: string): string[] {
     .filter(Boolean);
 }
 
-export function createExportFilename(name: string, format: ExportFormat): string {
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "") || "map";
+export function createExportFilename(
+  name: string,
+  format: ExportFormat
+): string {
+  const slug =
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/gu, "-")
+      .replace(/^-|-$/gu, "") || "map";
   return `${slug}.${format}`;
 }
 
-export function createToolStatus(tool: EditorTool, cell: { x: number; y: number }): string {
+export function createToolStatus(
+  tool: EditorTool,
+  cell: { x: number; y: number }
+): string {
   return `${formatToolName(tool)} a ${cell.x}, ${cell.y}`;
 }
 
-export function isSelectionVisible(document: MapDocument, selection: NonNullable<EditorSelection>): boolean {
+export function isSelectionVisible(
+  document: MapDocument,
+  selection: NonNullable<EditorSelection>
+): boolean {
   if (selection.type === "asset") {
-    const asset = document.assets.find((candidate) => candidate.id === selection.id);
-    return asset ? isEditorLayerVisible(document, assetToLayerKind(asset.layer)) : false;
+    const asset = document.assets.find(
+      (candidate) => candidate.id === selection.id
+    );
+    return asset
+      ? isEditorLayerVisible(document, assetToLayerKind(asset.layer))
+      : false;
   }
 
   if (selection.type === "door") {
@@ -162,7 +192,9 @@ export function createSelectionBounds(
 }
 
 export function toggleSelection(selectedIds: string[], id: string): string[] {
-  return selectedIds.includes(id) ? selectedIds.filter((selectedId) => selectedId !== id) : [...selectedIds, id];
+  return selectedIds.includes(id)
+    ? selectedIds.filter((selectedId) => selectedId !== id)
+    : [...selectedIds, id];
 }
 
 export function hasLockedSelectedAsset(
@@ -171,12 +203,21 @@ export function hasLockedSelectedAsset(
   selectedAssetIds: string[]
 ): boolean {
   const selectedAssetSet = new Set(selectedAssetIds);
-  const assets = selectedAssets.length > 0 ? selectedAssets : document.assets.filter((asset) => selectedAssetSet.has(asset.id));
-  return assets.some((asset) => isEditorLayerLocked(document, assetToLayerKind(asset.layer)));
+  const assets =
+    selectedAssets.length > 0
+      ? selectedAssets
+      : document.assets.filter((asset) => selectedAssetSet.has(asset.id));
+  return assets.some((asset) =>
+    isEditorLayerLocked(document, assetToLayerKind(asset.layer))
+  );
 }
 
 export function isTextInputTarget(target: EventTarget | null): boolean {
-  return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement;
+  return (
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement
+  );
 }
 
 export function toolToLayerKind(tool: EditorTool): MapLayerKind {
@@ -196,7 +237,9 @@ export function toolToLayerKind(tool: EditorTool): MapLayerKind {
   }
 }
 
-export function assetToLayerKind(layer: MapDocument["assets"][number]["layer"]): MapLayerKind {
+export function assetToLayerKind(
+  layer: MapDocument["assets"][number]["layer"]
+): MapLayerKind {
   switch (layer) {
     case "floor":
       return "terrain";
@@ -206,7 +249,6 @@ export function assetToLayerKind(layer: MapDocument["assets"][number]["layer"]):
       return "lighting";
     case "annotation":
       return "gm-only";
-    case "object":
     default:
       return "props";
   }
@@ -300,13 +342,18 @@ export function loadRecentGeneratedFromStorage(): EditorPaletteAsset[] {
   }
 }
 
-export function saveRecentGeneratedToStorage(assets: EditorPaletteAsset[]): void {
+export function saveRecentGeneratedToStorage(
+  assets: EditorPaletteAsset[]
+): void {
   if (typeof window === "undefined") {
     return;
   }
 
   try {
-    window.localStorage.setItem(RECENT_GENERATED_STORAGE_KEY, JSON.stringify(assets));
+    window.localStorage.setItem(
+      RECENT_GENERATED_STORAGE_KEY,
+      JSON.stringify(assets)
+    );
   } catch {
     /* ignore quota errors */
   }

@@ -1,4 +1,8 @@
-import { ASSET_REVIEW_KINDS, type AssetBrowserEntry, type ReviewAssetKind } from "./asset-browser";
+import {
+  ASSET_REVIEW_KINDS,
+  type AssetBrowserEntry,
+  type ReviewAssetKind
+} from "./asset-browser";
 
 export type AssetCorrection = {
   classification: ReviewAssetKind;
@@ -26,8 +30,12 @@ export function createReviewDraft(
   override?: Partial<AssetCorrection>
 ): AssetReviewDraft {
   return {
-    classification: normalizeReviewKind(override?.classification ?? asset.classification),
-    qualityScore: clampScore(override?.qualityScore ?? Math.round(asset.confidence * 100)),
+    classification: normalizeReviewKind(
+      override?.classification ?? asset.classification
+    ),
+    qualityScore: clampScore(
+      override?.qualityScore ?? Math.round(asset.confidence * 100)
+    ),
     tagsText: (override?.tags ?? asset.tags).join(", "),
     theme: override?.theme ?? "",
     usableForText: (override?.usableFor ?? []).join(", ")
@@ -52,7 +60,9 @@ export function findOverrideForAsset(
   overrides: AssetOverridesFile,
   asset: AssetBrowserEntry
 ): Partial<AssetCorrection> | undefined {
-  return overrides.overrides[asset.id] ?? overrides.overrides[asset.relativePath];
+  return (
+    overrides.overrides[asset.id] ?? overrides.overrides[asset.relativePath]
+  );
 }
 
 export function filterReviewAssets(
@@ -74,10 +84,14 @@ export function normalizeOverridesFile(input: unknown): AssetOverridesFile {
 
   const candidate = input as { overrides?: unknown };
   const rawOverrides =
-    candidate.overrides && typeof candidate.overrides === "object" ? candidate.overrides : {};
+    candidate.overrides && typeof candidate.overrides === "object"
+      ? candidate.overrides
+      : {};
   const overrides: AssetOverridesFile["overrides"] = {};
 
-  for (const [key, value] of Object.entries(rawOverrides as Record<string, unknown>)) {
+  for (const [key, value] of Object.entries(
+    rawOverrides as Record<string, unknown>
+  )) {
     const correction = normalizeCorrection(value);
 
     if (correction) {
@@ -101,7 +115,14 @@ export function mergeAssetOverride(
 }
 
 export function parseCsvList(value: string): string[] {
-  return [...new Set(value.split(",").map((item) => item.trim()).filter(Boolean))];
+  return [
+    ...new Set(
+      value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    )
+  ];
 }
 
 function normalizeCorrection(value: unknown): Partial<AssetCorrection> | null {
@@ -123,16 +144,24 @@ function normalizeCorrection(value: unknown): Partial<AssetCorrection> | null {
     correction.classification = normalizeReviewKind(input.classification);
   }
 
-  if (typeof input.confidence === "number" && Number.isFinite(input.confidence)) {
+  if (
+    typeof input.confidence === "number" &&
+    Number.isFinite(input.confidence)
+  ) {
     correction.confidence = Math.min(1, Math.max(0, input.confidence));
   }
 
-  if (typeof input.qualityScore === "number" && Number.isFinite(input.qualityScore)) {
+  if (
+    typeof input.qualityScore === "number" &&
+    Number.isFinite(input.qualityScore)
+  ) {
     correction.qualityScore = clampScore(input.qualityScore);
   }
 
   if (Array.isArray(input.tags)) {
-    correction.tags = input.tags.filter((tag): tag is string => typeof tag === "string");
+    correction.tags = input.tags.filter(
+      (tag): tag is string => typeof tag === "string"
+    );
   }
 
   if (typeof input.theme === "string") {
@@ -140,7 +169,9 @@ function normalizeCorrection(value: unknown): Partial<AssetCorrection> | null {
   }
 
   if (Array.isArray(input.usableFor)) {
-    correction.usableFor = input.usableFor.filter((item): item is string => typeof item === "string");
+    correction.usableFor = input.usableFor.filter(
+      (item): item is string => typeof item === "string"
+    );
   }
 
   return Object.keys(correction).length > 0 ? correction : null;

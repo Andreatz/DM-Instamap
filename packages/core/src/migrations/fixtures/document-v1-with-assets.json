@@ -13,9 +13,7 @@
       },
       "rotation": 45,
       "scale": 1.2,
-      "tags": [
-        "table"
-      ]
+      "tags": ["table"]
     }
   ],
   "editable": true,

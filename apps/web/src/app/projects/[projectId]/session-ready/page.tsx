@@ -2,7 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProjectQuickExport } from "@/components/projects/project-quick-export";
 import { ProjectThumbnail } from "@/components/projects/project-thumbnail";
-import { describeExportFormat, describeExportMode, readProjectExportHistory } from "@/lib/project-export-history";
+import {
+  describeExportFormat,
+  describeExportMode,
+  readProjectExportHistory
+} from "@/lib/project-export-history";
 import { computeProjectReadiness } from "@/lib/project-readiness";
 import { ProjectNotFoundError, readProject } from "@/lib/projects";
 
@@ -14,13 +18,19 @@ type SessionReadyPageProps = {
 
 export const dynamic = "force-dynamic";
 
-export default async function SessionReadyPage({ params }: SessionReadyPageProps) {
+export default async function SessionReadyPage({
+  params
+}: SessionReadyPageProps) {
   const { projectId } = await params;
   const project = await loadProjectOrNotFound(projectId);
   const readiness = computeProjectReadiness(project.document);
   const exportHistory = await readProjectExportHistory(project.id);
-  const requiredChecks = readiness.checks.filter((check) => check.level === "required");
-  const recommendedChecks = readiness.checks.filter((check) => check.level === "recommended");
+  const requiredChecks = readiness.checks.filter(
+    (check) => check.level === "required"
+  );
+  const recommendedChecks = readiness.checks.filter(
+    (check) => check.level === "recommended"
+  );
 
   return (
     <main className="asset-page">
@@ -65,8 +75,14 @@ export default async function SessionReadyPage({ params }: SessionReadyPageProps
           className={`session-ready-banner ${readiness.isSessionReady ? "is-ready" : "is-blocked"}`}
           role="status"
         >
-          <strong>{readiness.isSessionReady ? "Mappa pronta" : "Mancano alcuni requisiti"}</strong>
-          <span className="muted">Punteggio preparazione: {Math.round(readiness.score * 100)}%</span>
+          <strong>
+            {readiness.isSessionReady
+              ? "Mappa pronta"
+              : "Mancano alcuni requisiti"}
+          </strong>
+          <span className="muted">
+            Punteggio preparazione: {Math.round(readiness.score * 100)}%
+          </span>
         </div>
       </section>
 
@@ -74,13 +90,18 @@ export default async function SessionReadyPage({ params }: SessionReadyPageProps
         <h2>Requisiti</h2>
         <ul className="readiness-checklist">
           {requiredChecks.map((check) => (
-            <li className={check.passed ? "is-passed" : "is-failed"} key={check.id}>
+            <li
+              className={check.passed ? "is-passed" : "is-failed"}
+              key={check.id}
+            >
               <span className="readiness-mark" aria-hidden="true">
                 {check.passed ? "OK" : "--"}
               </span>
               <span className="readiness-body">
                 <strong>{check.label}</strong>
-                {check.passed ? null : <small className="muted">{check.hint}</small>}
+                {check.passed ? null : (
+                  <small className="muted">{check.hint}</small>
+                )}
               </span>
             </li>
           ))}
@@ -91,13 +112,18 @@ export default async function SessionReadyPage({ params }: SessionReadyPageProps
         <h2>Consigliati</h2>
         <ul className="readiness-checklist">
           {recommendedChecks.map((check) => (
-            <li className={check.passed ? "is-passed" : "is-optional"} key={check.id}>
+            <li
+              className={check.passed ? "is-passed" : "is-optional"}
+              key={check.id}
+            >
               <span className="readiness-mark" aria-hidden="true">
                 {check.passed ? "OK" : "~"}
               </span>
               <span className="readiness-body">
                 <strong>{check.label}</strong>
-                {check.passed ? null : <small className="muted">{check.hint}</small>}
+                {check.passed ? null : (
+                  <small className="muted">{check.hint}</small>
+                )}
               </span>
             </li>
           ))}
@@ -114,9 +140,13 @@ export default async function SessionReadyPage({ params }: SessionReadyPageProps
           <ul className="export-history-list">
             {exportHistory.slice(0, 8).map((entry) => (
               <li key={entry.id}>
-                <span className="pill">{describeExportFormat(entry.format)}</span>
+                <span className="pill">
+                  {describeExportFormat(entry.format)}
+                </span>
                 <span className="pill">{describeExportMode(entry.mode)}</span>
-                <span className="muted">{new Date(entry.createdAt).toLocaleString()}</span>
+                <span className="muted">
+                  {new Date(entry.createdAt).toLocaleString()}
+                </span>
                 <span>{entry.filename}</span>
               </li>
             ))}

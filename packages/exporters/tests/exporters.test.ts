@@ -4,7 +4,14 @@ import path from "node:path";
 import JSZip from "jszip";
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
-import { createMapDocument, type DoorSegment, type LightSource, type MapPlan, type PlacedAsset, type WallSegment } from "@dm-instamap/core";
+import {
+  createMapDocument,
+  type DoorSegment,
+  type LightSource,
+  type MapPlan,
+  type PlacedAsset,
+  type WallSegment
+} from "@dm-instamap/core";
 import {
   exportMapDocumentRaster,
   exportMapDocumentRasterLayerBundle,
@@ -15,7 +22,13 @@ import {
 
 describe("listSupportedExportFormats", () => {
   it("tracks planned MVP and future export formats", () => {
-    expect(listSupportedExportFormats()).toEqual(["png", "webp", "dd2vtt", "foundry", "dmimap"]);
+    expect(listSupportedExportFormats()).toEqual([
+      "png",
+      "webp",
+      "dd2vtt",
+      "foundry",
+      "dmimap"
+    ]);
   });
 });
 
@@ -33,14 +46,20 @@ describe("exportMapDocumentRaster", () => {
     expect(result.usedAssets).toEqual([]);
     expect(result.warnings).toEqual([]);
     expect(result.width).toBe(3 * 28);
-    expect(result.buffer.subarray(0, 8)).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+    expect(result.buffer.subarray(0, 8)).toEqual(
+      Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+    );
   });
 
   it("composites real asset artwork when an asset resolver is provided", async () => {
-    const fixture = await createImageFixture({ color: { alpha: 1, b: 20, g: 30, r: 220 }, name: "table.png" });
+    const fixture = await createImageFixture({
+      color: { alpha: 1, b: 20, g: 30, r: 220 },
+      name: "table.png"
+    });
     const result = await exportMapDocumentRaster(createExportFixture(), {
       assetResolver: {
-        resolveAsset: (assetId) => (assetId === "asset-table" ? { absolutePath: fixture, assetId } : null)
+        resolveAsset: (assetId) =>
+          assetId === "asset-table" ? { absolutePath: fixture, assetId } : null
       },
       format: "png",
       includeGrid: false,
@@ -112,7 +131,10 @@ describe("exportMapDocumentRaster", () => {
   it("does not resolve assets hidden by the requested layer filter", async () => {
     const result = await exportMapDocumentRaster(createExportFixture(), {
       assetResolver: {
-        resolveAsset: (assetId) => ({ absolutePath: `missing-${assetId}.png`, assetId })
+        resolveAsset: (assetId) => ({
+          absolutePath: `missing-${assetId}.png`,
+          assetId
+        })
       },
       format: "png",
       includeGrid: false,
@@ -141,24 +163,39 @@ describe("exportMapDocumentRaster", () => {
   });
 
   it("can include or hide grid lines in the SVG render source", () => {
-    const withGrid = renderMapDocumentSvg(createExportFixture(), { includeGrid: true });
-    const withoutGrid = renderMapDocumentSvg(createExportFixture(), { includeGrid: false });
+    const withGrid = renderMapDocumentSvg(createExportFixture(), {
+      includeGrid: true
+    });
+    const withoutGrid = renderMapDocumentSvg(createExportFixture(), {
+      includeGrid: false
+    });
 
     expect(withGrid).toContain("stroke-opacity");
     expect(withoutGrid).not.toContain("stroke-opacity");
   });
 
   it("exports transparent raster files split by VTT-friendly layers", async () => {
-    const layers = await exportMapDocumentRasterLayers(createLayeredExportFixture(), {
-      format: "png",
-      includeGrid: false,
-      scale: 1
-    });
+    const layers = await exportMapDocumentRasterLayers(
+      createLayeredExportFixture(),
+      {
+        format: "png",
+        includeGrid: false,
+        scale: 1
+      }
+    );
 
-    expect(Object.keys(layers).sort()).toEqual(["doors", "floor", "lighting", "props", "walls"]);
+    expect(Object.keys(layers).sort()).toEqual([
+      "doors",
+      "floor",
+      "lighting",
+      "props",
+      "walls"
+    ]);
     expect(layers.floor?.filename).toBe("layered-export-floor.png");
     expect(layers.walls?.filename).toBe("layered-export-walls.png");
-    expect(layers.props?.buffer.subarray(0, 8)).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+    expect(layers.props?.buffer.subarray(0, 8)).toEqual(
+      Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+    );
   });
 
   it("can render only requested SVG layers", () => {
@@ -175,19 +212,26 @@ describe("exportMapDocumentRaster", () => {
   });
 
   it("bundles separated raster layers into a zip with a manifest", async () => {
-    const bundle = await exportMapDocumentRasterLayerBundle(createLayeredExportFixture(), {
-      format: "webp",
-      includeGrid: false,
-      layers: ["floor", "props"],
-      scale: 1,
-      webpQuality: 80
-    });
+    const bundle = await exportMapDocumentRasterLayerBundle(
+      createLayeredExportFixture(),
+      {
+        format: "webp",
+        includeGrid: false,
+        layers: ["floor", "props"],
+        scale: 1,
+        webpQuality: 80
+      }
+    );
     const zip = await JSZip.loadAsync(bundle.buffer);
-    const manifest = JSON.parse(await zip.file("manifest.json")!.async("string")) as {
+    const manifest = JSON.parse(
+      await zip.file("manifest.json")!.async("string")
+    ) as {
       format: string;
       layers: string[];
     };
-    const floor = await zip.file("layered-export-floor.webp")!.async("uint8array");
+    const floor = await zip
+      .file("layered-export-floor.webp")!
+      .async("uint8array");
 
     expect(bundle).toMatchObject({
       contentType: "application/zip",
@@ -377,7 +421,11 @@ async function createTwoToneFixture(): Promise<string> {
   return filePath;
 }
 
-async function readPixel(buffer: Buffer, x: number, y: number): Promise<{ b: number; g: number; r: number }> {
+async function readPixel(
+  buffer: Buffer,
+  x: number,
+  y: number
+): Promise<{ b: number; g: number; r: number }> {
   const image = sharp(buffer);
   const metadata = await image.metadata();
   const width = metadata.width ?? 0;

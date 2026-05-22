@@ -9,7 +9,8 @@ export const REFERENCE_REVIEW_MAP_TYPES = [
   "ship"
 ] as const;
 
-export type ReferenceReviewMapType = (typeof REFERENCE_REVIEW_MAP_TYPES)[number];
+export type ReferenceReviewMapType =
+  (typeof REFERENCE_REVIEW_MAP_TYPES)[number];
 
 export type ReferenceCorrection = {
   layoutTags: string[];
@@ -41,13 +42,17 @@ export function createReferenceReviewDraft(
     layoutTagsText: (override?.layoutTags ?? []).join(", "),
     mapType: normalizeReferenceMapType(override?.mapType ?? reference.mapType),
     notes: override?.notes ?? "",
-    qualityScore: clampScore(override?.qualityScore ?? Math.round(reference.mapTypeConfidence * 100)),
+    qualityScore: clampScore(
+      override?.qualityScore ?? Math.round(reference.mapTypeConfidence * 100)
+    ),
     styleTagsText: (override?.styleTags ?? []).join(", "),
     themeTagsText: (override?.themeTags ?? reference.tags).join(", ")
   };
 }
 
-export function buildReferenceCorrectionFromDraft(draft: ReferenceReviewDraft): ReferenceCorrection {
+export function buildReferenceCorrectionFromDraft(
+  draft: ReferenceReviewDraft
+): ReferenceCorrection {
   return {
     layoutTags: parseCsvList(draft.layoutTagsText),
     mapType: normalizeReferenceMapType(draft.mapType),
@@ -83,7 +88,9 @@ export function findReferenceOverride(
   overrides: ReferenceOverridesFile,
   reference: ReferenceMapView
 ): Partial<ReferenceCorrection> | undefined {
-  return overrides.overrides[reference.id] ?? overrides.overrides[reference.path];
+  return (
+    overrides.overrides[reference.id] ?? overrides.overrides[reference.path]
+  );
 }
 
 export function mergeReferenceOverride(
@@ -98,17 +105,23 @@ export function mergeReferenceOverride(
   return { overrides };
 }
 
-export function normalizeReferenceOverridesFile(input: unknown): ReferenceOverridesFile {
+export function normalizeReferenceOverridesFile(
+  input: unknown
+): ReferenceOverridesFile {
   if (!input || typeof input !== "object") {
     return { overrides: {} };
   }
 
   const candidate = input as { overrides?: unknown };
   const rawOverrides =
-    candidate.overrides && typeof candidate.overrides === "object" ? candidate.overrides : {};
+    candidate.overrides && typeof candidate.overrides === "object"
+      ? candidate.overrides
+      : {};
   const overrides: ReferenceOverridesFile["overrides"] = {};
 
-  for (const [key, value] of Object.entries(rawOverrides as Record<string, unknown>)) {
+  for (const [key, value] of Object.entries(
+    rawOverrides as Record<string, unknown>
+  )) {
     const correction = normalizeCorrection(value);
 
     if (correction) {
@@ -120,7 +133,14 @@ export function normalizeReferenceOverridesFile(input: unknown): ReferenceOverri
 }
 
 export function parseCsvList(value: string): string[] {
-  return [...new Set(value.split(",").map((item) => item.trim()).filter(Boolean))];
+  return [
+    ...new Set(
+      value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    )
+  ];
 }
 
 export function formatReferenceMapType(mapType: string): string {
@@ -144,7 +164,9 @@ export function formatReferenceMapType(mapType: string): string {
   }
 }
 
-function normalizeCorrection(value: unknown): Partial<ReferenceCorrection> | null {
+function normalizeCorrection(
+  value: unknown
+): Partial<ReferenceCorrection> | null {
   if (!value || typeof value !== "object") {
     return null;
   }
@@ -164,18 +186,27 @@ function normalizeCorrection(value: unknown): Partial<ReferenceCorrection> | nul
   }
 
   if (Array.isArray(input.themeTags)) {
-    correction.themeTags = input.themeTags.filter((tag): tag is string => typeof tag === "string");
+    correction.themeTags = input.themeTags.filter(
+      (tag): tag is string => typeof tag === "string"
+    );
   }
 
   if (Array.isArray(input.styleTags)) {
-    correction.styleTags = input.styleTags.filter((tag): tag is string => typeof tag === "string");
+    correction.styleTags = input.styleTags.filter(
+      (tag): tag is string => typeof tag === "string"
+    );
   }
 
   if (Array.isArray(input.layoutTags)) {
-    correction.layoutTags = input.layoutTags.filter((tag): tag is string => typeof tag === "string");
+    correction.layoutTags = input.layoutTags.filter(
+      (tag): tag is string => typeof tag === "string"
+    );
   }
 
-  if (typeof input.qualityScore === "number" && Number.isFinite(input.qualityScore)) {
+  if (
+    typeof input.qualityScore === "number" &&
+    Number.isFinite(input.qualityScore)
+  ) {
     correction.qualityScore = clampScore(input.qualityScore);
   }
 

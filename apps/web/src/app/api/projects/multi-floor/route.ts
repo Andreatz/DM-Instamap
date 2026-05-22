@@ -25,8 +25,14 @@ export async function POST(request: Request) {
       );
     }
 
-    const name = typeof body.name === "string" && body.name.trim() ? body.name.trim() : "Multi-floor Dungeon";
-    const baseSlug = typeof body.baseSlug === "string" && body.baseSlug.trim() ? body.baseSlug.trim() : name;
+    const name =
+      typeof body.name === "string" && body.name.trim()
+        ? body.name.trim()
+        : "Multi-floor Dungeon";
+    const baseSlug =
+      typeof body.baseSlug === "string" && body.baseSlug.trim()
+        ? body.baseSlug.trim()
+        : name;
 
     const projects = await createMultiFloorProjects({
       baseSlug,
@@ -48,7 +54,10 @@ export async function POST(request: Request) {
   } catch (error) {
     return Response.json(
       {
-        error: error instanceof Error ? error.message : "Could not create multi-floor projects.",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Could not create multi-floor projects.",
         ok: false
       },
       { status: 400 }

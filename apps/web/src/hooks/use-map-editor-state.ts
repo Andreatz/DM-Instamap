@@ -2,8 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DragEvent, PointerEvent } from "react";
-import type { InitiativeEntry, MapDocument, MapLayer, MapLayerKind, MapNote } from "@dm-instamap/core/browser";
-import { matchAssetGroupsForRoom, type MatchableAssetGroup } from "@dm-instamap/assets/matcher";
+import type {
+  InitiativeEntry,
+  MapDocument,
+  MapLayer,
+  MapLayerKind,
+  MapNote
+} from "@dm-instamap/core/browser";
+import {
+  matchAssetGroupsForRoom,
+  type MatchableAssetGroup
+} from "@dm-instamap/assets/matcher";
 import { autoFurnishMap, type FurnishingDensity } from "@dm-instamap/generator";
 import {
   addPlacedAsset,
@@ -79,28 +88,44 @@ export type MapEditorStateOptions = {
 
 export type MapEditorController = ReturnType<typeof useMapEditorState>;
 
-export function useMapEditorState({ assetGroups, initialDocument, mapTheme, palette, projectId }: MapEditorStateOptions) {
+export function useMapEditorState({
+  assetGroups,
+  initialDocument,
+  mapTheme,
+  palette,
+  projectId
+}: MapEditorStateOptions) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [editorTool, setEditorTool] = useState<EditorTool>("select");
   const [selectedElement, setSelectedElement] = useState<EditorSelection>(null);
-  const [selectedRoomId, setSelectedRoomId] = useState<string | null>("room-entrance");
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(
+    "room-entrance"
+  );
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
-  const [hoverCell, setHoverCell] = useState<{ x: number; y: number } | null>(null);
+  const [hoverCell, setHoverCell] = useState<{ x: number; y: number } | null>(
+    null
+  );
   const [canvasSize, setCanvasSize] = useState({ height: 620, width: 900 });
   const [draggingAssetId, setDraggingAssetId] = useState<string | null>(null);
-  const [dragStartCell, setDragStartCell] = useState<{ x: number; y: number } | null>(null);
+  const [dragStartCell, setDragStartCell] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const [marqueeSelection, setMarqueeSelection] = useState<{
     current: { x: number; y: number };
     start: { x: number; y: number };
   } | null>(null);
   const [fogPreviewEnabled, setFogPreviewEnabled] = useState(true);
-  const [furnishingDensity, setFurnishingDensity] = useState<FurnishingDensity>("normal");
+  const [furnishingDensity, setFurnishingDensity] =
+    useState<FurnishingDensity>("normal");
   const [exportFormat, setExportFormat] = useState<ExportFormat>("png");
   const [exportIncludeGrid, setExportIncludeGrid] = useState(true);
   const [exportScale, setExportScale] = useState(1);
   const [assetSearchQuery, setAssetSearchQuery] = useState("");
-  const [assetSearchResults, setAssetSearchResults] = useState<AssetSearchApiResult[]>([]);
+  const [assetSearchResults, setAssetSearchResults] = useState<
+    AssetSearchApiResult[]
+  >([]);
   const [isExporting, setIsExporting] = useState(false);
   const [noteDraft, setNoteDraft] = useState(DEFAULT_NOTE_TEXT);
   const [initiativeDraft, setInitiativeDraft] = useState({
@@ -116,7 +141,9 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
   const [aiBusy, setAiBusy] = useState(false);
   const [aiDescription, setAiDescription] = useState<string>("");
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-  const [recentGenerated, setRecentGenerated] = useState<EditorPaletteAsset[]>(() => loadRecentGeneratedFromStorage());
+  const [recentGenerated, setRecentGenerated] = useState<EditorPaletteAsset[]>(
+    () => loadRecentGeneratedFromStorage()
+  );
 
   const clearSelectionState = useCallback(() => {
     setSelectedAssetId(null);
@@ -124,30 +151,72 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
     setSelectedElement(null);
   }, []);
 
-  const { commitDocument, document, redo, redoStack, resetHistory, setDocument, undo, undoStack } = useEditorHistory(
-    initialDocument,
-    { onNavigate: clearSelectionState, setStatus }
+  const {
+    commitDocument,
+    document,
+    redo,
+    redoStack,
+    resetHistory,
+    undo,
+    undoStack
+  } = useEditorHistory(initialDocument, {
+    onNavigate: clearSelectionState,
+    setStatus
+  });
+
+  const {
+    handleWheel,
+    panStart,
+    resetViewport,
+    screenToCell,
+    setPanStart,
+    setViewport,
+    viewport,
+    zoomBy
+  } = useCanvasViewport({
+    canvasRef,
+    documentHeight: document.height,
+    documentWidth: document.width
+  });
+
+  const [jsonText, setJsonText] = useState(() =>
+    serializeMapDocument(ensureEditorLayers(initialDocument))
   );
 
-  const { handleWheel, panStart, resetViewport, screenToCell, setPanStart, setViewport, viewport, zoomBy } =
-    useCanvasViewport({ canvasRef, documentHeight: document.height, documentWidth: document.width });
-
-  const [jsonText, setJsonText] = useState(() => serializeMapDocument(ensureEditorLayers(initialDocument)));
-
-  const rooms = document.plan?.rooms.filter((room) => room.kind === "room" || room.kind === "entrance") ?? [];
-  const editorLayers = [...document.layers].sort((left, right) => left.order - right.order);
+  const rooms =
+    document.plan?.rooms.filter(
+      (room) => room.kind === "room" || room.kind === "entrance"
+    ) ?? [];
+  const editorLayers = [...document.layers].sort(
+    (left, right) => left.order - right.order
+  );
   const selectedRoom = rooms.find((room) => room.id === selectedRoomId) ?? null;
-  const selectedAsset = document.assets.find((asset) => asset.id === selectedAssetId) ?? null;
-  const selectedAssets = document.assets.filter((asset) => selectedAssetIds.includes(asset.id));
+  const selectedAsset =
+    document.assets.find((asset) => asset.id === selectedAssetId) ?? null;
+  const selectedAssets = document.assets.filter((asset) =>
+    selectedAssetIds.includes(asset.id)
+  );
   const selectedDoor =
-    selectedElement?.type === "door" ? document.plan?.doors.find((door) => door.id === selectedElement.id) ?? null : null;
+    selectedElement?.type === "door"
+      ? (document.plan?.doors.find((door) => door.id === selectedElement.id) ??
+        null)
+      : null;
   const selectedLight =
     selectedElement?.type === "light"
-      ? document.plan?.lights.find((light) => light.id === selectedElement.id) ?? null
+      ? (document.plan?.lights.find(
+          (light) => light.id === selectedElement.id
+        ) ?? null)
       : null;
   const selectedNote =
-    selectedElement?.type === "note" ? document.plan?.gmNotes.find((note) => note.id === selectedElement.id) ?? null : null;
-  const visibleCellKeys = useMemo(() => (fogPreviewEnabled ? computeVisibleCells(document) : []), [document, fogPreviewEnabled]);
+    selectedElement?.type === "note"
+      ? (document.plan?.gmNotes.find(
+          (note) => note.id === selectedElement.id
+        ) ?? null)
+      : null;
+  const visibleCellKeys = useMemo(
+    () => (fogPreviewEnabled ? computeVisibleCells(document) : []),
+    [document, fogPreviewEnabled]
+  );
   const roomMatches = useMemo(
     () =>
       selectedRoom
@@ -177,11 +246,14 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
     setStatus(`Creazione snapshot ${label}...`);
 
     try {
-      const response = await fetch(`/api/projects/${encodeURIComponent(projectId)}/snapshots`, {
-        body: JSON.stringify({ label }),
-        headers: { "Content-Type": "application/json" },
-        method: "POST"
-      });
+      const response = await fetch(
+        `/api/projects/${encodeURIComponent(projectId)}/snapshots`,
+        {
+          body: JSON.stringify({ label }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST"
+        }
+      );
       const payload = (await response.json()) as {
         error?: string;
         snapshot?: { written: boolean };
@@ -191,7 +263,11 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
         throw new Error(payload.error ?? "Snapshot fallito.");
       }
 
-      setStatus(payload.snapshot.written ? `Snapshot ${label} creato.` : "Snapshot identico: non scritto.");
+      setStatus(
+        payload.snapshot.written
+          ? `Snapshot ${label} creato.`
+          : "Snapshot identico: non scritto."
+      );
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Snapshot fallito.");
     }
@@ -218,7 +294,10 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
         undo();
       }
 
-      if (event.key.toLowerCase() === "y" || (event.key.toLowerCase() === "z" && event.shiftKey)) {
+      if (
+        event.key.toLowerCase() === "y" ||
+        (event.key.toLowerCase() === "z" && event.shiftKey)
+      ) {
         event.preventDefault();
         redo();
       }
@@ -241,8 +320,17 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [copySelectedAssets, createSnapshot, pasteAssetClipboard, redo, undo]);
+  }, [
+    // biome-ignore lint/correctness/useExhaustiveDependencies: closure non memoizzata, stabilizzazione con useCallback prevista in Fase C
+    copySelectedAssets,
+    createSnapshot,
+    // biome-ignore lint/correctness/useExhaustiveDependencies: closure non memoizzata, stabilizzazione con useCallback prevista in Fase C
+    pasteAssetClipboard,
+    redo,
+    undo,
+    // biome-ignore lint/correctness/useExhaustiveDependencies: closure non memoizzata, stabilizzazione con useCallback prevista in Fase C
+    toggleGmLayerVisibility
+  ]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -254,7 +342,10 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
 
     const updateSize = () => {
       setCanvasSize({
-        height: Math.max(460, Math.min(760, Math.floor(window.innerHeight * 0.68))),
+        height: Math.max(
+          460,
+          Math.min(760, Math.floor(window.innerHeight * 0.68))
+        ),
         width: Math.max(620, container.clientWidth - 28)
       });
     };
@@ -323,7 +414,8 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
 
     if (editorTool === "select") {
       const selection = selectElementAtCell(document, cell);
-      const visibleSelection = selection && isSelectionVisible(document, selection) ? selection : null;
+      const visibleSelection =
+        selection && isSelectionVisible(document, selection) ? selection : null;
       setSelectedElement(visibleSelection);
       if (visibleSelection?.type === "asset") {
         const nextAssetIds =
@@ -332,16 +424,29 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
             : [visibleSelection.id];
         setSelectedAssetIds(nextAssetIds);
         setSelectedAssetId(nextAssetIds.at(-1) ?? null);
-        setSelectedElement(nextAssetIds.length > 0 ? { id: nextAssetIds.at(-1) ?? visibleSelection.id, type: "asset" } : null);
+        setSelectedElement(
+          nextAssetIds.length > 0
+            ? { id: nextAssetIds.at(-1) ?? visibleSelection.id, type: "asset" }
+            : null
+        );
       } else {
         setSelectedAssetIds([]);
         setSelectedAssetId(null);
       }
-      setSelectedRoomId(visibleSelection?.type === "room" ? visibleSelection.id : findRoomAtCell(document, cell)?.id ?? null);
+      setSelectedRoomId(
+        visibleSelection?.type === "room"
+          ? visibleSelection.id
+          : (findRoomAtCell(document, cell)?.id ?? null)
+      );
 
       if (visibleSelection?.type === "asset") {
-        const asset = document.assets.find((candidate) => candidate.id === visibleSelection.id);
-        if (asset && isEditorLayerLocked(document, assetToLayerKind(asset.layer))) {
+        const asset = document.assets.find(
+          (candidate) => candidate.id === visibleSelection.id
+        );
+        if (
+          asset &&
+          isEditorLayerLocked(document, assetToLayerKind(asset.layer))
+        ) {
           setStatus("Il livello dell'asset selezionato e bloccato");
           return;
         }
@@ -358,11 +463,16 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
     }
 
     if (isEditorLayerLocked(document, toolToLayerKind(editorTool))) {
-      setStatus(`Il livello ${layerLabel(toolToLayerKind(editorTool))} e bloccato`);
+      setStatus(
+        `Il livello ${layerLabel(toolToLayerKind(editorTool))} e bloccato`
+      );
       return;
     }
 
-    commitDocument((current) => updateDocumentForTool(current, editorTool, cell), createToolStatus(editorTool, cell));
+    commitDocument(
+      (current) => updateDocumentForTool(current, editorTool, cell),
+      createToolStatus(editorTool, cell)
+    );
     setSelectedElement(null);
     setSelectedAssetId(null);
     setSelectedAssetIds([]);
@@ -376,7 +486,8 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
       const scaleY = event.currentTarget.height / rect.height;
       setViewport((current) => ({
         ...current,
-        offsetX: panStart.offsetX + (event.clientX - panStart.pointerX) * scaleX,
+        offsetX:
+          panStart.offsetX + (event.clientX - panStart.pointerX) * scaleX,
         offsetY: panStart.offsetY + (event.clientY - panStart.pointerY) * scaleY
       }));
       return;
@@ -384,7 +495,9 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
 
     const cell = screenToCell(event.clientX, event.clientY);
     if (cell && marqueeSelection) {
-      setMarqueeSelection((current) => (current ? { ...current, current: cell } : null));
+      setMarqueeSelection((current) =>
+        current ? { ...current, current: cell } : null
+      );
     }
     setHoverCell(cell);
   }
@@ -393,34 +506,61 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
     const cell = screenToCell(event.clientX, event.clientY);
 
     if (marqueeSelection) {
-      const bounds = createSelectionBounds(marqueeSelection.start, marqueeSelection.current);
-      const assetIds = selectPlacedAssetsInBounds(document, bounds).filter((assetId) => {
-        const asset = document.assets.find((candidate) => candidate.id === assetId);
-        return asset ? isEditorLayerVisible(document, assetToLayerKind(asset.layer)) : false;
-      });
+      const bounds = createSelectionBounds(
+        marqueeSelection.start,
+        marqueeSelection.current
+      );
+      const assetIds = selectPlacedAssetsInBounds(document, bounds).filter(
+        (assetId) => {
+          const asset = document.assets.find(
+            (candidate) => candidate.id === assetId
+          );
+          return asset
+            ? isEditorLayerVisible(document, assetToLayerKind(asset.layer))
+            : false;
+        }
+      );
       const lastAssetId = assetIds.at(-1) ?? null;
       setSelectedAssetIds(assetIds);
       setSelectedAssetId(lastAssetId);
-      setSelectedElement(lastAssetId ? { id: lastAssetId, type: "asset" } : null);
+      setSelectedElement(
+        lastAssetId ? { id: lastAssetId, type: "asset" } : null
+      );
       setStatus(`${assetIds.length} asset selezionati`);
     } else if (draggingAssetId && cell) {
-      const asset = document.assets.find((candidate) => candidate.id === draggingAssetId);
-      if (asset && isEditorLayerLocked(document, assetToLayerKind(asset.layer))) {
-        setStatus(`Il livello ${layerLabel(assetToLayerKind(asset.layer))} e bloccato`);
+      const asset = document.assets.find(
+        (candidate) => candidate.id === draggingAssetId
+      );
+      if (
+        asset &&
+        isEditorLayerLocked(document, assetToLayerKind(asset.layer))
+      ) {
+        setStatus(
+          `Il livello ${layerLabel(assetToLayerKind(asset.layer))} e bloccato`
+        );
       } else {
-        const currentSelection = selectedAssetIds.includes(draggingAssetId) ? selectedAssetIds : [draggingAssetId];
-        const delta = dragStartCell ? { x: cell.x - dragStartCell.x, y: cell.y - dragStartCell.y } : null;
+        const currentSelection = selectedAssetIds.includes(draggingAssetId)
+          ? selectedAssetIds
+          : [draggingAssetId];
+        const delta = dragStartCell
+          ? { x: cell.x - dragStartCell.x, y: cell.y - dragStartCell.y }
+          : null;
         if (delta && currentSelection.length > 1) {
           commitDocument(
             (current) => movePlacedAssets(current, currentSelection, delta),
             `${currentSelection.length} asset spostati di ${delta.x}, ${delta.y}`
           );
         } else {
-          commitDocument((current) => movePlacedAsset(current, draggingAssetId, cell), `Asset spostato a ${cell.x}, ${cell.y}`);
+          commitDocument(
+            (current) => movePlacedAsset(current, draggingAssetId, cell),
+            `Asset spostato a ${cell.x}, ${cell.y}`
+          );
         }
       }
       setSelectedAssetId(draggingAssetId);
-      setSelectedAssetIds((current) => (current.includes(draggingAssetId) ? current : [draggingAssetId]));
+      setSelectedAssetIds((current) =>
+        current.includes(draggingAssetId) ? current : [draggingAssetId]
+      );
       setSelectedElement({ id: draggingAssetId, type: "asset" });
     }
 
@@ -439,7 +579,11 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
     }
 
     if (payload.type === "palette") {
-      const paletteAsset = createPaletteAsset(payload.assetId, palette, assetSearchResults);
+      const paletteAsset = createPaletteAsset(
+        payload.assetId,
+        palette,
+        assetSearchResults
+      );
 
       if (!paletteAsset) {
         return;
@@ -452,17 +596,27 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
         return;
       }
 
-      commitDocument((current) => addPlacedAsset(current, paletteAsset, { x, y }), `Placed ${paletteAsset.name}`);
+      commitDocument(
+        (current) => addPlacedAsset(current, paletteAsset, { x, y }),
+        `Placed ${paletteAsset.name}`
+      );
       return;
     }
 
-    const asset = document.assets.find((candidate) => candidate.id === payload.placedAssetId);
+    const asset = document.assets.find(
+      (candidate) => candidate.id === payload.placedAssetId
+    );
     if (asset && isEditorLayerLocked(document, assetToLayerKind(asset.layer))) {
-      setStatus(`Il livello ${layerLabel(assetToLayerKind(asset.layer))} e bloccato`);
+      setStatus(
+        `Il livello ${layerLabel(assetToLayerKind(asset.layer))} e bloccato`
+      );
       return;
     }
 
-    commitDocument((current) => movePlacedAsset(current, payload.placedAssetId, { x, y }), "Asset spostato");
+    commitDocument(
+      (current) => movePlacedAsset(current, payload.placedAssetId, { x, y }),
+      "Asset spostato"
+    );
     setSelectedAssetId(payload.placedAssetId);
     setSelectedAssetIds([payload.placedAssetId]);
   }
@@ -487,19 +641,24 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
     setStatus("Esportazione Session Pack...");
 
     try {
-      const response = await fetch(`/api/projects/${encodeURIComponent(projectId)}/export`, {
-        body: JSON.stringify({
-          description: document.name,
-          format: "session-pack",
-          includeInitiative: true,
-          scale: 1
-        }),
-        headers: { "Content-Type": "application/json" },
-        method: "POST"
-      });
+      const response = await fetch(
+        `/api/projects/${encodeURIComponent(projectId)}/export`,
+        {
+          body: JSON.stringify({
+            description: document.name,
+            format: "session-pack",
+            includeInitiative: true,
+            scale: 1
+          }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST"
+        }
+      );
 
       if (!response.ok) {
-        const payload = (await response.json().catch(() => ({}))) as { error?: string };
+        const payload = (await response.json().catch(() => ({}))) as {
+          error?: string;
+        };
         throw new Error(payload.error ?? "Esportazione Session Pack fallita.");
       }
 
@@ -512,7 +671,11 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
       URL.revokeObjectURL(url);
       setStatus("Session Pack scaricato.");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Esportazione Session Pack fallita.");
+      setStatus(
+        error instanceof Error
+          ? error.message
+          : "Esportazione Session Pack fallita."
+      );
     }
   }, [document.name, projectId]);
 
@@ -527,13 +690,16 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
     }
 
     try {
-      const response = await fetch(`/api/projects/${encodeURIComponent(projectId)}`, {
-        body: JSON.stringify({ document }),
-        headers: {
-          "Content-Type": "application/json"
-        },
-        method: "PUT"
-      });
+      const response = await fetch(
+        `/api/projects/${encodeURIComponent(projectId)}`,
+        {
+          body: JSON.stringify({ document }),
+          headers: {
+            "Content-Type": "application/json"
+          },
+          method: "PUT"
+        }
+      );
       const payload = (await response.json()) as { error?: string };
 
       if (!response.ok) {
@@ -542,7 +708,9 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
 
       setStatus("Progetto salvato");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Salvataggio progetto fallito");
+      setStatus(
+        error instanceof Error ? error.message : "Salvataggio progetto fallito"
+      );
     }
   }
 
@@ -552,10 +720,14 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
       resetHistory(parsed);
       setSelectedAssetId(null);
       setSelectedAssetIds([]);
-      setSelectedRoomId(parsed.plan?.rooms.find((room) => room.kind === "entrance")?.id ?? null);
+      setSelectedRoomId(
+        parsed.plan?.rooms.find((room) => room.kind === "entrance")?.id ?? null
+      );
       setStatus("JSON MapDocument caricato");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Impossibile caricare il JSON");
+      setStatus(
+        error instanceof Error ? error.message : "Impossibile caricare il JSON"
+      );
     }
   }
 
@@ -575,7 +747,12 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
   }
 
   function deleteSelectedAsset() {
-    const assetIds = selectedAssetIds.length > 0 ? selectedAssetIds : selectedAssetId ? [selectedAssetId] : [];
+    const assetIds =
+      selectedAssetIds.length > 0
+        ? selectedAssetIds
+        : selectedAssetId
+          ? [selectedAssetId]
+          : [];
 
     if (assetIds.length === 0) {
       return;
@@ -595,7 +772,12 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
   }
 
   function duplicateSelectedAsset() {
-    const assetIds = selectedAssetIds.length > 0 ? selectedAssetIds : selectedAssetId ? [selectedAssetId] : [];
+    const assetIds =
+      selectedAssetIds.length > 0
+        ? selectedAssetIds
+        : selectedAssetId
+          ? [selectedAssetId]
+          : [];
 
     if (assetIds.length === 0) {
       return;
@@ -613,7 +795,12 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
   }
 
   function groupSelectedAssets() {
-    const assetIds = selectedAssetIds.length > 0 ? selectedAssetIds : selectedAssetId ? [selectedAssetId] : [];
+    const assetIds =
+      selectedAssetIds.length > 0
+        ? selectedAssetIds
+        : selectedAssetId
+          ? [selectedAssetId]
+          : [];
 
     if (assetIds.length < 2) {
       setStatus("Seleziona almeno due asset da raggruppare");
@@ -630,7 +817,12 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
   }
 
   function ungroupSelectedAssets() {
-    const assetIds = selectedAssetIds.length > 0 ? selectedAssetIds : selectedAssetId ? [selectedAssetId] : [];
+    const assetIds =
+      selectedAssetIds.length > 0
+        ? selectedAssetIds
+        : selectedAssetId
+          ? [selectedAssetId]
+          : [];
 
     if (assetIds.length === 0) {
       return;
@@ -641,18 +833,29 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
       return;
     }
 
-    commitDocument((current) => ungroupPlacedAssets(current, assetIds), "Asset selezionati separati");
+    commitDocument(
+      (current) => ungroupPlacedAssets(current, assetIds),
+      "Asset selezionati separati"
+    );
   }
 
   function copySelectedAssets() {
-    const assetIds = selectedAssetIds.length > 0 ? selectedAssetIds : selectedAssetId ? [selectedAssetId] : [];
+    const assetIds =
+      selectedAssetIds.length > 0
+        ? selectedAssetIds
+        : selectedAssetId
+          ? [selectedAssetId]
+          : [];
 
     if (assetIds.length === 0) {
       return;
     }
 
     const clipboard = createPlacedAssetClipboard(document, assetIds);
-    window.localStorage.setItem(CLIPBOARD_STORAGE_KEY, JSON.stringify(clipboard));
+    window.localStorage.setItem(
+      CLIPBOARD_STORAGE_KEY,
+      JSON.stringify(clipboard)
+    );
     setStatus(`${clipboard.assets.length} asset selezionati copiati`);
   }
 
@@ -668,10 +871,15 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
       const clipboard = JSON.parse(rawClipboard) as PlacedAssetClipboard;
       const result = pastePlacedAssetClipboard(document, clipboard);
       const lastPastedId = result.pastedIds.at(-1) ?? null;
-      commitDocument(() => result.document, `Pasted ${result.pastedIds.length} asset${result.pastedIds.length === 1 ? "" : "s"}`);
+      commitDocument(
+        () => result.document,
+        `Pasted ${result.pastedIds.length} asset${result.pastedIds.length === 1 ? "" : "s"}`
+      );
       setSelectedAssetIds(result.pastedIds);
       setSelectedAssetId(lastPastedId);
-      setSelectedElement(lastPastedId ? { id: lastPastedId, type: "asset" } : null);
+      setSelectedElement(
+        lastPastedId ? { id: lastPastedId, type: "asset" } : null
+      );
     } catch {
       setStatus("I dati dell'asset copiato non sono validi");
     }
@@ -679,7 +887,9 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
 
   function selectAllVisibleAssets() {
     const assetIds = document.assets
-      .filter((asset) => isEditorLayerVisible(document, assetToLayerKind(asset.layer)))
+      .filter((asset) =>
+        isEditorLayerVisible(document, assetToLayerKind(asset.layer))
+      )
       .map((asset) => asset.id);
     const lastAssetId = assetIds.at(-1) ?? null;
 
@@ -696,38 +906,67 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
     setStatus("Selezione asset cancellata");
   }
 
-  function updateSelectedAssetTransform(transform: Parameters<typeof updatePlacedAssetTransform>[2]) {
+  function updateSelectedAssetTransform(
+    transform: Parameters<typeof updatePlacedAssetTransform>[2]
+  ) {
     if (!selectedAssetId) {
       return;
     }
 
-    if (selectedAsset && isEditorLayerLocked(document, assetToLayerKind(selectedAsset.layer))) {
-      setStatus(`Il livello ${layerLabel(assetToLayerKind(selectedAsset.layer))} e bloccato`);
+    if (
+      selectedAsset &&
+      isEditorLayerLocked(document, assetToLayerKind(selectedAsset.layer))
+    ) {
+      setStatus(
+        `Il livello ${layerLabel(assetToLayerKind(selectedAsset.layer))} e bloccato`
+      );
       return;
     }
 
-    commitDocument((current) => updatePlacedAssetTransform(current, selectedAssetId, transform), "Trasformazione asset aggiornata");
+    commitDocument(
+      (current) =>
+        updatePlacedAssetTransform(current, selectedAssetId, transform),
+      "Trasformazione asset aggiornata"
+    );
   }
 
-  function updateSelectedAssetLayer(layer: MapDocument["assets"][number]["layer"]) {
+  function updateSelectedAssetLayer(
+    layer: MapDocument["assets"][number]["layer"]
+  ) {
     if (!selectedAssetId) {
       return;
     }
 
-    if (selectedAsset && isEditorLayerLocked(document, assetToLayerKind(selectedAsset.layer))) {
-      setStatus(`Il livello ${layerLabel(assetToLayerKind(selectedAsset.layer))} e bloccato`);
+    if (
+      selectedAsset &&
+      isEditorLayerLocked(document, assetToLayerKind(selectedAsset.layer))
+    ) {
+      setStatus(
+        `Il livello ${layerLabel(assetToLayerKind(selectedAsset.layer))} e bloccato`
+      );
       return;
     }
 
-    commitDocument((current) => updatePlacedAssetLayer(current, selectedAssetId, layer), "Asset spostato di livello");
+    commitDocument(
+      (current) => updatePlacedAssetLayer(current, selectedAssetId, layer),
+      "Asset spostato di livello"
+    );
   }
 
-  function updateLayer(layerKind: MapLayerKind, patch: Partial<Pick<MapLayer, "locked" | "opacity" | "visible">>) {
-    commitDocument((current) => updateMapLayer(current, layerKind, patch), "Livello aggiornato");
+  function updateLayer(
+    layerKind: MapLayerKind,
+    patch: Partial<Pick<MapLayer, "locked" | "opacity" | "visible">>
+  ) {
+    commitDocument(
+      (current) => updateMapLayer(current, layerKind, patch),
+      "Livello aggiornato"
+    );
   }
 
   function toggleGmLayerVisibility() {
-    updateLayer("gm-only", { visible: !isEditorLayerVisible(document, "gm-only") });
+    updateLayer("gm-only", {
+      visible: !isEditorLayerVisible(document, "gm-only")
+    });
   }
 
   function updateSelectedLight(patch: Parameters<typeof updateLightSource>[2]) {
@@ -740,7 +979,10 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
       return;
     }
 
-    commitDocument((current) => updateLightSource(current, selectedLight.id, patch), "Luce aggiornata");
+    commitDocument(
+      (current) => updateLightSource(current, selectedLight.id, patch),
+      "Luce aggiornata"
+    );
   }
 
   function addNoteAtHoverCell() {
@@ -751,7 +993,10 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
       return;
     }
 
-    commitDocument((current) => addMapNote(current, position, noteDraft), `Added note at ${position.x}, ${position.y}`);
+    commitDocument(
+      (current) => addMapNote(current, position, noteDraft),
+      `Added note at ${position.x}, ${position.y}`
+    );
     setNoteDraft(DEFAULT_NOTE_TEXT);
   }
 
@@ -765,7 +1010,10 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
       return;
     }
 
-    commitDocument((current) => updateMapNote(current, selectedNote.id, patch), "Nota aggiornata");
+    commitDocument(
+      (current) => updateMapNote(current, selectedNote.id, patch),
+      "Nota aggiornata"
+    );
   }
 
   function deleteSelectedNote() {
@@ -778,7 +1026,10 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
       return;
     }
 
-    commitDocument((current) => deleteMapNote(current, selectedNote.id), "Nota eliminata");
+    commitDocument(
+      (current) => deleteMapNote(current, selectedNote.id),
+      "Nota eliminata"
+    );
     setSelectedElement(null);
   }
 
@@ -800,22 +1051,37 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
         }),
       `Added ${name} to initiative`
     );
-    setInitiativeDraft({ hitPoints: "", initiative: "10", name: "", side: "enemy" });
+    setInitiativeDraft({
+      hitPoints: "",
+      initiative: "10",
+      name: "",
+      side: "enemy"
+    });
   }
 
   function damageInitiativeEntry(entry: InitiativeEntry, amount: number) {
     commitDocument(
-      (current) => updateInitiativeEntry(current, entry.id, { hitPoints: Math.max(0, (entry.hitPoints ?? 0) - amount) }),
+      (current) =>
+        updateInitiativeEntry(current, entry.id, {
+          hitPoints: Math.max(0, (entry.hitPoints ?? 0) - amount)
+        }),
       `Updated ${entry.name}`
     );
   }
 
   function removeInitiativeEntry(entry: InitiativeEntry) {
-    commitDocument((current) => deleteInitiativeEntry(current, entry.id), `Removed ${entry.name}`);
+    commitDocument(
+      (current) => deleteInitiativeEntry(current, entry.id),
+      `Removed ${entry.name}`
+    );
   }
 
   function handleAutoFurnish() {
-    const furnishingAssets = createFurnishingAssets(assetGroups, palette, assetSearchResults);
+    const furnishingAssets = createFurnishingAssets(
+      assetGroups,
+      palette,
+      assetSearchResults
+    );
     const result = autoFurnishMap(document, {
       assetGroups: createFurnishingAssetGroups(assetGroups),
       assets: furnishingAssets,
@@ -823,7 +1089,10 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
       styleTags: [mapTheme]
     });
 
-    commitDocument(() => ensureEditorLayers(result.document), `Arredamento automatico: ${result.summary.placedCount} asset piazzati, ${result.summary.skippedCount} saltati`);
+    commitDocument(
+      () => ensureEditorLayers(result.document),
+      `Arredamento automatico: ${result.summary.placedCount} asset piazzati, ${result.summary.skippedCount} saltati`
+    );
     setSelectedAssetId(null);
     setSelectedAssetIds([]);
   }
@@ -860,7 +1129,9 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
       URL.revokeObjectURL(url);
       setStatus(`${exportFormat.toUpperCase()} esportato`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Esportazione fallita");
+      setStatus(
+        error instanceof Error ? error.message : "Esportazione fallita"
+      );
     } finally {
       setIsExporting(false);
     }
@@ -876,7 +1147,9 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
 
     try {
       const response = await fetch("/api/ai/blueprint", {
-        body: JSON.stringify({ request: aiRequest.trim() || `Describe ${document.name} for the GM.` }),
+        body: JSON.stringify({
+          request: aiRequest.trim() || `Describe ${document.name} for the GM.`
+        }),
         headers: { "Content-Type": "application/json" },
         method: "POST"
       });
@@ -888,7 +1161,9 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
       };
 
       if (!response.ok || !payload.ok || !payload.blueprint) {
-        throw new Error(payload.error ?? payload.errors?.join("; ") ?? "Richiesta AI fallita.");
+        throw new Error(
+          payload.error ?? payload.errors?.join("; ") ?? "Richiesta AI fallita."
+        );
       }
 
       const blueprint = payload.blueprint;
@@ -896,7 +1171,9 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
       setAiDescription(description);
       setStatus("Descrizione AI pronta.");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Richiesta AI fallita.");
+      setStatus(
+        error instanceof Error ? error.message : "Richiesta AI fallita."
+      );
     } finally {
       setAiBusy(false);
     }
@@ -914,18 +1191,32 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
 
     try {
       const query =
-        aiRequest.trim() || `${selectedRoom.label} ${selectedRoom.tags.join(" ")} ${mapTheme}`.trim();
-      const response = await fetch(`/api/assets/search?q=${encodeURIComponent(query)}&limit=8`);
-      const payload = (await response.json()) as { error?: string; results?: AssetSearchApiResult[] };
+        aiRequest.trim() ||
+        `${selectedRoom.label} ${selectedRoom.tags.join(" ")} ${mapTheme}`.trim();
+      const response = await fetch(
+        `/api/assets/search?q=${encodeURIComponent(query)}&limit=8`
+      );
+      const payload = (await response.json()) as {
+        error?: string;
+        results?: AssetSearchApiResult[];
+      };
 
       if (!response.ok || !payload.results) {
         throw new Error(payload.error ?? "Suggerimento fallito.");
       }
 
-      setAiSuggestions(payload.results.map((result) => `${result.relativePath} (${result.classification})`));
-      setStatus(`${payload.results.length} suggerimenti per ${selectedRoom.label}.`);
+      setAiSuggestions(
+        payload.results.map(
+          (result) => `${result.relativePath} (${result.classification})`
+        )
+      );
+      setStatus(
+        `${payload.results.length} suggerimenti per ${selectedRoom.label}.`
+      );
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Suggerimento fallito.");
+      setStatus(
+        error instanceof Error ? error.message : "Suggerimento fallito."
+      );
     } finally {
       setAiBusy(false);
     }
@@ -954,7 +1245,11 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
       const payload = (await response.json()) as {
         asset?: { filename: string; relativePath: string };
         error?: string;
-        manifestEntry?: { id: string; relativePath: string; thumbnailPath: string | null } | null;
+        manifestEntry?: {
+          id: string;
+          relativePath: string;
+          thumbnailPath: string | null;
+        } | null;
       };
 
       if (!response.ok || !payload.asset) {
@@ -969,14 +1264,19 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
           name: payload.asset.filename,
           thumbnailUrl: entry.thumbnailPath ? `/${entry.thumbnailPath}` : ""
         };
-        const next = [generatedAsset, ...recentGenerated.filter((item) => item.id !== entry.id)].slice(0, 12);
+        const next = [
+          generatedAsset,
+          ...recentGenerated.filter((item) => item.id !== entry.id)
+        ].slice(0, 12);
         setRecentGenerated(next);
         saveRecentGeneratedToStorage(next);
       }
 
       setStatus(`Generato ${payload.asset.filename}.`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Generazione fallita.");
+      setStatus(
+        error instanceof Error ? error.message : "Generazione fallita."
+      );
     } finally {
       setAiBusy(false);
     }
@@ -985,7 +1285,9 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
   async function handleFindMatchingAssets() {
     const query = (
       assetSearchQuery.trim() ||
-      [mapTheme, selectedRoom?.label ?? "", ...(selectedRoom?.tags ?? [])].join(" ")
+      [mapTheme, selectedRoom?.label ?? "", ...(selectedRoom?.tags ?? [])].join(
+        " "
+      )
     ).trim();
 
     if (!query) {
@@ -997,8 +1299,13 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
     setStatus("Ricerca asset locali");
 
     try {
-      const response = await fetch(`/api/assets/search?q=${encodeURIComponent(query)}&limit=12`);
-      const payload = (await response.json()) as { results?: AssetSearchApiResult[]; error?: string };
+      const response = await fetch(
+        `/api/assets/search?q=${encodeURIComponent(query)}&limit=12`
+      );
+      const payload = (await response.json()) as {
+        results?: AssetSearchApiResult[];
+        error?: string;
+      };
 
       if (!response.ok) {
         throw new Error(payload.error ?? "Ricerca asset locale fallita");
@@ -1008,7 +1315,9 @@ export function useMapEditorState({ assetGroups, initialDocument, mapTheme, pale
       setStatus(`${payload.results?.length ?? 0} suggerimenti asset locali`);
     } catch (error) {
       setAssetSearchResults([]);
-      setStatus(error instanceof Error ? error.message : "Ricerca asset locale fallita");
+      setStatus(
+        error instanceof Error ? error.message : "Ricerca asset locale fallita"
+      );
     }
   }
 

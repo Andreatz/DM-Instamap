@@ -7,6 +7,8 @@ try {
     `Created ${groupsFile.groupCount} asset groups. Index written to data/indexes/asset-groups.json.`
   );
 } catch (error) {
-  console.error(error instanceof Error ? error.message : "Asset grouping failed.");
+  console.error(
+    error instanceof Error ? error.message : "Asset grouping failed."
+  );
   process.exit(1);
 }

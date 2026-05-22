@@ -1,6 +1,10 @@
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { enrichAssetSearchResults, normalizeSearchLimit, resolveWorkspaceFilePath } from "./asset-search";
+import {
+  enrichAssetSearchResults,
+  normalizeSearchLimit,
+  resolveWorkspaceFilePath
+} from "./asset-search";
 import type { AssetBrowserEntry } from "./asset-browser";
 
 const assets: AssetBrowserEntry[] = [
@@ -62,6 +66,8 @@ describe("asset search helpers", () => {
     expect(resolveWorkspaceFilePath(root, "data/previews/example.webp")).toBe(
       path.resolve(root, "data/previews/example.webp")
     );
-    expect(() => resolveWorkspaceFilePath(root, "../secret.png")).toThrow("workspace");
+    expect(() => resolveWorkspaceFilePath(root, "../secret.png")).toThrow(
+      "workspace"
+    );
   });
 });

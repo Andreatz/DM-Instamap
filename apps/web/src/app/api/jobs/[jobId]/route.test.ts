@@ -7,7 +7,9 @@ vi.mock("@/lib/worker-client", () => ({
 import { GET } from "./route";
 import { fetchWorkerJob } from "@/lib/worker-client";
 
-const fetchWorkerJobMock = fetchWorkerJob as unknown as ReturnType<typeof vi.fn>;
+const fetchWorkerJobMock = fetchWorkerJob as unknown as ReturnType<
+  typeof vi.fn
+>;
 
 function context(jobId: string) {
   return { params: Promise.resolve({ jobId }) };
@@ -29,7 +31,10 @@ describe("GET /api/jobs/[jobId]", () => {
       updatedAt: "2026-05-21T00:00:05.000Z"
     });
 
-    const response = await GET(new Request("http://test/api/jobs/job_1"), context("job_1"));
+    const response = await GET(
+      new Request("http://test/api/jobs/job_1"),
+      context("job_1")
+    );
 
     expect(response.status).toBe(200);
     const body = (await response.json()) as {
@@ -43,9 +48,14 @@ describe("GET /api/jobs/[jobId]", () => {
   });
 
   it("returns 502 when the worker is unreachable", async () => {
-    fetchWorkerJobMock.mockRejectedValue(new Error("ECONNREFUSED 127.0.0.1:8000"));
+    fetchWorkerJobMock.mockRejectedValue(
+      new Error("ECONNREFUSED 127.0.0.1:8000")
+    );
 
-    const response = await GET(new Request("http://test/api/jobs/job_1"), context("job_1"));
+    const response = await GET(
+      new Request("http://test/api/jobs/job_1"),
+      context("job_1")
+    );
 
     expect(response.status).toBe(502);
     const body = (await response.json()) as { ok: boolean; error: string };

@@ -29,7 +29,14 @@ type ExportRequest = {
 };
 
 const RASTER_FORMATS = new Set<WebExportFormat>(["png", "webp"]);
-const VALID_FORMATS = new Set<WebExportFormat>(["png", "webp", "dd2vtt", "foundry", "dmimap", "session-pack"]);
+const VALID_FORMATS = new Set<WebExportFormat>([
+  "png",
+  "webp",
+  "dd2vtt",
+  "foundry",
+  "dmimap",
+  "session-pack"
+]);
 const VALID_MODES = new Set<MapVisibilityMode>(["player", "gm", "clean"]);
 
 export async function POST(request: Request) {
@@ -39,15 +46,23 @@ export async function POST(request: Request) {
     const format = parseFormat(body.format);
 
     if (!format) {
-      return Response.json({ error: "Export format must be png, webp, dd2vtt, foundry, or dmimap." }, { status: 400 });
+      return Response.json(
+        {
+          error: "Export format must be png, webp, dd2vtt, foundry, or dmimap."
+        },
+        { status: 400 }
+      );
     }
 
     const mode = parseMode(body.mode);
     const document = applyVisibilityMode(baseDocument, mode);
-    const includeGrid = typeof body.includeGrid === "boolean" ? body.includeGrid : true;
+    const includeGrid =
+      typeof body.includeGrid === "boolean" ? body.includeGrid : true;
     const scale = typeof body.scale === "number" ? body.scale : 1;
-    const splitLayers = typeof body.splitLayers === "boolean" ? body.splitLayers : false;
-    const webpQuality = typeof body.webpQuality === "number" ? body.webpQuality : undefined;
+    const splitLayers =
+      typeof body.splitLayers === "boolean" ? body.splitLayers : false;
+    const webpQuality =
+      typeof body.webpQuality === "number" ? body.webpQuality : undefined;
     const assetResolver = createAssetManifestResolver();
 
     if (RASTER_FORMATS.has(format)) {
@@ -105,7 +120,8 @@ export async function POST(request: Request) {
     }
 
     if (format === "foundry") {
-      const includeJournals = typeof body.includeJournals === "boolean" ? body.includeJournals : true;
+      const includeJournals =
+        typeof body.includeJournals === "boolean" ? body.includeJournals : true;
       const result = await exportFoundryModule(document, {
         assetResolver,
         imageFormat: "webp",
@@ -124,8 +140,12 @@ export async function POST(request: Request) {
     }
 
     if (format === "session-pack") {
-      const description = typeof body.description === "string" ? body.description : undefined;
-      const includeInitiative = typeof body.includeInitiative === "boolean" ? body.includeInitiative : true;
+      const description =
+        typeof body.description === "string" ? body.description : undefined;
+      const includeInitiative =
+        typeof body.includeInitiative === "boolean"
+          ? body.includeInitiative
+          : true;
       const result = await exportSessionPack(document, {
         assetResolver,
         description,
@@ -154,7 +174,8 @@ export async function POST(request: Request) {
       })
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Could not export map.";
+    const message =
+      error instanceof Error ? error.message : "Could not export map.";
     return Response.json({ error: message }, { status: 400 });
   }
 }
@@ -164,11 +185,16 @@ function parseFormat(value: unknown): WebExportFormat | null {
     return null;
   }
 
-  return VALID_FORMATS.has(value as WebExportFormat) ? (value as WebExportFormat) : null;
+  return VALID_FORMATS.has(value as WebExportFormat)
+    ? (value as WebExportFormat)
+    : null;
 }
 
 function parseMode(value: unknown): MapVisibilityMode {
-  if (typeof value === "string" && VALID_MODES.has(value as MapVisibilityMode)) {
+  if (
+    typeof value === "string" &&
+    VALID_MODES.has(value as MapVisibilityMode)
+  ) {
     return value as MapVisibilityMode;
   }
 
@@ -176,7 +202,11 @@ function parseMode(value: unknown): MapVisibilityMode {
 }
 
 function buildFilename(document: MapDocument, extension: string): string {
-  const slug = document.name.toLowerCase().replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "") || "dm-instamap-map";
+  const slug =
+    document.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/gu, "-")
+      .replace(/^-|-$/gu, "") || "dm-instamap-map";
   return `${slug}.${extension}`;
 }
 
@@ -194,7 +224,11 @@ function namedFilename(filename: string, mode: MapVisibilityMode): string {
   return `${filename.slice(0, dotIndex)}-${mode}${filename.slice(dotIndex)}`;
 }
 
-function buildHeaders(input: { contentType: string; filename: string; mode: MapVisibilityMode }): HeadersInit {
+function buildHeaders(input: {
+  contentType: string;
+  filename: string;
+  mode: MapVisibilityMode;
+}): HeadersInit {
   return {
     "Content-Disposition": `attachment; filename="${input.filename}"`,
     "Content-Type": input.contentType,
@@ -203,5 +237,8 @@ function buildHeaders(input: { contentType: string; filename: string; mode: MapV
 }
 
 function toArrayBuffer(buffer: Buffer): ArrayBuffer {
-  return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer;
+  return buffer.buffer.slice(
+    buffer.byteOffset,
+    buffer.byteOffset + buffer.byteLength
+  ) as ArrayBuffer;
 }

@@ -2,7 +2,13 @@
 
 import type { MapDocument } from "@dm-instamap/core/browser";
 import { formatAssetKind } from "@/lib/asset-browser";
-import { assetToLayerKind, getFileName, layerLabel, writeDragPayload, type ExportFormat } from "@/lib/map-editor-view";
+import {
+  assetToLayerKind,
+  getFileName,
+  layerLabel,
+  writeDragPayload,
+  type ExportFormat
+} from "@/lib/map-editor-view";
 import type { MapEditorController } from "@/hooks/use-map-editor-state";
 
 export function EditorInspector({ editor }: { editor: MapEditorController }) {
@@ -85,7 +91,11 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
         </div>
         <div>
           <dt>Livello asset</dt>
-          <dd>{selectedAsset ? layerLabel(assetToLayerKind(selectedAsset.layer)) : "nessuno"}</dd>
+          <dd>
+            {selectedAsset
+              ? layerLabel(assetToLayerKind(selectedAsset.layer))
+              : "nessuno"}
+          </dd>
         </div>
         <div>
           <dt>Porta selezionata</dt>
@@ -122,7 +132,9 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
                 <label className="editor-checkbox">
                   <input
                     checked={layer.visible}
-                    onChange={(event) => updateLayer(layer.kind, { visible: event.target.checked })}
+                    onChange={(event) =>
+                      updateLayer(layer.kind, { visible: event.target.checked })
+                    }
                     type="checkbox"
                   />
                   <span>Visibile</span>
@@ -130,7 +142,9 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
                 <label className="editor-checkbox">
                   <input
                     checked={layer.locked}
-                    onChange={(event) => updateLayer(layer.kind, { locked: event.target.checked })}
+                    onChange={(event) =>
+                      updateLayer(layer.kind, { locked: event.target.checked })
+                    }
                     type="checkbox"
                   />
                   <span>Blocca</span>
@@ -140,7 +154,11 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
                 aria-label={`${layer.name} opacity`}
                 max={1}
                 min={0}
-                onChange={(event) => updateLayer(layer.kind, { opacity: Number(event.target.value) })}
+                onChange={(event) =>
+                  updateLayer(layer.kind, {
+                    opacity: Number(event.target.value)
+                  })
+                }
                 step={0.05}
                 type="range"
                 value={layer.opacity}
@@ -156,7 +174,11 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
           <label>
             <span>Livello</span>
             <select
-              onChange={(event) => updateSelectedAssetLayer(event.target.value as MapDocument["assets"][number]["layer"])}
+              onChange={(event) =>
+                updateSelectedAssetLayer(
+                  event.target.value as MapDocument["assets"][number]["layer"]
+                )
+              }
               value={selectedAsset.layer}
             >
               <option value="floor">Pavimento</option>
@@ -171,17 +193,35 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
             <input
               max={359}
               min={0}
-              onChange={(event) => updateSelectedAssetTransform({ rotation: Number(event.target.value) })}
+              onChange={(event) =>
+                updateSelectedAssetTransform({
+                  rotation: Number(event.target.value)
+                })
+              }
               step={1}
               type="number"
               value={Math.round(selectedAsset.rotation)}
             />
           </label>
           <div className="editor-action-row">
-            <button onClick={() => updateSelectedAssetTransform({ rotation: selectedAsset.rotation - 15 })} type="button">
+            <button
+              onClick={() =>
+                updateSelectedAssetTransform({
+                  rotation: selectedAsset.rotation - 15
+                })
+              }
+              type="button"
+            >
               Ruota -15
             </button>
-            <button onClick={() => updateSelectedAssetTransform({ rotation: selectedAsset.rotation + 15 })} type="button">
+            <button
+              onClick={() =>
+                updateSelectedAssetTransform({
+                  rotation: selectedAsset.rotation + 15
+                })
+              }
+              type="button"
+            >
               Ruota +15
             </button>
           </div>
@@ -190,17 +230,31 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
             <input
               max={4}
               min={0.25}
-              onChange={(event) => updateSelectedAssetTransform({ scale: Number(event.target.value) })}
+              onChange={(event) =>
+                updateSelectedAssetTransform({
+                  scale: Number(event.target.value)
+                })
+              }
               step={0.05}
               type="number"
               value={selectedAsset.scale}
             />
           </label>
           <div className="editor-action-row">
-            <button onClick={() => updateSelectedAssetTransform({ flipX: !selectedAsset.flipX })} type="button">
+            <button
+              onClick={() =>
+                updateSelectedAssetTransform({ flipX: !selectedAsset.flipX })
+              }
+              type="button"
+            >
               Rifletti O
             </button>
-            <button onClick={() => updateSelectedAssetTransform({ flipY: !selectedAsset.flipY })} type="button">
+            <button
+              onClick={() =>
+                updateSelectedAssetTransform({ flipY: !selectedAsset.flipY })
+              }
+              type="button"
+            >
               Rifletti V
             </button>
             <button onClick={duplicateSelectedAsset} type="button">
@@ -216,12 +270,20 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
           <button onClick={selectAllVisibleAssets} type="button">
             Seleziona visibili
           </button>
-          <button disabled={selectedAssetIds.length === 0} onClick={clearAssetSelection} type="button">
+          <button
+            disabled={selectedAssetIds.length === 0}
+            onClick={clearAssetSelection}
+            type="button"
+          >
             Pulisci
           </button>
         </div>
         <div className="editor-action-row">
-          <button disabled={selectedAssetIds.length === 0 && !selectedAssetId} onClick={copySelectedAssets} type="button">
+          <button
+            disabled={selectedAssetIds.length === 0 && !selectedAssetId}
+            onClick={copySelectedAssets}
+            type="button"
+          >
             Copia
           </button>
           <button onClick={pasteAssetClipboard} type="button">
@@ -229,10 +291,18 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
           </button>
         </div>
         <div className="editor-action-row">
-          <button disabled={selectedAssetIds.length < 2} onClick={groupSelectedAssets} type="button">
+          <button
+            disabled={selectedAssetIds.length < 2}
+            onClick={groupSelectedAssets}
+            type="button"
+          >
             Raggruppa
           </button>
-          <button disabled={selectedAssetIds.length === 0 && !selectedAssetId} onClick={ungroupSelectedAssets} type="button">
+          <button
+            disabled={selectedAssetIds.length === 0 && !selectedAssetId}
+            onClick={ungroupSelectedAssets}
+            type="button"
+          >
             Separa
           </button>
         </div>
@@ -255,7 +325,9 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
               <input
                 max={20}
                 min={1}
-                onChange={(event) => updateSelectedLight({ radius: Number(event.target.value) })}
+                onChange={(event) =>
+                  updateSelectedLight({ radius: Number(event.target.value) })
+                }
                 step={0.5}
                 type="number"
                 value={selectedLight.radius}
@@ -266,7 +338,9 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
               <input
                 max={1}
                 min={0}
-                onChange={(event) => updateSelectedLight({ intensity: Number(event.target.value) })}
+                onChange={(event) =>
+                  updateSelectedLight({ intensity: Number(event.target.value) })
+                }
                 step={0.05}
                 type="number"
                 value={selectedLight.intensity}
@@ -274,12 +348,20 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
             </label>
             <label>
               <span>Colore</span>
-              <input onChange={(event) => updateSelectedLight({ color: event.target.value })} type="color" value={selectedLight.color} />
+              <input
+                onChange={(event) =>
+                  updateSelectedLight({ color: event.target.value })
+                }
+                type="color"
+                value={selectedLight.color}
+              />
             </label>
             <label className="editor-checkbox">
               <input
                 checked={selectedLight.flicker}
-                onChange={(event) => updateSelectedLight({ flicker: event.target.checked })}
+                onChange={(event) =>
+                  updateSelectedLight({ flicker: event.target.checked })
+                }
                 type="checkbox"
               />
               <span>Sfarfallio</span>
@@ -294,7 +376,10 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
         <h3>Note GM</h3>
         <label>
           <span>Bozza</span>
-          <textarea onChange={(event) => setNoteDraft(event.target.value)} value={noteDraft} />
+          <textarea
+            onChange={(event) => setNoteDraft(event.target.value)}
+            value={noteDraft}
+          />
         </label>
         <button onClick={addNoteAtHoverCell} type="button">
           Aggiungi nota
@@ -303,10 +388,17 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
           <article className="editor-note-card">
             <input
               aria-label="Titolo nota"
-              onChange={(event) => updateSelectedNote({ title: event.target.value })}
+              onChange={(event) =>
+                updateSelectedNote({ title: event.target.value })
+              }
               value={selectedNote.title}
             />
-            <textarea onChange={(event) => updateSelectedNote({ text: event.target.value })} value={selectedNote.text} />
+            <textarea
+              onChange={(event) =>
+                updateSelectedNote({ text: event.target.value })
+              }
+              value={selectedNote.text}
+            />
             <button onClick={deleteSelectedNote} type="button">
               Elimina nota
             </button>
@@ -331,19 +423,34 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
         <div className="editor-initiative-form">
           <input
             aria-label="Nome iniziativa"
-            onChange={(event) => setInitiativeDraft((current) => ({ ...current, name: event.target.value }))}
+            onChange={(event) =>
+              setInitiativeDraft((current) => ({
+                ...current,
+                name: event.target.value
+              }))
+            }
             placeholder="Nome"
             value={initiativeDraft.name}
           />
           <input
             aria-label="Valore iniziativa"
-            onChange={(event) => setInitiativeDraft((current) => ({ ...current, initiative: event.target.value }))}
+            onChange={(event) =>
+              setInitiativeDraft((current) => ({
+                ...current,
+                initiative: event.target.value
+              }))
+            }
             type="number"
             value={initiativeDraft.initiative}
           />
           <input
             aria-label="Punti ferita"
-            onChange={(event) => setInitiativeDraft((current) => ({ ...current, hitPoints: event.target.value }))}
+            onChange={(event) =>
+              setInitiativeDraft((current) => ({
+                ...current,
+                hitPoints: event.target.value
+              }))
+            }
             placeholder="HP"
             type="number"
             value={initiativeDraft.hitPoints}
@@ -351,7 +458,10 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
           <select
             aria-label="Schieramento"
             onChange={(event) =>
-              setInitiativeDraft((current) => ({ ...current, side: event.target.value as typeof current.side }))
+              setInitiativeDraft((current) => ({
+                ...current,
+                side: event.target.value as typeof current.side
+              }))
             }
             value={initiativeDraft.side}
           >
@@ -366,16 +476,32 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
         <div className="editor-initiative-list">
           {(document.plan?.initiative ?? []).map((entry) => (
             <article key={entry.id}>
-              <strong>{entry.initiative} - {entry.name}</strong>
-              <span>{entry.side}{entry.hitPoints === undefined ? "" : ` / ${entry.hitPoints} HP`}</span>
+              <strong>
+                {entry.initiative} - {entry.name}
+              </strong>
+              <span>
+                {entry.side}
+                {entry.hitPoints === undefined
+                  ? ""
+                  : ` / ${entry.hitPoints} HP`}
+              </span>
               <div className="editor-action-row">
-                <button onClick={() => damageInitiativeEntry(entry, 1)} type="button">
+                <button
+                  onClick={() => damageInitiativeEntry(entry, 1)}
+                  type="button"
+                >
                   -1 HP
                 </button>
-                <button onClick={() => damageInitiativeEntry(entry, 5)} type="button">
+                <button
+                  onClick={() => damageInitiativeEntry(entry, 5)}
+                  type="button"
+                >
                   -5 HP
                 </button>
-                <button onClick={() => removeInitiativeEntry(entry)} type="button">
+                <button
+                  onClick={() => removeInitiativeEntry(entry)}
+                  type="button"
+                >
                   Rimuovi
                 </button>
               </div>
@@ -388,10 +514,14 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
         <h3>Corrispondenze asset stanza</h3>
         {selectedRoom ? (
           <p>
-            Confronto di {selectedRoom.label} con {assetGroups.length} gruppi locali.
+            Confronto di {selectedRoom.label} con {assetGroups.length} gruppi
+            locali.
           </p>
         ) : (
-          <p>Seleziona una stanza per ispezionare le corrispondenze con gli asset locali.</p>
+          <p>
+            Seleziona una stanza per ispezionare le corrispondenze con gli asset
+            locali.
+          </p>
         )}
         <div className="asset-match-list">
           {roomMatches.map((match) => (
@@ -401,18 +531,22 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
                 <span>{Math.round(match.score * 100)}%</span>
               </header>
               <p>
-                {formatAssetKind(match.group.kind ?? "unknown")} - {match.group.assetIds?.length ?? 0} asset
+                {formatAssetKind(match.group.kind ?? "unknown")} -{" "}
+                {match.group.assetIds?.length ?? 0} asset
               </p>
               <ul>
                 {match.reasons.map((reason) => (
                   <li key={`${match.group.id}-${reason.label}`}>
-                    {reason.label}: {reason.value} (+{Math.round(reason.score * 100)})
+                    {reason.label}: {reason.value} (+
+                    {Math.round(reason.score * 100)})
                   </li>
                 ))}
               </ul>
             </article>
           ))}
-          {selectedRoom && roomMatches.length === 0 ? <p>Nessun gruppo corrispondente trovato.</p> : null}
+          {selectedRoom && roomMatches.length === 0 ? (
+            <p>Nessun gruppo corrispondente trovato.</p>
+          ) : null}
         </div>
       </section>
 
@@ -422,12 +556,20 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
           <span>Cerca</span>
           <input
             onChange={(event) => setAssetSearchQuery(event.target.value)}
-            placeholder={selectedRoom ? `${selectedRoom.label} ${selectedRoom.tags.join(" ")}` : "cripta sarcofago"}
+            placeholder={
+              selectedRoom
+                ? `${selectedRoom.label} ${selectedRoom.tags.join(" ")}`
+                : "cripta sarcofago"
+            }
             type="search"
             value={assetSearchQuery}
           />
         </label>
-        <button className="save-correction" onClick={handleFindMatchingAssets} type="button">
+        <button
+          className="save-correction"
+          onClick={handleFindMatchingAssets}
+          type="button"
+        >
           Cerca asset locali
         </button>
         <div className="asset-match-list">
@@ -440,7 +582,12 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
               <p>{result.reason}</p>
               <button
                 draggable
-                onDragStart={(event) => writeDragPayload(event, { assetId: result.assetId, type: "palette" })}
+                onDragStart={(event) =>
+                  writeDragPayload(event, {
+                    assetId: result.assetId,
+                    type: "palette"
+                  })
+                }
                 type="button"
               >
                 Trascina sulla mappa
@@ -463,13 +610,24 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
         <h3>Arredamento automatico</h3>
         <label>
           <span>Densita</span>
-          <select onChange={(event) => setFurnishingDensity(event.target.value as typeof furnishingDensity)} value={furnishingDensity}>
+          <select
+            onChange={(event) =>
+              setFurnishingDensity(
+                event.target.value as typeof furnishingDensity
+              )
+            }
+            value={furnishingDensity}
+          >
             <option value="sparse">Sparsa</option>
             <option value="normal">Normale</option>
             <option value="rich">Ricca</option>
           </select>
         </label>
-        <button className="save-correction" onClick={handleAutoFurnish} type="button">
+        <button
+          className="save-correction"
+          onClick={handleAutoFurnish}
+          type="button"
+        >
           Piazza asset stanza
         </button>
       </section>
@@ -478,14 +636,22 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
         <h3>Esportazione</h3>
         <label>
           <span>Formato</span>
-          <select onChange={(event) => setExportFormat(event.target.value as ExportFormat)} value={exportFormat}>
+          <select
+            onChange={(event) =>
+              setExportFormat(event.target.value as ExportFormat)
+            }
+            value={exportFormat}
+          >
             <option value="png">PNG</option>
             <option value="webp">WEBP</option>
           </select>
         </label>
         <label>
           <span>Scala</span>
-          <select onChange={(event) => setExportScale(Number(event.target.value))} value={exportScale}>
+          <select
+            onChange={(event) => setExportScale(Number(event.target.value))}
+            value={exportScale}
+          >
             <option value={1}>1x</option>
             <option value={2}>2x</option>
             <option value={3}>3x</option>
@@ -493,10 +659,19 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
           </select>
         </label>
         <label className="editor-checkbox">
-          <input checked={exportIncludeGrid} onChange={(event) => setExportIncludeGrid(event.target.checked)} type="checkbox" />
+          <input
+            checked={exportIncludeGrid}
+            onChange={(event) => setExportIncludeGrid(event.target.checked)}
+            type="checkbox"
+          />
           <span>Includi griglia</span>
         </label>
-        <button className="save-correction" disabled={isExporting} onClick={handleExport} type="button">
+        <button
+          className="save-correction"
+          disabled={isExporting}
+          onClick={handleExport}
+          type="button"
+        >
           {isExporting ? "Esportazione..." : "Esporta mappa"}
         </button>
       </section>
@@ -514,7 +689,12 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
             Carica locale
           </button>
         </div>
-        <textarea className="editor-json" onChange={(event) => setJsonText(event.target.value)} spellCheck={false} value={jsonText} />
+        <textarea
+          className="editor-json"
+          onChange={(event) => setJsonText(event.target.value)}
+          spellCheck={false}
+          value={jsonText}
+        />
         <p>{status}</p>
       </section>
     </aside>

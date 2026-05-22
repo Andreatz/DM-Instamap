@@ -52,15 +52,31 @@ const ROOM_KIND_PREFERENCES: Record<RoomNode["kind"], AssetClassification[]> = {
   stairs: ["floor", "terrain", "prop", "wall", "decoration"]
 };
 
-export function matchAssetGroupsForRoom(input: AssetMatcherInput): AssetGroupMatch[] {
+export function matchAssetGroupsForRoom(
+  input: AssetMatcherInput
+): AssetGroupMatch[] {
   const limit = Math.max(1, Math.floor(input.limit ?? DEFAULT_LIMIT));
-  const preferredKinds = normalizeKinds(input.preferredKinds ?? inferPreferredKinds(input.room));
-  const roomTags = normalizeTokens([input.room.kind, input.room.label, ...input.room.tags]);
-  const roomTheme = normalizeToken(input.theme ?? findThemeInRoomTags(input.room.tags));
-  const roomUseTerms = normalizeTokens([input.room.kind, input.room.label, ...input.room.tags]);
+  const preferredKinds = normalizeKinds(
+    input.preferredKinds ?? inferPreferredKinds(input.room)
+  );
+  const roomTags = normalizeTokens([
+    input.room.kind,
+    input.room.label,
+    ...input.room.tags
+  ]);
+  const roomTheme = normalizeToken(
+    input.theme ?? findThemeInRoomTags(input.room.tags)
+  );
+  const roomUseTerms = normalizeTokens([
+    input.room.kind,
+    input.room.label,
+    ...input.room.tags
+  ]);
 
   return input.groups
-    .map((group) => scoreGroup({ group, preferredKinds, roomTags, roomTheme, roomUseTerms }))
+    .map((group) =>
+      scoreGroup({ group, preferredKinds, roomTags, roomTheme, roomUseTerms })
+    )
     .filter((match) => match.score > 0)
     .sort(
       (left, right) =>
@@ -98,7 +114,10 @@ function scoreGroup(input: {
   }
 
   const tagMatches = intersect(tags, input.roomTags);
-  const tagScore = input.roomTags.length > 0 ? Math.min(1, tagMatches.length / Math.min(4, input.roomTags.length)) : 0;
+  const tagScore =
+    input.roomTags.length > 0
+      ? Math.min(1, tagMatches.length / Math.min(4, input.roomTags.length))
+      : 0;
   if (tagMatches.length > 0) {
     reasons.push({
       label: "tags",
@@ -107,7 +126,9 @@ function scoreGroup(input: {
     });
   }
 
-  const themeMatches = input.roomTheme ? intersect(themes, [input.roomTheme]) : [];
+  const themeMatches = input.roomTheme
+    ? intersect(themes, [input.roomTheme])
+    : [];
   const themeScore = themeMatches.length > 0 ? 1 : 0;
   if (themeMatches.length > 0) {
     reasons.push({
@@ -119,7 +140,12 @@ function scoreGroup(input: {
 
   const usableForMatches = intersect(usableFor, input.roomUseTerms);
   const usableForScore =
-    input.roomUseTerms.length > 0 ? Math.min(1, usableForMatches.length / Math.min(3, input.roomUseTerms.length)) : 0;
+    input.roomUseTerms.length > 0
+      ? Math.min(
+          1,
+          usableForMatches.length / Math.min(3, input.roomUseTerms.length)
+        )
+      : 0;
   if (usableForMatches.length > 0) {
     reasons.push({
       label: "usableFor",
@@ -169,7 +195,10 @@ function inferPreferredKinds(room: RoomNode): AssetClassification[] {
   return [...kinds];
 }
 
-function scoreKind(kind: AssetClassification | null, preferredKinds: AssetClassification[]): number {
+function scoreKind(
+  kind: AssetClassification | null,
+  preferredKinds: AssetClassification[]
+): number {
   if (!kind) {
     return 0;
   }
@@ -183,21 +212,44 @@ function scoreKind(kind: AssetClassification | null, preferredKinds: AssetClassi
 }
 
 function findThemeInRoomTags(tags: string[]): string {
-  const ignored = new Set(["room", "entrance", "final", "boss", "corridor", "connects"]);
-  return normalizeTokens(tags).find((tag) => !ignored.has(tag) && !tag.startsWith("connects")) ?? "";
+  const ignored = new Set([
+    "room",
+    "entrance",
+    "final",
+    "boss",
+    "corridor",
+    "connects"
+  ]);
+  return (
+    normalizeTokens(tags).find(
+      (tag) => !ignored.has(tag) && !tag.startsWith("connects")
+    ) ?? ""
+  );
 }
 
 function normalizeKinds(values: string[]): AssetClassification[] {
-  return values.map(normalizeKind).filter((value): value is AssetClassification => value !== null);
+  return values
+    .map(normalizeKind)
+    .filter((value): value is AssetClassification => value !== null);
 }
 
-function normalizeKind(value: string | null | undefined): AssetClassification | null {
+function normalizeKind(
+  value: string | null | undefined
+): AssetClassification | null {
   const normalized = normalizeToken(value ?? "");
-  return ASSET_CLASSIFICATIONS.includes(normalized as AssetClassification) ? (normalized as AssetClassification) : null;
+  return ASSET_CLASSIFICATIONS.includes(normalized as AssetClassification)
+    ? (normalized as AssetClassification)
+    : null;
 }
 
 function normalizeTokens(values: string[]): string[] {
-  return [...new Set(values.flatMap((value) => value.split(/[^a-z0-9]+/iu).map(normalizeToken)).filter(Boolean))];
+  return [
+    ...new Set(
+      values
+        .flatMap((value) => value.split(/[^a-z0-9]+/iu).map(normalizeToken))
+        .filter(Boolean)
+    )
+  ];
 }
 
 function normalizeToken(value: string): string {

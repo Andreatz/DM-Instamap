@@ -15,6 +15,9 @@ export function isLocalHostHeader(hostHeader: string | null): boolean {
   return LOCAL_HOSTS.has(host);
 }
 
-export function shouldBlockRemoteRequest(hostHeader: string | null, env: SecurityEnv = process.env): boolean {
+export function shouldBlockRemoteRequest(
+  hostHeader: string | null,
+  env: SecurityEnv = process.env
+): boolean {
   return !isRemoteAccessAllowed(env) && !isLocalHostHeader(hostHeader);
 }

@@ -15,11 +15,7 @@ export function JobProgressBar({ jobId, pollIntervalMs }: JobProgressBarProps) {
   }
 
   if (error) {
-    return (
-      <p className="muted">
-        Errore worker: {error}
-      </p>
-    );
+    return <p className="muted">Errore worker: {error}</p>;
   }
 
   if (!job) {
@@ -32,8 +28,12 @@ export function JobProgressBar({ jobId, pollIntervalMs }: JobProgressBarProps) {
       <span className="pill">stato: {job.status}</span>
       <span className="pill">avanzamento: {job.progress}%</span>
       <p>{job.message}</p>
-      {job.status === "failed" && job.error ? <p className="muted">Errore: {job.error}</p> : null}
-      {job.status === "failed" && typeof job.log?.stderrTail === "string" && job.log.stderrTail ? (
+      {job.status === "failed" && job.error ? (
+        <p className="muted">Errore: {job.error}</p>
+      ) : null}
+      {job.status === "failed" &&
+      typeof job.log?.stderrTail === "string" &&
+      job.log.stderrTail ? (
         <pre className="job-log">{job.log.stderrTail}</pre>
       ) : null}
     </section>

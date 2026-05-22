@@ -7,8 +7,12 @@ export type AssetSearchApiResult = AssetSearchResult & {
   thumbnailUrl: string;
 };
 
-export function normalizeSearchLimit(value: string | number | null | undefined, fallback = 20): number {
-  const parsed = typeof value === "number" ? value : Number.parseInt(value ?? "", 10);
+export function normalizeSearchLimit(
+  value: string | number | null | undefined,
+  fallback = 20
+): number {
+  const parsed =
+    typeof value === "number" ? value : Number.parseInt(value ?? "", 10);
 
   if (!Number.isFinite(parsed)) {
     return fallback;
@@ -29,12 +33,17 @@ export function enrichAssetSearchResults(
     return {
       ...result,
       classification: asset?.classification ?? "unknown",
-      thumbnailUrl: asset?.thumbnailUrl ?? `/assets/preview/${encodeURIComponent(result.assetId)}`
+      thumbnailUrl:
+        asset?.thumbnailUrl ??
+        `/assets/preview/${encodeURIComponent(result.assetId)}`
     };
   });
 }
 
-export function resolveWorkspaceFilePath(workspaceRoot: string, inputPath: string): string {
+export function resolveWorkspaceFilePath(
+  workspaceRoot: string,
+  inputPath: string
+): string {
   return validateLocalPath({
     inputPath,
     label: "imagePath",

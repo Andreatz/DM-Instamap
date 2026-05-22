@@ -94,9 +94,11 @@ describe("asset review helpers", () => {
   it("filters low-confidence assets", () => {
     const highConfidenceAsset = { ...asset, confidence: 0.9, id: "high" };
 
-    expect(filterReviewAssets([asset, highConfidenceAsset], true).map((candidate) => candidate.id)).toEqual([
-      "asset-door"
-    ]);
+    expect(
+      filterReviewAssets([asset, highConfidenceAsset], true).map(
+        (candidate) => candidate.id
+      )
+    ).toEqual(["asset-door"]);
   });
 
   it("normalizes and merges override files", () => {

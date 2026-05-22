@@ -25,7 +25,11 @@ const groups: AssetGroupView[] = [
 
 describe("asset group review helpers", () => {
   it("builds group review items with confidence, preview assets and queue counters", () => {
-    const items = buildGroupReviewItems(groups, assets, normalizeGroupReviewsFile({}));
+    const items = buildGroupReviewItems(
+      groups,
+      assets,
+      normalizeGroupReviewsFile({})
+    );
 
     expect(items[0]).toMatchObject({
       assetCount: 2,
@@ -33,7 +37,10 @@ describe("asset group review helpers", () => {
       unknownCount: 0
     });
     expect(items[0]?.confidenceAverage).toBeCloseTo(0.6);
-    expect(items[0]?.previewAssets.map((asset) => asset.id)).toEqual(["asset-a", "asset-b"]);
+    expect(items[0]?.previewAssets.map((asset) => asset.id)).toEqual([
+      "asset-a",
+      "asset-b"
+    ]);
     expect(items[1]).toMatchObject({
       assetCount: 1,
       lowConfidenceCount: 1,
@@ -42,24 +49,34 @@ describe("asset group review helpers", () => {
   });
 
   it("selects review queues without forcing one-by-one review", () => {
-    const items = buildGroupReviewItems(groups, assets, normalizeGroupReviewsFile({}));
+    const items = buildGroupReviewItems(
+      groups,
+      assets,
+      normalizeGroupReviewsFile({})
+    );
 
-    expect(selectReviewQueue(items, "low-confidence").map((item) => item.group.id)).toEqual([
-      "group-unknown",
-      "group-floor"
-    ]);
-    expect(selectReviewQueue(items, "unknown").map((item) => item.group.id)).toEqual(["group-unknown"]);
-    expect(selectReviewQueue(items, "largest-unreviewed").map((item) => item.group.id)).toEqual([
-      "group-floor",
-      "group-unknown"
-    ]);
+    expect(
+      selectReviewQueue(items, "low-confidence").map((item) => item.group.id)
+    ).toEqual(["group-unknown", "group-floor"]);
+    expect(
+      selectReviewQueue(items, "unknown").map((item) => item.group.id)
+    ).toEqual(["group-unknown"]);
+    expect(
+      selectReviewQueue(items, "largest-unreviewed").map(
+        (item) => item.group.id
+      )
+    ).toEqual(["group-floor", "group-unknown"]);
   });
 
   it("tracks progress stats for reviewed groups and assets", () => {
-    const reviews = applyGroupReviewAction(normalizeGroupReviewsFile({}), {
-      action: "confirm",
-      groupId: "group-floor"
-    }, "2026-05-20T00:00:00.000Z");
+    const reviews = applyGroupReviewAction(
+      normalizeGroupReviewsFile({}),
+      {
+        action: "confirm",
+        groupId: "group-floor"
+      },
+      "2026-05-20T00:00:00.000Z"
+    );
     const items = buildGroupReviewItems(groups, assets, reviews);
 
     expect(calculateGroupReviewStats(items)).toEqual({
@@ -72,7 +89,11 @@ describe("asset group review helpers", () => {
   });
 
   it("builds group corrections and per-asset override payloads", () => {
-    const item = buildGroupReviewItems(groups, assets, normalizeGroupReviewsFile({}))[0]!;
+    const item = buildGroupReviewItems(
+      groups,
+      assets,
+      normalizeGroupReviewsFile({})
+    )[0]!;
     const draft = createGroupReviewDraft(item);
     const correction = buildGroupCorrectionFromDraft({
       ...draft,
@@ -99,30 +120,51 @@ describe("asset group review helpers", () => {
 
   it("records remove, split and merge operations locally", () => {
     let reviews = normalizeGroupReviewsFile({});
-    reviews = applyGroupReviewAction(reviews, {
-      action: "remove-asset",
-      assetId: "asset-b",
-      groupId: "group-floor"
-    }, "2026-05-20T00:00:00.000Z");
-    reviews = applyGroupReviewAction(reviews, {
-      action: "split",
-      assetIds: ["asset-a"],
-      groupId: "group-floor",
-      name: "Stone Floors"
-    }, "2026-05-20T00:01:00.000Z");
-    reviews = applyGroupReviewAction(reviews, {
-      action: "merge",
-      groupIds: ["group-floor", "group-unknown"],
-      name: "Manual Merge"
-    }, "2026-05-20T00:02:00.000Z");
+    reviews = applyGroupReviewAction(
+      reviews,
+      {
+        action: "remove-asset",
+        assetId: "asset-b",
+        groupId: "group-floor"
+      },
+      "2026-05-20T00:00:00.000Z"
+    );
+    reviews = applyGroupReviewAction(
+      reviews,
+      {
+        action: "split",
+        assetIds: ["asset-a"],
+        groupId: "group-floor",
+        name: "Stone Floors"
+      },
+      "2026-05-20T00:01:00.000Z"
+    );
+    reviews = applyGroupReviewAction(
+      reviews,
+      {
+        action: "merge",
+        groupIds: ["group-floor", "group-unknown"],
+        name: "Manual Merge"
+      },
+      "2026-05-20T00:02:00.000Z"
+    );
 
     expect(reviews.removedAssets["group-floor"]).toEqual(["asset-b"]);
-    expect(reviews.splits[0]).toMatchObject({ assetIds: ["asset-a"], name: "Stone Floors" });
-    expect(reviews.merges[0]).toMatchObject({ groupIds: ["group-floor", "group-unknown"] });
+    expect(reviews.splits[0]).toMatchObject({
+      assetIds: ["asset-a"],
+      name: "Stone Floors"
+    });
+    expect(reviews.merges[0]).toMatchObject({
+      groupIds: ["group-floor", "group-unknown"]
+    });
   });
 });
 
-function createAsset(id: string, classification: string, confidence: number): AssetBrowserEntry {
+function createAsset(
+  id: string,
+  classification: string,
+  confidence: number
+): AssetBrowserEntry {
   return {
     classification,
     classificationSource: "automatic",
@@ -141,7 +183,11 @@ function createAsset(id: string, classification: string, confidence: number): As
   };
 }
 
-function createGroup(id: string, assetIds: string[], kind: string): AssetGroupView {
+function createGroup(
+  id: string,
+  assetIds: string[],
+  kind: string
+): AssetGroupView {
   return {
     assetCount: assetIds.length,
     assetIds,

@@ -1,6 +1,10 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { loadAssetManifest } from "@/lib/assets-manifest";
+import {
+  assertSafeWorkspaceId,
+  resolveWithinWorkspace
+} from "@/lib/local-paths";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +24,13 @@ export async function GET(_request: Request, context: PreviewRouteContext) {
   }
 
   const workspaceRoot = path.resolve(manifest.manifestPath, "..", "..", "..");
-  const previewPath = path.resolve(workspaceRoot, "data", "previews", "assets", `${asset.id}.webp`);
+  const previewPath = resolveWithinWorkspace(
+    workspaceRoot,
+    "data",
+    "previews",
+    "assets",
+    `${assertSafeWorkspaceId(asset.id, "assetId")}.webp`
+  );
 
   try {
     const preview = await readFile(previewPath);

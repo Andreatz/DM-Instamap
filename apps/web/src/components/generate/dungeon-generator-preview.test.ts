@@ -4,7 +4,10 @@ import { parseRequiredRooms } from "./generator-form";
 
 describe("parseRequiredRooms", () => {
   it("normalizes comma-separated required room names", () => {
-    expect(parseRequiredRooms("boss, library, boss, ")).toEqual(["boss", "library"]);
+    expect(parseRequiredRooms("boss, library, boss, ")).toEqual([
+      "boss",
+      "library"
+    ]);
   });
 });
 

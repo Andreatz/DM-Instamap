@@ -34,24 +34,43 @@ type ImportResponse = {
   project?: { id: string; name: string };
 };
 
-export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspaceProps) {
+export function AiBridgeWorkspace({
+  assetGroups,
+  references
+}: AiBridgeWorkspaceProps) {
   const [userRequest, setUserRequest] = useState(
     "Crea un dungeon cripta con ingresso, cappella, biblioteca, sala del tesoro e stanza del boss."
   );
   const [pastedResponse, setPastedResponse] = useState("");
-  const [assetSearchResults, setAssetSearchResults] = useState<AssetSearchApiResult[]>([]);
+  const [assetSearchResults, setAssetSearchResults] = useState<
+    AssetSearchApiResult[]
+  >([]);
   const [status, setStatus] = useState("Bridge manuale pronto");
   const [importMode, setImportMode] = useState<ImportMode>("new-project");
   const [importProjectId, setImportProjectId] = useState("");
-  const [importedProjectId, setImportedProjectId] = useState<string | null>(null);
+  const [importedProjectId, setImportedProjectId] = useState<string | null>(
+    null
+  );
   const [importIssues, setImportIssues] = useState<SemanticIssue[]>([]);
   const [importMissing, setImportMissing] = useState<MissingAssetReport[]>([]);
   const [autoRepair, setAutoRepair] = useState(true);
   const [busy, setBusy] = useState(false);
-  const groupSummaries = useMemo(() => assetGroups.map(toBridgeAssetGroup), [assetGroups]);
-  const referenceSummaries = useMemo(() => references.map(toBridgeReference), [references]);
-  const searchSummaries = useMemo(() => assetSearchResults.map(toBridgeAssetSearchResult), [assetSearchResults]);
-  const knownAssetIds = useMemo(() => collectKnownAssetIds(assetGroups), [assetGroups]);
+  const groupSummaries = useMemo(
+    () => assetGroups.map(toBridgeAssetGroup),
+    [assetGroups]
+  );
+  const referenceSummaries = useMemo(
+    () => references.map(toBridgeReference),
+    [references]
+  );
+  const searchSummaries = useMemo(
+    () => assetSearchResults.map(toBridgeAssetSearchResult),
+    [assetSearchResults]
+  );
+  const knownAssetIds = useMemo(
+    () => collectKnownAssetIds(assetGroups),
+    [assetGroups]
+  );
   const context = useMemo(
     () =>
       searchBridgeContext({
@@ -82,7 +101,10 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
       }),
     [groupSummaries, referenceSummaries, searchSummaries, userRequest]
   );
-  const validation = useMemo(() => validateBridgeResponse(pastedResponse), [pastedResponse]);
+  const validation = useMemo(
+    () => validateBridgeResponse(pastedResponse),
+    [pastedResponse]
+  );
   const semantic = useMemo(() => {
     if (!validation.ok) {
       return null;
@@ -148,18 +170,27 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
     setStatus("Ricerca asset locali per il prompt");
 
     try {
-      const response = await fetch(`/api/assets/search?q=${encodeURIComponent(query)}&limit=8`);
-      const payload = (await response.json()) as { results?: AssetSearchApiResult[]; error?: string };
+      const response = await fetch(
+        `/api/assets/search?q=${encodeURIComponent(query)}&limit=8`
+      );
+      const payload = (await response.json()) as {
+        results?: AssetSearchApiResult[];
+        error?: string;
+      };
 
       if (!response.ok) {
         throw new Error(payload.error ?? "Ricerca asset locale fallita");
       }
 
       setAssetSearchResults(payload.results ?? []);
-      setStatus(`${payload.results?.length ?? 0} asset locali aggiunti al contesto prompt`);
+      setStatus(
+        `${payload.results?.length ?? 0} asset locali aggiunti al contesto prompt`
+      );
     } catch (error) {
       setAssetSearchResults([]);
-      setStatus(error instanceof Error ? error.message : "Ricerca asset locale fallita");
+      setStatus(
+        error instanceof Error ? error.message : "Ricerca asset locale fallita"
+      );
     }
   }
 
@@ -175,14 +206,21 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
     }
 
     setBusy(true);
-    setStatus(importMode === "new-project" ? "Creazione progetto" : "Aggiornamento progetto");
+    setStatus(
+      importMode === "new-project"
+        ? "Creazione progetto"
+        : "Aggiornamento progetto"
+    );
 
     try {
       const response = await fetch("/api/ai-bridge/import-plan", {
         body: JSON.stringify({
           applyAutoRepair: autoRepair,
           mode: importMode,
-          projectId: importMode === "update-project" ? importProjectId.trim() : undefined,
+          projectId:
+            importMode === "update-project"
+              ? importProjectId.trim()
+              : undefined,
           response: pastedResponse,
           sourceRequest: userRequest,
           userRequest
@@ -193,16 +231,21 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
       const payload = (await response.json()) as ImportResponse;
 
       if (!response.ok || !payload.ok) {
-        const message = payload.error ?? payload.errors?.join("; ") ?? "Importazione fallita";
+        const message =
+          payload.error ?? payload.errors?.join("; ") ?? "Importazione fallita";
         throw new Error(message);
       }
 
       setImportedProjectId(payload.project?.id ?? null);
       setImportIssues(payload.issues ?? []);
       setImportMissing(payload.missingAssets ?? []);
-      setStatus(`Piano importato in ${payload.project?.name ?? "progetto"} (${payload.project?.id ?? ""})`);
+      setStatus(
+        `Piano importato in ${payload.project?.name ?? "progetto"} (${payload.project?.id ?? ""})`
+      );
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Importazione fallita");
+      setStatus(
+        error instanceof Error ? error.message : "Importazione fallita"
+      );
     } finally {
       setBusy(false);
     }
@@ -249,7 +292,8 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
             <article key={result.assetId}>
               <strong>{result.relativePath}</strong>
               <span>
-                {result.classification} - {Math.round(result.score * 100)}% - {result.reason}
+                {result.classification} - {Math.round(result.score * 100)}% -{" "}
+                {result.reason}
               </span>
             </article>
           ))}
@@ -274,7 +318,10 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
               <button onClick={() => copyText(prompt, "Prompt")} type="button">
                 Copia prompt
               </button>
-              <button onClick={() => copyText(promptPacket, "Prompt packet")} type="button">
+              <button
+                onClick={() => copyText(promptPacket, "Prompt packet")}
+                type="button"
+              >
                 Copia pacchetto (.md)
               </button>
               <button onClick={downloadPacket} type="button">
@@ -282,14 +329,22 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
               </button>
             </div>
           </header>
-          <textarea className="bridge-textarea bridge-prompt" readOnly value={prompt} />
+          <textarea
+            className="bridge-textarea bridge-prompt"
+            readOnly
+            value={prompt}
+          />
         </section>
 
         <section className="asset-details bridge-response-panel">
           <header className="bridge-panel-header">
             <h2>Validazione risposta</h2>
             <span className={validation.ok ? "bridge-valid" : "bridge-invalid"}>
-              {pastedResponse.trim() ? (validation.ok ? "JSON MapPlan valido" : "JSON non valido") : "In attesa di incolla"}
+              {pastedResponse.trim()
+                ? validation.ok
+                  ? "JSON MapPlan valido"
+                  : "JSON non valido"
+                : "In attesa di incolla"}
             </span>
           </header>
           <textarea
@@ -319,14 +374,19 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
                 {validation.data.assetPlacements.length} piazzamenti
               </p>
               {semantic.ok ? (
-                <p className="bridge-valid">Nessun problema semantico rilevato.</p>
+                <p className="bridge-valid">
+                  Nessun problema semantico rilevato.
+                </p>
               ) : (
                 <section className="bridge-semantic">
                   <h4>Problemi semantici</h4>
                   <ul>
                     {semantic.issues.map((issue) => (
                       <li key={`${issue.path}:${issue.message}`}>
-                        <strong>{issue.level === "error" ? "Errore" : "Avviso"}</strong> [{issue.type}]: {issue.message}
+                        <strong>
+                          {issue.level === "error" ? "Errore" : "Avviso"}
+                        </strong>{" "}
+                        [{issue.type}]: {issue.message}
                       </li>
                     ))}
                   </ul>
@@ -349,9 +409,12 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
                   ) : null}
                   {repairPreview ? (
                     <p>
-                      L'autoriparazione locale rimuoverebbe {repairPreview.removed.invalidWalls.length} muri non validi,{" "}
-                      {repairPreview.removed.outOfBoundsDoors.length} porte e applicherebbe{" "}
-                      {repairPreview.appliedSubstitutions.length} sostituzioni asset.
+                      L'autoriparazione locale rimuoverebbe{" "}
+                      {repairPreview.removed.invalidWalls.length} muri non
+                      validi, {repairPreview.removed.outOfBoundsDoors.length}{" "}
+                      porte e applicherebbe{" "}
+                      {repairPreview.appliedSubstitutions.length} sostituzioni
+                      asset.
                     </p>
                   ) : null}
                 </section>
@@ -364,9 +427,16 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
               <h3>Importa piano nel progetto</h3>
               <label className="field">
                 <span>Modalita</span>
-                <select onChange={(event) => setImportMode(event.target.value as ImportMode)} value={importMode}>
+                <select
+                  onChange={(event) =>
+                    setImportMode(event.target.value as ImportMode)
+                  }
+                  value={importMode}
+                >
                   <option value="new-project">Crea nuovo progetto</option>
-                  <option value="update-project">Aggiorna progetto esistente</option>
+                  <option value="update-project">
+                    Aggiorna progetto esistente
+                  </option>
                 </select>
               </label>
               {importMode === "update-project" ? (
@@ -380,8 +450,14 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
                 </label>
               ) : null}
               <label className="editor-checkbox">
-                <input checked={autoRepair} onChange={(event) => setAutoRepair(event.target.checked)} type="checkbox" />
-                <span>Applica autoriparazione locale prima del salvataggio</span>
+                <input
+                  checked={autoRepair}
+                  onChange={(event) => setAutoRepair(event.target.checked)}
+                  type="checkbox"
+                />
+                <span>
+                  Applica autoriparazione locale prima del salvataggio
+                </span>
               </label>
               <button
                 className="save-correction"
@@ -393,7 +469,10 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
               </button>
               {importedProjectId ? (
                 <p>
-                  Importato in <a href={`/projects/${importedProjectId}`}>{importedProjectId}</a>
+                  Importato in{" "}
+                  <a href={`/projects/${importedProjectId}`}>
+                    {importedProjectId}
+                  </a>
                 </p>
               ) : null}
               {importIssues.length > 0 ? (
@@ -415,7 +494,9 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
                     {importMissing.map((report) => (
                       <li key={report.assetId}>
                         {report.assetId} - suggeriti:{" "}
-                        {report.suggestions.map((suggestion) => suggestion.suggestionId).join(", ") || "nessun suggerimento"}
+                        {report.suggestions
+                          .map((suggestion) => suggestion.suggestionId)
+                          .join(", ") || "nessun suggerimento"}
                       </li>
                     ))}
                   </ul>
@@ -428,11 +509,18 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
             <section className="bridge-repair">
               <header className="bridge-panel-header">
                 <h3>Prompt di riparazione</h3>
-                <button onClick={() => copyText(repairPrompt, "Repair prompt")} type="button">
+                <button
+                  onClick={() => copyText(repairPrompt, "Repair prompt")}
+                  type="button"
+                >
                   Copia riparazione
                 </button>
               </header>
-              <textarea className="bridge-textarea bridge-repair-text" readOnly value={repairPrompt} />
+              <textarea
+                className="bridge-textarea bridge-repair-text"
+                readOnly
+                value={repairPrompt}
+              />
             </section>
           ) : null}
 
@@ -443,7 +531,9 @@ export function AiBridgeWorkspace({ assetGroups, references }: AiBridgeWorkspace
   );
 }
 
-function toBridgeAssetSearchResult(result: AssetSearchApiResult): BridgeAssetSearchSummary {
+function toBridgeAssetSearchResult(
+  result: AssetSearchApiResult
+): BridgeAssetSearchSummary {
   return {
     assetId: result.assetId,
     classification: result.classification,

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { MapDocumentSchema, MapPlanSchema, createMapDocument, type MapPlan } from "@dm-instamap/core";
+import {
+  MapDocumentSchema,
+  MapPlanSchema,
+  createMapDocument,
+  type MapPlan
+} from "@dm-instamap/core";
 import { applyVisibilityMode, listVisibilityModes } from "../src";
 import { exportDmImap } from "../src/dmimap";
 
@@ -135,7 +140,12 @@ function createSampleDocument() {
 }
 
 function createTiles(width: number, height: number) {
-  const tiles = [] as Array<{ id: string; kind: "floor" | "wall" | "door" | "empty"; x: number; y: number }>;
+  const tiles = [] as Array<{
+    id: string;
+    kind: "floor" | "wall" | "door" | "empty";
+    x: number;
+    y: number;
+  }>;
 
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
@@ -173,9 +183,13 @@ describe("applyVisibilityMode", () => {
     const filtered = applyVisibilityMode(document, "player");
 
     expect(filtered.plan?.rooms.map((room) => room.id)).toEqual(["room-main"]);
-    expect(filtered.plan?.doors.map((door) => door.id)).toEqual(["door-public"]);
+    expect(filtered.plan?.doors.map((door) => door.id)).toEqual([
+      "door-public"
+    ]);
     expect(filtered.plan?.walls.map((wall) => wall.id)).toEqual(["wall-main"]);
-    expect(filtered.plan?.assetPlacements.map((asset) => asset.id)).toEqual(["place-public"]);
+    expect(filtered.plan?.assetPlacements.map((asset) => asset.id)).toEqual([
+      "place-public"
+    ]);
     expect(filtered.assets.map((asset) => asset.id)).toEqual(["place-public"]);
     expect(filtered.plan?.notes).toEqual(["Player-safe overview"]);
   });
@@ -189,7 +203,9 @@ describe("applyVisibilityMode", () => {
   it("converts hidden room floor tiles to empty for player exports", () => {
     const document = createSampleDocument();
     const filtered = applyVisibilityMode(document, "player");
-    const hidden = filtered.tiles.find((tile) => tile.x === 14 && tile.y === 14);
+    const hidden = filtered.tiles.find(
+      (tile) => tile.x === 14 && tile.y === 14
+    );
     expect(hidden?.kind).toBe("empty");
   });
 });
@@ -197,7 +213,12 @@ describe("applyVisibilityMode", () => {
 describe("exportDmImap", () => {
   it("produces a JSON dmimap payload including format and version", () => {
     const result = exportDmImap(createSampleDocument(), { mode: "gm" });
-    const parsed = JSON.parse(result.json) as { document: { id: string }; format: string; mode: string; version: number };
+    const parsed = JSON.parse(result.json) as {
+      document: { id: string };
+      format: string;
+      mode: string;
+      version: number;
+    };
 
     expect(result.contentType).toBe("application/json");
     expect(parsed.format).toBe("dmimap");
@@ -208,8 +229,12 @@ describe("exportDmImap", () => {
 
   it("applies visibility filtering to dmimap exports", () => {
     const result = exportDmImap(createSampleDocument(), { mode: "player" });
-    const parsed = JSON.parse(result.json) as { document: { plan?: { rooms: Array<{ id: string }> } } };
+    const parsed = JSON.parse(result.json) as {
+      document: { plan?: { rooms: Array<{ id: string }> } };
+    };
 
-    expect(parsed.document.plan?.rooms.map((room) => room.id)).toEqual(["room-main"]);
+    expect(parsed.document.plan?.rooms.map((room) => room.id)).toEqual([
+      "room-main"
+    ]);
   });
 });

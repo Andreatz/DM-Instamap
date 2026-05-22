@@ -6,10 +6,16 @@ vi.mock("@dm-instamap/ai-bridge", () => ({
 }));
 
 import { POST } from "./route";
-import { createProviderFromEnv, generateNarrativeBlueprintWithAi } from "@dm-instamap/ai-bridge";
+import {
+  createProviderFromEnv,
+  generateNarrativeBlueprintWithAi
+} from "@dm-instamap/ai-bridge";
 
-const createProviderMock = createProviderFromEnv as unknown as ReturnType<typeof vi.fn>;
-const generateBlueprintMock = generateNarrativeBlueprintWithAi as unknown as ReturnType<typeof vi.fn>;
+const createProviderMock = createProviderFromEnv as unknown as ReturnType<
+  typeof vi.fn
+>;
+const generateBlueprintMock =
+  generateNarrativeBlueprintWithAi as unknown as ReturnType<typeof vi.fn>;
 
 function jsonRequest(body: unknown): Request {
   return new Request("http://test/api/ai/blueprint", {
@@ -54,7 +60,9 @@ describe("POST /api/ai/blueprint", () => {
       providerId: "test"
     });
 
-    const response = await POST(jsonRequest({ request: "crypt below cathedral" }));
+    const response = await POST(
+      jsonRequest({ request: "crypt below cathedral" })
+    );
 
     expect(response.status).toBe(200);
     const body = (await response.json()) as {

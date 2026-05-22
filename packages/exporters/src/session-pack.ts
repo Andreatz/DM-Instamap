@@ -41,39 +41,65 @@ export async function exportSessionPack(
     includeGrid,
     scale
   });
-  const gmImage = await exportMapDocumentRaster(applyVisibilityMode(document, "gm"), {
-    assetResolver: options.assetResolver,
-    format,
-    includeGrid,
-    scale
-  });
-  const playerImage = await exportMapDocumentRaster(applyVisibilityMode(document, "player"), {
-    assetResolver: options.assetResolver,
-    format,
-    includeGrid,
-    scale
-  });
+  const gmImage = await exportMapDocumentRaster(
+    applyVisibilityMode(document, "gm"),
+    {
+      assetResolver: options.assetResolver,
+      format,
+      includeGrid,
+      scale
+    }
+  );
+  const playerImage = await exportMapDocumentRaster(
+    applyVisibilityMode(document, "player"),
+    {
+      assetResolver: options.assetResolver,
+      format,
+      includeGrid,
+      scale
+    }
+  );
 
   const zip = new JSZip();
   const artifacts: SessionPackArtifact[] = [];
-  const addBinary = (filePath: string, contentType: string, buffer: Buffer): void => {
+  const addBinary = (
+    filePath: string,
+    contentType: string,
+    buffer: Buffer
+  ): void => {
     zip.file(filePath, buffer);
     artifacts.push({ contentType, path: filePath, size: buffer.length });
   };
   const addText = (filePath: string, content: string): void => {
     const buffer = Buffer.from(content, "utf8");
     zip.file(filePath, buffer);
-    artifacts.push({ contentType: "text/plain", path: filePath, size: buffer.length });
+    artifacts.push({
+      contentType: "text/plain",
+      path: filePath,
+      size: buffer.length
+    });
   };
   const addJson = (filePath: string, payload: unknown): void => {
     const buffer = Buffer.from(`${JSON.stringify(payload, null, 2)}\n`, "utf8");
     zip.file(filePath, buffer);
-    artifacts.push({ contentType: "application/json", path: filePath, size: buffer.length });
+    artifacts.push({
+      contentType: "application/json",
+      path: filePath,
+      size: buffer.length
+    });
   };
 
-  addBinary(`maps/${slug}-full.${format}`, fullImage.contentType, fullImage.buffer);
+  addBinary(
+    `maps/${slug}-full.${format}`,
+    fullImage.contentType,
+    fullImage.buffer
+  );
   addBinary(`maps/${slug}-gm.${format}`, gmImage.contentType, gmImage.buffer);
-  addBinary(`maps/${slug}-player.${format}`, playerImage.contentType, playerImage.buffer);
+  addBinary(
+    `maps/${slug}-player.${format}`,
+    playerImage.contentType,
+    playerImage.buffer
+  );
 
   const gmNotes = (document.plan?.gmNotes ?? []).map((note) => ({
     id: note.id,
@@ -100,7 +126,10 @@ export async function exportSessionPack(
 
   addJson("manifest.json", buildManifest(document, artifacts, format));
 
-  const buffer = await zip.generateAsync({ compression: "DEFLATE", type: "nodebuffer" });
+  const buffer = await zip.generateAsync({
+    compression: "DEFLATE",
+    type: "nodebuffer"
+  });
   const filename = `${slug}${options.filenameSuffix ?? ""}-session-pack.zip`;
 
   return {
@@ -110,7 +139,11 @@ export async function exportSessionPack(
   };
 }
 
-function buildManifest(document: MapDocument, artifacts: SessionPackArtifact[], format: RasterExportFormat) {
+function buildManifest(
+  document: MapDocument,
+  artifacts: SessionPackArtifact[],
+  format: RasterExportFormat
+) {
   return {
     artifacts: artifacts.map((artifact) => ({
       contentType: artifact.contentType,
@@ -135,5 +168,10 @@ function buildManifest(document: MapDocument, artifacts: SessionPackArtifact[], 
 }
 
 function slugify(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "") || "session";
+  return (
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/gu, "-")
+      .replace(/^-|-$/gu, "") || "session"
+  );
 }

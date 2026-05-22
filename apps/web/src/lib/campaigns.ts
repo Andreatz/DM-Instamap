@@ -1,7 +1,12 @@
 import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { CampaignSchema, createCampaign, type Campaign } from "@dm-instamap/core/server";
+import {
+  CampaignSchema,
+  createCampaign,
+  type Campaign
+} from "@dm-instamap/core/server";
 import { findWorkspaceRoot } from "./assets-manifest";
+import { assertSafeWorkspaceId } from "./local-paths";
 
 const CAMPAIGNS_DIR = path.join("data", "campaigns");
 const CAMPAIGN_FILE = "campaign.json";
@@ -19,6 +24,13 @@ export class InvalidCampaignIdError extends Error {
 }
 
 function isSafeCampaignId(id: string): boolean {
+  // Shared workspace-id policy (traversal safety) + campaign slug rule.
+  try {
+    assertSafeWorkspaceId(id, "campaignId");
+  } catch {
+    return false;
+  }
+
   return /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/iu.test(id);
 }
 
@@ -34,7 +46,9 @@ export function createCampaignSlug(name: string): string {
 }
 
 export async function getCampaignsRoot(outputRoot?: string): Promise<string> {
-  const workspaceRoot = outputRoot ? path.resolve(outputRoot) : await findWorkspaceRoot(process.cwd());
+  const workspaceRoot = outputRoot
+    ? path.resolve(outputRoot)
+    : await findWorkspaceRoot(process.cwd());
   return path.join(workspaceRoot, CAMPAIGNS_DIR);
 }
 
@@ -51,15 +65,18 @@ export async function listCampaigns(outputRoot?: string): Promise<Campaign[]> {
       }
 
       try {
-        const raw = await readFile(path.join(root, entry.name, CAMPAIGN_FILE), "utf8");
+        const raw = await readFile(
+          path.join(root, entry.name, CAMPAIGN_FILE),
+          "utf8"
+        );
         const parsed = CampaignSchema.parse(JSON.parse(raw));
         campaigns.push(parsed);
-      } catch {
-        continue;
-      }
+      } catch {}
     }
 
-    return campaigns.sort((left, right) => (right.updatedAt ?? "").localeCompare(left.updatedAt ?? ""));
+    return campaigns.sort((left, right) =>
+      (right.updatedAt ?? "").localeCompare(left.updatedAt ?? "")
+    );
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === "ENOENT") {
       return [];
@@ -69,7 +86,10 @@ export async function listCampaigns(outputRoot?: string): Promise<Campaign[]> {
   }
 }
 
-export async function readCampaign(campaignId: string, outputRoot?: string): Promise<Campaign> {
+export async function readCampaign(
+  campaignId: string,
+  outputRoot?: string
+): Promise<Campaign> {
   if (!isSafeCampaignId(campaignId)) {
     throw new InvalidCampaignIdError(campaignId);
   }
@@ -77,7 +97,10 @@ export async function readCampaign(campaignId: string, outputRoot?: string): Pro
   const root = await getCampaignsRoot(outputRoot);
 
   try {
-    const raw = await readFile(path.join(root, campaignId, CAMPAIGN_FILE), "utf8");
+    const raw = await readFile(
+      path.join(root, campaignId, CAMPAIGN_FILE),
+      "utf8"
+    );
     return CampaignSchema.parse(JSON.parse(raw));
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === "ENOENT") {
@@ -94,7 +117,10 @@ export type CreateCampaignBody = {
   tags?: string[];
 };
 
-export async function createCampaignProject(body: CreateCampaignBody, outputRoot?: string): Promise<Campaign> {
+export async function createCampaignProject(
+  body: CreateCampaignBody,
+  outputRoot?: string
+): Promise<Campaign> {
   const id = createCampaignSlug(body.name);
 
   if (!isSafeCampaignId(id)) {
@@ -109,13 +135,19 @@ export async function createCampaignProject(body: CreateCampaignBody, outputRoot
   });
   const root = await getCampaignsRoot(outputRoot);
   await mkdir(path.join(root, id), { recursive: true });
-  await writeFile(path.join(root, id, CAMPAIGN_FILE), `${JSON.stringify(campaign, null, 2)}\n`, "utf8");
+  await writeFile(
+    path.join(root, id, CAMPAIGN_FILE),
+    `${JSON.stringify(campaign, null, 2)}\n`,
+    "utf8"
+  );
   return campaign;
 }
 
 export async function updateCampaign(
   campaignId: string,
-  patch: Partial<Pick<Campaign, "description" | "maps" | "name" | "sessions" | "tags">>,
+  patch: Partial<
+    Pick<Campaign, "description" | "maps" | "name" | "sessions" | "tags">
+  >,
   outputRoot?: string
 ): Promise<Campaign> {
   const current = await readCampaign(campaignId, outputRoot);
@@ -127,11 +159,18 @@ export async function updateCampaign(
     version: 1
   });
   const root = await getCampaignsRoot(outputRoot);
-  await writeFile(path.join(root, campaignId, CAMPAIGN_FILE), `${JSON.stringify(next, null, 2)}\n`, "utf8");
+  await writeFile(
+    path.join(root, campaignId, CAMPAIGN_FILE),
+    `${JSON.stringify(next, null, 2)}\n`,
+    "utf8"
+  );
   return next;
 }
 
-export async function deleteCampaign(campaignId: string, outputRoot?: string): Promise<void> {
+export async function deleteCampaign(
+  campaignId: string,
+  outputRoot?: string
+): Promise<void> {
   if (!isSafeCampaignId(campaignId)) {
     throw new InvalidCampaignIdError(campaignId);
   }

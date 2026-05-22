@@ -128,8 +128,13 @@ export async function exportMapDocumentDd2Vtt(
   // Universal VTT requires the embedded image to be exactly pixels_per_grid per
   // cell. Render the battlemap at the document grid resolution (scaled) and let
   // the actual image dimensions drive pixels_per_grid so the grid lines up.
-  const targetPixelsPerGrid = Math.max(1, Math.round(document.grid.pixelsPerCell * userScale));
-  const walls = document.plan?.walls.length ? document.plan.walls : createWallsFromTiles(document.tiles);
+  const targetPixelsPerGrid = Math.max(
+    1,
+    Math.round(document.grid.pixelsPerCell * userScale)
+  );
+  const walls = document.plan?.walls.length
+    ? document.plan.walls
+    : createWallsFromTiles(document.tiles);
 
   let pixelsPerGrid = targetPixelsPerGrid;
   let imageWidth = document.width * targetPixelsPerGrid;
@@ -145,7 +150,10 @@ export async function exportMapDocumentDd2Vtt(
     });
     imageWidth = image.width;
     imageHeight = image.height;
-    pixelsPerGrid = Math.max(1, Math.round(image.width / Math.max(1, document.width)));
+    pixelsPerGrid = Math.max(
+      1,
+      Math.round(image.width / Math.max(1, document.width))
+    );
     imageDataUrl = `data:${image.contentType};base64,${image.buffer.toString("base64")}`;
   }
 
@@ -214,7 +222,11 @@ function createDoorBounds(door: DoorSegment): Point[] {
 }
 
 function createWallsFromTiles(tiles: MapTile[]): WallSegment[] {
-  const wallTiles = new Set(tiles.filter((tile) => tile.kind === "wall").map((tile) => `${tile.x},${tile.y}`));
+  const wallTiles = new Set(
+    tiles
+      .filter((tile) => tile.kind === "wall")
+      .map((tile) => `${tile.x},${tile.y}`)
+  );
   const segments: WallSegment[] = [];
 
   for (const tile of tiles) {
@@ -264,7 +276,10 @@ function createWallsFromTiles(tiles: MapTile[]): WallSegment[] {
   return segments;
 }
 
-export async function importDd2VttFile(filePath: string, options: Dd2VttImportOptions = {}): Promise<Dd2VttImportResult> {
+export async function importDd2VttFile(
+  filePath: string,
+  options: Dd2VttImportOptions = {}
+): Promise<Dd2VttImportResult> {
   const raw = await readFile(filePath, "utf8");
   return importDd2Vtt(raw, {
     id: options.id,
@@ -272,7 +287,10 @@ export async function importDd2VttFile(filePath: string, options: Dd2VttImportOp
   });
 }
 
-export function importDd2Vtt(input: string | Buffer | unknown, options: Dd2VttImportOptions = {}): Dd2VttImportResult {
+export function importDd2Vtt(
+  input: string | Buffer | unknown,
+  options: Dd2VttImportOptions = {}
+): Dd2VttImportResult {
   const source = parseDd2VttInput(input);
   const resolution = readResolution(source);
   const documentId = slugify(options.id ?? options.name ?? "imported-dd2vtt");
@@ -315,7 +333,10 @@ export function importDd2Vtt(input: string | Buffer | unknown, options: Dd2VttIm
     document,
     image: extractEmbeddedImage(source),
     metadata: {
-      format: typeof source.format === "string" || typeof source.format === "number" ? source.format : null,
+      format:
+        typeof source.format === "string" || typeof source.format === "number"
+          ? source.format
+          : null,
       pixelsPerGrid: resolution.pixelsPerGrid,
       source: "universal-vtt"
     }
@@ -328,7 +349,9 @@ function parseDd2VttInput(input: string | Buffer | unknown): RawDd2Vtt {
   }
 
   if (typeof input === "string") {
-    const parsed = JSON.parse(input.charCodeAt(0) === 0xfeff ? input.slice(1) : input) as unknown;
+    const parsed = JSON.parse(
+      input.charCodeAt(0) === 0xfeff ? input.slice(1) : input
+    ) as unknown;
     return parseDd2VttInput(parsed);
   }
 
@@ -347,8 +370,13 @@ function readResolution(source: RawDd2Vtt): {
   const resolution = readObject(source.resolution) ?? {};
   const grid = readObject(source.grid) ?? {};
   const map = readObject(source.map) ?? {};
-  const mapSize = readObject(resolution.map_size) ?? readObject(resolution.mapSize) ?? readObject(map.size) ?? {};
-  const pixelSize = readObject(resolution.image_size) ?? readObject(resolution.imageSize) ?? {};
+  const mapSize =
+    readObject(resolution.map_size) ??
+    readObject(resolution.mapSize) ??
+    readObject(map.size) ??
+    {};
+  const pixelSize =
+    readObject(resolution.image_size) ?? readObject(resolution.imageSize) ?? {};
   const pixelsPerGrid =
     readPositiveNumber(resolution.pixels_per_grid) ??
     readPositiveNumber(resolution.pixelsPerGrid) ??
@@ -358,12 +386,16 @@ function readResolution(source: RawDd2Vtt): {
   const widthCells =
     readPositiveNumber(mapSize.x) ??
     readPositiveNumber(mapSize.width) ??
-    (readPositiveNumber(pixelSize.x) ? Math.ceil((readPositiveNumber(pixelSize.x) as number) / pixelsPerGrid) : null) ??
+    (readPositiveNumber(pixelSize.x)
+      ? Math.ceil((readPositiveNumber(pixelSize.x) as number) / pixelsPerGrid)
+      : null) ??
     1;
   const heightCells =
     readPositiveNumber(mapSize.y) ??
     readPositiveNumber(mapSize.height) ??
-    (readPositiveNumber(pixelSize.y) ? Math.ceil((readPositiveNumber(pixelSize.y) as number) / pixelsPerGrid) : null) ??
+    (readPositiveNumber(pixelSize.y)
+      ? Math.ceil((readPositiveNumber(pixelSize.y) as number) / pixelsPerGrid)
+      : null) ??
     1;
 
   return {
@@ -374,7 +406,9 @@ function readResolution(source: RawDd2Vtt): {
 }
 
 function readWalls(source: RawDd2Vtt): WallSegment[] {
-  const wallShapes = readArray(source.line_of_sight ?? source.lineOfSight ?? source.walls);
+  const wallShapes = readArray(
+    source.line_of_sight ?? source.lineOfSight ?? source.walls
+  );
   const walls: WallSegment[] = [];
 
   for (const shape of wallShapes) {
@@ -416,7 +450,11 @@ function readDoors(source: RawDd2Vtt): DoorSegment[] {
       return [];
     }
 
-    const width = readPositiveNumber(input.width) ?? (bounds.length >= 2 ? distance(bounds[0] as Point, bounds[1] as Point) : 1);
+    const width =
+      readPositiveNumber(input.width) ??
+      (bounds.length >= 2
+        ? distance(bounds[0] as Point, bounds[1] as Point)
+        : 1);
 
     return [
       {
@@ -453,14 +491,22 @@ function readLights(source: RawDd2Vtt): LightSource[] {
         intensity: clamp(readFiniteNumber(input.intensity) ?? 0.75, 0, 1),
         kind: "ambient",
         position,
-        radius: Math.max(0.5, readPositiveNumber(input.range) ?? readPositiveNumber(input.radius) ?? 6)
+        radius: Math.max(
+          0.5,
+          readPositiveNumber(input.range) ??
+            readPositiveNumber(input.radius) ??
+            6
+        )
       }
     ];
   });
 }
 
 function extractEmbeddedImage(source: RawDd2Vtt): Dd2VttEmbeddedImage | null {
-  const imageValue = readString(source.image) || readString(source.imageData) || readString(source.mapImage);
+  const imageValue =
+    readString(source.image) ||
+    readString(source.imageData) ||
+    readString(source.mapImage);
 
   if (!imageValue) {
     return null;
@@ -519,7 +565,11 @@ function readPointList(value: unknown): Point[] {
     return [];
   }
 
-  if (value.length === 2 && typeof value[0] === "number" && typeof value[1] === "number") {
+  if (
+    value.length === 2 &&
+    typeof value[0] === "number" &&
+    typeof value[1] === "number"
+  ) {
     return [{ x: value[0], y: value[1] }];
   }
 
@@ -579,7 +629,9 @@ function readOpenState(input: RawPortal): boolean {
 }
 
 function readObject(value: unknown): Record<string, unknown> | null {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
 }
 
 function readArray(value: unknown): unknown[] {
@@ -591,7 +643,9 @@ function readString(value: unknown): string {
 }
 
 function readPositiveNumber(value: unknown): number | null {
-  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? value
+    : null;
 }
 
 function readFiniteNumber(value: unknown): number | null {
@@ -599,7 +653,9 @@ function readFiniteNumber(value: unknown): number | null {
 }
 
 function readHexColor(value: unknown): string | null {
-  return typeof value === "string" && /^#[0-9a-fA-F]{6}$/u.test(value) ? value : null;
+  return typeof value === "string" && /^#[0-9a-fA-F]{6}$/u.test(value)
+    ? value
+    : null;
 }
 
 function samePoint(left: Point, right: Point): boolean {
@@ -639,5 +695,10 @@ function imageExtension(contentType: string, buffer: Buffer): string {
 }
 
 function slugify(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "") || "imported-dd2vtt";
+  return (
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/gu, "-")
+      .replace(/^-|-$/gu, "") || "imported-dd2vtt"
+  );
 }

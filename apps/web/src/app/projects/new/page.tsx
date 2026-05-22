@@ -5,7 +5,15 @@ import { loadReferenceMaps } from "@/lib/references";
 export const dynamic = "force-dynamic";
 
 export default async function NewProjectPage() {
-  const [assetGroups, references] = await Promise.all([loadAssetGroups(), loadReferenceMaps()]);
+  const [assetGroups, references] = await Promise.all([
+    loadAssetGroups(),
+    loadReferenceMaps()
+  ]);
 
-  return <NewProjectWizard assetGroups={assetGroups.groups} references={references.references} />;
+  return (
+    <NewProjectWizard
+      assetGroups={assetGroups.groups}
+      references={references.references}
+    />
+  );
 }

@@ -13,5 +13,12 @@ type ProjectThumbnailProps = {
 export function ProjectThumbnail({ cell, document }: ProjectThumbnailProps) {
   const svg = buildProjectThumbnailSvg(document, { cell });
 
-  return <div className="project-thumb" aria-hidden="false" dangerouslySetInnerHTML={{ __html: svg }} />;
+  return (
+    <div
+      className="project-thumb"
+      aria-hidden="false"
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: SVG deterministico generato da geometria fidata del documento, nessun input utente
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
 }

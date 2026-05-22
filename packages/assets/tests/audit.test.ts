@@ -77,8 +77,18 @@ describe("asset audit", () => {
     ]);
 
     expect(groups).toHaveLength(2);
-    expect(groups.some((group) => group.reason === "file-hash" && group.assetIds.includes("asset-a"))).toBe(true);
-    expect(groups.some((group) => group.reason === "visual-hash" && group.assetIds.includes("asset-c"))).toBe(true);
+    expect(
+      groups.some(
+        (group) =>
+          group.reason === "file-hash" && group.assetIds.includes("asset-a")
+      )
+    ).toBe(true);
+    expect(
+      groups.some(
+        (group) =>
+          group.reason === "visual-hash" && group.assetIds.includes("asset-c")
+      )
+    ).toBe(true);
   });
 
   it("builds a review queue for unknown and low-confidence assets", () => {
@@ -113,7 +123,9 @@ describe("asset audit", () => {
   });
 
   it("writes data/indexes/asset-audit.json", async () => {
-    const outputRoot = await mkdtemp(path.join(os.tmpdir(), "dm-instamap-audit-"));
+    const outputRoot = await mkdtemp(
+      path.join(os.tmpdir(), "dm-instamap-audit-")
+    );
     const indexDir = path.join(outputRoot, "data", "indexes");
     await mkdir(indexDir, { recursive: true });
     await writeFile(
@@ -147,7 +159,9 @@ describe("asset audit", () => {
     );
 
     const audit = await auditAssets({ outputRoot });
-    const written = JSON.parse(await readFile(path.join(indexDir, "asset-audit.json"), "utf8")) as typeof audit;
+    const written = JSON.parse(
+      await readFile(path.join(indexDir, "asset-audit.json"), "utf8")
+    ) as typeof audit;
 
     expect(written.assetCount).toBe(2);
     expect(written.duplicateGroupCount).toBe(1);

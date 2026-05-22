@@ -30,7 +30,10 @@ export default async function CampaignPage({ params }: CampaignPageProps) {
       }
     })
   );
-  const cleanOptions = projectOptions.filter((option): option is { documentId: string; id: string; name: string } => option !== null);
+  const cleanOptions = projectOptions.filter(
+    (option): option is { documentId: string; id: string; name: string } =>
+      option !== null
+  );
 
   return (
     <main className="asset-page">

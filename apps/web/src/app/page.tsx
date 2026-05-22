@@ -9,13 +9,14 @@ import { loadReferenceMaps } from "@/lib/references";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [projects, assetGroups, manifest, audit, references] = await Promise.all([
-    listProjects(),
-    loadAssetGroups(),
-    loadAssetManifest(),
-    loadAssetAudit(),
-    loadReferenceMaps()
-  ]);
+  const [projects, assetGroups, manifest, audit, references] =
+    await Promise.all([
+      listProjects(),
+      loadAssetGroups(),
+      loadAssetManifest(),
+      loadAssetAudit(),
+      loadReferenceMaps()
+    ]);
   const recentProjects = projects.slice(0, 4);
   const libraryStatus = summarizeAssetLibrary({
     audit: {
@@ -41,14 +42,19 @@ export default async function Home() {
         <strong>DM-Instamap</strong>
         <h1>Prepara la prossima sessione, in locale.</h1>
         <p>
-          Crea mappe D&amp;D modificabili a partire dalla tua libreria di asset, con Style DNA dei riferimenti,
-          blueprint narrativi, arredamento automatico ed export per i giocatori o per il DM. Niente cloud, niente
+          Crea mappe D&amp;D modificabili a partire dalla tua libreria di asset,
+          con Style DNA dei riferimenti, blueprint narrativi, arredamento
+          automatico ed export per i giocatori o per il DM. Niente cloud, niente
           login, nessuna API richiesta.
         </p>
         <div className="home-status">
-          <span className="pill">{libraryStatus.assetCount} asset indicizzati</span>
+          <span className="pill">
+            {libraryStatus.assetCount} asset indicizzati
+          </span>
           <span className="pill">{assetGroups.groupCount} gruppi di asset</span>
-          <span className="pill">{references.references.length} mappe di riferimento</span>
+          <span className="pill">
+            {references.references.length} mappe di riferimento
+          </span>
           <span className="pill">{projects.length} progetti salvati</span>
         </div>
         <div className="home-actions">
@@ -67,7 +73,9 @@ export default async function Home() {
           <h2>Progetti recenti</h2>
           {recentProjects.length === 0 ? (
             <p className="muted">
-              Nessun progetto salvato. <Link href="/projects/new">Crea la tua prima mappa</Link> con il wizard.
+              Nessun progetto salvato.{" "}
+              <Link href="/projects/new">Crea la tua prima mappa</Link> con il
+              wizard.
             </p>
           ) : (
             <ul>
@@ -76,7 +84,8 @@ export default async function Home() {
                   <Link href={`/projects/${project.id}`}>
                     {project.name}{" "}
                     <span className="muted">
-                      - {project.size.width}x{project.size.height}, {project.roomCount} stanze
+                      - {project.size.width}x{project.size.height},{" "}
+                      {project.roomCount} stanze
                     </span>
                   </Link>
                 </li>
@@ -87,13 +96,19 @@ export default async function Home() {
 
         <section className="home-card">
           <h2>Libreria asset</h2>
-          <p className={`library-status library-status-${libraryStatus.tone}`}>{libraryStatus.headline}</p>
+          <p className={`library-status library-status-${libraryStatus.tone}`}>
+            {libraryStatus.headline}
+          </p>
           <p className="muted">
             {libraryStatus.lastScan
               ? `Ultima scansione: ${new Date(libraryStatus.lastScan).toLocaleString()}`
               : "Nessuna scansione registrata."}
-            {libraryStatus.duplicateGroupCount > 0 ? ` - ${libraryStatus.duplicateGroupCount} gruppi duplicati` : ""}
-            {libraryStatus.needsReviewCount > 0 ? ` - ${libraryStatus.needsReviewCount} da rivedere` : ""}
+            {libraryStatus.duplicateGroupCount > 0
+              ? ` - ${libraryStatus.duplicateGroupCount} gruppi duplicati`
+              : ""}
+            {libraryStatus.needsReviewCount > 0
+              ? ` - ${libraryStatus.needsReviewCount} da rivedere`
+              : ""}
           </p>
           <ul>
             <li>
@@ -106,7 +121,9 @@ export default async function Home() {
               <Link href="/assets/review">Coda di revisione asset</Link>
             </li>
             <li>
-              <Link href="/assets/review/batches">Revisione a lotti (critici / alti / duplicati)</Link>
+              <Link href="/assets/review/batches">
+                Revisione a lotti (critici / alti / duplicati)
+              </Link>
             </li>
             <li>
               <Link href="/assets/import-pack">Importa pacchetto di asset</Link>
@@ -129,7 +146,9 @@ export default async function Home() {
 
         <section className="home-card">
           <h2>Riferimenti</h2>
-          <p className="muted">{references.references.length} mappe di riferimento disponibili.</p>
+          <p className="muted">
+            {references.references.length} mappe di riferimento disponibili.
+          </p>
           <ul>
             <li>
               <Link href="/references">Visualizza mappe di riferimento</Link>
@@ -147,7 +166,10 @@ export default async function Home() {
               <Link href="/projects/new">Wizard: crea una nuova mappa</Link>
             </li>
             <li>
-              <Link href="/generate">Anteprima rapida del generatore (cave / villaggio / outdoor / multipiano)</Link>
+              <Link href="/generate">
+                Anteprima rapida del generatore (cave / villaggio / outdoor /
+                multipiano)
+              </Link>
             </li>
             <li>
               <Link href="/ai-bridge">AI Bridge (automatico + manuale)</Link>

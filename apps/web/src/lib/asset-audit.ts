@@ -39,7 +39,11 @@ export type AuditDuplicateGroupView = {
 export type AuditWarningView = {
   assetId?: string;
   message: string;
-  type: "classification_conflict" | "missing_metadata" | "low_confidence" | "low_quality";
+  type:
+    | "classification_conflict"
+    | "missing_metadata"
+    | "low_confidence"
+    | "low_quality";
 };
 
 export type LoadedAssetAudit = {
@@ -74,29 +78,49 @@ export type AssetAuditBatch = {
 
 export async function loadAssetAudit(): Promise<LoadedAssetAudit> {
   const workspaceRoot = await findWorkspaceRoot(process.cwd());
-  const auditPath = path.join(workspaceRoot, "data", "indexes", "asset-audit.json");
+  const auditPath = path.join(
+    workspaceRoot,
+    "data",
+    "indexes",
+    "asset-audit.json"
+  );
 
   try {
     const raw = await readFile(auditPath, "utf8");
     const file = parseJsonFileContent(raw) as Record<string, unknown>;
-    const reviewQueue = normalizeEntries(Array.isArray(file.reviewQueue) ? file.reviewQueue : []);
+    const reviewQueue = normalizeEntries(
+      Array.isArray(file.reviewQueue) ? file.reviewQueue : []
+    );
     const duplicateGroups = normalizeDuplicateGroups(
       Array.isArray(file.duplicateGroups) ? file.duplicateGroups : []
     );
     const classificationWarnings = normalizeWarnings(
-      Array.isArray(file.classificationWarnings) ? file.classificationWarnings : []
+      Array.isArray(file.classificationWarnings)
+        ? file.classificationWarnings
+        : []
     );
 
     return {
-      assetCount: typeof file.assetCount === "number" ? file.assetCount : reviewQueue.length,
+      assetCount:
+        typeof file.assetCount === "number"
+          ? file.assetCount
+          : reviewQueue.length,
       auditPath,
       classificationWarnings,
-      duplicateGroupCount: typeof file.duplicateGroupCount === "number" ? file.duplicateGroupCount : duplicateGroups.length,
+      duplicateGroupCount:
+        typeof file.duplicateGroupCount === "number"
+          ? file.duplicateGroupCount
+          : duplicateGroups.length,
       duplicateGroups,
-      generatedAt: typeof file.generatedAt === "string" ? file.generatedAt : null,
-      lowQualityCount: typeof file.lowQualityCount === "number" ? file.lowQualityCount : 0,
+      generatedAt:
+        typeof file.generatedAt === "string" ? file.generatedAt : null,
+      lowQualityCount:
+        typeof file.lowQualityCount === "number" ? file.lowQualityCount : 0,
       missing: false,
-      needsReviewCount: typeof file.needsReviewCount === "number" ? file.needsReviewCount : reviewQueue.length,
+      needsReviewCount:
+        typeof file.needsReviewCount === "number"
+          ? file.needsReviewCount
+          : reviewQueue.length,
       reviewQueue
     };
   } catch (error) {
@@ -121,12 +145,18 @@ export async function loadAssetAudit(): Promise<LoadedAssetAudit> {
 
 export function buildAuditBatches(audit: LoadedAssetAudit): AssetAuditBatch[] {
   const queue = audit.reviewQueue;
-  const duplicateAssetIds = new Set(audit.duplicateGroups.flatMap((group) => group.assetIds));
+  const duplicateAssetIds = new Set(
+    audit.duplicateGroups.flatMap((group) => group.assetIds)
+  );
   const conflictAssetIds = new Set(
-    audit.duplicateGroups.filter((group) => group.classificationConflict).flatMap((group) => group.assetIds)
+    audit.duplicateGroups
+      .filter((group) => group.classificationConflict)
+      .flatMap((group) => group.assetIds)
   );
   const missingMetadataIds = new Set(
-    audit.classificationWarnings.filter((warning) => warning.type === "missing_metadata").map((warning) => warning.assetId ?? "")
+    audit.classificationWarnings
+      .filter((warning) => warning.type === "missing_metadata")
+      .map((warning) => warning.assetId ?? "")
   );
 
   return [
@@ -161,7 +191,8 @@ export function buildAuditBatches(audit: LoadedAssetAudit): AssetAuditBatch[] {
       label: "Bassa qualita"
     },
     {
-      description: "Il classificatore automatico non ha assegnato un tipo affidabile.",
+      description:
+        "Il classificatore automatico non ha assegnato un tipo affidabile.",
       entries: queue.filter((entry) => entry.classification === "unknown"),
       id: "unknown-classification",
       label: "Classificazione sconosciuta"
@@ -190,38 +221,57 @@ function normalizeEntries(raw: unknown[]): AuditEntryView[] {
 
       const input = entry as Record<string, unknown>;
       const assetId = typeof input.assetId === "string" ? input.assetId : null;
-      const relativePath = typeof input.relativePath === "string" ? input.relativePath : null;
+      const relativePath =
+        typeof input.relativePath === "string" ? input.relativePath : null;
 
       if (!assetId || !relativePath) {
         return null;
       }
 
-      const signals = (input.qualitySignals && typeof input.qualitySignals === "object"
-        ? (input.qualitySignals as Record<string, unknown>)
-        : {}) as Record<string, unknown>;
+      const signals = (
+        input.qualitySignals && typeof input.qualitySignals === "object"
+          ? (input.qualitySignals as Record<string, unknown>)
+          : {}
+      ) as Record<string, unknown>;
 
       return {
         assetId,
-        classification: typeof input.classification === "string" ? input.classification : "unknown",
+        classification:
+          typeof input.classification === "string"
+            ? input.classification
+            : "unknown",
         confidence: readNumber(input.confidence, 0),
         duplicateConfidence:
-          typeof input.duplicateConfidence === "number" && Number.isFinite(input.duplicateConfidence)
+          typeof input.duplicateConfidence === "number" &&
+          Number.isFinite(input.duplicateConfidence)
             ? input.duplicateConfidence
             : null,
-        duplicateGroupId: typeof input.duplicateGroupId === "string" ? input.duplicateGroupId : null,
+        duplicateGroupId:
+          typeof input.duplicateGroupId === "string"
+            ? input.duplicateGroupId
+            : null,
         fileHash: typeof input.fileHash === "string" ? input.fileHash : null,
         qualityScore: readNumber(input.qualityScore, 0),
         qualitySignals: {
-          classificationConfidence: readNumber(signals.classificationConfidence, 0),
+          classificationConfidence: readNumber(
+            signals.classificationConfidence,
+            0
+          ),
           filenameSignal: readNumber(signals.filenameSignal, 0),
           resolution: readNumber(signals.resolution, 0),
           sharpness: readNumber(signals.sharpness, 0),
           transparency: readNumber(signals.transparency, 0)
         },
-        reasons: Array.isArray(input.reasons) ? input.reasons.filter((reason): reason is string => typeof reason === "string") : [],
+        reasons: Array.isArray(input.reasons)
+          ? input.reasons.filter(
+              (reason): reason is string => typeof reason === "string"
+            )
+          : [],
         relativePath,
         reviewPriority: normalizePriority(input.reviewPriority),
-        tags: Array.isArray(input.tags) ? input.tags.filter((tag): tag is string => typeof tag === "string") : [],
+        tags: Array.isArray(input.tags)
+          ? input.tags.filter((tag): tag is string => typeof tag === "string")
+          : [],
         visualHash: typeof input.visualHash === "string" ? input.visualHash : ""
       };
     })
@@ -246,12 +296,17 @@ function normalizeDuplicateGroups(raw: unknown[]): AuditDuplicateGroupView[] {
 
       return {
         assetIds: Array.isArray(input.assetIds)
-          ? input.assetIds.filter((value): value is string => typeof value === "string")
+          ? input.assetIds.filter(
+              (value): value is string => typeof value === "string"
+            )
           : [],
         classificationConflict: Boolean(input.classificationConflict),
         confidence: readNumber(input.confidence, 0),
         id,
-        reason: reasonRaw === "file-hash" || reasonRaw === "visual-hash" ? reasonRaw : "visual-hash",
+        reason:
+          reasonRaw === "file-hash" || reasonRaw === "visual-hash"
+            ? reasonRaw
+            : "visual-hash",
         visualHash: typeof input.visualHash === "string" ? input.visualHash : ""
       };
     })
@@ -274,7 +329,9 @@ function normalizeWarnings(raw: unknown[]): AuditWarningView[] {
 
     const input = warning as Record<string, unknown>;
     const type =
-      typeof input.type === "string" && allowed.has(input.type as never) ? (input.type as AuditWarningView["type"]) : null;
+      typeof input.type === "string" && allowed.has(input.type as never)
+        ? (input.type as AuditWarningView["type"])
+        : null;
     const message = typeof input.message === "string" ? input.message : null;
 
     if (!type || !message) {
@@ -294,7 +351,12 @@ function normalizeWarnings(raw: unknown[]): AuditWarningView[] {
 }
 
 function normalizePriority(value: unknown): AuditReviewPriority {
-  if (value === "critical" || value === "high" || value === "medium" || value === "low") {
+  if (
+    value === "critical" ||
+    value === "high" ||
+    value === "medium" ||
+    value === "low"
+  ) {
     return value;
   }
 
@@ -306,5 +368,9 @@ function readNumber(value: unknown, fallback: number): number {
 }
 
 function isMissingFileError(error: unknown): boolean {
-  return error instanceof Error && "code" in error && (error as { code?: string }).code === "ENOENT";
+  return (
+    error instanceof Error &&
+    "code" in error &&
+    (error as { code?: string }).code === "ENOENT"
+  );
 }

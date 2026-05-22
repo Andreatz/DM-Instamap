@@ -21,27 +21,49 @@ type ReferenceReviewProps = {
   references: ReferenceMapView[];
 };
 
-export function ReferenceReview({ initialOverrides, references }: ReferenceReviewProps) {
+export function ReferenceReview({
+  initialOverrides,
+  references
+}: ReferenceReviewProps) {
   const [unknownOnly, setUnknownOnly] = useState(false);
   const [lowConfidenceOnly, setLowConfidenceOnly] = useState(false);
   const [index, setIndex] = useState(0);
   const [overrides, setOverrides] = useState(initialOverrides);
   const queue = useMemo(
-    () => filterReferenceReviewQueue(references, { lowConfidenceOnly, unknownOnly }),
+    () =>
+      filterReferenceReviewQueue(references, {
+        lowConfidenceOnly,
+        unknownOnly
+      }),
     [lowConfidenceOnly, references, unknownOnly]
   );
   const reference = queue[index] ?? queue[0] ?? null;
   const [draft, setDraft] = useState<ReferenceReviewDraft | null>(() =>
-    reference ? createReferenceReviewDraft(reference, findReferenceOverride(overrides, reference)) : null
+    reference
+      ? createReferenceReviewDraft(
+          reference,
+          findReferenceOverride(overrides, reference)
+        )
+      : null
   );
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveState, setSaveState] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset dell'indice al cambio dei filtri; le dipendenze sono usate come trigger, non come valori letti
   useEffect(() => {
     setIndex(0);
   }, [lowConfidenceOnly, unknownOnly]);
 
   useEffect(() => {
-    setDraft(reference ? createReferenceReviewDraft(reference, findReferenceOverride(overrides, reference)) : null);
+    setDraft(
+      reference
+        ? createReferenceReviewDraft(
+            reference,
+            findReferenceOverride(overrides, reference)
+          )
+        : null
+    );
     setSaveState("idle");
   }, [overrides, reference]);
 
@@ -104,7 +126,9 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
     return (
       <section className="asset-empty">
         <h2>Nessun riferimento da revisionare</h2>
-        <p>Disattiva i filtri oppure indicizza prima le mappe di riferimento.</p>
+        <p>
+          Disattiva i filtri oppure indicizza prima le mappe di riferimento.
+        </p>
       </section>
     );
   }
@@ -151,8 +175,14 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
 
         <div className="manifest-note">
           <span>{queue.length} in coda</span>
-          <span>{Object.keys(overrides.overrides).length} correzioni salvate</span>
-          {currentOverride ? <span>Questo riferimento ha gia un override</span> : <span>Nessun override</span>}
+          <span>
+            {Object.keys(overrides.overrides).length} correzioni salvate
+          </span>
+          {currentOverride ? (
+            <span>Questo riferimento ha gia un override</span>
+          ) : (
+            <span>Nessun override</span>
+          )}
         </div>
       </aside>
 
@@ -191,7 +221,12 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
         <label className="field">
           <span>Tipo mappa</span>
           <select
-            onChange={(event) => setDraftField("mapType", event.target.value as ReferenceReviewMapType)}
+            onChange={(event) =>
+              setDraftField(
+                "mapType",
+                event.target.value as ReferenceReviewMapType
+              )
+            }
             value={draft.mapType}
           >
             {REFERENCE_REVIEW_MAP_TYPES.map((mapType) => (
@@ -205,7 +240,9 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
         <label className="field">
           <span>Tag tema</span>
           <textarea
-            onChange={(event) => setDraftField("themeTagsText", event.target.value)}
+            onChange={(event) =>
+              setDraftField("themeTagsText", event.target.value)
+            }
             rows={2}
             value={draft.themeTagsText}
           />
@@ -214,7 +251,9 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
         <label className="field">
           <span>Tag stile</span>
           <textarea
-            onChange={(event) => setDraftField("styleTagsText", event.target.value)}
+            onChange={(event) =>
+              setDraftField("styleTagsText", event.target.value)
+            }
             placeholder="dipinta, pergamena, realistica..."
             rows={2}
             value={draft.styleTagsText}
@@ -224,7 +263,9 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
         <label className="field">
           <span>Tag layout</span>
           <textarea
-            onChange={(event) => setDraftField("layoutTagsText", event.target.value)}
+            onChange={(event) =>
+              setDraftField("layoutTagsText", event.target.value)
+            }
             placeholder="lineare, multipiano, aperta..."
             rows={2}
             value={draft.layoutTagsText}
@@ -236,7 +277,9 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
           <input
             max="100"
             min="0"
-            onChange={(event) => setDraftField("qualityScore", Number(event.target.value))}
+            onChange={(event) =>
+              setDraftField("qualityScore", Number(event.target.value))
+            }
             step="1"
             type="range"
             value={draft.qualityScore}
@@ -253,12 +296,21 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
           />
         </label>
 
-        <button className="save-correction" disabled={saveState === "saving"} onClick={saveCurrent} type="button">
+        <button
+          className="save-correction"
+          disabled={saveState === "saving"}
+          onClick={saveCurrent}
+          type="button"
+        >
           {saveState === "saving" ? "Salvataggio..." : "Salva correzione"}
         </button>
 
-        {saveState === "saved" ? <p className="save-note">Salvato in reference-overrides.json.</p> : null}
-        {saveState === "error" ? <p className="save-note error">Impossibile salvare la correzione.</p> : null}
+        {saveState === "saved" ? (
+          <p className="save-note">Salvato in reference-overrides.json.</p>
+        ) : null}
+        {saveState === "error" ? (
+          <p className="save-note error">Impossibile salvare la correzione.</p>
+        ) : null}
 
         <CorrectionSummary correction={correction} />
       </aside>
@@ -266,13 +318,17 @@ export function ReferenceReview({ initialOverrides, references }: ReferenceRevie
   );
 }
 
-function CorrectionSummary({ correction }: { correction: ReferenceCorrection }) {
+function CorrectionSummary({
+  correction
+}: {
+  correction: ReferenceCorrection;
+}) {
   return (
     <section className="detail-block">
       <h3>Verra salvato</h3>
       <p>
-        {formatReferenceMapType(correction.mapType)} - qualita {correction.qualityScore} -{" "}
-        {correction.themeTags.length} tag tema
+        {formatReferenceMapType(correction.mapType)} - qualita{" "}
+        {correction.qualityScore} - {correction.themeTags.length} tag tema
       </p>
     </section>
   );

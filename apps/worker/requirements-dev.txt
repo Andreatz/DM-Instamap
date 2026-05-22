@@ -1,2 +1,4 @@
 -r requirements.txt
 httpx>=0.28.0
+ruff>=0.14,<0.15
+mypy>=1.18,<2

@@ -6,7 +6,9 @@ import { groupAssets } from "../src";
 
 describe("groupAssets", () => {
   it("groups manifest assets and writes asset-groups.json", async () => {
-    const outputRoot = await mkdtemp(path.join(os.tmpdir(), "dm-instamap-groups-"));
+    const outputRoot = await mkdtemp(
+      path.join(os.tmpdir(), "dm-instamap-groups-")
+    );
     const indexDir = path.join(outputRoot, "data", "indexes");
     await mkdir(indexDir, { recursive: true });
     await writeFile(
@@ -64,7 +66,9 @@ describe("groupAssets", () => {
     expect(groupsFile.groupCount).toBe(2);
     expect(written.groupCount).toBe(2);
 
-    const floorGroup = groupsFile.groups.find((group) => group.kind === "floor");
+    const floorGroup = groupsFile.groups.find(
+      (group) => group.kind === "floor"
+    );
     expect(floorGroup).toMatchObject({
       assetCount: 2,
       assetIds: ["asset-floor-a", "asset-floor-b"],
@@ -79,7 +83,9 @@ describe("groupAssets", () => {
   });
 
   it("falls back to heuristic classification for older manifests", async () => {
-    const outputRoot = await mkdtemp(path.join(os.tmpdir(), "dm-instamap-groups-"));
+    const outputRoot = await mkdtemp(
+      path.join(os.tmpdir(), "dm-instamap-groups-")
+    );
     const indexDir = path.join(outputRoot, "data", "indexes");
     await mkdir(indexDir, { recursive: true });
     await writeFile(
@@ -109,7 +115,9 @@ describe("groupAssets", () => {
   });
 
   it("carries manual override metadata into groups", async () => {
-    const outputRoot = await mkdtemp(path.join(os.tmpdir(), "dm-instamap-groups-"));
+    const outputRoot = await mkdtemp(
+      path.join(os.tmpdir(), "dm-instamap-groups-")
+    );
     const indexDir = path.join(outputRoot, "data", "indexes");
     await mkdir(indexDir, { recursive: true });
     await writeFile(

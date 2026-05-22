@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { generateDungeon } from "@dm-instamap/generator";
-import { addPlacedAsset, ensureEditorLayers, updateMapLayer } from "./map-editor";
+import {
+  addPlacedAsset,
+  ensureEditorLayers,
+  updateMapLayer
+} from "./map-editor";
 import {
   assetToLayerKind,
   clamp,
@@ -65,7 +69,9 @@ describe("map editor view helpers", () => {
     expect(getFileName("packs/crypt/sarcofago.png")).toBe("sarcofago.png");
     expect(getFileName("a\\b\\c.webp")).toBe("c.webp");
     expect(tokenizeText("Old Stone Table!")).toEqual(["old", "stone", "table"]);
-    expect(createExportFilename("Cripta del Boss", "png")).toBe("cripta-del-boss.png");
+    expect(createExportFilename("Cripta del Boss", "png")).toBe(
+      "cripta-del-boss.png"
+    );
     expect(createExportFilename("***", "webp")).toBe("map.webp");
   });
 
@@ -81,25 +87,43 @@ describe("map editor view helpers", () => {
   });
 
   it("reports selection visibility based on layer state", () => {
-    const withAsset = addPlacedAsset(baseDocument, { id: "asset-x", kind: "prop", name: "Crate", thumbnailUrl: null }, { x: 3, y: 3 });
+    const withAsset = addPlacedAsset(
+      baseDocument,
+      { id: "asset-x", kind: "prop", name: "Crate", thumbnailUrl: null },
+      { x: 3, y: 3 }
+    );
     const assetId = withAsset.assets[0]?.id ?? "";
 
-    expect(isSelectionVisible(withAsset, { id: assetId, type: "asset" })).toBe(true);
+    expect(isSelectionVisible(withAsset, { id: assetId, type: "asset" })).toBe(
+      true
+    );
 
     const hiddenProps = updateMapLayer(withAsset, "props", { visible: false });
-    expect(isSelectionVisible(hiddenProps, { id: assetId, type: "asset" })).toBe(false);
-    expect(isSelectionVisible(hiddenProps, { id: "door-1", type: "door" })).toBe(true);
+    expect(
+      isSelectionVisible(hiddenProps, { id: assetId, type: "asset" })
+    ).toBe(false);
+    expect(
+      isSelectionVisible(hiddenProps, { id: "door-1", type: "door" })
+    ).toBe(true);
   });
 
   it("detects locked layers in the selected asset set", () => {
-    const withAsset = addPlacedAsset(baseDocument, { id: "asset-y", kind: "prop", name: "Barrel", thumbnailUrl: null }, { x: 4, y: 4 });
+    const withAsset = addPlacedAsset(
+      baseDocument,
+      { id: "asset-y", kind: "prop", name: "Barrel", thumbnailUrl: null },
+      { x: 4, y: 4 }
+    );
     const assetId = withAsset.assets[0]?.id ?? "";
     const selected = withAsset.assets.filter((asset) => asset.id === assetId);
 
     expect(hasLockedSelectedAsset(withAsset, selected, [assetId])).toBe(false);
 
     const lockedProps = updateMapLayer(withAsset, "props", { locked: true });
-    const lockedSelected = lockedProps.assets.filter((asset) => asset.id === assetId);
-    expect(hasLockedSelectedAsset(lockedProps, lockedSelected, [assetId])).toBe(true);
+    const lockedSelected = lockedProps.assets.filter(
+      (asset) => asset.id === assetId
+    );
+    expect(hasLockedSelectedAsset(lockedProps, lockedSelected, [assetId])).toBe(
+      true
+    );
   });
 });

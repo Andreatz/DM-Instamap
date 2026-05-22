@@ -8,7 +8,9 @@ vi.mock("@dm-instamap/assets/pack-importer", () => ({
 import { importAssetPack } from "@dm-instamap/assets/pack-importer";
 import { POST } from "./route";
 
-const importAssetPackMock = importAssetPack as unknown as ReturnType<typeof vi.fn>;
+const importAssetPackMock = importAssetPack as unknown as ReturnType<
+  typeof vi.fn
+>;
 
 describe("POST /api/assets/import-pack", () => {
   beforeEach(() => {
@@ -31,7 +33,9 @@ describe("POST /api/assets/import-pack", () => {
   });
 
   it("rejects path traversal before importing", async () => {
-    const response = await POST(jsonRequest({ assetRoot: "../outside-pack", preset: "generic" }));
+    const response = await POST(
+      jsonRequest({ assetRoot: "../outside-pack", preset: "generic" })
+    );
 
     expect(response.status).toBe(400);
     expect(importAssetPackMock).not.toHaveBeenCalled();
@@ -49,7 +53,13 @@ describe("POST /api/assets/import-pack", () => {
       reclassifiedCount: 0
     });
 
-    const response = await POST(jsonRequest({ assetRoot: ".", defaultTags: ["demo", 42], preset: "generic" }));
+    const response = await POST(
+      jsonRequest({
+        assetRoot: ".",
+        defaultTags: ["demo", 42],
+        preset: "generic"
+      })
+    );
 
     expect(response.status).toBe(200);
     expect(importAssetPackMock).toHaveBeenCalledWith(

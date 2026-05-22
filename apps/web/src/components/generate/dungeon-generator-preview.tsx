@@ -44,7 +44,8 @@ const INITIAL_FORM: GeneratorForm = {
   floorCount: 3,
   heightCells: 36,
   mode: "simple",
-  narrativeRequest: "Crea una cripta sotto una cattedrale dove i morti non sono ostili ma prigionieri.",
+  narrativeRequest:
+    "Crea una cripta sotto una cattedrale dove i morti non sono ostili ma prigionieri.",
   outdoorRiver: true,
   outdoorTreeDensity: 0.15,
   requiredRooms: "boss, library",
@@ -72,7 +73,10 @@ export function DungeonGeneratorPreview() {
         : null,
     [form]
   );
-  const generated = useMemo<{ map: MapDocument; floors?: MapDocument[] }>(() => {
+  const generated = useMemo<{
+    map: MapDocument;
+    floors?: MapDocument[];
+  }>(() => {
     if (blueprint) {
       return {
         map: generateMapFromBlueprint(blueprint, {
@@ -128,7 +132,10 @@ export function DungeonGeneratorPreview() {
         widthCells: form.widthCells
       });
 
-      const index = Math.min(Math.max(0, selectedFloor), result.floors.length - 1);
+      const index = Math.min(
+        Math.max(0, selectedFloor),
+        result.floors.length - 1
+      );
       return {
         floors: result.floors,
         map: result.floors[index] as MapDocument
@@ -146,14 +153,21 @@ export function DungeonGeneratorPreview() {
     };
   }, [blueprint, form, selectedFloor]);
   const map = generated.map;
-  const rooms = map.plan?.rooms.filter((room) => room.kind === "room" || room.kind === "entrance") ?? [];
+  const rooms =
+    map.plan?.rooms.filter(
+      (room) => room.kind === "room" || room.kind === "entrance"
+    ) ?? [];
   const quality = useMemo(() => scoreMapQuality(map), [map]);
   const qualityDebugTiles = useMemo(
-    () => new Map(quality.debugTiles.map((tile) => [`${tile.x},${tile.y}`, tile])),
+    () =>
+      new Map(quality.debugTiles.map((tile) => [`${tile.x},${tile.y}`, tile])),
     [quality]
   );
 
-  function setField<Key extends keyof GeneratorForm>(key: Key, value: GeneratorForm[Key]) {
+  function setField<Key extends keyof GeneratorForm>(
+    key: Key,
+    value: GeneratorForm[Key]
+  ) {
     setForm((current) => ({
       ...current,
       [key]: value
@@ -161,7 +175,11 @@ export function DungeonGeneratorPreview() {
   }
 
   async function createProjectFromPreview() {
-    if (form.mode === "multi-floor" && generated.floors && generated.floors.length > 1) {
+    if (
+      form.mode === "multi-floor" &&
+      generated.floors &&
+      generated.floors.length > 1
+    ) {
       await createMultiFloorProjectsFromPreview();
       return;
     }
@@ -173,7 +191,8 @@ export function DungeonGeneratorPreview() {
         body: JSON.stringify({
           document: map,
           name: blueprint?.name ?? buildProjectName(form),
-          requiredRooms: blueprint?.rooms.map((room) => room.label) ?? form.requiredRooms,
+          requiredRooms:
+            blueprint?.rooms.map((room) => room.label) ?? form.requiredRooms,
           sourceRequest: buildSourceRequest(form),
           theme: form.theme
         }),
@@ -182,7 +201,10 @@ export function DungeonGeneratorPreview() {
         },
         method: "POST"
       });
-      const payload = (await response.json()) as { error?: string; project?: { id: string } };
+      const payload = (await response.json()) as {
+        error?: string;
+        project?: { id: string };
+      };
 
       if (!response.ok || !payload.project) {
         throw new Error(payload.error ?? "Impossibile creare il progetto.");
@@ -190,7 +212,11 @@ export function DungeonGeneratorPreview() {
 
       router.push(`/projects/${payload.project.id}/editor`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Impossibile creare il progetto.");
+      setStatus(
+        error instanceof Error
+          ? error.message
+          : "Impossibile creare il progetto."
+      );
     }
   }
 
@@ -222,17 +248,27 @@ export function DungeonGeneratorPreview() {
       };
 
       if (!response.ok || !payload.projects || payload.projects.length === 0) {
-        throw new Error(payload.error ?? "Impossibile creare i progetti multipiano.");
+        throw new Error(
+          payload.error ?? "Impossibile creare i progetti multipiano."
+        );
       }
 
       const first = payload.projects[0];
       if (!first) {
-        throw new Error("La rotta multipiano non ha restituito alcun progetto.");
+        throw new Error(
+          "La rotta multipiano non ha restituito alcun progetto."
+        );
       }
-      setStatus(`Creati ${payload.projects.length} progetti collegati. Apertura del piano 1...`);
+      setStatus(
+        `Creati ${payload.projects.length} progetti collegati. Apertura del piano 1...`
+      );
       router.push(`/projects/${first.id}/editor`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Impossibile creare i progetti multipiano.");
+      setStatus(
+        error instanceof Error
+          ? error.message
+          : "Impossibile creare i progetti multipiano."
+      );
     }
   }
 
@@ -243,7 +279,12 @@ export function DungeonGeneratorPreview() {
 
         <label className="field">
           <span>Modalita</span>
-          <select onChange={(event) => setField("mode", event.target.value as GeneratorMode)} value={form.mode}>
+          <select
+            onChange={(event) =>
+              setField("mode", event.target.value as GeneratorMode)
+            }
+            value={form.mode}
+          >
             <option value="simple">Semplice (rettangolare)</option>
             <option value="narrative">Narrativa (blueprint)</option>
             <option value="cave">Cave (automa cellulare)</option>
@@ -257,7 +298,9 @@ export function DungeonGeneratorPreview() {
           <label className="field">
             <span>Richiesta narrativa</span>
             <textarea
-              onChange={(event) => setField("narrativeRequest", event.target.value)}
+              onChange={(event) =>
+                setField("narrativeRequest", event.target.value)
+              }
               rows={5}
               value={form.narrativeRequest}
             />
@@ -269,7 +312,9 @@ export function DungeonGeneratorPreview() {
           <input
             max="96"
             min="12"
-            onChange={(event) => setField("widthCells", Number(event.target.value))}
+            onChange={(event) =>
+              setField("widthCells", Number(event.target.value))
+            }
             type="number"
             value={form.widthCells}
           />
@@ -280,19 +325,29 @@ export function DungeonGeneratorPreview() {
           <input
             max="96"
             min="12"
-            onChange={(event) => setField("heightCells", Number(event.target.value))}
+            onChange={(event) =>
+              setField("heightCells", Number(event.target.value))
+            }
             type="number"
             value={form.heightCells}
           />
         </label>
 
-        {form.mode === "simple" || form.mode === "narrative" || form.mode === "multi-floor" ? (
+        {form.mode === "simple" ||
+        form.mode === "narrative" ||
+        form.mode === "multi-floor" ? (
           <label className="field">
-            <span>{form.mode === "multi-floor" ? "Stanze per piano" : "Numero stanze"}</span>
+            <span>
+              {form.mode === "multi-floor"
+                ? "Stanze per piano"
+                : "Numero stanze"}
+            </span>
             <input
               max="24"
               min="1"
-              onChange={(event) => setField("roomCount", Number(event.target.value))}
+              onChange={(event) =>
+                setField("roomCount", Number(event.target.value))
+              }
               type="number"
               value={form.roomCount}
             />
@@ -301,14 +356,19 @@ export function DungeonGeneratorPreview() {
 
         <label className="field">
           <span>Tema</span>
-          <input onChange={(event) => setField("theme", event.target.value)} value={form.theme} />
+          <input
+            onChange={(event) => setField("theme", event.target.value)}
+            value={form.theme}
+          />
         </label>
 
         {form.mode === "simple" ? (
           <label className="field">
             <span>Stanze richieste</span>
             <textarea
-              onChange={(event) => setField("requiredRooms", event.target.value)}
+              onChange={(event) =>
+                setField("requiredRooms", event.target.value)
+              }
               rows={3}
               value={form.requiredRooms}
             />
@@ -321,7 +381,9 @@ export function DungeonGeneratorPreview() {
             <input
               max="24"
               min="3"
-              onChange={(event) => setField("blockCount", Number(event.target.value))}
+              onChange={(event) =>
+                setField("blockCount", Number(event.target.value))
+              }
               type="number"
               value={form.blockCount}
             />
@@ -333,7 +395,9 @@ export function DungeonGeneratorPreview() {
             <label className="editor-checkbox">
               <input
                 checked={form.outdoorRiver}
-                onChange={(event) => setField("outdoorRiver", event.target.checked)}
+                onChange={(event) =>
+                  setField("outdoorRiver", event.target.checked)
+                }
                 type="checkbox"
               />
               <span>Includi fiume con ponti</span>
@@ -343,7 +407,9 @@ export function DungeonGeneratorPreview() {
               <input
                 max="0.4"
                 min="0"
-                onChange={(event) => setField("outdoorTreeDensity", Number(event.target.value))}
+                onChange={(event) =>
+                  setField("outdoorTreeDensity", Number(event.target.value))
+                }
                 step="0.01"
                 type="range"
                 value={form.outdoorTreeDensity}
@@ -368,12 +434,16 @@ export function DungeonGeneratorPreview() {
               />
             </label>
             {generated.floors && generated.floors.length > 1 ? (
-              <div className="field-row" role="group" aria-label="Piano in anteprima">
-                {generated.floors.map((_, index) => (
+              <div
+                className="field-row"
+                role="group"
+                aria-label="Piano in anteprima"
+              >
+                {generated.floors.map((floor, index) => (
                   <button
                     aria-pressed={selectedFloor === index}
                     className={selectedFloor === index ? "save-correction" : ""}
-                    key={`floor-${index}`}
+                    key={floor.id}
                     onClick={() => setSelectedFloor(index)}
                     type="button"
                   >
@@ -391,7 +461,10 @@ export function DungeonGeneratorPreview() {
         form.mode === "multi-floor" ? (
           <label className="field">
             <span>Seed</span>
-            <input onChange={(event) => setField("seed", event.target.value)} value={form.seed} />
+            <input
+              onChange={(event) => setField("seed", event.target.value)}
+              value={form.seed}
+            />
           </label>
         ) : null}
 
@@ -400,15 +473,22 @@ export function DungeonGeneratorPreview() {
           <span>{map.plan?.doors.length ?? 0} porte</span>
           <span>{map.plan?.walls.length ?? 0} segmenti muro</span>
           <span>Qualita {quality.score}/100</span>
-          {generated.floors ? <span>{generated.floors.length} piani</span> : null}
+          {generated.floors ? (
+            <span>{generated.floors.length} piani</span>
+          ) : null}
         </div>
-        <button className="save-correction" onClick={() => void createProjectFromPreview()} type="button">
+        <button
+          className="save-correction"
+          onClick={() => void createProjectFromPreview()}
+          type="button"
+        >
           Salva come progetto
         </button>
         {generated.floors ? (
           <p className="muted">
-            Il salvataggio multipiano crea {generated.floors.length} progetti collegati (uno per piano). Anteprima
-            attuale: piano {selectedFloor + 1}.
+            Il salvataggio multipiano crea {generated.floors.length} progetti
+            collegati (uno per piano). Anteprima attuale: piano{" "}
+            {selectedFloor + 1}.
           </p>
         ) : null}
         <p>{status}</p>
@@ -424,7 +504,9 @@ export function DungeonGeneratorPreview() {
           {map.tiles.map((tile) => (
             <span
               className={`generated-tile generated-tile-${tile.kind}${
-                qualityDebugTiles.has(`${tile.x},${tile.y}`) ? " generated-tile-debug" : ""
+                qualityDebugTiles.has(`${tile.x},${tile.y}`)
+                  ? " generated-tile-debug"
+                  : ""
               }`}
               key={tile.id}
               title={qualityDebugTiles.get(`${tile.x},${tile.y}`)?.reason}
@@ -438,11 +520,17 @@ export function DungeonGeneratorPreview() {
         <dl>
           <div>
             <dt>Ingresso</dt>
-            <dd>{map.plan?.rooms.find((room) => room.id === "room-entrance")?.label ?? "mancante"}</dd>
+            <dd>
+              {map.plan?.rooms.find((room) => room.id === "room-entrance")
+                ?.label ?? "mancante"}
+            </dd>
           </div>
           <div>
             <dt>Finale</dt>
-            <dd>{map.plan?.rooms.find((room) => room.id === "room-final")?.label ?? "non richiesto"}</dd>
+            <dd>
+              {map.plan?.rooms.find((room) => room.id === "room-final")
+                ?.label ?? "non richiesto"}
+            </dd>
           </div>
           <div>
             <dt>Griglia</dt>
@@ -501,7 +589,11 @@ export function DungeonGeneratorPreview() {
   );
 }
 
-function BlueprintSummary({ blueprint }: { blueprint: MapGenerationBlueprint }) {
+function BlueprintSummary({
+  blueprint
+}: {
+  blueprint: MapGenerationBlueprint;
+}) {
   return (
     <section className="detail-block">
       <h3>Blueprint narrativo</h3>
@@ -522,7 +614,8 @@ function BlueprintSummary({ blueprint }: { blueprint: MapGenerationBlueprint }) 
         <div>
           <dt>Acqua / Vegetazione</dt>
           <dd>
-            {blueprint.hasWater ? "acqua" : "-"} / {blueprint.hasVegetation ? "vegetazione" : "-"}
+            {blueprint.hasWater ? "acqua" : "-"} /{" "}
+            {blueprint.hasVegetation ? "vegetazione" : "-"}
           </dd>
         </div>
         <div>
@@ -569,7 +662,9 @@ function describeMode(mode: GeneratorMode): string {
   }
 }
 
-function formatQualityRating(rating: ReturnType<typeof scoreMapQuality>["rating"]): string {
+function formatQualityRating(
+  rating: ReturnType<typeof scoreMapQuality>["rating"]
+): string {
   switch (rating) {
     case "strong":
       return "solida";

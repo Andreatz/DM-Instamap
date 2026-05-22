@@ -56,13 +56,8 @@ describe("classifyAsset", () => {
 
 describe("createAutomaticTags", () => {
   it("extracts normalized tags from folder and filename", () => {
-    expect(createAutomaticTags("Ancient Walls/Cracked-Stone_Wall 02.PNG")).toEqual([
-      "02",
-      "ancient",
-      "cracked",
-      "stone",
-      "wall",
-      "walls"
-    ]);
+    expect(
+      createAutomaticTags("Ancient Walls/Cracked-Stone_Wall 02.PNG")
+    ).toEqual(["02", "ancient", "cracked", "stone", "wall", "walls"]);
   });
 });

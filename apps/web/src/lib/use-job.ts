@@ -13,9 +13,16 @@ export type UseJobOptions = {
   pollIntervalMs?: number;
 };
 
-const TERMINAL_STATUSES = new Set<WorkerJobRecord["status"]>(["completed", "failed", "cancelled"]);
+const TERMINAL_STATUSES = new Set<WorkerJobRecord["status"]>([
+  "completed",
+  "failed",
+  "cancelled"
+]);
 
-export function useJob(jobId: string | null, options: UseJobOptions = {}): UseJobState {
+export function useJob(
+  jobId: string | null,
+  options: UseJobOptions = {}
+): UseJobState {
   const [job, setJob] = useState<WorkerJobRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(jobId !== null);
@@ -36,8 +43,13 @@ export function useJob(jobId: string | null, options: UseJobOptions = {}): UseJo
 
     async function pollOnce() {
       try {
-        const response = await fetch(`/api/jobs/${jobId}`, { cache: "no-store" });
-        const payload = (await response.json()) as { error?: string; job?: WorkerJobRecord };
+        const response = await fetch(`/api/jobs/${jobId}`, {
+          cache: "no-store"
+        });
+        const payload = (await response.json()) as {
+          error?: string;
+          job?: WorkerJobRecord;
+        };
 
         if (cancelled) {
           return;
@@ -51,7 +63,10 @@ export function useJob(jobId: string | null, options: UseJobOptions = {}): UseJo
         setError(null);
         setJob(payload.job);
 
-        if (TERMINAL_STATUSES.has(payload.job.status) && intervalRef.current !== null) {
+        if (
+          TERMINAL_STATUSES.has(payload.job.status) &&
+          intervalRef.current !== null
+        ) {
           clearInterval(intervalRef.current);
           intervalRef.current = null;
         }
@@ -59,7 +74,9 @@ export function useJob(jobId: string | null, options: UseJobOptions = {}): UseJo
         if (cancelled) {
           return;
         }
-        setError(fetchError instanceof Error ? fetchError.message : "Job fetch failed.");
+        setError(
+          fetchError instanceof Error ? fetchError.message : "Job fetch failed."
+        );
       } finally {
         if (!cancelled) {
           setLoading(false);

@@ -13,7 +13,11 @@ const TOOLS: Array<[EditorTool, string]> = [
   ["note", "Note"]
 ];
 
-export function EditorCanvasToolbar({ editor }: { editor: MapEditorController }) {
+export function EditorCanvasToolbar({
+  editor
+}: {
+  editor: MapEditorController;
+}) {
   const {
     aiPanelOpen,
     createSnapshot,
@@ -33,7 +37,11 @@ export function EditorCanvasToolbar({ editor }: { editor: MapEditorController })
 
   return (
     <div className="editor-canvas-toolbar">
-      <div className="editor-tool-grid" aria-label="Strumenti editor">
+      <div
+        className="editor-tool-grid"
+        role="toolbar"
+        aria-label="Strumenti editor"
+      >
         {TOOLS.map(([tool, label]) => (
           <button
             className={editorTool === tool ? "active" : ""}
@@ -52,7 +60,12 @@ export function EditorCanvasToolbar({ editor }: { editor: MapEditorController })
         <button disabled={redoStack.length === 0} onClick={redo} type="button">
           Ripristina
         </button>
-        <button disabled={!projectId} onClick={() => void createSnapshot()} title="Snapshot (Ctrl+Shift+S)" type="button">
+        <button
+          disabled={!projectId}
+          onClick={() => void createSnapshot()}
+          title="Snapshot (Ctrl+Shift+S)"
+          type="button"
+        >
           Snapshot
         </button>
         <button

@@ -6,8 +6,16 @@ const NAV_LINKS: Array<{ description: string; href: string; label: string }> = [
   { description: "Campagne", href: "/campaigns", label: "Campagne" },
   { description: "Libreria asset", href: "/assets", label: "Asset" },
   { description: "Gruppi di asset", href: "/asset-groups", label: "Gruppi" },
-  { description: "Mappe di riferimento", href: "/references", label: "Riferimenti" },
-  { description: "AI Bridge (automatico + manuale)", href: "/ai-bridge", label: "AI Bridge" },
+  {
+    description: "Mappe di riferimento",
+    href: "/references",
+    label: "Riferimenti"
+  },
+  {
+    description: "AI Bridge (automatico + manuale)",
+    href: "/ai-bridge",
+    label: "AI Bridge"
+  },
   { description: "Anteprima generatore", href: "/generate", label: "Genera" }
 ];
 

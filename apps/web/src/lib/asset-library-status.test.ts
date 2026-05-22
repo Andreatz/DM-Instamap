@@ -26,9 +26,18 @@ describe("asset library status", () => {
 
   it("reports a ready library with no outstanding issues", () => {
     const status = summarizeAssetLibrary({
-      audit: { ...baseAudit, assetCount: 120, generatedAt: "2026-05-01T10:00:00.000Z", missing: false },
+      audit: {
+        ...baseAudit,
+        assetCount: 120,
+        generatedAt: "2026-05-01T10:00:00.000Z",
+        missing: false
+      },
       groupCount: 14,
-      manifest: { assetCount: 120, generatedAt: "2026-05-01T09:00:00.000Z", missing: false }
+      manifest: {
+        assetCount: 120,
+        generatedAt: "2026-05-01T09:00:00.000Z",
+        missing: false
+      }
     });
 
     expect(status.tone).toBe("ready");

@@ -1,5 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fetchWorkerJob, fetchWorkerJobs, getWorkerBaseUrl, postWorkerJob } from "./worker-client";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  fetchWorkerJob,
+  fetchWorkerJobs,
+  getWorkerBaseUrl,
+  postWorkerJob
+} from "./worker-client";
 
 describe("worker-client", () => {
   const originalEnv = process.env.DM_INSTAMAP_WORKER_URL;
@@ -38,7 +43,10 @@ describe("worker-client", () => {
 
     const job = await fetchWorkerJob("job_1");
 
-    expect(fetchSpy).toHaveBeenCalledWith("https://worker.test/jobs/job_1", expect.any(Object));
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "https://worker.test/jobs/job_1",
+      expect.any(Object)
+    );
     expect(job.status).toBe("completed");
     expect(job.progress).toBe(100);
   });
@@ -64,14 +72,21 @@ describe("worker-client", () => {
 
     const jobs = await fetchWorkerJobs();
 
-    expect(fetchSpy).toHaveBeenCalledWith("https://worker.test/jobs", expect.any(Object));
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "https://worker.test/jobs",
+      expect.any(Object)
+    );
     expect(jobs[0]?.id).toBe("job_1");
   });
 
   it("posts a job and surfaces non-2xx errors", async () => {
     process.env.DM_INSTAMAP_WORKER_URL = "https://worker.test";
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("nope", { status: 500 }));
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("nope", { status: 500 })
+    );
 
-    await expect(postWorkerJob("/jobs/foo", { x: 1 })).rejects.toThrow(/500.*nope/);
+    await expect(postWorkerJob("/jobs/foo", { x: 1 })).rejects.toThrow(
+      /500.*nope/
+    );
   });
 });

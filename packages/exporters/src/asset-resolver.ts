@@ -9,7 +9,9 @@ export type RasterAssetSource = {
 };
 
 export type AssetResolver = {
-  resolveAsset(assetId: string): Promise<RasterAssetSource | null> | RasterAssetSource | null;
+  resolveAsset(
+    assetId: string
+  ): Promise<RasterAssetSource | null> | RasterAssetSource | null;
 };
 
 export type AssetManifestResolverOptions = {
@@ -33,7 +35,9 @@ type AssetManifest = {
 const DEFAULT_DATA_DIRECTORY = "data";
 const DEFAULT_MANIFEST_PATH = path.join("indexes", "assets.manifest.json");
 
-export function createAssetManifestResolver(options: AssetManifestResolverOptions = {}): AssetResolver {
+export function createAssetManifestResolver(
+  options: AssetManifestResolverOptions = {}
+): AssetResolver {
   let loaded: Promise<Map<string, RasterAssetSource>> | null = null;
 
   return {
@@ -45,7 +49,9 @@ export function createAssetManifestResolver(options: AssetManifestResolverOption
   };
 }
 
-async function loadManifestAssets(options: AssetManifestResolverOptions): Promise<Map<string, RasterAssetSource>> {
+async function loadManifestAssets(
+  options: AssetManifestResolverOptions
+): Promise<Map<string, RasterAssetSource>> {
   const outputRoot = options.outputRoot
     ? path.resolve(options.outputRoot)
     : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
@@ -54,7 +60,10 @@ async function loadManifestAssets(options: AssetManifestResolverOptions): Promis
     : path.join(outputRoot, DEFAULT_MANIFEST_PATH);
   const raw = await readFile(manifestPath, "utf8");
   const manifest = JSON.parse(raw) as AssetManifest;
-  const sourceRoot = readString(options.sourceRoot) || readString(manifest.sourceRoot) || path.dirname(manifestPath);
+  const sourceRoot =
+    readString(options.sourceRoot) ||
+    readString(manifest.sourceRoot) ||
+    path.dirname(manifestPath);
   const assets = Array.isArray(manifest.assets) ? manifest.assets : [];
   const byId = new Map<string, RasterAssetSource>();
 
@@ -72,7 +81,9 @@ async function loadManifestAssets(options: AssetManifestResolverOptions): Promis
     }
 
     byId.set(assetId, {
-      absolutePath: path.isAbsolute(relativePath) ? relativePath : path.resolve(sourceRoot, relativePath),
+      absolutePath: path.isAbsolute(relativePath)
+        ? relativePath
+        : path.resolve(sourceRoot, relativePath),
       assetId,
       height: readPositiveNumber(entry.height),
       width: readPositiveNumber(entry.width)
@@ -87,5 +98,7 @@ function readString(value: unknown): string {
 }
 
 function readPositiveNumber(value: unknown): number | null {
-  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? value
+    : null;
 }

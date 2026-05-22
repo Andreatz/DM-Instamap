@@ -39,24 +39,39 @@ const WALKABLE_KINDS = new Set<MapTile["kind"]>(["floor", "door"]);
 
 export function scoreMapQuality(document: MapDocument): MapQualityReport {
   const tileMap = createTileMap(document.tiles);
-  const walkable = document.tiles.filter((tile) => WALKABLE_KINDS.has(tile.kind));
+  const walkable = document.tiles.filter((tile) =>
+    WALKABLE_KINDS.has(tile.kind)
+  );
   const totalTiles = Math.max(1, document.width * document.height);
   const walkableRatio = walkable.length / totalTiles;
   const connected = collectConnectedWalkableTiles(walkable, tileMap);
-  const connectivityRatio = walkable.length === 0 ? 0 : connected.size / walkable.length;
-  const disconnectedTiles = walkable.filter((tile) => !connected.has(tileKey(tile.x, tile.y)));
-  const deadEndTiles = walkable.filter((tile) => countWalkableNeighbors(tile, tileMap) <= 1);
-  const narrowTiles = walkable.filter((tile) => countWalkableNeighbors(tile, tileMap) === 2);
-  const deadEndRatio = walkable.length === 0 ? 1 : deadEndTiles.length / walkable.length;
+  const connectivityRatio =
+    walkable.length === 0 ? 0 : connected.size / walkable.length;
+  const disconnectedTiles = walkable.filter(
+    (tile) => !connected.has(tileKey(tile.x, tile.y))
+  );
+  const deadEndTiles = walkable.filter(
+    (tile) => countWalkableNeighbors(tile, tileMap) <= 1
+  );
+  const narrowTiles = walkable.filter(
+    (tile) => countWalkableNeighbors(tile, tileMap) === 2
+  );
+  const deadEndRatio =
+    walkable.length === 0 ? 1 : deadEndTiles.length / walkable.length;
   const rooms = collectPlayableRooms(document);
   const isolatedRooms = rooms.filter((room) => isRoomIsolated(room, document));
   const pointOfInterestCount = countPointsOfInterest(document);
   const coverTiles = document.tiles.filter(
     (tile) => tile.kind === "wall" && hasAdjacentWalkableTile(tile, tileMap)
   );
-  const tacticalCoverRatio = walkable.length === 0 ? 0 : coverTiles.length / walkable.length;
+  const tacticalCoverRatio =
+    walkable.length === 0 ? 0 : coverTiles.length / walkable.length;
   const lineOfSightBreakCount = coverTiles.filter(
-    (tile) => tile.x > 0 && tile.y > 0 && tile.x < document.width - 1 && tile.y < document.height - 1
+    (tile) =>
+      tile.x > 0 &&
+      tile.y > 0 &&
+      tile.x < document.width - 1 &&
+      tile.y < document.height - 1
   ).length;
 
   const metrics = {
@@ -75,19 +90,25 @@ export function scoreMapQuality(document: MapDocument): MapQualityReport {
     lineOfSightBreaks: metric(
       "Linee di vista",
       lineOfSightBreakCount,
-      Math.round(clamp01(lineOfSightBreakCount / Math.max(4, rooms.length * 2)) * 100),
+      Math.round(
+        clamp01(lineOfSightBreakCount / Math.max(4, rooms.length * 2)) * 100
+      ),
       "ostacoli interni sufficienti a spezzare linee lunghe"
     ),
     pointsOfInterest: metric(
       "Punti di interesse",
       pointOfInterestCount,
-      Math.round(clamp01(pointOfInterestCount / Math.max(3, rooms.length)) * 100),
+      Math.round(
+        clamp01(pointOfInterestCount / Math.max(3, rooms.length)) * 100
+      ),
       "porte, note, luci, asset o stanze speciali"
     ),
     roomUtility: metric(
       "Utilita stanze",
       rooms.length === 0 ? 0 : isolatedRooms.length,
-      rooms.length === 0 ? 0 : Math.round(100 - clamp01(isolatedRooms.length / rooms.length) * 100),
+      rooms.length === 0
+        ? 0
+        : Math.round(100 - clamp01(isolatedRooms.length / rooms.length) * 100),
       "stanze collegate o raggiungibili da porte"
     ),
     tacticalCover: metric(
@@ -141,7 +162,8 @@ export function scoreMapQuality(document: MapDocument): MapQualityReport {
       })),
       ...narrowTiles.slice(0, 24).map((tile) => ({
         kind: "narrow" as const,
-        reason: "Passaggio stretto: utile se intenzionale, rischioso se ripetuto.",
+        reason:
+          "Passaggio stretto: utile se intenzionale, rischioso se ripetuto.",
         x: tile.x,
         y: tile.y
       }))
@@ -158,7 +180,10 @@ function createTileMap(tiles: MapTile[]): Map<TileKey, MapTile> {
   return new Map(tiles.map((tile) => [tileKey(tile.x, tile.y), tile]));
 }
 
-function collectConnectedWalkableTiles(walkable: MapTile[], tileMap: Map<TileKey, MapTile>): Set<TileKey> {
+function collectConnectedWalkableTiles(
+  walkable: MapTile[],
+  tileMap: Map<TileKey, MapTile>
+): Set<TileKey> {
   const start = walkable[0];
   const seen = new Set<TileKey>();
 
@@ -181,7 +206,11 @@ function collectConnectedWalkableTiles(walkable: MapTile[], tileMap: Map<TileKey
     for (const neighbor of cardinalNeighbors(current)) {
       const tile = tileMap.get(tileKey(neighbor.x, neighbor.y));
 
-      if (tile && WALKABLE_KINDS.has(tile.kind) && !seen.has(tileKey(tile.x, tile.y))) {
+      if (
+        tile &&
+        WALKABLE_KINDS.has(tile.kind) &&
+        !seen.has(tileKey(tile.x, tile.y))
+      ) {
         queue.push(tile);
       }
     }
@@ -190,21 +219,29 @@ function collectConnectedWalkableTiles(walkable: MapTile[], tileMap: Map<TileKey
   return seen;
 }
 
-function countWalkableNeighbors(tile: MapTile, tileMap: Map<TileKey, MapTile>): number {
+function countWalkableNeighbors(
+  tile: MapTile,
+  tileMap: Map<TileKey, MapTile>
+): number {
   return cardinalNeighbors(tile).filter((neighbor) => {
     const target = tileMap.get(tileKey(neighbor.x, neighbor.y));
     return target ? WALKABLE_KINDS.has(target.kind) : false;
   }).length;
 }
 
-function hasAdjacentWalkableTile(tile: MapTile, tileMap: Map<TileKey, MapTile>): boolean {
+function hasAdjacentWalkableTile(
+  tile: MapTile,
+  tileMap: Map<TileKey, MapTile>
+): boolean {
   return cardinalNeighbors(tile).some((neighbor) => {
     const target = tileMap.get(tileKey(neighbor.x, neighbor.y));
     return target ? WALKABLE_KINDS.has(target.kind) : false;
   });
 }
 
-function cardinalNeighbors(tile: Pick<MapTile, "x" | "y">): Array<{ x: number; y: number }> {
+function cardinalNeighbors(
+  tile: Pick<MapTile, "x" | "y">
+): Array<{ x: number; y: number }> {
   return [
     { x: tile.x + 1, y: tile.y },
     { x: tile.x - 1, y: tile.y },
@@ -214,12 +251,13 @@ function cardinalNeighbors(tile: Pick<MapTile, "x" | "y">): Array<{ x: number; y
 }
 
 function collectPlayableRooms(document: MapDocument): RoomNode[] {
-  return (document.plan?.rooms ?? []).filter((room) =>
-    room.kind === "entrance" ||
-    room.kind === "room" ||
-    room.kind === "secret" ||
-    room.kind === "service" ||
-    room.kind === "stairs"
+  return (document.plan?.rooms ?? []).filter(
+    (room) =>
+      room.kind === "entrance" ||
+      room.kind === "room" ||
+      room.kind === "secret" ||
+      room.kind === "service" ||
+      room.kind === "stairs"
   );
 }
 
@@ -228,16 +266,23 @@ function isRoomIsolated(room: RoomNode, document: MapDocument): boolean {
     return false;
   }
 
-  const doorLinked = (document.plan?.doors ?? []).some((door) => door.roomIds.includes(room.id));
+  const doorLinked = (document.plan?.doors ?? []).some((door) =>
+    door.roomIds.includes(room.id)
+  );
   return room.connections.length === 0 && !doorLinked;
 }
 
 function countPointsOfInterest(document: MapDocument): number {
   const rooms = document.plan?.rooms ?? [];
-  const specialRooms = rooms.filter((room) =>
-    room.kind === "secret" ||
-    room.kind === "stairs" ||
-    room.tags.some((tag) => /boss|final|treasure|altar|chapel|library|forge|shrine|water|river/u.test(tag))
+  const specialRooms = rooms.filter(
+    (room) =>
+      room.kind === "secret" ||
+      room.kind === "stairs" ||
+      room.tags.some((tag) =>
+        /boss|final|treasure|altar|chapel|library|forge|shrine|water|river/u.test(
+          tag
+        )
+      )
   );
 
   return (
@@ -268,7 +313,9 @@ function collectWarnings(input: {
   }
 
   if (input.connectivityRatio < 0.9) {
-    warnings.push("Alcune aree camminabili non sono collegate alla regione principale.");
+    warnings.push(
+      "Alcune aree camminabili non sono collegate alla regione principale."
+    );
   }
 
   if (input.walkableRatio < 0.18) {
@@ -278,27 +325,42 @@ function collectWarnings(input: {
   }
 
   if (input.deadEndRatio > 0.18) {
-    warnings.push("Ci sono molti vicoli ciechi o passaggi senza scelta tattica.");
+    warnings.push(
+      "Ci sono molti vicoli ciechi o passaggi senza scelta tattica."
+    );
   }
 
   if (input.isolatedRooms.length > 0) {
-    warnings.push(`${input.isolatedRooms.length} stanze non hanno collegamenti o porte.`);
+    warnings.push(
+      `${input.isolatedRooms.length} stanze non hanno collegamenti o porte.`
+    );
   }
 
   if (input.rooms.length < 2) {
     warnings.push("La mappa ha poche aree distinte.");
   }
 
-  if (input.pointOfInterestCount < Math.max(2, Math.ceil(input.rooms.length / 3))) {
-    warnings.push("Aggiungi piu punti di interesse: porte, luci, note, asset o stanze speciali.");
+  if (
+    input.pointOfInterestCount < Math.max(2, Math.ceil(input.rooms.length / 3))
+  ) {
+    warnings.push(
+      "Aggiungi piu punti di interesse: porte, luci, note, asset o stanze speciali."
+    );
   }
 
   if (input.tacticalCoverRatio < 0.08) {
-    warnings.push("La mappa offre poche coperture tattiche vicino agli spazi giocabili.");
+    warnings.push(
+      "La mappa offre poche coperture tattiche vicino agli spazi giocabili."
+    );
   }
 
-  if (input.lineOfSightBreakCount < Math.max(2, Math.floor(input.rooms.length / 2))) {
-    warnings.push("Le linee di vista sono poco spezzate: valuta ostacoli interni.");
+  if (
+    input.lineOfSightBreakCount <
+    Math.max(2, Math.floor(input.rooms.length / 2))
+  ) {
+    warnings.push(
+      "Le linee di vista sono poco spezzate: valuta ostacoli interni."
+    );
   }
 
   return warnings;
@@ -316,7 +378,12 @@ function scoreWalkableRatio(ratio: number): number {
   return Math.round(clamp01((0.95 - ratio) / 0.13) * 100);
 }
 
-function metric(label: string, value: number, score: number, target: string): MapQualityMetric {
+function metric(
+  label: string,
+  value: number,
+  score: number,
+  target: string
+): MapQualityMetric {
   return {
     label,
     score: clampScore(score),
@@ -325,7 +392,11 @@ function metric(label: string, value: number, score: number, target: string): Ma
   };
 }
 
-function summarizeQuality(score: number, rating: MapQualityRating, warnings: string[]): string {
+function summarizeQuality(
+  score: number,
+  rating: MapQualityRating,
+  warnings: string[]
+): string {
   if (rating === "strong") {
     return warnings.length > 0
       ? `Solida (${score}/100), con ${warnings.length} punti da rifinire.`

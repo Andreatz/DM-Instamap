@@ -29,18 +29,32 @@ const ROLE_TITLES: Record<TacticalRole, string> = {
 
 const ROLE_NOTES: Record<TacticalRole, string> = {
   boss: "Riserva spazio per il manovrare: il boss deve poter usare l'intera stanza, con vie di fuga limitate per i giocatori.",
-  combat: "Predisponi coperture e linee di vista spezzate; pensa a 2-3 punti di ingaggio.",
-  entrance: "Orienta i giocatori e mostra chiaramente la via d'uscita; introduci il tono del luogo.",
-  hazard: "Segnala il pericolo con indizi ambientali prima che diventi una trappola mortale.",
-  puzzle: "L'enigma deve avere una soluzione leggibile dagli indizi presenti nella stanza.",
+  combat:
+    "Predisponi coperture e linee di vista spezzate; pensa a 2-3 punti di ingaggio.",
+  entrance:
+    "Orienta i giocatori e mostra chiaramente la via d'uscita; introduci il tono del luogo.",
+  hazard:
+    "Segnala il pericolo con indizi ambientali prima che diventi una trappola mortale.",
+  puzzle:
+    "L'enigma deve avere una soluzione leggibile dagli indizi presenti nella stanza.",
   safe: "Punto di respiro: niente incontri forzati, ideale per riposo breve o RP.",
-  secret: "Ricompensa l'esplorazione: l'accesso non deve essere visibile dalla via principale.",
-  social: "Popola con almeno un PNG con nome; pensa a cosa vogliono i presenti.",
-  transition: "Buon punto per coperture tattiche senza trasformarlo in una stanza boss.",
-  treasure: "Il bottino deve valere il rischio: lega la ricompensa a una scelta o a una guardia."
+  secret:
+    "Ricompensa l'esplorazione: l'accesso non deve essere visibile dalla via principale.",
+  social:
+    "Popola con almeno un PNG con nome; pensa a cosa vogliono i presenti.",
+  transition:
+    "Buon punto per coperture tattiche senza trasformarlo in una stanza boss.",
+  treasure:
+    "Il bottino deve valere il rischio: lega la ricompensa a una scelta o a una guardia."
 };
 
-const PLAYABLE_KINDS = new Set<RoomNode["kind"]>(["entrance", "room", "secret", "service", "stairs"]);
+const PLAYABLE_KINDS = new Set<RoomNode["kind"]>([
+  "entrance",
+  "room",
+  "secret",
+  "service",
+  "stairs"
+]);
 
 const ROLE_TAG_PREFIX = "role-";
 
@@ -52,7 +66,11 @@ const ROLE_TAG_PREFIX = "role-";
 export function inferRoomRole(room: RoomNode): TacticalRole {
   const explicit = room.tags
     .map((tag) => tag.toLowerCase())
-    .find((tag) => tag.startsWith(ROLE_TAG_PREFIX) && ROLE_VALUES.includes(tag.slice(ROLE_TAG_PREFIX.length) as TacticalRole));
+    .find(
+      (tag) =>
+        tag.startsWith(ROLE_TAG_PREFIX) &&
+        ROLE_VALUES.includes(tag.slice(ROLE_TAG_PREFIX.length) as TacticalRole)
+    );
 
   if (explicit) {
     return explicit.slice(ROLE_TAG_PREFIX.length) as TacticalRole;
@@ -84,15 +102,27 @@ export function inferRoomRole(room: RoomNode): TacticalRole {
     return "treasure";
   }
 
-  if (/altar|shrine|chapel|cappella|temple|tempio|library|biblioteca|puzzle|enigma|rune|sigil/u.test(haystack)) {
+  if (
+    /altar|shrine|chapel|cappella|temple|tempio|library|biblioteca|puzzle|enigma|rune|sigil/u.test(
+      haystack
+    )
+  ) {
     return "puzzle";
   }
 
-  if (/water|acqua|river|fiume|flood|pit|trap|trappola|hazard|lava|pozzo/u.test(haystack)) {
+  if (
+    /water|acqua|river|fiume|flood|pit|trap|trappola|hazard|lava|pozzo/u.test(
+      haystack
+    )
+  ) {
     return "hazard";
   }
 
-  if (/tavern|taverna|inn|market|mercato|social|hall|salone|quarters|alloggi|square|piazza/u.test(haystack)) {
+  if (
+    /tavern|taverna|inn|market|mercato|social|hall|salone|quarters|alloggi|square|piazza/u.test(
+      haystack
+    )
+  ) {
     return "social";
   }
 
@@ -116,7 +146,9 @@ function roomCenter(room: RoomNode): { x: number; y: number } {
  * given document (ids derive from room ids, no randomness or timestamps).
  */
 export function generateRoomRoleNotes(document: MapDocument): MapNote[] {
-  const rooms = (document.plan?.rooms ?? []).filter((room) => PLAYABLE_KINDS.has(room.kind));
+  const rooms = (document.plan?.rooms ?? []).filter((room) =>
+    PLAYABLE_KINDS.has(room.kind)
+  );
 
   return rooms.map((room) => {
     const role = inferRoomRole(room);
@@ -142,7 +174,9 @@ export function withRoomRoleNotes(document: MapDocument): MapDocument {
 
   const generated = generateRoomRoleNotes(document);
   const generatedIds = new Set(generated.map((note) => note.id));
-  const preserved = document.plan.gmNotes.filter((note) => !generatedIds.has(note.id));
+  const preserved = document.plan.gmNotes.filter(
+    (note) => !generatedIds.has(note.id)
+  );
 
   return {
     ...document,

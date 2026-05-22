@@ -28,7 +28,10 @@ export function NewCampaignForm() {
         headers: { "Content-Type": "application/json" },
         method: "POST"
       });
-      const payload = (await response.json()) as { campaign?: { id: string }; error?: string };
+      const payload = (await response.json()) as {
+        campaign?: { id: string };
+        error?: string;
+      };
 
       if (!response.ok || !payload.campaign) {
         throw new Error(payload.error ?? "Impossibile creare la campagna.");
@@ -36,7 +39,11 @@ export function NewCampaignForm() {
 
       router.push(`/campaigns/${payload.campaign.id}`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Impossibile creare la campagna.");
+      setStatus(
+        error instanceof Error
+          ? error.message
+          : "Impossibile creare la campagna."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -47,15 +54,27 @@ export function NewCampaignForm() {
       <h2>Nuova campagna</h2>
       <label className="field">
         <span>Nome</span>
-        <input onChange={(event) => setName(event.target.value)} placeholder="Boschi Sussurranti" value={name} />
+        <input
+          onChange={(event) => setName(event.target.value)}
+          placeholder="Boschi Sussurranti"
+          value={name}
+        />
       </label>
       <label className="field">
         <span>Descrizione (facoltativa)</span>
-        <textarea onChange={(event) => setDescription(event.target.value)} rows={3} value={description} />
+        <textarea
+          onChange={(event) => setDescription(event.target.value)}
+          rows={3}
+          value={description}
+        />
       </label>
       <label className="field">
         <span>Tag (separati da virgola)</span>
-        <input onChange={(event) => setTags(event.target.value)} placeholder="hexcrawl, level-5" value={tags} />
+        <input
+          onChange={(event) => setTags(event.target.value)}
+          placeholder="hexcrawl, level-5"
+          value={tags}
+        />
       </label>
       <button
         className="save-correction"

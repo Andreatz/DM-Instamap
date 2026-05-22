@@ -59,10 +59,19 @@ export type MultiFloorDungeon = {
 export function generateCaveDungeon(options: CaveDungeonOptions): MapDocument {
   const width = Math.max(16, Math.floor(options.widthCells));
   const height = Math.max(16, Math.floor(options.heightCells));
-  const iterations = Math.max(1, Math.min(8, Math.floor(options.iterations ?? 5)));
+  const iterations = Math.max(
+    1,
+    Math.min(8, Math.floor(options.iterations ?? 5))
+  );
   const fillProbability = clamp(options.fillProbability ?? 0.45, 0.3, 0.6);
   const rng = createRandom(options.seed ?? "cave");
-  const grid = createCellularAutomataGrid(width, height, fillProbability, iterations, rng);
+  const grid = createCellularAutomataGrid(
+    width,
+    height,
+    fillProbability,
+    iterations,
+    rng
+  );
   const largest = keepLargestFloorRegion(grid);
   const entrance = pickEntranceOnEdge(largest, rng);
 
@@ -130,13 +139,20 @@ export function generateCaveDungeon(options: CaveDungeonOptions): MapDocument {
 export function generateVillageMap(options: VillageMapOptions): MapDocument {
   const width = Math.max(20, Math.floor(options.widthCells));
   const height = Math.max(20, Math.floor(options.heightCells));
-  const blockCount = Math.max(3, Math.min(24, Math.floor(options.blockCount ?? 6)));
+  const blockCount = Math.max(
+    3,
+    Math.min(24, Math.floor(options.blockCount ?? 6))
+  );
   const rng = createRandom(options.seed ?? "village");
   const grid: TileKind[][] = Array.from({ length: height }, () =>
     Array.from({ length: width }, () => "floor" as TileKind)
   );
   const blocks = subdivideBlocks({ width, height }, blockCount, rng);
-  const buildings: Array<{ bounds: { x: number; y: number; width: number; height: number }; id: string; label: string }> = [];
+  const buildings: Array<{
+    bounds: { x: number; y: number; width: number; height: number };
+    id: string;
+    label: string;
+  }> = [];
   const doors: DoorSegment[] = [];
   const rooms: RoomNode[] = [];
 
@@ -153,7 +169,8 @@ export function generateVillageMap(options: VillageMapOptions): MapDocument {
 
     for (let y = by; y < by + bh; y += 1) {
       for (let x = bx; x < bx + bw; x += 1) {
-        const isWall = x === bx || y === by || x === bx + bw - 1 || y === by + bh - 1;
+        const isWall =
+          x === bx || y === by || x === bx + bw - 1 || y === by + bh - 1;
         setTile(grid, x, y, isWall ? "wall" : "floor");
       }
     }
@@ -175,7 +192,11 @@ export function generateVillageMap(options: VillageMapOptions): MapDocument {
       });
     }
 
-    buildings.push({ bounds: { height: bh, width: bw, x: bx, y: by }, id, label });
+    buildings.push({
+      bounds: { height: bh, width: bw, x: bx, y: by },
+      id,
+      label
+    });
     rooms.push({
       bounds: { height: bh, width: bw, x: bx, y: by },
       connections: [],
@@ -206,11 +227,16 @@ export function generateVillageMap(options: VillageMapOptions): MapDocument {
   });
 }
 
-export function generateMultiFloorDungeon(options: MultiFloorDungeonOptions): MultiFloorDungeon {
+export function generateMultiFloorDungeon(
+  options: MultiFloorDungeonOptions
+): MultiFloorDungeon {
   const floorCount = Math.max(2, Math.min(6, Math.floor(options.floorCount)));
   const rng = createRandom(options.seed ?? "multi-floor");
   const seedString = String(options.seed ?? "multi-floor");
-  const roomCount = Math.max(4, Math.min(16, Math.floor(options.perFloorRoomCount ?? 6)));
+  const roomCount = Math.max(
+    4,
+    Math.min(16, Math.floor(options.perFloorRoomCount ?? 6))
+  );
   const floors: MapDocument[] = [];
   const links: MultiFloorDungeon["links"] = [];
 
@@ -382,13 +408,19 @@ function generateDungeonForFloor(input: {
       }
     }
 
-    const id = carved.length === 0 ? "room-entrance" : `room-${input.floorIndex + 1}-${carved.length + 1}`;
+    const id =
+      carved.length === 0
+        ? "room-entrance"
+        : `room-${input.floorIndex + 1}-${carved.length + 1}`;
     rooms.push({
       bounds: { height: roomHeight, width: roomWidth, x, y },
       connections: [],
       id,
       kind: carved.length === 0 ? "entrance" : "room",
-      label: carved.length === 0 ? `Floor ${input.floorIndex + 1} Entrance` : `Floor ${input.floorIndex + 1} Room ${carved.length + 1}`,
+      label:
+        carved.length === 0
+          ? `Floor ${input.floorIndex + 1} Entrance`
+          : `Floor ${input.floorIndex + 1} Room ${carved.length + 1}`,
       tags: unique([
         "multi-floor",
         `floor-${input.floorIndex + 1}`,
@@ -404,9 +436,21 @@ function generateDungeonForFloor(input: {
   }
 
   for (let index = 0; index < carved.length - 1; index += 1) {
-    const from = carved[index] as { centerX: number; centerY: number; id: string };
-    const to = carved[index + 1] as { centerX: number; centerY: number; id: string };
-    carveCorridor(grid, { x: from.centerX, y: from.centerY }, { x: to.centerX, y: to.centerY });
+    const from = carved[index] as {
+      centerX: number;
+      centerY: number;
+      id: string;
+    };
+    const to = carved[index + 1] as {
+      centerX: number;
+      centerY: number;
+      id: string;
+    };
+    carveCorridor(
+      grid,
+      { x: from.centerX, y: from.centerY },
+      { x: to.centerX, y: to.centerY }
+    );
     const fromRoom = rooms[index] as RoomNode;
     const toRoom = rooms[index + 1] as RoomNode;
     fromRoom.connections = unique([...fromRoom.connections, to.id]);
@@ -435,8 +479,11 @@ function createCellularAutomataGrid(
 ): TileKind[][] {
   let grid: TileKind[][] = Array.from({ length: height }, (_, y) =>
     Array.from({ length: width }, (__, x) => {
-      const isBorder = x === 0 || y === 0 || x === width - 1 || y === height - 1;
-      return (isBorder || rng() < fillProbability ? "wall" : "floor") as TileKind;
+      const isBorder =
+        x === 0 || y === 0 || x === width - 1 || y === height - 1;
+      return (
+        isBorder || rng() < fillProbability ? "wall" : "floor"
+      ) as TileKind;
     })
   );
 
@@ -490,7 +537,9 @@ function countWallNeighbors(grid: TileKind[][], x: number, y: number): number {
 function keepLargestFloorRegion(grid: TileKind[][]): TileKind[][] {
   const height = grid.length;
   const width = grid[0]?.length ?? 0;
-  const seen: boolean[][] = Array.from({ length: height }, () => Array.from({ length: width }, () => false));
+  const seen: boolean[][] = Array.from({ length: height }, () =>
+    Array.from({ length: width }, () => false)
+  );
   let bestRegion: Array<{ x: number; y: number }> = [];
 
   for (let y = 0; y < height; y += 1) {
@@ -546,7 +595,10 @@ function floodFillFloor(
   return region;
 }
 
-function pickEntranceOnEdge(grid: TileKind[][], rng: () => number): { x: number; y: number } | null {
+function pickEntranceOnEdge(
+  grid: TileKind[][],
+  rng: () => number
+): { x: number; y: number } | null {
   const height = grid.length;
   const width = grid[0]?.length ?? 0;
   const candidates: Array<{ x: number; y: number }> = [];
@@ -627,12 +679,13 @@ function subdivideBlocks(
   blockCount: number,
   rng: () => number
 ): Array<{ height: number; width: number; x: number; y: number }> {
-  const blocks: Array<{ height: number; width: number; x: number; y: number }> = [
-    { height: area.height, width: area.width, x: 0, y: 0 }
-  ];
+  const blocks: Array<{ height: number; width: number; x: number; y: number }> =
+    [{ height: area.height, width: area.width, x: 0, y: 0 }];
 
   while (blocks.length < blockCount) {
-    blocks.sort((left, right) => right.width * right.height - left.width * left.height);
+    blocks.sort(
+      (left, right) => right.width * right.height - left.width * left.height
+    );
     const target = blocks.shift();
 
     if (!target || (target.width < 8 && target.height < 8)) {
@@ -642,11 +695,20 @@ function subdivideBlocks(
       break;
     }
 
-    const splitVertical = target.width >= target.height ? rng() < 0.7 : rng() < 0.3;
+    const splitVertical =
+      target.width >= target.height ? rng() < 0.7 : rng() < 0.3;
 
     if (splitVertical && target.width >= 8) {
-      const splitAt = Math.max(4, Math.floor(target.width * (0.35 + rng() * 0.3)));
-      blocks.push({ height: target.height, width: splitAt, x: target.x, y: target.y });
+      const splitAt = Math.max(
+        4,
+        Math.floor(target.width * (0.35 + rng() * 0.3))
+      );
+      blocks.push({
+        height: target.height,
+        width: splitAt,
+        x: target.x,
+        y: target.y
+      });
       blocks.push({
         height: target.height,
         width: target.width - splitAt,
@@ -654,8 +716,16 @@ function subdivideBlocks(
         y: target.y
       });
     } else if (target.height >= 8) {
-      const splitAt = Math.max(4, Math.floor(target.height * (0.35 + rng() * 0.3)));
-      blocks.push({ height: splitAt, width: target.width, x: target.x, y: target.y });
+      const splitAt = Math.max(
+        4,
+        Math.floor(target.height * (0.35 + rng() * 0.3))
+      );
+      blocks.push({
+        height: splitAt,
+        width: target.width,
+        x: target.x,
+        y: target.y
+      });
       blocks.push({
         height: target.height - splitAt,
         width: target.width,
@@ -714,11 +784,20 @@ function areBlocksAdjacent(
   return horizontalTouch || verticalTouch;
 }
 
-function pickStairsHostRoom(document: MapDocument, rng: () => number, direction: "up" | "down"): RoomNode | null {
-  const candidates = (document.plan?.rooms ?? []).filter((room) => room.kind === "room");
+function pickStairsHostRoom(
+  document: MapDocument,
+  rng: () => number,
+  direction: "up" | "down"
+): RoomNode | null {
+  const candidates = (document.plan?.rooms ?? []).filter(
+    (room) => room.kind === "room"
+  );
 
   if (candidates.length === 0) {
-    return (document.plan?.rooms ?? []).find((room) => room.kind === "entrance") ?? null;
+    return (
+      (document.plan?.rooms ?? []).find((room) => room.kind === "entrance") ??
+      null
+    );
   }
 
   if (direction === "down") {
@@ -742,11 +821,18 @@ function pickPointInRoomBounds(room: RoomNode): {
   };
 }
 
-function scatterTreesPoisson(grid: TileKind[][], density: number, rng: () => number): void {
+function scatterTreesPoisson(
+  grid: TileKind[][],
+  density: number,
+  rng: () => number
+): void {
   const height = grid.length;
   const width = grid[0]?.length ?? 0;
   const targetCount = Math.floor(width * height * density);
-  const minDistance = Math.max(1, Math.floor(Math.sqrt(1 / Math.max(density, 0.05))));
+  const minDistance = Math.max(
+    1,
+    Math.floor(Math.sqrt(1 / Math.max(density, 0.05)))
+  );
   const placed: Array<{ x: number; y: number }> = [];
   let attempts = 0;
   const maxAttempts = targetCount * 30;
@@ -756,7 +842,9 @@ function scatterTreesPoisson(grid: TileKind[][], density: number, rng: () => num
     const x = Math.floor(rng() * width);
     const y = Math.floor(rng() * height);
     const collision = placed.some(
-      (point) => Math.abs(point.x - x) < minDistance && Math.abs(point.y - y) < minDistance
+      (point) =>
+        Math.abs(point.x - x) < minDistance &&
+        Math.abs(point.y - y) < minDistance
     );
 
     if (collision) {
@@ -776,7 +864,9 @@ function carveRiver(
   const height = grid.length;
   const width = grid[0]?.length ?? 0;
   const horizontal = rng() < 0.5;
-  const baseLine = Math.floor((horizontal ? height : width) * (0.3 + rng() * 0.4));
+  const baseLine = Math.floor(
+    (horizontal ? height : width) * (0.3 + rng() * 0.4)
+  );
   const length = horizontal ? width : height;
   let drift = 0;
 
@@ -789,7 +879,12 @@ function carveRiver(
     setTile(grid, x, y, "wall");
 
     if (main - 1 >= 0 && rng() < 0.5) {
-      setTile(grid, horizontal ? step : main - 1, horizontal ? main - 1 : step, "wall");
+      setTile(
+        grid,
+        horizontal ? step : main - 1,
+        horizontal ? main - 1 : step,
+        "wall"
+      );
     }
   }
 
@@ -944,7 +1039,13 @@ function carveCorridor(
   }
 }
 
-function isAreaOccupied(grid: TileKind[][], x: number, y: number, width: number, height: number): boolean {
+function isAreaOccupied(
+  grid: TileKind[][],
+  x: number,
+  y: number,
+  width: number,
+  height: number
+): boolean {
   for (let yy = y; yy < y + height; yy += 1) {
     for (let xx = x; xx < x + width; xx += 1) {
       if (grid[yy]?.[xx] === "floor") {
@@ -956,7 +1057,12 @@ function isAreaOccupied(grid: TileKind[][], x: number, y: number, width: number,
   return false;
 }
 
-function setTile(grid: TileKind[][], x: number, y: number, kind: TileKind): void {
+function setTile(
+  grid: TileKind[][],
+  x: number,
+  y: number,
+  kind: TileKind
+): void {
   if (!grid[y] || grid[y]?.[x] === undefined) {
     return;
   }

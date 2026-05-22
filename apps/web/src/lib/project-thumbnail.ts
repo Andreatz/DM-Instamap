@@ -19,7 +19,10 @@ const DEFAULT_CELL = 8;
  * run-length merged per row so even large grids stay compact, and no
  * user-controlled text is emitted, so the result is safe to inline.
  */
-export function buildProjectThumbnailSvg(document: MapDocument, options: ProjectThumbnailOptions = {}): string {
+export function buildProjectThumbnailSvg(
+  document: MapDocument,
+  options: ProjectThumbnailOptions = {}
+): string {
   const cell = options.cell ?? DEFAULT_CELL;
   const width = Math.max(1, document.width);
   const height = Math.max(1, document.height);
@@ -45,7 +48,9 @@ export function buildProjectThumbnailSvg(document: MapDocument, options: Project
 
       const color = TILE_COLORS[runKind];
       const runWidth = (endX - runStart) * cell;
-      rects.push(`<rect x="${runStart * cell}" y="${y * cell}" width="${runWidth}" height="${cell}" fill="${color}"/>`);
+      rects.push(
+        `<rect x="${runStart * cell}" y="${y * cell}" width="${runWidth}" height="${cell}" fill="${color}"/>`
+      );
     };
 
     for (let x = 0; x < width; x += 1) {
@@ -61,7 +66,9 @@ export function buildProjectThumbnailSvg(document: MapDocument, options: Project
     flush(width);
   }
 
-  const rooms = (document.plan?.rooms ?? []).filter((room) => room.kind === "room" || room.kind === "entrance");
+  const rooms = (document.plan?.rooms ?? []).filter(
+    (room) => room.kind === "room" || room.kind === "entrance"
+  );
   const roomOutlines = rooms.map(
     (room) =>
       `<rect x="${room.bounds.x * cell}" y="${room.bounds.y * cell}" width="${room.bounds.width * cell}" height="${room.bounds.height * cell}" fill="none" stroke="${ROOM_STROKE}" stroke-width="1"/>`

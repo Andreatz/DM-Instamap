@@ -72,7 +72,11 @@ describe("map editor helpers", () => {
 
   it("moves, duplicates, deletes, copies and pastes selected asset sets", () => {
     const first = addPlacedAsset(document, paletteAsset, { x: 4, y: 5 });
-    const second = addPlacedAsset(first, { ...paletteAsset, id: "asset-chair", name: "Chair" }, { x: 7, y: 8 });
+    const second = addPlacedAsset(
+      first,
+      { ...paletteAsset, id: "asset-chair", name: "Chair" },
+      { x: 7, y: 8 }
+    );
     const selectedIds = second.assets.map((asset) => asset.id);
 
     const moved = movePlacedAssets(second, selectedIds, { x: 1, y: -1 });
@@ -85,14 +89,22 @@ describe("map editor helpers", () => {
     expect(duplicated.assets).toHaveLength(4);
 
     const clipboard = createPlacedAssetClipboard(second, selectedIds);
-    const pasted = pastePlacedAssetClipboard(document, clipboard, { x: 2, y: 2 });
+    const pasted = pastePlacedAssetClipboard(document, clipboard, {
+      x: 2,
+      y: 2
+    });
     expect(pasted.pastedIds).toHaveLength(2);
     expect(pasted.document.assets.map((asset) => asset.position)).toEqual([
       { x: 6, y: 7 },
       { x: 9, y: 10 }
     ]);
 
-    const selectedInBounds = selectPlacedAssetsInBounds(second, { maxX: 8, maxY: 9, minX: 3, minY: 4 });
+    const selectedInBounds = selectPlacedAssetsInBounds(second, {
+      maxX: 8,
+      maxY: 9,
+      minX: 3,
+      minY: 4
+    });
     expect(selectedInBounds).toEqual(selectedIds);
 
     const deleted = deletePlacedAssets(second, selectedIds);
@@ -101,15 +113,27 @@ describe("map editor helpers", () => {
 
   it("groups and ungroups selected asset sets", () => {
     const first = addPlacedAsset(document, paletteAsset, { x: 4, y: 5 });
-    const second = addPlacedAsset(first, { ...paletteAsset, id: "asset-chair", name: "Chair" }, { x: 7, y: 8 });
+    const second = addPlacedAsset(
+      first,
+      { ...paletteAsset, id: "asset-chair", name: "Chair" },
+      { x: 7, y: 8 }
+    );
     const selectedIds = second.assets.map((asset) => asset.id);
     const grouped = groupPlacedAssets(second, selectedIds);
 
     expect(grouped.groupId).toBeTruthy();
-    expect(grouped.document.assets.every((asset) => asset.groupId === grouped.groupId)).toBe(true);
+    expect(
+      grouped.document.assets.every(
+        (asset) => asset.groupId === grouped.groupId
+      )
+    ).toBe(true);
 
-    const ungrouped = ungroupPlacedAssets(grouped.document, [selectedIds[0] ?? ""]);
-    expect(ungrouped.assets.every((asset) => asset.groupId === undefined)).toBe(true);
+    const ungrouped = ungroupPlacedAssets(grouped.document, [
+      selectedIds[0] ?? ""
+    ]);
+    expect(ungrouped.assets.every((asset) => asset.groupId === undefined)).toBe(
+      true
+    );
   });
 
   it("updates lights and computes line-of-sight visible cells", () => {
@@ -135,9 +159,16 @@ describe("map editor helpers", () => {
   });
 
   it("adds, updates and deletes GM notes and initiative entries", () => {
-    const withNote = addMapNote(document, { x: 4, y: 5 }, "Secret door behind the altar", "Secret");
+    const withNote = addMapNote(
+      document,
+      { x: 4, y: 5 },
+      "Secret door behind the altar",
+      "Secret"
+    );
     const noteId = withNote.plan?.gmNotes[0]?.id ?? "";
-    const updatedNote = updateMapNote(withNote, noteId, { text: "Trapdoor behind the altar" });
+    const updatedNote = updateMapNote(withNote, noteId, {
+      text: "Trapdoor behind the altar"
+    });
     const withoutNote = deleteMapNote(updatedNote, noteId);
 
     const withInitiative = addInitiativeEntry(withoutNote, {
@@ -148,12 +179,20 @@ describe("map editor helpers", () => {
       side: "enemy"
     });
     const entryId = withInitiative.plan?.initiative[0]?.id ?? "";
-    const updatedInitiative = updateInitiativeEntry(withInitiative, entryId, { hitPoints: 8, initiative: 18 });
+    const updatedInitiative = updateInitiativeEntry(withInitiative, entryId, {
+      hitPoints: 8,
+      initiative: 18
+    });
     const withoutInitiative = deleteInitiativeEntry(updatedInitiative, entryId);
 
-    expect(updatedNote.plan?.gmNotes[0]?.text).toBe("Trapdoor behind the altar");
+    expect(updatedNote.plan?.gmNotes[0]?.text).toBe(
+      "Trapdoor behind the altar"
+    );
     expect(withoutNote.plan?.gmNotes).toHaveLength(0);
-    expect(updatedInitiative.plan?.initiative[0]).toMatchObject({ hitPoints: 8, initiative: 18 });
+    expect(updatedInitiative.plan?.initiative[0]).toMatchObject({
+      hitPoints: 8,
+      initiative: 18
+    });
     expect(withoutInitiative.plan?.initiative).toHaveLength(0);
   });
 
@@ -165,7 +204,11 @@ describe("map editor helpers", () => {
       rotation: 375,
       scale: 2.25
     });
-    const relayered = updatePlacedAssetLayer(transformed, placedId, "annotation");
+    const relayered = updatePlacedAssetLayer(
+      transformed,
+      placedId,
+      "annotation"
+    );
     const duplicated = duplicatePlacedAsset(relayered, placedId);
 
     expect(transformed.assets[0]).toMatchObject({
@@ -202,7 +245,9 @@ describe("map editor helpers", () => {
   });
 
   it("finds a room at a cell position", () => {
-    const entrance = document.plan?.rooms.find((room) => room.id === "room-entrance");
+    const entrance = document.plan?.rooms.find(
+      (room) => room.id === "room-entrance"
+    );
 
     expect(entrance).toBeTruthy();
     expect(
@@ -223,10 +268,17 @@ describe("map editor helpers", () => {
 
   it("paints cells and keeps the MapDocument valid", () => {
     const paintedFloor = setTileKind(document, { x: 1, y: 1 }, "floor");
-    expect(paintedFloor.tiles.find((tile) => tile.x === 1 && tile.y === 1)?.kind).toBe("floor");
+    expect(
+      paintedFloor.tiles.find((tile) => tile.x === 1 && tile.y === 1)?.kind
+    ).toBe("floor");
 
-    const paintedWall = updateDocumentForTool(paintedFloor, "paint-wall", { x: 1, y: 1 });
-    expect(paintedWall.tiles.find((tile) => tile.x === 1 && tile.y === 1)?.kind).toBe("wall");
+    const paintedWall = updateDocumentForTool(paintedFloor, "paint-wall", {
+      x: 1,
+      y: 1
+    });
+    expect(
+      paintedWall.tiles.find((tile) => tile.x === 1 && tile.y === 1)?.kind
+    ).toBe("wall");
 
     const unchanged = setTileKind(document, { x: -1, y: 1 }, "floor");
     expect(unchanged).toBe(document);
@@ -234,24 +286,38 @@ describe("map editor helpers", () => {
 
   it("adds doors and lights through canvas tools", () => {
     const withDoor = addDoorAtCell(document, { x: 2, y: 2 });
-    expect(withDoor.plan?.doors).toHaveLength((document.plan?.doors.length ?? 0) + 1);
-    expect(withDoor.tiles.find((tile) => tile.x === 2 && tile.y === 2)?.kind).toBe("door");
+    expect(withDoor.plan?.doors).toHaveLength(
+      (document.plan?.doors.length ?? 0) + 1
+    );
+    expect(
+      withDoor.tiles.find((tile) => tile.x === 2 && tile.y === 2)?.kind
+    ).toBe("door");
 
     const withLight = addLightAtCell(withDoor, { x: 3, y: 3 });
-    expect(withLight.plan?.lights).toHaveLength((withDoor.plan?.lights.length ?? 0) + 1);
+    expect(withLight.plan?.lights).toHaveLength(
+      (withDoor.plan?.lights.length ?? 0) + 1
+    );
   });
 
   it("selects assets, doors, lights, and rooms by cell", () => {
     const withAsset = addPlacedAsset(document, paletteAsset, { x: 4, y: 5 });
-    expect(selectElementAtCell(withAsset, { x: 4, y: 5 })).toMatchObject({ type: "asset" });
+    expect(selectElementAtCell(withAsset, { x: 4, y: 5 })).toMatchObject({
+      type: "asset"
+    });
 
     const withDoor = addDoorAtCell(withAsset, { x: 6, y: 6 });
-    expect(selectElementAtCell(withDoor, { x: 6, y: 6 })).toMatchObject({ type: "door" });
+    expect(selectElementAtCell(withDoor, { x: 6, y: 6 })).toMatchObject({
+      type: "door"
+    });
 
     const withLight = addLightAtCell(withDoor, { x: 7, y: 7 });
-    expect(selectElementAtCell(withLight, { x: 7, y: 7 })).toMatchObject({ type: "light" });
+    expect(selectElementAtCell(withLight, { x: 7, y: 7 })).toMatchObject({
+      type: "light"
+    });
 
-    const entrance = document.plan?.rooms.find((room) => room.id === "room-entrance");
+    const entrance = document.plan?.rooms.find(
+      (room) => room.id === "room-entrance"
+    );
     expect(
       selectElementAtCell(document, {
         x: entrance?.bounds.x ?? 0,

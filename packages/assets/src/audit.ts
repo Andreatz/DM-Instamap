@@ -55,7 +55,11 @@ export type AssetDuplicateGroup = {
 export type AssetAuditWarning = {
   assetId?: string;
   message: string;
-  type: "classification_conflict" | "missing_metadata" | "low_confidence" | "low_quality";
+  type:
+    | "classification_conflict"
+    | "missing_metadata"
+    | "low_confidence"
+    | "low_quality";
 };
 
 export type AssetAuditFile = {
@@ -87,9 +91,15 @@ export function createVisualHash(asset: AuditableAsset): string {
   const width = readNullableNumber(asset.width);
   const height = readNullableNumber(asset.height);
   const aspectBucket = createAspectBucket(width, height);
-  const colors = readDominantColorHexes(asset.dominantColors).slice(0, 3).join("+") || "no-colors";
+  const colors =
+    readDominantColorHexes(asset.dominantColors).slice(0, 3).join("+") ||
+    "no-colors";
   const transparency =
-    typeof asset.hasTransparency === "boolean" ? (asset.hasTransparency ? "alpha" : "opaque") : "alpha-unknown";
+    typeof asset.hasTransparency === "boolean"
+      ? asset.hasTransparency
+        ? "alpha"
+        : "opaque"
+      : "alpha-unknown";
 
   return [aspectBucket, transparency, colors].join("|");
 }
@@ -128,7 +138,9 @@ export function calculateAssetQualityScore(asset: AuditableAsset): {
   };
 }
 
-export function findDuplicateGroups(assets: AuditableAsset[]): AssetDuplicateGroup[] {
+export function findDuplicateGroups(
+  assets: AuditableAsset[]
+): AssetDuplicateGroup[] {
   const exactGroups = groupByKey(assets, (asset) => readString(asset.fileHash));
   const visualGroups = groupByKey(assets, (asset) => createVisualHash(asset));
   const groups: AssetDuplicateGroup[] = [];
@@ -149,13 +161,20 @@ export function findDuplicateGroups(assets: AuditableAsset[]): AssetDuplicateGro
       reason: "file-hash",
       visualHash: createVisualHash(group[0] as AuditableAsset)
     });
-    assetIds.forEach((assetId) => seenIds.add(assetId));
+    for (const assetId of assetIds) {
+      seenIds.add(assetId);
+    }
   }
 
   for (const [visualHash, group] of visualGroups) {
-    const groupAssetIds = readAssetIds(group).filter((assetId) => !seenIds.has(assetId));
+    const groupAssetIds = readAssetIds(group).filter(
+      (assetId) => !seenIds.has(assetId)
+    );
 
-    if (visualHash === "unknown-aspect|alpha-unknown|no-colors" || groupAssetIds.length < 2) {
+    if (
+      visualHash === "unknown-aspect|alpha-unknown|no-colors" ||
+      groupAssetIds.length < 2
+    ) {
       continue;
     }
 
@@ -169,7 +188,11 @@ export function findDuplicateGroups(assets: AuditableAsset[]): AssetDuplicateGro
     });
   }
 
-  return groups.sort((left, right) => right.assetIds.length - left.assetIds.length || left.id.localeCompare(right.id));
+  return groups.sort(
+    (left, right) =>
+      right.assetIds.length - left.assetIds.length ||
+      left.id.localeCompare(right.id)
+  );
 }
 
 export function buildAssetReviewQueue(
@@ -185,8 +208,12 @@ export function buildAssetReviewQueue(
     .slice(0, REVIEW_QUEUE_LIMIT);
 }
 
-export async function auditAssets(options: AssetAuditOptions = {}): Promise<AssetAuditFile> {
-  const outputRoot = options.outputRoot ? path.resolve(options.outputRoot) : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
+export async function auditAssets(
+  options: AssetAuditOptions = {}
+): Promise<AssetAuditFile> {
+  const outputRoot = options.outputRoot
+    ? path.resolve(options.outputRoot)
+    : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
   const indexRoot = options.outputRoot
     ? path.resolve(outputRoot, DEFAULT_DATA_DIRECTORY, DEFAULT_INDEX_DIRECTORY)
     : path.resolve(outputRoot, DEFAULT_INDEX_DIRECTORY);
@@ -196,23 +223,35 @@ export async function auditAssets(options: AssetAuditOptions = {}): Promise<Asse
   const auditPath = options.auditPath
     ? path.resolve(outputRoot, options.auditPath)
     : path.join(indexRoot, DEFAULT_AUDIT_FILE);
-  const manifest = parseJsonFile(await readFile(manifestPath, "utf8")) as { assets?: unknown };
-  const assets = Array.isArray(manifest.assets) ? (manifest.assets as AuditableAsset[]) : [];
+  const manifest = parseJsonFile(await readFile(manifestPath, "utf8")) as {
+    assets?: unknown;
+  };
+  const assets = Array.isArray(manifest.assets)
+    ? (manifest.assets as AuditableAsset[])
+    : [];
   const duplicateGroups = findDuplicateGroups(assets);
   const duplicateLookup = createDuplicateLookup(duplicateGroups);
-  const entries = assets.map((asset) => createAuditEntry(asset, duplicateLookup));
+  const entries = assets.map((asset) =>
+    createAuditEntry(asset, duplicateLookup)
+  );
   const reviewQueue = entries
     .filter((entry) => entry.reviewPriority !== "low")
     .sort(compareAuditEntries)
     .slice(0, REVIEW_QUEUE_LIMIT);
   const audit: AssetAuditFile = {
     assetCount: assets.length,
-    classificationWarnings: buildClassificationWarnings(entries, duplicateGroups),
+    classificationWarnings: buildClassificationWarnings(
+      entries,
+      duplicateGroups
+    ),
     duplicateGroupCount: duplicateGroups.length,
     duplicateGroups,
     generatedAt: new Date().toISOString(),
-    lowQualityCount: entries.filter((entry) => entry.qualityScore < LOW_QUALITY_THRESHOLD).length,
-    needsReviewCount: entries.filter((entry) => entry.reviewPriority !== "low").length,
+    lowQualityCount: entries.filter(
+      (entry) => entry.qualityScore < LOW_QUALITY_THRESHOLD
+    ).length,
+    needsReviewCount: entries.filter((entry) => entry.reviewPriority !== "low")
+      .length,
     reviewQueue,
     version: 1
   };
@@ -253,7 +292,9 @@ function createAuditEntry(
 ): AssetAuditEntry {
   const id = readString(asset.id);
   const relativePath = readString(asset.relativePath);
-  const classification = normalizeClassification(readString(asset.classification));
+  const classification = normalizeClassification(
+    readString(asset.classification)
+  );
   const confidence = readConfidence(asset.confidence);
   const visualHash = createVisualHash(asset);
   const duplicate = duplicateLookup.get(id) ?? null;
@@ -289,7 +330,9 @@ function buildReviewReasons(
   duplicate: { confidence: number; id: string } | null
 ): string[] {
   const reasons: string[] = [];
-  const classification = normalizeClassification(readString(asset.classification));
+  const classification = normalizeClassification(
+    readString(asset.classification)
+  );
   const confidence = readConfidence(asset.confidence);
   const tags = readStringArray(asset.tags);
 
@@ -330,7 +373,9 @@ function calculateReviewPriority(input: {
   qualityScore: number;
   reasons: string[];
 }): ReviewPriority {
-  const classification = normalizeClassification(readString(input.asset.classification));
+  const classification = normalizeClassification(
+    readString(input.asset.classification)
+  );
   const confidence = readConfidence(input.asset.confidence);
 
   if (
@@ -341,7 +386,11 @@ function calculateReviewPriority(input: {
     return "critical";
   }
 
-  if (confidence < 0.35 || input.qualityScore < LOW_QUALITY_THRESHOLD || input.reasons.includes("missing_tags")) {
+  if (
+    confidence < 0.35 ||
+    input.qualityScore < LOW_QUALITY_THRESHOLD ||
+    input.reasons.includes("missing_tags")
+  ) {
     return "high";
   }
 
@@ -396,7 +445,10 @@ function buildClassificationWarnings(
   return warnings;
 }
 
-function calculateResolutionSignal(width: number | null, height: number | null): number {
+function calculateResolutionSignal(
+  width: number | null,
+  height: number | null
+): number {
   if (!width || !height) {
     return 0;
   }
@@ -423,14 +475,21 @@ function calculateResolutionSignal(width: number | null, height: number | null):
 }
 
 function calculateTransparencySignal(asset: AuditableAsset): number {
-  const classification = normalizeClassification(readString(asset.classification));
-  const hasTransparency = typeof asset.hasTransparency === "boolean" ? asset.hasTransparency : null;
+  const classification = normalizeClassification(
+    readString(asset.classification)
+  );
+  const hasTransparency =
+    typeof asset.hasTransparency === "boolean" ? asset.hasTransparency : null;
 
   if (hasTransparency === null) {
     return 0.5;
   }
 
-  if (["prop", "furniture", "door", "window", "light", "decoration"].includes(classification)) {
+  if (
+    ["prop", "furniture", "door", "window", "light", "decoration"].includes(
+      classification
+    )
+  ) {
     return hasTransparency ? 0.9 : 0.55;
   }
 
@@ -459,7 +518,9 @@ function calculateFilenameSignal(relativePath: string, tags: string[]): number {
     return 0;
   }
 
-  const meaningfulTags = tags.filter((tag) => !["asset", "assets", "pack", "creator", "with"].includes(tag));
+  const meaningfulTags = tags.filter(
+    (tag) => !["asset", "assets", "pack", "creator", "with"].includes(tag)
+  );
 
   if (meaningfulTags.length >= 3) {
     return 0.95;
@@ -472,7 +533,9 @@ function calculateFilenameSignal(relativePath: string, tags: string[]): number {
   return /[a-z]/iu.test(relativePath) ? 0.48 : 0.2;
 }
 
-function createDuplicateLookup(duplicateGroups: AssetDuplicateGroup[]): Map<string, { confidence: number; id: string }> {
+function createDuplicateLookup(
+  duplicateGroups: AssetDuplicateGroup[]
+): Map<string, { confidence: number; id: string }> {
   const lookup = new Map<string, { confidence: number; id: string }>();
 
   for (const group of duplicateGroups) {
@@ -484,7 +547,10 @@ function createDuplicateLookup(duplicateGroups: AssetDuplicateGroup[]): Map<stri
   return lookup;
 }
 
-function groupByKey<T>(items: T[], getKey: (item: T) => string): Map<string, T[]> {
+function groupByKey<T>(
+  items: T[],
+  getKey: (item: T) => string
+): Map<string, T[]> {
   const groups = new Map<string, T[]>();
 
   for (const item of items) {
@@ -498,14 +564,26 @@ function groupByKey<T>(items: T[], getKey: (item: T) => string): Map<string, T[]
 }
 
 function hasClassificationConflict(assets: AuditableAsset[]): boolean {
-  return new Set(assets.map((asset) => normalizeClassification(readString(asset.classification)))).size > 1;
+  return (
+    new Set(
+      assets.map((asset) =>
+        normalizeClassification(readString(asset.classification))
+      )
+    ).size > 1
+  );
 }
 
 function readAssetIds(assets: AuditableAsset[]): string[] {
-  return assets.map((asset) => readString(asset.id)).filter(Boolean).sort();
+  return assets
+    .map((asset) => readString(asset.id))
+    .filter(Boolean)
+    .sort();
 }
 
-function compareAuditEntries(left: AssetAuditEntry, right: AssetAuditEntry): number {
+function compareAuditEntries(
+  left: AssetAuditEntry,
+  right: AssetAuditEntry
+): number {
   const priorityRank: Record<ReviewPriority, number> = {
     critical: 4,
     high: 3,
@@ -536,7 +614,10 @@ function stableHash(value: string): string {
   return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
-function createAspectBucket(width: number | null, height: number | null): string {
+function createAspectBucket(
+  width: number | null,
+  height: number | null
+): string {
   if (!width || !height) {
     return "unknown-aspect";
   }
@@ -571,7 +652,9 @@ function readDominantColorHexes(value: unknown): string[] {
     .filter(Boolean);
 }
 
-function normalizeClassification(value: string): AssetClassification | "unknown" {
+function normalizeClassification(
+  value: string
+): AssetClassification | "unknown" {
   const known = [
     "floor",
     "wall",
@@ -591,11 +674,15 @@ function normalizeClassification(value: string): AssetClassification | "unknown"
 }
 
 function readConfidence(value: unknown): number {
-  return typeof value === "number" && Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0;
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.min(1, Math.max(0, value))
+    : 0;
 }
 
 function readNullableNumber(value: unknown): number | null {
-  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? value
+    : null;
 }
 
 function readString(value: unknown): string {
@@ -603,7 +690,9 @@ function readString(value: unknown): string {
 }
 
 function readStringArray(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }
 
 function clampScore(value: number): number {
@@ -615,5 +704,7 @@ function roundSignal(value: number): number {
 }
 
 function parseJsonFile(content: string): unknown {
-  return JSON.parse(content.charCodeAt(0) === 0xfeff ? content.slice(1) : content);
+  return JSON.parse(
+    content.charCodeAt(0) === 0xfeff ? content.slice(1) : content
+  );
 }

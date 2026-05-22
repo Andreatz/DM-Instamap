@@ -45,7 +45,10 @@ export async function PUT(request: Request, context: RouteContext) {
     }
 
     if (Array.isArray(body.tags)) {
-      patch.tags = body.tags.filter((value): value is string => typeof value === "string" && value.trim().length > 0);
+      patch.tags = body.tags.filter(
+        (value): value is string =>
+          typeof value === "string" && value.trim().length > 0
+      );
     }
 
     if (Array.isArray(body.maps)) {
@@ -53,7 +56,9 @@ export async function PUT(request: Request, context: RouteContext) {
     }
 
     if (Array.isArray(body.sessions)) {
-      patch.sessions = body.sessions as Parameters<typeof updateCampaign>[1]["sessions"];
+      patch.sessions = body.sessions as Parameters<
+        typeof updateCampaign
+      >[1]["sessions"];
     }
 
     const campaign = await updateCampaign(campaignId, patch);
@@ -82,6 +87,7 @@ function campaignErrorResponse(error: unknown): Response {
     return Response.json({ error: error.message, ok: false }, { status: 400 });
   }
 
-  const message = error instanceof Error ? error.message : "Campaign operation failed.";
+  const message =
+    error instanceof Error ? error.message : "Campaign operation failed.";
   return Response.json({ error: message, ok: false }, { status: 500 });
 }

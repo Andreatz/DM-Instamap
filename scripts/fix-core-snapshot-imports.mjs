@@ -1,4 +1,4 @@
-import { readFile, writeFile, readdir, stat } from "node:fs/promises";
+import { readFile, writeFile, readdir } from "node:fs/promises";
 import path from "node:path";
 
 const ROOT = process.cwd();
@@ -40,17 +40,15 @@ const IGNORED_DIRS = new Set([
   ".pnpm-store"
 ]);
 
-const EXTENSIONS = new Set([
-  ".ts",
-  ".tsx",
-  ".mts",
-  ".cts"
-]);
+const EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts"]);
 
 const WRITE = process.argv.includes("--write");
 
 function parseSpecifierName(specifier) {
-  const cleaned = specifier.trim().replace(/^type\s+/u, "").trim();
+  const cleaned = specifier
+    .trim()
+    .replace(/^type\s+/u, "")
+    .trim();
 
   // Esempi gestiti:
   // createMapSnapshot
@@ -65,9 +63,7 @@ function normalizeImport(specifiers, source) {
     return "";
   }
 
-  const body = specifiers
-    .map((entry) => `  ${entry.trim()}`)
-    .join(",\n");
+  const body = specifiers.map((entry) => `  ${entry.trim()}`).join(",\n");
 
   return `import {\n${body}\n} from "${source}";`;
 }
@@ -81,7 +77,7 @@ async function walk(dir) {
 
     if (entry.isDirectory()) {
       if (!IGNORED_DIRS.has(entry.name)) {
-        files.push(...await walk(fullPath));
+        files.push(...(await walk(fullPath)));
       }
       continue;
     }
@@ -155,7 +151,9 @@ for (const file of files) {
 if (changedFiles.length === 0) {
   console.log("Nessun import snapshot da correggere.");
 } else {
-  console.log(`${WRITE ? "Corretti" : "Da correggere"} ${changedFiles.length} file:`);
+  console.log(
+    `${WRITE ? "Corretti" : "Da correggere"} ${changedFiles.length} file:`
+  );
   for (const file of changedFiles) {
     console.log(`- ${file}`);
   }

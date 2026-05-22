@@ -1,7 +1,11 @@
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { classifyAsset, createAutomaticTags, type AssetClassification } from "./classifier";
+import {
+  classifyAsset,
+  createAutomaticTags,
+  type AssetClassification
+} from "./classifier";
 
 export type AssetGroupEntry = {
   assetCount: number;
@@ -78,16 +82,37 @@ type NormalizedAsset = {
 };
 
 const DEFAULT_GROUPS_PATH = path.join("data", "indexes", "asset-groups.json");
-const DEFAULT_MANIFEST_PATH = path.join("data", "indexes", "assets.manifest.json");
-const DEFAULT_OVERRIDES_PATH = path.join("data", "indexes", "asset-overrides.json");
+const DEFAULT_MANIFEST_PATH = path.join(
+  "data",
+  "indexes",
+  "assets.manifest.json"
+);
+const DEFAULT_OVERRIDES_PATH = path.join(
+  "data",
+  "indexes",
+  "asset-overrides.json"
+);
 const GROUP_TAG_LIMIT = 8;
 
-export async function groupAssets(options: AssetGroupOptions = {}): Promise<AssetGroupsFile> {
+export async function groupAssets(
+  options: AssetGroupOptions = {}
+): Promise<AssetGroupsFile> {
   const outputRoot = path.resolve(options.outputRoot ?? process.cwd());
-  const manifestPath = path.resolve(outputRoot, options.manifestPath ?? DEFAULT_MANIFEST_PATH);
-  const groupsPath = path.resolve(outputRoot, options.groupsPath ?? DEFAULT_GROUPS_PATH);
-  const overridesPath = path.resolve(outputRoot, options.overridesPath ?? DEFAULT_OVERRIDES_PATH);
-  const manifest = parseJsonFile(await readFile(manifestPath, "utf8")) as ManifestFile;
+  const manifestPath = path.resolve(
+    outputRoot,
+    options.manifestPath ?? DEFAULT_MANIFEST_PATH
+  );
+  const groupsPath = path.resolve(
+    outputRoot,
+    options.groupsPath ?? DEFAULT_GROUPS_PATH
+  );
+  const overridesPath = path.resolve(
+    outputRoot,
+    options.overridesPath ?? DEFAULT_OVERRIDES_PATH
+  );
+  const manifest = parseJsonFile(
+    await readFile(manifestPath, "utf8")
+  ) as ManifestFile;
   const overrides = await readAssetOverrides(overridesPath);
   const assets = Array.isArray(manifest.assets)
     ? manifest.assets
@@ -105,22 +130,36 @@ export async function groupAssets(options: AssetGroupOptions = {}): Promise<Asse
 
   const groups = [...grouped.entries()]
     .map(([key, groupAssetsForKey]) => createAssetGroup(key, groupAssetsForKey))
-    .sort((left, right) => left.kind.localeCompare(right.kind) || left.name.localeCompare(right.name));
+    .sort(
+      (left, right) =>
+        left.kind.localeCompare(right.kind) ||
+        left.name.localeCompare(right.name)
+    );
   const groupsFile: AssetGroupsFile = {
     generatedAt: new Date().toISOString(),
     groupCount: groups.length,
     groups,
-    sourceManifest: path.relative(outputRoot, manifestPath).split(path.sep).join("/"),
+    sourceManifest: path
+      .relative(outputRoot, manifestPath)
+      .split(path.sep)
+      .join("/"),
     version: 1
   };
 
   await mkdir(path.dirname(groupsPath), { recursive: true });
-  await writeFile(groupsPath, `${JSON.stringify(groupsFile, null, 2)}\n`, "utf8");
+  await writeFile(
+    groupsPath,
+    `${JSON.stringify(groupsFile, null, 2)}\n`,
+    "utf8"
+  );
 
   return groupsFile;
 }
 
-function normalizeAsset(asset: unknown, overrides: Map<string, AssetGroupOverride>): NormalizedAsset | null {
+function normalizeAsset(
+  asset: unknown,
+  overrides: Map<string, AssetGroupOverride>
+): NormalizedAsset | null {
   if (!asset || typeof asset !== "object") {
     return null;
   }
@@ -135,7 +174,8 @@ function normalizeAsset(asset: unknown, overrides: Map<string, AssetGroupOverrid
 
   const width = readNullableNumber(input.width);
   const height = readNullableNumber(input.height);
-  const hasTransparency = typeof input.hasTransparency === "boolean" ? input.hasTransparency : null;
+  const hasTransparency =
+    typeof input.hasTransparency === "boolean" ? input.hasTransparency : null;
   const override = overrides.get(id);
   const tags = normalizeTags(readStringArray(override?.tags ?? input.tags));
   const fallbackClassification = classifyAsset({
@@ -145,14 +185,21 @@ function normalizeAsset(asset: unknown, overrides: Map<string, AssetGroupOverrid
     width
   }).classification;
   const confidence = readNullableNumber(input.confidence);
-  const overrideClassification = normalizeClassification(readString(override?.classification));
-  const qualityScore = readQualityScore(override?.qualityScore) ?? (confidence === null ? null : Math.round(confidence * 100));
+  const overrideClassification = normalizeClassification(
+    readString(override?.classification)
+  );
+  const qualityScore =
+    readQualityScore(override?.qualityScore) ??
+    (confidence === null ? null : Math.round(confidence * 100));
 
   return {
     aspectBucket: createAspectBucket(width, height),
     colorBucket: createColorBucket(input.dominantColors),
     id,
-    kind: overrideClassification ?? normalizeClassification(readString(input.classification)) ?? fallbackClassification,
+    kind:
+      overrideClassification ??
+      normalizeClassification(readString(input.classification)) ??
+      fallbackClassification,
     qualityScore,
     relativePath,
     sourceFolder: getSourceFolder(relativePath),
@@ -165,16 +212,31 @@ function normalizeAsset(asset: unknown, overrides: Map<string, AssetGroupOverrid
 
 function createGroupKey(asset: NormalizedAsset): string {
   const tagKey = selectGroupingTags(asset.tags).join("+") || "untagged";
-  return [asset.kind, normalizeGroupPart(asset.sourceFolder), tagKey, asset.aspectBucket, asset.colorBucket].join("|");
+  return [
+    asset.kind,
+    normalizeGroupPart(asset.sourceFolder),
+    tagKey,
+    asset.aspectBucket,
+    asset.colorBucket
+  ].join("|");
 }
 
-function createAssetGroup(key: string, assets: NormalizedAsset[]): AssetGroupEntry {
+function createAssetGroup(
+  key: string,
+  assets: NormalizedAsset[]
+): AssetGroupEntry {
   const representative = selectRepresentativeAsset(assets);
   const tags = selectGroupTags(assets);
   const sourceFolders = uniqueSorted(assets.map((asset) => asset.sourceFolder));
   const kind = representative.kind;
-  const themes = uniqueSorted(assets.map((asset) => asset.theme).filter((theme): theme is string => Boolean(theme)));
-  const usableFor = selectGroupTags(assets.map((asset) => ({ ...asset, tags: asset.usableFor })));
+  const themes = uniqueSorted(
+    assets
+      .map((asset) => asset.theme)
+      .filter((theme): theme is string => Boolean(theme))
+  );
+  const usableFor = selectGroupTags(
+    assets.map((asset) => ({ ...asset, tags: asset.usableFor }))
+  );
   const qualityScores = assets
     .map((asset) => asset.qualityScore)
     .filter((score): score is number => typeof score === "number");
@@ -185,7 +247,13 @@ function createAssetGroup(key: string, assets: NormalizedAsset[]): AssetGroupEnt
     id: `group_${createHash("sha256").update(key).digest("hex").slice(0, 14)}`,
     kind,
     name: createGroupName(kind, tags, sourceFolders[0] ?? "(root)"),
-    qualityScore: qualityScores.length > 0 ? Math.round(qualityScores.reduce((sum, score) => sum + score, 0) / qualityScores.length) : null,
+    qualityScore:
+      qualityScores.length > 0
+        ? Math.round(
+            qualityScores.reduce((sum, score) => sum + score, 0) /
+              qualityScores.length
+          )
+        : null,
     representativeAssetId: representative.id,
     representativeThumbnail: representative.thumbnailPath,
     sourceFolders,
@@ -199,7 +267,8 @@ function createAssetGroup(key: string, assets: NormalizedAsset[]): AssetGroupEnt
 function selectRepresentativeAsset(assets: NormalizedAsset[]): NormalizedAsset {
   return [...assets].sort(
     (left, right) =>
-      Number(Boolean(right.thumbnailPath)) - Number(Boolean(left.thumbnailPath)) ||
+      Number(Boolean(right.thumbnailPath)) -
+        Number(Boolean(left.thumbnailPath)) ||
       left.relativePath.localeCompare(right.relativePath)
   )[0] as NormalizedAsset;
 }
@@ -214,17 +283,31 @@ function selectGroupTags(assets: NormalizedAsset[]): string[] {
   }
 
   return [...counts.entries()]
-    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+    .sort(
+      (left, right) => right[1] - left[1] || left[0].localeCompare(right[0])
+    )
     .slice(0, GROUP_TAG_LIMIT)
     .map(([tag]) => tag);
 }
 
 function selectGroupingTags(tags: string[]): string[] {
-  const ignoredTags = new Set(["assets", "asset", "pack", "creator", "complete", "with", "shadows"]);
+  const ignoredTags = new Set([
+    "assets",
+    "asset",
+    "pack",
+    "creator",
+    "complete",
+    "with",
+    "shadows"
+  ]);
   return tags.filter((tag) => !ignoredTags.has(tag)).slice(0, 3);
 }
 
-function createGroupName(kind: AssetClassification, tags: string[], sourceFolder: string): string {
+function createGroupName(
+  kind: AssetClassification,
+  tags: string[],
+  sourceFolder: string
+): string {
   const labelParts = tags.slice(0, 3).map(toTitleCase);
 
   if (labelParts.length > 0) {
@@ -234,7 +317,10 @@ function createGroupName(kind: AssetClassification, tags: string[], sourceFolder
   return `${toTitleCase(kind)} - ${toTitleCase(sourceFolder.split("/").at(-1) ?? sourceFolder)}`;
 }
 
-function createAspectBucket(width: number | null, height: number | null): string {
+function createAspectBucket(
+  width: number | null,
+  height: number | null
+): string {
   if (!width || !height) {
     return "unknown-aspect";
   }
@@ -258,7 +344,9 @@ function createColorBucket(value: unknown): string {
   }
 
   const first = value[0] as { hex?: unknown };
-  return typeof first.hex === "string" && first.hex.length >= 4 ? first.hex.toLowerCase() : "unknown-color";
+  return typeof first.hex === "string" && first.hex.length >= 4
+    ? first.hex.toLowerCase()
+    : "unknown-color";
 }
 
 function getSourceFolder(relativePath: string): string {
@@ -292,7 +380,12 @@ function normalizeClassification(value: string): AssetClassification | null {
 }
 
 function normalizeGroupPart(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "") || "root";
+  return (
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/gu, "-")
+      .replace(/^-|-$/gu, "") || "root"
+  );
 }
 
 function normalizeTags(tags: string[]): string[] {
@@ -316,20 +409,34 @@ function readString(value: unknown): string {
 }
 
 function readStringArray(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }
 
-async function readAssetOverrides(overridesPath: string): Promise<Map<string, AssetGroupOverride>> {
+async function readAssetOverrides(
+  overridesPath: string
+): Promise<Map<string, AssetGroupOverride>> {
   try {
-    const file = parseJsonFile(await readFile(overridesPath, "utf8")) as AssetOverridesFile;
+    const file = parseJsonFile(
+      await readFile(overridesPath, "utf8")
+    ) as AssetOverridesFile;
     const overrides = new Map<string, AssetGroupOverride>();
 
-    if (!file.overrides || typeof file.overrides !== "object" || Array.isArray(file.overrides)) {
+    if (
+      !file.overrides ||
+      typeof file.overrides !== "object" ||
+      Array.isArray(file.overrides)
+    ) {
       return overrides;
     }
 
     for (const [assetId, override] of Object.entries(file.overrides)) {
-      if (override && typeof override === "object" && !Array.isArray(override)) {
+      if (
+        override &&
+        typeof override === "object" &&
+        !Array.isArray(override)
+      ) {
         overrides.set(assetId, override as AssetGroupOverride);
       }
     }
@@ -357,7 +464,9 @@ function normalizeSingleTag(value: string): string {
 }
 
 function parseJsonFile(content: string): unknown {
-  return JSON.parse(content.charCodeAt(0) === 0xfeff ? content.slice(1) : content);
+  return JSON.parse(
+    content.charCodeAt(0) === 0xfeff ? content.slice(1) : content
+  );
 }
 
 function toTitleCase(value: string): string {
@@ -370,5 +479,7 @@ function toTitleCase(value: string): string {
 }
 
 function uniqueSorted(values: string[]): string[] {
-  return [...new Set(values.filter(Boolean))].sort((left, right) => left.localeCompare(right));
+  return [...new Set(values.filter(Boolean))].sort((left, right) =>
+    left.localeCompare(right)
+  );
 }

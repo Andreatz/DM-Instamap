@@ -1,5 +1,4 @@
 import { readFile } from "node:fs/promises";
-import path from "node:path";
 import {
   createImageGenerationProviderFromEnv,
   importGeneratedAssetToLibrary
@@ -10,6 +9,7 @@ import {
   type AssetManifestEntry
 } from "@dm-instamap/assets/scanner";
 import { findWorkspaceRoot } from "@/lib/assets-manifest";
+import { resolveWithinWorkspace } from "@/lib/local-paths";
 
 type ExistingManifest = {
   sourceRoot?: unknown;
@@ -62,17 +62,26 @@ export async function POST(request: Request) {
     const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
 
     if (!prompt) {
-      return Response.json({ error: "prompt is required.", ok: false }, { status: 400 });
+      return Response.json(
+        { error: "prompt is required.", ok: false },
+        { status: 400 }
+      );
     }
 
-    const negativePrompt = typeof body.negativePrompt === "string" ? body.negativePrompt : undefined;
+    const negativePrompt =
+      typeof body.negativePrompt === "string" ? body.negativePrompt : undefined;
     const seed = typeof body.seed === "number" ? body.seed : undefined;
     const steps = typeof body.steps === "number" ? body.steps : undefined;
     const styleTags = Array.isArray(body.styleTags)
-      ? body.styleTags.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+      ? body.styleTags.filter(
+          (value): value is string =>
+            typeof value === "string" && value.trim().length > 0
+        )
       : [];
-    const classification = typeof body.classification === "string" ? body.classification : "prop";
-    const fileNameHint = typeof body.fileNameHint === "string" ? body.fileNameHint : undefined;
+    const classification =
+      typeof body.classification === "string" ? body.classification : "prop";
+    const fileNameHint =
+      typeof body.fileNameHint === "string" ? body.fileNameHint : undefined;
     const workspaceRoot = await findWorkspaceRoot(process.cwd());
     const result = await provider.generate({
       negativePrompt,
@@ -107,7 +116,8 @@ export async function POST(request: Request) {
       ok: true
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Image generation failed.";
+    const message =
+      error instanceof Error ? error.message : "Image generation failed.";
     return Response.json({ error: message, ok: false }, { status: 500 });
   }
 }
@@ -120,17 +130,32 @@ async function tryAppendToManifest(input: {
   result: Awaited<ReturnType<typeof appendAssetToManifest>>;
 } | null> {
   try {
-    const manifestPath = path.join(input.workspaceRoot, "data", "indexes", "assets.manifest.json");
-    let sourceRoot = path.join(input.workspaceRoot, "data", "assets", "generated");
+    const manifestPath = resolveWithinWorkspace(
+      input.workspaceRoot,
+      "data",
+      "indexes",
+      "assets.manifest.json"
+    );
+    let sourceRoot = resolveWithinWorkspace(
+      input.workspaceRoot,
+      "data",
+      "assets",
+      "generated"
+    );
 
     try {
       const raw = await readFile(manifestPath, "utf8");
       const parsed = JSON.parse(raw) as ExistingManifest;
-      if (typeof parsed.sourceRoot === "string" && parsed.sourceRoot.trim().length > 0) {
+      if (
+        typeof parsed.sourceRoot === "string" &&
+        parsed.sourceRoot.trim().length > 0
+      ) {
         sourceRoot = parsed.sourceRoot;
       }
     } catch (error) {
-      if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) {
+      if (
+        !(error instanceof Error && "code" in error && error.code === "ENOENT")
+      ) {
         throw error;
       }
     }

@@ -56,13 +56,18 @@ type DoorPlacement = {
   y: number;
 };
 
-export function createSimpleDungeon(options: SimpleDungeonOptions): MapDocument {
+export function createSimpleDungeon(
+  options: SimpleDungeonOptions
+): MapDocument {
   const tiles: MapTile[] = [];
 
   for (let y = 0; y < options.height; y += 1) {
     for (let x = 0; x < options.width; x += 1) {
       const isBoundary =
-        x === 0 || y === 0 || x === options.width - 1 || y === options.height - 1;
+        x === 0 ||
+        y === 0 ||
+        x === options.width - 1 ||
+        y === options.height - 1;
 
       tiles.push({
         id: `tile-${x}-${y}`,
@@ -87,8 +92,14 @@ export function generateDungeon(input: DungeonGeneratorInput): MapDocument {
   const heightCells = Math.max(12, Math.floor(input.heightCells));
   const requiredRooms = input.requiredRooms ?? [];
   const finalRequested = requiredRooms.some((room) => /boss|final/i.test(room));
-  const minimumRooms = 1 + requiredRooms.filter((room) => !/entrance|boss|final/i.test(room)).length + (finalRequested ? 1 : 0);
-  const roomCount = Math.max(1, Math.min(24, Math.max(Math.floor(input.roomCount), minimumRooms)));
+  const minimumRooms =
+    1 +
+    requiredRooms.filter((room) => !/entrance|boss|final/i.test(room)).length +
+    (finalRequested ? 1 : 0);
+  const roomCount = Math.max(
+    1,
+    Math.min(24, Math.max(Math.floor(input.roomCount), minimumRooms))
+  );
   const rooms = createRooms({
     finalRequested,
     heightCells,
@@ -111,8 +122,16 @@ export function generateDungeon(input: DungeonGeneratorInput): MapDocument {
     const corridorId = `corridor-${index + 1}`;
 
     carveCorridor(tileKinds, from.center, to.center);
-    const fromDoor = createDoorPlacement(from, to.center, `door-${index + 1}-a`, [from.id, corridorId]);
-    const toDoor = createDoorPlacement(to, from.center, `door-${index + 1}-b`, [to.id, corridorId]);
+    const fromDoor = createDoorPlacement(
+      from,
+      to.center,
+      `door-${index + 1}-a`,
+      [from.id, corridorId]
+    );
+    const toDoor = createDoorPlacement(to, from.center, `door-${index + 1}-b`, [
+      to.id,
+      corridorId
+    ]);
     setTile(tileKinds, fromDoor.x, fromDoor.y, "door");
     setTile(tileKinds, toDoor.x, toDoor.y, "door");
     doors.push(fromDoor, toDoor);
@@ -202,7 +221,9 @@ function createRooms(input: {
   const rows = Math.ceil(input.roomCount / columns);
   const cellWidth = Math.max(5, Math.floor((input.widthCells - 2) / columns));
   const cellHeight = Math.max(5, Math.floor((input.heightCells - 2) / rows));
-  const requiredLabels = input.requiredRooms.filter((room) => !/entrance|boss|final/i.test(room));
+  const requiredLabels = input.requiredRooms.filter(
+    (room) => !/entrance|boss|final/i.test(room)
+  );
   const rooms: RectRoom[] = [];
 
   for (let index = 0; index < input.roomCount; index += 1) {
@@ -212,11 +233,17 @@ function createRooms(input: {
     const roomHeight = Math.max(3, Math.min(7, cellHeight - 2));
     const x = Math.min(
       input.widthCells - roomWidth - 2,
-      Math.max(1, 1 + gridX * cellWidth + Math.floor((cellWidth - roomWidth) / 2))
+      Math.max(
+        1,
+        1 + gridX * cellWidth + Math.floor((cellWidth - roomWidth) / 2)
+      )
     );
     const y = Math.min(
       input.heightCells - roomHeight - 2,
-      Math.max(1, 1 + gridY * cellHeight + Math.floor((cellHeight - roomHeight) / 2))
+      Math.max(
+        1,
+        1 + gridY * cellHeight + Math.floor((cellHeight - roomHeight) / 2)
+      )
     );
     const isEntrance = index === 0;
     const isFinal = input.finalRequested && index === input.roomCount - 1;
@@ -228,7 +255,11 @@ function createRooms(input: {
         : requiredLabel
           ? toTitle(requiredLabel)
           : `Room ${index + 1}`;
-    const id = isEntrance ? "room-entrance" : isFinal ? "room-final" : `room-${index + 1}`;
+    const id = isEntrance
+      ? "room-entrance"
+      : isFinal
+        ? "room-final"
+        : `room-${index + 1}`;
 
     rooms.push({
       center: {
@@ -244,7 +275,10 @@ function createRooms(input: {
         ...(isEntrance ? ["entrance"] : []),
         ...(isFinal ? ["final", "boss"] : []),
         ...(input.theme ? [input.theme.toLowerCase()] : []),
-        ...label.toLowerCase().split(/[^a-z0-9]+/u).filter(Boolean)
+        ...label
+          .toLowerCase()
+          .split(/[^a-z0-9]+/u)
+          .filter(Boolean)
       ]),
       width: roomWidth,
       x,
@@ -256,7 +290,9 @@ function createRooms(input: {
 }
 
 function createTileGrid(width: number, height: number): TileKind[][] {
-  return Array.from({ length: height }, () => Array.from({ length: width }, () => "empty" as TileKind));
+  return Array.from({ length: height }, () =>
+    Array.from({ length: width }, () => "empty" as TileKind)
+  );
 }
 
 function carveRoom(tileKinds: TileKind[][], room: RectRoom): void {
@@ -267,7 +303,11 @@ function carveRoom(tileKinds: TileKind[][], room: RectRoom): void {
   }
 }
 
-function carveCorridor(tileKinds: TileKind[][], from: { x: number; y: number }, to: { x: number; y: number }): void {
+function carveCorridor(
+  tileKinds: TileKind[][],
+  from: { x: number; y: number },
+  to: { x: number; y: number }
+): void {
   const xStep = from.x <= to.x ? 1 : -1;
   const yStep = from.y <= to.y ? 1 : -1;
 
@@ -286,7 +326,9 @@ function createDoorPlacement(
   id: string,
   roomIds: string[]
 ): DoorPlacement {
-  if (Math.abs(target.x - room.center.x) >= Math.abs(target.y - room.center.y)) {
+  if (
+    Math.abs(target.x - room.center.x) >= Math.abs(target.y - room.center.y)
+  ) {
     return {
       id,
       roomIds,
@@ -325,7 +367,11 @@ function addWalls(tileKinds: TileKind[][]): void {
   }
 }
 
-function hasAdjacentWalkableTile(tileKinds: TileKind[][], x: number, y: number): boolean {
+function hasAdjacentWalkableTile(
+  tileKinds: TileKind[][],
+  x: number,
+  y: number
+): boolean {
   for (let dy = -1; dy <= 1; dy += 1) {
     for (let dx = -1; dx <= 1; dx += 1) {
       if (dx === 0 && dy === 0) {
@@ -357,7 +403,10 @@ function createRoomConnections(index: number, roomCount: number): string[] {
   return connections;
 }
 
-function createCorridorBounds(from: { x: number; y: number }, to: { x: number; y: number }) {
+function createCorridorBounds(
+  from: { x: number; y: number },
+  to: { x: number; y: number }
+) {
   return {
     height: Math.max(1, Math.abs(to.y - from.y) + 1),
     width: Math.max(1, Math.abs(to.x - from.x) + 1),
@@ -407,7 +456,12 @@ function createTiles(tileKinds: TileKind[][]): MapTile[] {
   );
 }
 
-function setTile(tileKinds: TileKind[][], x: number, y: number, kind: TileKind): void {
+function setTile(
+  tileKinds: TileKind[][],
+  x: number,
+  y: number,
+  kind: TileKind
+): void {
   if (!tileKinds[y] || tileKinds[y]?.[x] === undefined) {
     return;
   }

@@ -1,6 +1,9 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { normalizeManifestAssets, type AssetBrowserEntry } from "./asset-browser";
+import {
+  normalizeManifestAssets,
+  type AssetBrowserEntry
+} from "./asset-browser";
 import { parseJsonFileContent } from "./json-file";
 
 type AssetManifestFile = {
@@ -19,19 +22,28 @@ export type LoadedAssetManifest = {
 
 export async function loadAssetManifest(): Promise<LoadedAssetManifest> {
   const workspaceRoot = await findWorkspaceRoot(process.cwd());
-  const manifestPath = path.join(workspaceRoot, "data", "indexes", "assets.manifest.json");
+  const manifestPath = path.join(
+    workspaceRoot,
+    "data",
+    "indexes",
+    "assets.manifest.json"
+  );
 
   try {
     const raw = await readFile(manifestPath, "utf8");
     const manifest = parseJsonFileContent(raw) as AssetManifestFile;
-    const assets = Array.isArray(manifest.assets) ? normalizeManifestAssets(manifest.assets) : [];
+    const assets = Array.isArray(manifest.assets)
+      ? normalizeManifestAssets(manifest.assets)
+      : [];
 
     return {
       assets,
-      generatedAt: typeof manifest.generatedAt === "string" ? manifest.generatedAt : null,
+      generatedAt:
+        typeof manifest.generatedAt === "string" ? manifest.generatedAt : null,
       manifestPath,
       missing: false,
-      sourceRoot: typeof manifest.sourceRoot === "string" ? manifest.sourceRoot : null
+      sourceRoot:
+        typeof manifest.sourceRoot === "string" ? manifest.sourceRoot : null
     };
   } catch (error) {
     if (isMissingFileError(error)) {

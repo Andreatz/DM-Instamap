@@ -75,7 +75,9 @@ describe("asset reference validation", () => {
       ]
     });
 
-    const result = validateMapDocumentAssetReferences(document, ["texture-stone"]);
+    const result = validateMapDocumentAssetReferences(document, [
+      "texture-stone"
+    ]);
 
     expect(result.ok).toBe(false);
     expect(result.missingAssetIds).toEqual(["prop-table"]);
@@ -86,6 +88,8 @@ describe("asset reference validation", () => {
     });
     const firstAsset = document.assets[0];
     expect(firstAsset).toBeDefined();
-    expect(firstAsset ? classifyPlacedAssetUsage(firstAsset) : null).toBe("tile-texture");
+    expect(firstAsset ? classifyPlacedAssetUsage(firstAsset) : null).toBe(
+      "tile-texture"
+    );
   });
 });

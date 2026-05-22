@@ -7,7 +7,12 @@ import {
 } from "./algorithms";
 
 export type BlueprintScale = "small" | "medium" | "large";
-export type BlueprintMood = "safe" | "tense" | "hostile" | "ominous" | "festive";
+export type BlueprintMood =
+  | "safe"
+  | "tense"
+  | "hostile"
+  | "ominous"
+  | "festive";
 export type BlueprintStructure =
   | "dungeon"
   | "building"
@@ -74,13 +79,17 @@ export type NarrativeGenerationInput = {
   widthCells?: number;
 };
 
-export function createNarrativeBlueprint(input: NarrativeGenerationInput): MapGenerationBlueprint {
+export function createNarrativeBlueprint(
+  input: NarrativeGenerationInput
+): MapGenerationBlueprint {
   const request = normalizeText(input.request);
   const theme = input.theme?.trim() || inferTheme(request);
 
   if (
     theme === "crypt" ||
-    /crypt|cripta|cathedral|cattedrale|undead|morti|tomb|tomba|reliquary|reliquiario|chapel|cappella/u.test(request)
+    /crypt|cripta|cathedral|cattedrale|undead|morti|tomb|tomba|reliquary|reliquiario|chapel|cappella/u.test(
+      request
+    )
   ) {
     return generateCryptBlueprint(input);
   }
@@ -93,7 +102,11 @@ export function createNarrativeBlueprint(input: NarrativeGenerationInput): MapGe
     return generateVillageBlueprint(input);
   }
 
-  if (/forest|foresta|wood|bosco|clearing|outdoor|esterno|river|fiume|outdoors/u.test(request)) {
+  if (
+    /forest|foresta|wood|bosco|clearing|outdoor|esterno|river|fiume|outdoors/u.test(
+      request
+    )
+  ) {
     return generateOutdoorBlueprint(input);
   }
 
@@ -111,8 +124,10 @@ export function generateMapFromBlueprint(
     widthCells?: number;
   } = {}
 ): MapDocument {
-  const heightCells = options.heightCells ?? dimensionForScale(blueprint.scale, "height");
-  const widthCells = options.widthCells ?? dimensionForScale(blueprint.scale, "width");
+  const heightCells =
+    options.heightCells ?? dimensionForScale(blueprint.scale, "height");
+  const widthCells =
+    options.widthCells ?? dimensionForScale(blueprint.scale, "width");
 
   if (blueprint.structure === "cave") {
     return mergeBlueprintInto(
@@ -158,12 +173,16 @@ export function generateMapFromBlueprint(
     .map((room) => room.label);
   const map = generateDungeon({
     heightCells,
-    requiredRooms: requiredRooms.map((room) => (isBossRoom(room, blueprint) ? "boss" : room)),
+    requiredRooms: requiredRooms.map((room) =>
+      isBossRoom(room, blueprint) ? "boss" : room
+    ),
     roomCount: Math.max(blueprint.rooms.length, 3),
     theme: blueprint.theme,
     widthCells
   });
-  const roomBlueprints = blueprint.rooms.filter((room) => room.tacticalRole !== "transition");
+  const roomBlueprints = blueprint.rooms.filter(
+    (room) => room.tacticalRole !== "transition"
+  );
   const updatedRooms =
     map.plan?.rooms.map((room, index) => {
       if (room.kind === "corridor") {
@@ -175,10 +194,14 @@ export function generateMapFromBlueprint(
 
       const narrativeRoom =
         room.id === "room-entrance"
-          ? blueprint.rooms.find((candidate) => candidate.tacticalRole === "entrance")
+          ? blueprint.rooms.find(
+              (candidate) => candidate.tacticalRole === "entrance"
+            )
           : room.id === "room-final"
-            ? blueprint.rooms.find((candidate) => candidate.tacticalRole === "boss")
-            : roomBlueprints[index] ?? roomBlueprints[index - 1];
+            ? blueprint.rooms.find(
+                (candidate) => candidate.tacticalRole === "boss"
+              )
+            : (roomBlueprints[index] ?? roomBlueprints[index - 1]);
 
       if (!narrativeRoom) {
         return room;
@@ -199,7 +222,9 @@ export function generateMapFromBlueprint(
   const notes = [
     `Blueprint: ${blueprint.name}`,
     ...blueprint.gmNotes,
-    ...blueprint.rooms.flatMap((room) => room.suggestedNotes.map((note) => `${room.label}: ${note}`))
+    ...blueprint.rooms.flatMap((room) =>
+      room.suggestedNotes.map((note) => `${room.label}: ${note}`)
+    )
   ];
 
   return {
@@ -219,30 +244,52 @@ export function generateMapFromBlueprint(
   };
 }
 
-export function generateCryptBlueprint(input: NarrativeGenerationInput): MapGenerationBlueprint {
+export function generateCryptBlueprint(
+  input: NarrativeGenerationInput
+): MapGenerationBlueprint {
   const request = normalizeText(input.request);
-  const nonHostileUndead = /non hostile|non-hostile|not hostile|prisoner|prigion|bound|chained|incaten|prigionieri/u.test(request);
-  const cathedral = /cathedral|cattedrale|chapel|sacristy|temple|chiesa/u.test(request);
+  const nonHostileUndead =
+    /non hostile|non-hostile|not hostile|prisoner|prigion|bound|chained|incaten|prigionieri/u.test(
+      request
+    );
+  const cathedral = /cathedral|cattedrale|chapel|sacristy|temple|chiesa/u.test(
+    request
+  );
   const rooms: NarrativeRoom[] = [
     createRoom({
       id: "entrance-from-cathedral",
       label: cathedral ? "Entrance from Cathedral Sacristy" : "Crypt Entrance",
       purpose: "A threshold from the world above into the buried complex.",
       role: "entrance",
-      tags: ["entrance", "crypt", cathedral ? "cathedral" : "stairs", "threshold"],
+      tags: [
+        "entrance",
+        "crypt",
+        cathedral ? "cathedral" : "stairs",
+        "threshold"
+      ],
       assets: ["stairs", "stone arch", "dust", "holy symbol"],
       lights: ["cold daylight", "torch"],
-      notes: ["This room should orient players and clearly show the exit route."],
+      notes: [
+        "This room should orient players and clearly show the exit route."
+      ],
       shape: "wide"
     }),
     createRoom({
       id: "hall-of-bound-spirits",
-      label: nonHostileUndead ? "Hall of Bound Spirits" : "Hall of Restless Dead",
+      label: nonHostileUndead
+        ? "Hall of Bound Spirits"
+        : "Hall of Restless Dead",
       purpose: nonHostileUndead
         ? "A social encounter where undead are trapped rather than hostile."
         : "A tense encounter chamber for restless crypt guardians.",
       role: nonHostileUndead ? "social" : "combat",
-      tags: ["crypt", "undead", nonHostileUndead ? "non-hostile" : "hostile", "bound", "social"],
+      tags: [
+        "crypt",
+        "undead",
+        nonHostileUndead ? "non-hostile" : "hostile",
+        "bound",
+        "social"
+      ],
       assets: ["chains", "memorial plaques", "spirit wisps", "broken seals"],
       lights: ["blue ghost light", "dim ambient"],
       notes: [
@@ -255,7 +302,8 @@ export function generateCryptBlueprint(input: NarrativeGenerationInput): MapGene
     createRoom({
       id: "reliquary-of-broken-vows",
       label: "Reliquary of Broken Vows",
-      purpose: "A puzzle room around reliquaries, vows, and old sacred failures.",
+      purpose:
+        "A puzzle room around reliquaries, vows, and old sacred failures.",
       role: "puzzle",
       tags: ["crypt", "reliquary", "puzzle", "sacred", "cathedral"],
       assets: ["reliquary", "altar", "candles", "inscriptions"],
@@ -266,7 +314,8 @@ export function generateCryptBlueprint(input: NarrativeGenerationInput): MapGene
     createRoom({
       id: "sealed-prison-tomb",
       label: "Sealed Prison Tomb",
-      purpose: "A hazard chamber showing that the dead were imprisoned below the cathedral.",
+      purpose:
+        "A hazard chamber showing that the dead were imprisoned below the cathedral.",
       role: "hazard",
       tags: ["crypt", "prison", "tomb", "chains", "sealed", "undead"],
       assets: ["coffins", "chains", "bars", "seal circle"],
@@ -304,9 +353,21 @@ export function generateCryptBlueprint(input: NarrativeGenerationInput): MapGene
 
   return {
     connections: [
-      { from: "entrance-from-cathedral", to: "hall-of-bound-spirits", type: "door" },
-      { from: "hall-of-bound-spirits", to: "reliquary-of-broken-vows", type: "door" },
-      { from: "reliquary-of-broken-vows", to: "sealed-prison-tomb", type: "locked" },
+      {
+        from: "entrance-from-cathedral",
+        to: "hall-of-bound-spirits",
+        type: "door"
+      },
+      {
+        from: "hall-of-bound-spirits",
+        to: "reliquary-of-broken-vows",
+        type: "door"
+      },
+      {
+        from: "reliquary-of-broken-vows",
+        to: "sealed-prison-tomb",
+        type: "locked"
+      },
       { from: "sealed-prison-tomb", to: "ossuary-crossing", type: "door" },
       { from: "ossuary-crossing", to: "final-ritual-chamber", type: "door" }
     ],
@@ -337,7 +398,9 @@ export function generateCryptBlueprint(input: NarrativeGenerationInput): MapGene
   };
 }
 
-export function generateCaveBlueprint(input: NarrativeGenerationInput): MapGenerationBlueprint {
+export function generateCaveBlueprint(
+  input: NarrativeGenerationInput
+): MapGenerationBlueprint {
   const request = normalizeText(input.request);
   const theme = input.theme?.trim() || "cave";
   const flooded = /water|flood|lago|river|fiume|allagat/u.test(request);
@@ -346,12 +409,15 @@ export function generateCaveBlueprint(input: NarrativeGenerationInput): MapGener
     createRoom({
       id: "cave-mouth",
       label: "Cave Mouth",
-      purpose: "The opening through which the party enters the natural complex.",
+      purpose:
+        "The opening through which the party enters the natural complex.",
       role: "entrance",
       tags: [theme, "entrance", "natural", "mouth"],
       assets: ["rocks", "debris", "moss"],
       lights: ["daylight"],
-      notes: ["A natural threshold; give a clear silhouette of what waits inside."],
+      notes: [
+        "A natural threshold; give a clear silhouette of what waits inside."
+      ],
       shape: "organic"
     }),
     createRoom({
@@ -360,7 +426,12 @@ export function generateCaveBlueprint(input: NarrativeGenerationInput): MapGener
       purpose: "A large, irregular cavern that anchors the encounter.",
       role: "combat",
       tags: [theme, "cavern", "organic", flooded ? "flooded" : "dry"],
-      assets: ["stalagmites", "boulders", ...(flooded ? ["water pool"] : []), ...(mossy ? ["moss"] : [])],
+      assets: [
+        "stalagmites",
+        "boulders",
+        ...(flooded ? ["water pool"] : []),
+        ...(mossy ? ["moss"] : [])
+      ],
       lights: ["torch", ...(mossy ? ["bioluminescent"] : [])],
       notes: ["Use uneven cover and irregular sight lines; not a square room."],
       shape: "organic"
@@ -373,7 +444,9 @@ export function generateCaveBlueprint(input: NarrativeGenerationInput): MapGener
       tags: [theme, "alcove", "secret"],
       assets: ["chest", "bones", "scratches"],
       lights: ["dim ambient"],
-      notes: ["Reward investigation: not visible from the main cavern entrance."],
+      notes: [
+        "Reward investigation: not visible from the main cavern entrance."
+      ],
       shape: "square"
     }),
     createRoom({
@@ -384,7 +457,11 @@ export function generateCaveBlueprint(input: NarrativeGenerationInput): MapGener
       tags: [theme, "hazard", flooded ? "water" : "pit"],
       assets: [flooded ? "water" : "chasm", "rope"],
       lights: ["dim ambient"],
-      notes: [flooded ? "The pool is deeper than it looks." : "The pit drops to an unknown depth."],
+      notes: [
+        flooded
+          ? "The pool is deeper than it looks."
+          : "The pit drops to an unknown depth."
+      ],
       shape: "wide"
     })
   ];
@@ -395,8 +472,16 @@ export function generateCaveBlueprint(input: NarrativeGenerationInput): MapGener
       { from: "main-chamber", to: "hidden-alcove", type: "secret" },
       { from: "main-chamber", to: "deep-pool", type: "open" }
     ],
-    globalTags: unique([theme, "natural", "organic", ...(flooded ? ["water", "flooded"] : []), ...(mossy ? ["moss", "fungal"] : [])]),
-    gmNotes: ["Caves should feel organic; avoid right-angle dressing and grid-perfect placement."],
+    globalTags: unique([
+      theme,
+      "natural",
+      "organic",
+      ...(flooded ? ["water", "flooded"] : []),
+      ...(mossy ? ["moss", "fungal"] : [])
+    ]),
+    gmNotes: [
+      "Caves should feel organic; avoid right-angle dressing and grid-perfect placement."
+    ],
     hasVegetation: mossy,
     hasWater: flooded,
     id: `blueprint-${theme}-cave`,
@@ -411,7 +496,9 @@ export function generateCaveBlueprint(input: NarrativeGenerationInput): MapGener
   };
 }
 
-export function generateVillageBlueprint(input: NarrativeGenerationInput): MapGenerationBlueprint {
+export function generateVillageBlueprint(
+  input: NarrativeGenerationInput
+): MapGenerationBlueprint {
   const request = normalizeText(input.request);
   const theme = input.theme?.trim() || "village";
   const market = /market|mercato|fair|fiera/u.test(request);
@@ -422,8 +509,18 @@ export function generateVillageBlueprint(input: NarrativeGenerationInput): MapGe
       label: market ? "Market Square" : "Village Square",
       purpose: "The main public gathering area.",
       role: "entrance",
-      tags: [theme, "entrance", "social", "square", ...(market ? ["market"] : [])],
-      assets: ["well", "signpost", ...(market ? ["stalls", "crates"] : ["bench"])],
+      tags: [
+        theme,
+        "entrance",
+        "social",
+        "square",
+        ...(market ? ["market"] : [])
+      ],
+      assets: [
+        "well",
+        "signpost",
+        ...(market ? ["stalls", "crates"] : ["bench"])
+      ],
       lights: ["lantern", "daylight"],
       notes: ["Establish whoever runs the village right at the square."],
       shape: "wide"
@@ -484,8 +581,16 @@ export function generateVillageBlueprint(input: NarrativeGenerationInput): MapGe
       to: room.id,
       type: "open"
     })),
-    globalTags: unique([theme, "village", "settlement", ...(market ? ["market"] : []), ...(docks ? ["docks", "water"] : [])]),
-    gmNotes: ["Village maps should privilege named buildings and clear circulation around the square."],
+    globalTags: unique([
+      theme,
+      "village",
+      "settlement",
+      ...(market ? ["market"] : []),
+      ...(docks ? ["docks", "water"] : [])
+    ]),
+    gmNotes: [
+      "Village maps should privilege named buildings and clear circulation around the square."
+    ],
     hasVegetation: /forest|wood|bosco|tree|alber/u.test(request),
     hasWater: docks,
     id: `blueprint-${theme}-village`,
@@ -500,7 +605,9 @@ export function generateVillageBlueprint(input: NarrativeGenerationInput): MapGe
   };
 }
 
-export function generateOutdoorBlueprint(input: NarrativeGenerationInput): MapGenerationBlueprint {
+export function generateOutdoorBlueprint(
+  input: NarrativeGenerationInput
+): MapGenerationBlueprint {
   const request = normalizeText(input.request);
   const theme = input.theme?.trim() || "forest";
   const river = /river|fiume|stream|torrent/u.test(request);
@@ -562,8 +669,16 @@ export function generateOutdoorBlueprint(input: NarrativeGenerationInput): MapGe
       to: room.id,
       type: "open"
     })),
-    globalTags: unique([theme, "outdoor", "wilderness", ...(river ? ["water", "river"] : []), ...(dense ? ["dense"] : [])]),
-    gmNotes: ["Outdoor maps should privilege cover, sight lines, and discoverable landmarks."],
+    globalTags: unique([
+      theme,
+      "outdoor",
+      "wilderness",
+      ...(river ? ["water", "river"] : []),
+      ...(dense ? ["dense"] : [])
+    ]),
+    gmNotes: [
+      "Outdoor maps should privilege cover, sight lines, and discoverable landmarks."
+    ],
     hasVegetation: true,
     hasWater: river,
     id: `blueprint-${theme}-outdoor`,
@@ -578,7 +693,9 @@ export function generateOutdoorBlueprint(input: NarrativeGenerationInput): MapGe
   };
 }
 
-export function generateBuildingBlueprint(input: NarrativeGenerationInput): MapGenerationBlueprint {
+export function generateBuildingBlueprint(
+  input: NarrativeGenerationInput
+): MapGenerationBlueprint {
   const request = normalizeText(input.request);
   const theme = input.theme?.trim() || "building";
   const rooms = [
@@ -635,7 +752,9 @@ export function generateBuildingBlueprint(input: NarrativeGenerationInput): MapG
       { from: "main-hall", to: "service-passage", type: "door" }
     ],
     globalTags: [theme, "interior", "building"],
-    gmNotes: ["Building maps should prioritize readable circulation and practical room adjacency."],
+    gmNotes: [
+      "Building maps should prioritize readable circulation and practical room adjacency."
+    ],
     hasVegetation: false,
     hasWater: false,
     id: `blueprint-${theme}`,
@@ -650,7 +769,9 @@ export function generateBuildingBlueprint(input: NarrativeGenerationInput): MapG
   };
 }
 
-export function generateDungeonBlueprint(input: NarrativeGenerationInput): MapGenerationBlueprint {
+export function generateDungeonBlueprint(
+  input: NarrativeGenerationInput
+): MapGenerationBlueprint {
   const theme = input.theme?.trim() || inferTheme(normalizeText(input.request));
   const rooms = [
     createRoom({
@@ -706,7 +827,9 @@ export function generateDungeonBlueprint(input: NarrativeGenerationInput): MapGe
       { from: "challenge-room", to: "final-room", type: "door" }
     ],
     globalTags: [theme, "dungeon"],
-    gmNotes: ["Generic narrative dungeon generated from local heuristics only."],
+    gmNotes: [
+      "Generic narrative dungeon generated from local heuristics only."
+    ],
     hasVegetation: false,
     hasWater: false,
     id: `blueprint-${theme}-dungeon`,
@@ -746,7 +869,10 @@ function createRoom(input: {
   };
 }
 
-function inferMinSize(shape: NarrativeRoom["preferredShape"]): { height: number; width: number } {
+function inferMinSize(shape: NarrativeRoom["preferredShape"]): {
+  height: number;
+  width: number;
+} {
   switch (shape) {
     case "long":
       return { height: 4, width: 8 };
@@ -756,14 +882,17 @@ function inferMinSize(shape: NarrativeRoom["preferredShape"]): { height: number;
       return { height: 6, width: 6 };
     case "organic":
       return { height: 7, width: 7 };
-    case "rectangular":
     default:
       return { height: 5, width: 7 };
   }
 }
 
 function inferTheme(request: string): string {
-  if (/crypt|cripta|cathedral|cattedrale|undead|morti|tomb|tomba|chapel|cappella/u.test(request)) {
+  if (
+    /crypt|cripta|cathedral|cattedrale|undead|morti|tomb|tomba|chapel|cappella/u.test(
+      request
+    )
+  ) {
     return "crypt";
   }
 
@@ -784,7 +913,9 @@ function inferTheme(request: string): string {
 
 function isBossRoom(label: string, blueprint: MapGenerationBlueprint): boolean {
   const room = blueprint.rooms.find((candidate) => candidate.label === label);
-  return room?.tacticalRole === "boss" || /boss|final/u.test(normalizeText(label));
+  return (
+    room?.tacticalRole === "boss" || /boss|final/u.test(normalizeText(label))
+  );
 }
 
 function inferScale(request: string, fallback: BlueprintScale): BlueprintScale {
@@ -799,7 +930,10 @@ function inferScale(request: string, fallback: BlueprintScale): BlueprintScale {
   return fallback;
 }
 
-function dimensionForScale(scale: BlueprintScale, axis: "height" | "width"): number {
+function dimensionForScale(
+  scale: BlueprintScale,
+  axis: "height" | "width"
+): number {
   const base = axis === "height" ? 44 : 64;
 
   if (scale === "small") {
@@ -813,15 +947,24 @@ function dimensionForScale(scale: BlueprintScale, axis: "height" | "width"): num
   return base;
 }
 
-function mergeBlueprintInto(blueprint: MapGenerationBlueprint, base: MapDocument): MapDocument {
+function mergeBlueprintInto(
+  blueprint: MapGenerationBlueprint,
+  base: MapDocument
+): MapDocument {
   const blueprintRooms = blueprint.rooms;
   const planRooms = base.plan?.rooms ?? [];
   const updatedRooms = planRooms.map((room, index) => {
     const narrativeRoom =
       room.kind === "entrance"
-        ? blueprintRooms.find((candidate) => candidate.tacticalRole === "entrance")
-        : blueprintRooms.filter((candidate) => candidate.tacticalRole !== "entrance")[index - 1] ??
-          blueprintRooms.find((candidate) => candidate.tacticalRole === "boss");
+        ? blueprintRooms.find(
+            (candidate) => candidate.tacticalRole === "entrance"
+          )
+        : (blueprintRooms.filter(
+            (candidate) => candidate.tacticalRole !== "entrance"
+          )[index - 1] ??
+          blueprintRooms.find(
+            (candidate) => candidate.tacticalRole === "boss"
+          ));
 
     if (!narrativeRoom) {
       return {
@@ -847,7 +990,9 @@ function mergeBlueprintInto(blueprint: MapGenerationBlueprint, base: MapDocument
     `Blueprint: ${blueprint.name}`,
     `Mood: ${blueprint.mood}, scale: ${blueprint.scale}, ruin: ${blueprint.ruinLevel.toFixed(2)}.`,
     ...blueprint.gmNotes,
-    ...blueprint.rooms.flatMap((room) => room.suggestedNotes.map((note) => `${room.label}: ${note}`))
+    ...blueprint.rooms.flatMap((room) =>
+      room.suggestedNotes.map((note) => `${room.label}: ${note}`)
+    )
   ];
 
   return {
@@ -868,7 +1013,10 @@ function mergeBlueprintInto(blueprint: MapGenerationBlueprint, base: MapDocument
 }
 
 function normalizeText(value: string): string {
-  return value.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/gu, "");
+  return value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/gu, "");
 }
 
 function toTitle(value: string): string {

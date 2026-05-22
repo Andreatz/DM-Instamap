@@ -8,7 +8,10 @@ type DeleteProjectButtonProps = {
   projectName: string;
 };
 
-export function DeleteProjectButton({ projectId, projectName }: DeleteProjectButtonProps) {
+export function DeleteProjectButton({
+  projectId,
+  projectName
+}: DeleteProjectButtonProps) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "deleting" | "error">("idle");
 
@@ -24,9 +27,12 @@ export function DeleteProjectButton({ projectId, projectName }: DeleteProjectBut
     setStatus("deleting");
 
     try {
-      const response = await fetch(`/api/projects/${encodeURIComponent(projectId)}`, {
-        method: "DELETE"
-      });
+      const response = await fetch(
+        `/api/projects/${encodeURIComponent(projectId)}`,
+        {
+          method: "DELETE"
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Eliminazione del progetto fallita.");
@@ -41,11 +47,18 @@ export function DeleteProjectButton({ projectId, projectName }: DeleteProjectBut
 
   return (
     <div className="project-danger-zone">
-      <button disabled={status === "deleting"} onClick={deleteProject} type="button">
+      <button
+        disabled={status === "deleting"}
+        onClick={deleteProject}
+        type="button"
+      >
         {status === "deleting" ? "Eliminazione..." : "Elimina progetto"}
       </button>
       {status === "error" ? (
-        <p>Impossibile eliminare il progetto. Verifica che i file locali siano scrivibili.</p>
+        <p>
+          Impossibile eliminare il progetto. Verifica che i file locali siano
+          scrivibili.
+        </p>
       ) : null}
     </div>
   );

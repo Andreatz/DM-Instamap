@@ -21,14 +21,26 @@ describe("generateCaveDungeon", () => {
     expect(map.editable).toBe(true);
     expect(floors.length).toBeGreaterThan(20);
     expect(walls.length).toBeGreaterThan(20);
-    expect(map.plan?.rooms.find((room) => room.id === "room-cave-main")).toBeDefined();
+    expect(
+      map.plan?.rooms.find((room) => room.id === "room-cave-main")
+    ).toBeDefined();
   });
 
   it("is deterministic for the same seed", () => {
-    const first = generateCaveDungeon({ heightCells: 24, seed: "deterministic", widthCells: 32 });
-    const second = generateCaveDungeon({ heightCells: 24, seed: "deterministic", widthCells: 32 });
+    const first = generateCaveDungeon({
+      heightCells: 24,
+      seed: "deterministic",
+      widthCells: 32
+    });
+    const second = generateCaveDungeon({
+      heightCells: 24,
+      seed: "deterministic",
+      widthCells: 32
+    });
 
-    expect(first.tiles.map((tile) => tile.kind)).toEqual(second.tiles.map((tile) => tile.kind));
+    expect(first.tiles.map((tile) => tile.kind)).toEqual(
+      second.tiles.map((tile) => tile.kind)
+    );
   });
 });
 
@@ -42,12 +54,16 @@ describe("generateVillageMap", () => {
       widthCells: 40
     });
 
-    const buildings = (map.plan?.rooms ?? []).filter((room) => room.kind === "room");
+    const buildings = (map.plan?.rooms ?? []).filter(
+      (room) => room.kind === "room"
+    );
 
     expect(buildings.length).toBeGreaterThanOrEqual(2);
     expect(map.plan?.doors.length).toBeGreaterThan(0);
     expect(map.tiles.some((tile) => tile.kind === "door")).toBe(true);
-    expect((map.plan?.rooms ?? []).some((room) => room.kind === "entrance")).toBe(true);
+    expect(
+      (map.plan?.rooms ?? []).some((room) => room.kind === "entrance")
+    ).toBe(true);
   });
 });
 
@@ -98,9 +114,9 @@ describe("generateOutdoorMap", () => {
 
     expect(map.editable).toBe(true);
     expect(map.tiles.some((tile) => tile.kind === "wall")).toBe(true);
-    expect(map.plan?.rooms.find((room) => room.id === "clearing-main")?.tags).toEqual(
-      expect.arrayContaining(["outdoor", "river"])
-    );
+    expect(
+      map.plan?.rooms.find((room) => room.id === "clearing-main")?.tags
+    ).toEqual(expect.arrayContaining(["outdoor", "river"]));
     expect((map.plan?.doors ?? []).length).toBeGreaterThan(0);
   });
 });

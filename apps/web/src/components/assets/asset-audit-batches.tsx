@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import type { AssetAuditBatch, AssetAuditBatchId, AuditEntryView } from "@/lib/asset-audit";
+import type {
+  AssetAuditBatch,
+  AssetAuditBatchId,
+  AuditEntryView
+} from "@/lib/asset-audit";
 
 const MAX_ROWS_PER_BATCH = 60;
 
@@ -12,13 +16,18 @@ type AssetAuditBatchesProps = {
 
 export function AssetAuditBatches({ batches }: AssetAuditBatchesProps) {
   const [activeBatchId, setActiveBatchId] = useState<AssetAuditBatchId>(
-    (batches.find((batch) => batch.entries.length > 0)?.id ?? batches[0]?.id ?? "critical") as AssetAuditBatchId
+    (batches.find((batch) => batch.entries.length > 0)?.id ??
+      batches[0]?.id ??
+      "critical") as AssetAuditBatchId
   );
-  const activeBatch = useMemo(() => batches.find((batch) => batch.id === activeBatchId) ?? batches[0], [
-    batches,
-    activeBatchId
-  ]);
-  const totalAssets = useMemo(() => batches.reduce((sum, batch) => sum + batch.entries.length, 0), [batches]);
+  const activeBatch = useMemo(
+    () => batches.find((batch) => batch.id === activeBatchId) ?? batches[0],
+    [batches, activeBatchId]
+  );
+  const totalAssets = useMemo(
+    () => batches.reduce((sum, batch) => sum + batch.entries.length, 0),
+    [batches]
+  );
 
   return (
     <section className="batch-shell" aria-label="Lotti audit asset">
@@ -64,19 +73,25 @@ export function AssetAuditBatches({ batches }: AssetAuditBatchesProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {activeBatch.entries.slice(0, MAX_ROWS_PER_BATCH).map((entry) => (
-                    <AssetAuditRow entry={entry} key={entry.assetId} />
-                  ))}
+                  {activeBatch.entries
+                    .slice(0, MAX_ROWS_PER_BATCH)
+                    .map((entry) => (
+                      <AssetAuditRow entry={entry} key={entry.assetId} />
+                    ))}
                 </tbody>
               </table>
             )}
             {activeBatch.entries.length > MAX_ROWS_PER_BATCH ? (
               <p className="muted">
-                Mostrate le prime {MAX_ROWS_PER_BATCH} di {activeBatch.entries.length}. Filtra o correggi le voci per vederne altre.
+                Mostrate le prime {MAX_ROWS_PER_BATCH} di{" "}
+                {activeBatch.entries.length}. Filtra o correggi le voci per
+                vederne altre.
               </p>
             ) : null}
             <p>
-              Serve piu controllo? Apri la <Link href="/assets/review">revisione per asset</Link> per scrivere override manuali.
+              Serve piu controllo? Apri la{" "}
+              <Link href="/assets/review">revisione per asset</Link> per
+              scrivere override manuali.
             </p>
           </>
         ) : (
@@ -98,7 +113,9 @@ function AssetAuditRow({ entry }: { entry: AuditEntryView }) {
       <td>{Math.round(entry.confidence * 100)}%</td>
       <td>{Math.round(entry.qualityScore)}</td>
       <td>
-        <span className={`badge priority-${entry.reviewPriority}`}>{entry.reviewPriority}</span>
+        <span className={`badge priority-${entry.reviewPriority}`}>
+          {entry.reviewPriority}
+        </span>
       </td>
       <td>
         {entry.reasons.length === 0 ? (

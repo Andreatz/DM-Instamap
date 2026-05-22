@@ -17,7 +17,9 @@ import {
   writeSnapshotToDirectory
 } from "../src/snapshots";
 
-function buildDocument(overrides: { id?: string; name?: string; width?: number } = {}) {
+function buildDocument(
+  overrides: { id?: string; name?: string; width?: number } = {}
+) {
   return createMapDocument({
     height: 4,
     id: overrides.id ?? "doc-test",
@@ -44,7 +46,9 @@ describe("computeDocumentContentHash", () => {
     const a = buildDocument();
     const b = buildDocument({ name: "Different" });
 
-    expect(computeDocumentContentHash(a)).not.toBe(computeDocumentContentHash(b));
+    expect(computeDocumentContentHash(a)).not.toBe(
+      computeDocumentContentHash(b)
+    );
   });
 });
 
@@ -107,24 +111,41 @@ describe("snapshot directory IO", () => {
       projectId: "project-a"
     });
 
-    const first = await writeSnapshotToDirectory(snapshot, { outputRoot, projectId: snapshot.projectId });
-    const second = await writeSnapshotToDirectory(snapshot, { outputRoot, projectId: snapshot.projectId });
+    const first = await writeSnapshotToDirectory(snapshot, {
+      outputRoot,
+      projectId: snapshot.projectId
+    });
+    const second = await writeSnapshotToDirectory(snapshot, {
+      outputRoot,
+      projectId: snapshot.projectId
+    });
 
     expect(first.written).toBe(true);
     expect(second.written).toBe(false);
     expect(first.filePath).toBe(second.filePath);
 
-    const list = await listSnapshotsInDirectory({ outputRoot, projectId: "project-a" });
+    const list = await listSnapshotsInDirectory({
+      outputRoot,
+      projectId: "project-a"
+    });
     expect(list).toHaveLength(1);
     expect(list[0]?.contentHash).toBe(snapshot.contentHash);
 
-    const read = await readSnapshotFromDirectory(snapshot.contentHash, { outputRoot, projectId: "project-a" });
+    const read = await readSnapshotFromDirectory(snapshot.contentHash, {
+      outputRoot,
+      projectId: "project-a"
+    });
     expect(read?.document.id).toBe("doc-test");
 
-    const restored = await restoreSnapshotFromDirectory(snapshot.contentHash, { outputRoot, projectId: "project-a" });
+    const restored = await restoreSnapshotFromDirectory(snapshot.contentHash, {
+      outputRoot,
+      projectId: "project-a"
+    });
     expect(restored?.name).toBe("Test");
 
-    const directoryEntries = await readdir(path.join(outputRoot, "data", "projects", "project-a", "snapshots"));
+    const directoryEntries = await readdir(
+      path.join(outputRoot, "data", "projects", "project-a", "snapshots")
+    );
     expect(directoryEntries).toHaveLength(1);
   });
 });
@@ -151,7 +172,11 @@ describe("delta snapshots (L1)", () => {
 
   it("creates a delta snapshot with parentHash and restores correctly", () => {
     const baseDocument = buildDocument({ name: "Original" });
-    const baseRecord = createMapSnapshot({ document: baseDocument, label: "base", projectId: "project-a" });
+    const baseRecord = createMapSnapshot({
+      document: baseDocument,
+      label: "base",
+      projectId: "project-a"
+    });
     const targetDocument = buildDocument({ name: "Updated" });
     const delta = createDeltaSnapshot({
       base: baseRecord,

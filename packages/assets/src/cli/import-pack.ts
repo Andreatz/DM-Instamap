@@ -1,6 +1,10 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { importAssetPack, PACK_PRESETS, type PackPreset } from "../pack-importer";
+import {
+  importAssetPack,
+  PACK_PRESETS,
+  type PackPreset
+} from "../pack-importer";
 
 export type ImportPackCliOptions = {
   defaultTags: string[];
@@ -46,7 +50,9 @@ export function parseImportPackArgs(argv: string[]): ImportPackCliOptions {
   }
 
   if (!options.root) {
-    throw new Error("Usage: pnpm assets:import-pack --root <path> [--preset generic] [--default-tags a,b]");
+    throw new Error(
+      "Usage: pnpm assets:import-pack --root <path> [--preset generic] [--default-tags a,b]"
+    );
   }
 
   return {
@@ -59,7 +65,9 @@ export function parseImportPackArgs(argv: string[]): ImportPackCliOptions {
 async function main(): Promise<void> {
   const options = parseImportPackArgs(process.argv.slice(2));
   const outputRoot = process.env.INIT_CWD ?? process.cwd();
-  const assetRoot = path.isAbsolute(options.root) ? options.root : path.resolve(outputRoot, options.root);
+  const assetRoot = path.isAbsolute(options.root)
+    ? options.root
+    : path.resolve(outputRoot, options.root);
   const result = await importAssetPack({
     assetRoot,
     defaultTags: options.defaultTags,
@@ -67,7 +75,9 @@ async function main(): Promise<void> {
     preset: options.preset
   });
 
-  console.log(`Imported ${result.added.length} assets from ${result.manifest.sourceRoot}.`);
+  console.log(
+    `Imported ${result.added.length} assets from ${result.manifest.sourceRoot}.`
+  );
   console.log(`Preset: ${result.preset}`);
   console.log(`Preset tags applied: ${result.presetTagsApplied}`);
   console.log(`Reclassified assets: ${result.reclassifiedCount}`);
@@ -103,9 +113,14 @@ function parseCsv(value: string): string[] {
   ];
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
   main().catch((error: unknown) => {
-    console.error(error instanceof Error ? error.message : "Asset pack import failed.");
+    console.error(
+      error instanceof Error ? error.message : "Asset pack import failed."
+    );
     process.exit(1);
   });
 }

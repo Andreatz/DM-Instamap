@@ -6,7 +6,9 @@ describe("UI_SMOKE_FLOWS", () => {
     expect(validateUiSmokeFlows()).toEqual([]);
     expect(UI_SMOKE_FLOWS.length).toBeGreaterThanOrEqual(8);
     expect(UI_SMOKE_FLOWS.every((flow) => flow.localOnly)).toBe(true);
-    expect(UI_SMOKE_FLOWS.every((flow) => !flow.requiresExternalApi)).toBe(true);
+    expect(UI_SMOKE_FLOWS.every((flow) => !flow.requiresExternalApi)).toBe(
+      true
+    );
   });
 
   it("tracks the fragile MVP flows from the corrective roadmap", () => {
@@ -25,7 +27,9 @@ describe("UI_SMOKE_FLOWS", () => {
   });
 
   it("marks the save/export/editor flows as critical", () => {
-    const criticalIds = UI_SMOKE_FLOWS.filter((flow) => flow.critical).map((flow) => flow.id);
+    const criticalIds = UI_SMOKE_FLOWS.filter((flow) => flow.critical).map(
+      (flow) => flow.id
+    );
 
     expect(criticalIds).toEqual(
       expect.arrayContaining([

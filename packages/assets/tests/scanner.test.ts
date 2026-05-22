@@ -7,7 +7,9 @@ import { scanAssets } from "../src";
 
 describe("scanAssets", () => {
   it("scans local sample images and writes a manifest with thumbnails", async () => {
-    const tempDir = await mkdtemp(path.join(os.tmpdir(), "dm-instamap-assets-"));
+    const tempDir = await mkdtemp(
+      path.join(os.tmpdir(), "dm-instamap-assets-")
+    );
     const sourceDir = path.join(tempDir, "source");
     const outputRoot = path.join(tempDir, "output");
     await mkdir(path.join(sourceDir, "props"), { recursive: true });
@@ -42,7 +44,10 @@ describe("scanAssets", () => {
 
     await writeFile(path.join(sourceDir, "notes.txt"), "not an image", "utf8");
 
-    const manifest = await scanAssets(sourceDir, { outputRoot, thumbnailSize: 16 });
+    const manifest = await scanAssets(sourceDir, {
+      outputRoot,
+      thumbnailSize: 16
+    });
     const manifestFile = await readFile(
       path.join(outputRoot, "data", "indexes", "assets.manifest.json"),
       "utf8"
@@ -56,15 +61,33 @@ describe("scanAssets", () => {
       "red-room.png",
       "walls.svg"
     ]);
-    expect(manifest.assets.every((asset) => asset.fileHash.length === 64)).toBe(true);
-    expect(manifest.assets.every((asset) => asset.dominantColors.length > 0)).toBe(true);
-    expect(manifest.assets.every((asset) => asset.confidence >= 0 && asset.confidence <= 1)).toBe(true);
-    expect(manifest.assets.every((asset) => asset.qualityScore !== undefined)).toBe(true);
-    expect(manifest.assets.every((asset) => asset.qualitySignals !== undefined)).toBe(true);
-    expect(manifest.assets.every((asset) => asset.reviewPriority !== undefined)).toBe(true);
-    expect(manifest.assets.every((asset) => asset.visualHash !== undefined)).toBe(true);
+    expect(manifest.assets.every((asset) => asset.fileHash.length === 64)).toBe(
+      true
+    );
+    expect(
+      manifest.assets.every((asset) => asset.dominantColors.length > 0)
+    ).toBe(true);
+    expect(
+      manifest.assets.every(
+        (asset) => asset.confidence >= 0 && asset.confidence <= 1
+      )
+    ).toBe(true);
+    expect(
+      manifest.assets.every((asset) => asset.qualityScore !== undefined)
+    ).toBe(true);
+    expect(
+      manifest.assets.every((asset) => asset.qualitySignals !== undefined)
+    ).toBe(true);
+    expect(
+      manifest.assets.every((asset) => asset.reviewPriority !== undefined)
+    ).toBe(true);
+    expect(
+      manifest.assets.every((asset) => asset.visualHash !== undefined)
+    ).toBe(true);
 
-    const png = manifest.assets.find((asset) => asset.relativePath === "red-room.png");
+    const png = manifest.assets.find(
+      (asset) => asset.relativePath === "red-room.png"
+    );
     expect(png).toMatchObject({
       classification: "unknown",
       classificationSource: "automatic",
@@ -75,19 +98,25 @@ describe("scanAssets", () => {
       width: 6
     });
 
-    const webp = manifest.assets.find((asset) => asset.relativePath === "props/glow.webp");
+    const webp = manifest.assets.find(
+      (asset) => asset.relativePath === "props/glow.webp"
+    );
     expect(webp?.classification).toBe("prop");
     expect(webp?.hasTransparency).toBe(true);
 
     for (const asset of manifest.assets) {
       expect(asset.thumbnailPath).toBeTruthy();
-      const preview = await readFile(path.join(outputRoot, asset.thumbnailPath ?? ""));
+      const preview = await readFile(
+        path.join(outputRoot, asset.thumbnailPath ?? "")
+      );
       expect(preview.byteLength).toBeGreaterThan(0);
     }
   });
 
   it("applies manual overrides from data/indexes/asset-overrides.json", async () => {
-    const tempDir = await mkdtemp(path.join(os.tmpdir(), "dm-instamap-assets-"));
+    const tempDir = await mkdtemp(
+      path.join(os.tmpdir(), "dm-instamap-assets-")
+    );
     const sourceDir = path.join(tempDir, "source");
     const outputRoot = path.join(tempDir, "output");
     await mkdir(path.join(sourceDir, "floors"), { recursive: true });
@@ -122,7 +151,10 @@ describe("scanAssets", () => {
       "utf8"
     );
 
-    const manifest = await scanAssets(sourceDir, { outputRoot, thumbnailSize: 16 });
+    const manifest = await scanAssets(sourceDir, {
+      outputRoot,
+      thumbnailSize: 16
+    });
 
     expect(manifest.assets[0]).toMatchObject({
       classification: "terrain",

@@ -79,9 +79,24 @@ const mapLayer = {
 const plan = {
   assetPlacements: [placedAsset],
   doors: [door],
-  gmNotes: [{ id: "note-1", position: { x: 4, y: 5 }, text: "Hidden lever", title: "Secret" }],
+  gmNotes: [
+    {
+      id: "note-1",
+      position: { x: 4, y: 5 },
+      text: "Hidden lever",
+      title: "Secret"
+    }
+  ],
   id: "plan-1",
-  initiative: [{ hitPoints: 12, id: "initiative-1", initiative: 15, name: "Skeleton", side: "enemy" }],
+  initiative: [
+    {
+      hitPoints: 12,
+      id: "initiative-1",
+      initiative: 15,
+      name: "Skeleton",
+      side: "enemy"
+    }
+  ],
   lights: [light],
   name: "Starter Plan",
   requestId: "request-1",
@@ -164,8 +179,21 @@ const validCases = [
   ["WallSegment", WallSegmentSchema, wall],
   ["DoorSegment", DoorSegmentSchema, door],
   ["LightSource", LightSourceSchema, light],
-  ["MapNote", MapNoteSchema, { id: "note-1", position: { x: 4, y: 5 }, text: "Hidden lever", title: "Secret" }],
-  ["InitiativeEntry", InitiativeEntrySchema, { id: "initiative-1", initiative: 15, name: "Skeleton" }],
+  [
+    "MapNote",
+    MapNoteSchema,
+    {
+      id: "note-1",
+      position: { x: 4, y: 5 },
+      text: "Hidden lever",
+      title: "Secret"
+    }
+  ],
+  [
+    "InitiativeEntry",
+    InitiativeEntrySchema,
+    { id: "initiative-1", initiative: 15, name: "Skeleton" }
+  ],
   ["PlacedAsset", PlacedAssetSchema, placedAsset],
   ["MapLayer", MapLayerSchema, mapLayer],
   ["GridConfig", GridConfigSchema, grid],
@@ -185,22 +213,79 @@ const validCases = [
 ] as const;
 
 const invalidCases = [
-  ["AssetMetadata", AssetMetadataSchema, { id: "asset-floor", source: "remote" }],
-  ["AssetGroup", AssetGroupSchema, { assetIds: [], id: "group-stone", name: "Stone Set" }],
-  ["ReferenceMapMetadata", ReferenceMapMetadataSchema, { height: 0, id: "ref", name: "Ref", path: "ref.png", source: "local", width: 1 }],
-  ["MapRequest", MapRequestSchema, { grid, id: "request-1", mapKind: "spaceship", name: "Wrong" }],
+  [
+    "AssetMetadata",
+    AssetMetadataSchema,
+    { id: "asset-floor", source: "remote" }
+  ],
+  [
+    "AssetGroup",
+    AssetGroupSchema,
+    { assetIds: [], id: "group-stone", name: "Stone Set" }
+  ],
+  [
+    "ReferenceMapMetadata",
+    ReferenceMapMetadataSchema,
+    {
+      height: 0,
+      id: "ref",
+      name: "Ref",
+      path: "ref.png",
+      source: "local",
+      width: 1
+    }
+  ],
+  [
+    "MapRequest",
+    MapRequestSchema,
+    { grid, id: "request-1", mapKind: "spaceship", name: "Wrong" }
+  ],
   ["MapPlan", MapPlanSchema, { id: "plan-1", name: "Plan", requestId: "" }],
-  ["MapDocument", MapDocumentSchema, { editable: false, grid, height: 20, id: "doc", name: "Doc", version: 1, width: 30 }],
-  ["RoomNode", RoomNodeSchema, { ...room, bounds: { height: -1, width: 8, x: 2, y: 3 } }],
+  [
+    "MapDocument",
+    MapDocumentSchema,
+    {
+      editable: false,
+      grid,
+      height: 20,
+      id: "doc",
+      name: "Doc",
+      version: 1,
+      width: 30
+    }
+  ],
+  [
+    "RoomNode",
+    RoomNodeSchema,
+    { ...room, bounds: { height: -1, width: 8, x: 2, y: 3 } }
+  ],
   ["WallSegment", WallSegmentSchema, { ...wall, thickness: 0 }],
   ["DoorSegment", DoorSegmentSchema, { ...door, width: -1 }],
   ["LightSource", LightSourceSchema, { ...light, color: "orange" }],
-  ["MapNote", MapNoteSchema, { id: "note-1", position: { x: 4, y: 5 }, text: "", title: "Secret" }],
-  ["InitiativeEntry", InitiativeEntrySchema, { id: "initiative-1", initiative: 15, name: "" }],
+  [
+    "MapNote",
+    MapNoteSchema,
+    { id: "note-1", position: { x: 4, y: 5 }, text: "", title: "Secret" }
+  ],
+  [
+    "InitiativeEntry",
+    InitiativeEntrySchema,
+    { id: "initiative-1", initiative: 15, name: "" }
+  ],
   ["PlacedAsset", PlacedAssetSchema, { ...placedAsset, scale: 0 }],
   ["MapLayer", MapLayerSchema, { ...mapLayer, opacity: 1.5 }],
   ["GridConfig", GridConfigSchema, { ...grid, pixelsPerCell: 0 }],
-  ["ExportJob", ExportJobSchema, { createdAt: "2026-05-19T09:59:00.000Z", documentId: "document-1", format: "png", id: "export-1", status: "completed" }]
+  [
+    "ExportJob",
+    ExportJobSchema,
+    {
+      createdAt: "2026-05-19T09:59:00.000Z",
+      documentId: "document-1",
+      format: "png",
+      id: "export-1",
+      status: "completed"
+    }
+  ]
 ] as const;
 
 describe("core data model schemas", () => {

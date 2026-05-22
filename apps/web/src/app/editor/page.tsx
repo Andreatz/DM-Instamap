@@ -1,6 +1,9 @@
 import { MapEditor } from "@/components/editor/map-editor";
 import { loadAssetGroups } from "@/lib/asset-groups";
-import { createFallbackPalette, type EditorPaletteAsset } from "@/lib/map-editor";
+import {
+  createFallbackPalette,
+  type EditorPaletteAsset
+} from "@/lib/map-editor";
 import { loadAssetManifest } from "@/lib/assets-manifest";
 import { generateDungeon } from "@dm-instamap/generator";
 
@@ -29,22 +32,37 @@ export default async function EditorPage() {
         <div>
           <strong>DM-Instamap</strong>
           <h1>Editor mappa</h1>
-          <p>Stanze, porte, muri, asset piazzati e JSON del MapDocument locale.</p>
+          <p>
+            Stanze, porte, muri, asset piazzati e JSON del MapDocument locale.
+          </p>
         </div>
       </header>
 
-      <MapEditor assetGroups={groups.groups} initialDocument={initialDocument} mapTheme={mapTheme} palette={palette} />
+      <MapEditor
+        assetGroups={groups.groups}
+        initialDocument={initialDocument}
+        mapTheme={mapTheme}
+        palette={palette}
+      />
     </main>
   );
 }
 
-function createPalette(assets: Array<{
-  classification: string;
-  id: string;
-  relativePath: string;
-  thumbnailUrl: string;
-}>): EditorPaletteAsset[] {
-  const preferredKinds = new Set(["prop", "furniture", "light", "terrain", "decoration"]);
+function createPalette(
+  assets: Array<{
+    classification: string;
+    id: string;
+    relativePath: string;
+    thumbnailUrl: string;
+  }>
+): EditorPaletteAsset[] {
+  const preferredKinds = new Set([
+    "prop",
+    "furniture",
+    "light",
+    "terrain",
+    "decoration"
+  ]);
   const palette = assets
     .filter((asset) => preferredKinds.has(asset.classification))
     .slice(0, 16)

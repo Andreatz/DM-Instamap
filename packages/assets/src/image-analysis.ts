@@ -13,7 +13,9 @@ export type LocalImageAnalysis = {
   width: number | null;
 };
 
-export async function analyzeLocalImage(imagePath: string): Promise<LocalImageAnalysis> {
+export async function analyzeLocalImage(
+  imagePath: string
+): Promise<LocalImageAnalysis> {
   const image = sharp(imagePath, { limitInputPixels: false });
   const metadata = await image.metadata();
   const fallbackFormat = path.extname(imagePath).slice(1).toLowerCase() || null;
@@ -28,7 +30,9 @@ export async function analyzeLocalImage(imagePath: string): Promise<LocalImageAn
   };
 }
 
-async function extractDominantColors(filePath: string): Promise<LocalImageAnalysis["dominantColors"]> {
+async function extractDominantColors(
+  filePath: string
+): Promise<LocalImageAnalysis["dominantColors"]> {
   const { data } = await sharp(filePath, { limitInputPixels: false })
     .resize(32, 32, { fit: "inside", withoutEnlargement: true })
     .ensureAlpha()
@@ -52,11 +56,17 @@ async function extractDominantColors(filePath: string): Promise<LocalImageAnalys
 
   return [...counts.entries()]
     .map(([hex, population]) => ({ hex, population }))
-    .sort((left, right) => right.population - left.population || left.hex.localeCompare(right.hex))
+    .sort(
+      (left, right) =>
+        right.population - left.population || left.hex.localeCompare(right.hex)
+    )
     .slice(0, 5);
 }
 
-async function detectTransparency(filePath: string, hasAlpha?: boolean): Promise<boolean | null> {
+async function detectTransparency(
+  filePath: string,
+  hasAlpha?: boolean
+): Promise<boolean | null> {
   if (hasAlpha === false) {
     return false;
   }

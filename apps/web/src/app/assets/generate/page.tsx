@@ -10,7 +10,10 @@ export default function GenerateAssetPage() {
         <div>
           <strong>DM-Instamap</strong>
           <h1>Genera asset da prompt</h1>
-          <p>Invia un prompt a Replicate o a un server locale Automatic1111 e salva il risultato nella libreria asset.</p>
+          <p>
+            Invia un prompt a Replicate o a un server locale Automatic1111 e
+            salva il risultato nella libreria asset.
+          </p>
         </div>
       </header>
 

@@ -31,14 +31,22 @@ describe("Reference Style DNA", () => {
     });
     expect(style?.grid.detected).toBe(true);
     expect(style?.grid.estimatedCellSizePx).toBe(50);
-    expect(style?.mood).toEqual(expect.arrayContaining(["cryptic", "dark", "warm-lit"]));
-    expect(style?.layoutTraits).toEqual(expect.arrayContaining(["corridor-heavy"]));
-    expect(style?.recommendedAssetTags).toEqual(expect.arrayContaining(["stone", "torch", "wall"]));
+    expect(style?.mood).toEqual(
+      expect.arrayContaining(["cryptic", "dark", "warm-lit"])
+    );
+    expect(style?.layoutTraits).toEqual(
+      expect.arrayContaining(["corridor-heavy"])
+    );
+    expect(style?.recommendedAssetTags).toEqual(
+      expect.arrayContaining(["stone", "torch", "wall"])
+    );
     expect(style?.promptSummary).toContain("Dungeon battlemap style");
   });
 
   it("writes data/indexes/reference-style-dna.json", async () => {
-    const outputRoot = await mkdtemp(path.join(os.tmpdir(), "dm-instamap-reference-style-"));
+    const outputRoot = await mkdtemp(
+      path.join(os.tmpdir(), "dm-instamap-reference-style-")
+    );
     const indexDir = path.join(outputRoot, "data", "indexes");
     await mkdir(indexDir, { recursive: true });
     await writeFile(
@@ -62,7 +70,9 @@ describe("Reference Style DNA", () => {
     );
 
     const file = await generateReferenceStyleDna({ outputRoot });
-    const written = JSON.parse(await readFile(path.join(indexDir, "reference-style-dna.json"), "utf8")) as typeof file;
+    const written = JSON.parse(
+      await readFile(path.join(indexDir, "reference-style-dna.json"), "utf8")
+    ) as typeof file;
 
     expect(file.styles).toHaveLength(1);
     expect(written.styles[0]).toMatchObject({
@@ -73,13 +83,20 @@ describe("Reference Style DNA", () => {
   });
 
   it("writes an empty style file when no reference manifest exists yet", async () => {
-    const outputRoot = await mkdtemp(path.join(os.tmpdir(), "dm-instamap-reference-style-empty-"));
+    const outputRoot = await mkdtemp(
+      path.join(os.tmpdir(), "dm-instamap-reference-style-empty-")
+    );
     const file = await generateReferenceStyleDna({ outputRoot });
     const written = JSON.parse(
-      await readFile(path.join(outputRoot, "data", "indexes", "reference-style-dna.json"), "utf8")
+      await readFile(
+        path.join(outputRoot, "data", "indexes", "reference-style-dna.json"),
+        "utf8"
+      )
     ) as typeof file;
 
     expect(written.styles).toEqual([]);
-    expect(written.sourceManifest).toBe("data/indexes/references.manifest.json");
+    expect(written.sourceManifest).toBe(
+      "data/indexes/references.manifest.json"
+    );
   });
 });

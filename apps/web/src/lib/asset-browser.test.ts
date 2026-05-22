@@ -79,34 +79,48 @@ describe("filterAssets", () => {
   it("filters by kind, tag, source folder, confidence, and search", () => {
     const assets = normalizeManifestAssets(manifestAssets);
 
-    expect(filterAssets(assets, { ...defaultFilters, kind: "door" }).map((asset) => asset.id)).toEqual([
-      "asset-door"
-    ]);
-    expect(filterAssets(assets, { ...defaultFilters, tag: "stone" }).map((asset) => asset.id)).toEqual([
-      "asset-floor"
-    ]);
+    expect(
+      filterAssets(assets, { ...defaultFilters, kind: "door" }).map(
+        (asset) => asset.id
+      )
+    ).toEqual(["asset-door"]);
+    expect(
+      filterAssets(assets, { ...defaultFilters, tag: "stone" }).map(
+        (asset) => asset.id
+      )
+    ).toEqual(["asset-floor"]);
     expect(
       filterAssets(assets, {
         ...defaultFilters,
         sourceFolder: "Dungeon Pack/Floors"
       }).map((asset) => asset.id)
     ).toEqual(["asset-floor"]);
-    expect(filterAssets(assets, { ...defaultFilters, confidence: 0.9 }).map((asset) => asset.id)).toEqual([
-      "asset-floor"
-    ]);
-    expect(filterAssets(assets, { ...defaultFilters, query: "skull" }).map((asset) => asset.id)).toEqual([
-      "asset-old"
-    ]);
+    expect(
+      filterAssets(assets, { ...defaultFilters, confidence: 0.9 }).map(
+        (asset) => asset.id
+      )
+    ).toEqual(["asset-floor"]);
+    expect(
+      filterAssets(assets, { ...defaultFilters, query: "skull" }).map(
+        (asset) => asset.id
+      )
+    ).toEqual(["asset-old"]);
   });
 });
 
 describe("createAssetBrowserOptions", () => {
   it("builds sorted filter options", () => {
-    const options = createAssetBrowserOptions(normalizeManifestAssets(manifestAssets));
+    const options = createAssetBrowserOptions(
+      normalizeManifestAssets(manifestAssets)
+    );
 
     expect(options.kinds).toEqual(["door", "floor", "unknown"]);
     expect(options.tags).toContain("stone");
-    expect(options.sourceFolders).toEqual(["Dungeon Pack/Doors", "Dungeon Pack/Floors", "Old Pack/Props"]);
+    expect(options.sourceFolders).toEqual([
+      "Dungeon Pack/Doors",
+      "Dungeon Pack/Floors",
+      "Old Pack/Props"
+    ]);
   });
 });
 

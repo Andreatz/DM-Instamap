@@ -131,7 +131,8 @@ export function buildGroupReviewItems(
       .filter((asset): asset is AssetBrowserEntry => asset !== undefined);
     const confidenceAverage =
       groupAssets.length > 0
-        ? groupAssets.reduce((sum, asset) => sum + asset.confidence, 0) / groupAssets.length
+        ? groupAssets.reduce((sum, asset) => sum + asset.confidence, 0) /
+          groupAssets.length
         : null;
     const review = reviews.reviewedGroups[group.id];
 
@@ -140,14 +141,18 @@ export function buildGroupReviewItems(
       assets: groupAssets,
       confidenceAverage,
       group,
-      lowConfidenceCount: groupAssets.filter((asset) => asset.confidence <= 0.5).length,
+      lowConfidenceCount: groupAssets.filter((asset) => asset.confidence <= 0.5)
+        .length,
       previewAssets: groupAssets.slice(0, 24),
-      reviewed: Boolean(review?.reviewedAt || review?.confirmedAt || review?.correction),
+      reviewed: Boolean(
+        review?.reviewedAt || review?.confirmedAt || review?.correction
+      ),
       review,
       unknownCount:
         group.kind === "unknown"
           ? groupAssets.length
-          : groupAssets.filter((asset) => asset.classification === "unknown").length,
+          : groupAssets.filter((asset) => asset.classification === "unknown")
+              .length,
       usageCount: reviews.usage[group.id] ?? 0,
       visibleAssetIds: groupAssets.map((asset) => asset.id)
     };
@@ -172,20 +177,34 @@ export function selectReviewQueue(
     case "unknown":
       return unreviewed
         .filter((item) => item.unknownCount > 0)
-        .sort((left, right) => right.unknownCount - left.unknownCount || right.assetCount - left.assetCount);
+        .sort(
+          (left, right) =>
+            right.unknownCount - left.unknownCount ||
+            right.assetCount - left.assetCount
+        );
     case "most-used":
       return unreviewed.sort(
-        (left, right) => right.usageCount - left.usageCount || right.assetCount - left.assetCount
+        (left, right) =>
+          right.usageCount - left.usageCount ||
+          right.assetCount - left.assetCount
       );
     case "random-sample":
-      return [...unreviewed].sort((left, right) => stableRandomScore(left.group.id) - stableRandomScore(right.group.id));
-    case "largest-unreviewed":
+      return [...unreviewed].sort(
+        (left, right) =>
+          stableRandomScore(left.group.id) - stableRandomScore(right.group.id)
+      );
     default:
-      return unreviewed.sort((left, right) => right.assetCount - left.assetCount || left.group.name.localeCompare(right.group.name));
+      return unreviewed.sort(
+        (left, right) =>
+          right.assetCount - left.assetCount ||
+          left.group.name.localeCompare(right.group.name)
+      );
   }
 }
 
-export function calculateGroupReviewStats(items: AssetGroupReviewItem[]): AssetGroupReviewStats {
+export function calculateGroupReviewStats(
+  items: AssetGroupReviewItem[]
+): AssetGroupReviewStats {
   const reviewedAssets = new Set<string>();
 
   for (const item of items) {
@@ -197,27 +216,41 @@ export function calculateGroupReviewStats(items: AssetGroupReviewItem[]): AssetG
   }
 
   return {
-    lowConfidenceRemaining: items.reduce((sum, item) => sum + (item.reviewed ? 0 : item.lowConfidenceCount), 0),
+    lowConfidenceRemaining: items.reduce(
+      (sum, item) => sum + (item.reviewed ? 0 : item.lowConfidenceCount),
+      0
+    ),
     reviewedAssets: reviewedAssets.size,
     reviewedGroups: items.filter((item) => item.reviewed).length,
     totalAssets: new Set(items.flatMap((item) => item.visibleAssetIds)).size,
-    unknownRemaining: items.reduce((sum, item) => sum + (item.reviewed ? 0 : item.unknownCount), 0)
+    unknownRemaining: items.reduce(
+      (sum, item) => sum + (item.reviewed ? 0 : item.unknownCount),
+      0
+    )
   };
 }
 
-export function createGroupReviewDraft(item: AssetGroupReviewItem): AssetGroupReviewDraft {
+export function createGroupReviewDraft(
+  item: AssetGroupReviewItem
+): AssetGroupReviewDraft {
   const correction = item.review?.correction;
 
   return {
     kind: normalizeReviewKind(correction?.kind ?? item.group.kind),
-    qualityScore: clampScore(correction?.qualityScore ?? item.group.qualityScore ?? qualityFromConfidence(item.confidenceAverage)),
+    qualityScore: clampScore(
+      correction?.qualityScore ??
+        item.group.qualityScore ??
+        qualityFromConfidence(item.confidenceAverage)
+    ),
     tagsText: (correction?.tags ?? item.group.tags).join(", "),
     theme: correction?.theme ?? item.group.theme ?? "",
     usableForText: (correction?.usableFor ?? item.group.usableFor).join(", ")
   };
 }
 
-export function buildGroupCorrectionFromDraft(draft: AssetGroupReviewDraft): AssetGroupCorrection {
+export function buildGroupCorrectionFromDraft(
+  draft: AssetGroupReviewDraft
+): AssetGroupCorrection {
   return {
     kind: normalizeReviewKind(draft.kind),
     qualityScore: clampScore(draft.qualityScore),
@@ -247,7 +280,9 @@ export function buildAssetCorrectionsForGroup(
   }));
 }
 
-export function normalizeGroupReviewsFile(input: unknown): AssetGroupReviewsFile {
+export function normalizeGroupReviewsFile(
+  input: unknown
+): AssetGroupReviewsFile {
   if (!input || typeof input !== "object") {
     return createEmptyGroupReviews();
   }
@@ -256,12 +291,16 @@ export function normalizeGroupReviewsFile(input: unknown): AssetGroupReviewsFile
 
   return {
     merges: Array.isArray(value.merges)
-      ? value.merges.map(normalizeMerge).filter((merge): merge is AssetGroupMergeRecord => merge !== null)
+      ? value.merges
+          .map(normalizeMerge)
+          .filter((merge): merge is AssetGroupMergeRecord => merge !== null)
       : [],
     removedAssets: normalizeStringArrayRecord(value.removedAssets),
     reviewedGroups: normalizeReviewedGroups(value.reviewedGroups),
     splits: Array.isArray(value.splits)
-      ? value.splits.map(normalizeSplit).filter((split): split is AssetGroupSplitRecord => split !== null)
+      ? value.splits
+          .map(normalizeSplit)
+          .filter((split): split is AssetGroupSplitRecord => split !== null)
       : [],
     usage: normalizeNumberRecord(value.usage)
   };
@@ -271,7 +310,9 @@ export async function loadAssetGroupReviews(): Promise<AssetGroupReviewsFile> {
   const reviewsPath = await getAssetGroupReviewsPath();
 
   try {
-    return normalizeGroupReviewsFile(parseJsonFileContent(await readFile(reviewsPath, "utf8")));
+    return normalizeGroupReviewsFile(
+      parseJsonFileContent(await readFile(reviewsPath, "utf8"))
+    );
   } catch (error) {
     if (isMissingFileError(error)) {
       return createEmptyGroupReviews();
@@ -281,12 +322,18 @@ export async function loadAssetGroupReviews(): Promise<AssetGroupReviewsFile> {
   }
 }
 
-export async function saveAssetGroupReviews(reviews: AssetGroupReviewsFile): Promise<AssetGroupReviewsFile> {
+export async function saveAssetGroupReviews(
+  reviews: AssetGroupReviewsFile
+): Promise<AssetGroupReviewsFile> {
   const reviewsPath = await getAssetGroupReviewsPath();
   const normalized = normalizeGroupReviewsFile(reviews);
 
   await mkdir(path.dirname(reviewsPath), { recursive: true });
-  await writeFile(reviewsPath, `${JSON.stringify(normalized, null, 2)}\n`, "utf8");
+  await writeFile(
+    reviewsPath,
+    `${JSON.stringify(normalized, null, 2)}\n`,
+    "utf8"
+  );
 
   return normalized;
 }
@@ -315,7 +362,9 @@ export function applyGroupReviewAction(
 
   if (action.action === "add-tags") {
     const existing = next.reviewedGroups[action.groupId]?.correction;
-    const tags = [...new Set([...(existing?.tags ?? []), ...parseCsvList(action.tagsText)])];
+    const tags = [
+      ...new Set([...(existing?.tags ?? []), ...parseCsvList(action.tagsText)])
+    ];
     next.reviewedGroups[action.groupId] = {
       ...next.reviewedGroups[action.groupId],
       correction: {
@@ -331,7 +380,10 @@ export function applyGroupReviewAction(
 
   if (action.action === "remove-asset") {
     next.removedAssets[action.groupId] = [
-      ...new Set([...(next.removedAssets[action.groupId] ?? []), action.assetId])
+      ...new Set([
+        ...(next.removedAssets[action.groupId] ?? []),
+        action.assetId
+      ])
     ];
   }
 
@@ -349,7 +401,9 @@ export function applyGroupReviewAction(
     next.merges.push({
       createdAt: now,
       groupIds: [...new Set(action.groupIds)],
-      id: `merge-${stableRandomScore(`${action.groupIds.join("-")}-${now}`).toString(16).slice(2, 10)}`,
+      id: `merge-${stableRandomScore(`${action.groupIds.join("-")}-${now}`)
+        .toString(16)
+        .slice(2, 10)}`,
       name: action.name.trim() || "Manual Merge"
     });
   }
@@ -367,23 +421,33 @@ function createEmptyGroupReviews(): AssetGroupReviewsFile {
   };
 }
 
-function normalizeReviewedGroups(value: unknown): AssetGroupReviewsFile["reviewedGroups"] {
+function normalizeReviewedGroups(
+  value: unknown
+): AssetGroupReviewsFile["reviewedGroups"] {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return {};
   }
 
   const reviewedGroups: AssetGroupReviewsFile["reviewedGroups"] = {};
 
-  for (const [groupId, rawReview] of Object.entries(value as Record<string, unknown>)) {
-    if (!rawReview || typeof rawReview !== "object" || Array.isArray(rawReview)) {
+  for (const [groupId, rawReview] of Object.entries(
+    value as Record<string, unknown>
+  )) {
+    if (
+      !rawReview ||
+      typeof rawReview !== "object" ||
+      Array.isArray(rawReview)
+    ) {
       continue;
     }
 
     const input = rawReview as AssetGroupReviewRecord;
     reviewedGroups[groupId] = {
-      confirmedAt: typeof input.confirmedAt === "string" ? input.confirmedAt : undefined,
+      confirmedAt:
+        typeof input.confirmedAt === "string" ? input.confirmedAt : undefined,
       correction: normalizeCorrection(input.correction),
-      reviewedAt: typeof input.reviewedAt === "string" ? input.reviewedAt : undefined
+      reviewedAt:
+        typeof input.reviewedAt === "string" ? input.reviewedAt : undefined
     };
   }
 
@@ -398,12 +462,20 @@ function normalizeCorrection(value: unknown): AssetGroupCorrection | undefined {
   const input = value as Partial<AssetGroupCorrection>;
 
   return {
-    kind: normalizeReviewKind(typeof input.kind === "string" ? input.kind : "unknown"),
-    qualityScore: clampScore(typeof input.qualityScore === "number" ? input.qualityScore : 50),
-    tags: Array.isArray(input.tags) ? input.tags.filter((tag): tag is string => typeof tag === "string") : [],
+    kind: normalizeReviewKind(
+      typeof input.kind === "string" ? input.kind : "unknown"
+    ),
+    qualityScore: clampScore(
+      typeof input.qualityScore === "number" ? input.qualityScore : 50
+    ),
+    tags: Array.isArray(input.tags)
+      ? input.tags.filter((tag): tag is string => typeof tag === "string")
+      : [],
     theme: typeof input.theme === "string" ? input.theme : "",
     usableFor: Array.isArray(input.usableFor)
-      ? input.usableFor.filter((item): item is string => typeof item === "string")
+      ? input.usableFor.filter(
+          (item): item is string => typeof item === "string"
+        )
       : []
   };
 }
@@ -415,7 +487,9 @@ function normalizeSplit(value: unknown): AssetGroupSplitRecord | null {
 
   const input = value as Partial<AssetGroupSplitRecord>;
   const groupId = typeof input.groupId === "string" ? input.groupId : "";
-  const assetIds = Array.isArray(input.assetIds) ? input.assetIds.filter((item): item is string => typeof item === "string") : [];
+  const assetIds = Array.isArray(input.assetIds)
+    ? input.assetIds.filter((item): item is string => typeof item === "string")
+    : [];
 
   if (!groupId || assetIds.length === 0) {
     return null;
@@ -436,7 +510,9 @@ function normalizeMerge(value: unknown): AssetGroupMergeRecord | null {
   }
 
   const input = value as Partial<AssetGroupMergeRecord>;
-  const groupIds = Array.isArray(input.groupIds) ? input.groupIds.filter((item): item is string => typeof item === "string") : [];
+  const groupIds = Array.isArray(input.groupIds)
+    ? input.groupIds.filter((item): item is string => typeof item === "string")
+    : [];
 
   if (groupIds.length < 2) {
     return null;
@@ -458,7 +534,9 @@ function normalizeStringArrayRecord(value: unknown): Record<string, string[]> {
   return Object.fromEntries(
     Object.entries(value as Record<string, unknown>).map(([key, raw]) => [
       key,
-      Array.isArray(raw) ? raw.filter((item): item is string => typeof item === "string") : []
+      Array.isArray(raw)
+        ? raw.filter((item): item is string => typeof item === "string")
+        : []
     ])
   );
 }
@@ -476,7 +554,9 @@ function normalizeNumberRecord(value: unknown): Record<string, number> {
 }
 
 function normalizeReviewKind(value: string): ReviewAssetKind {
-  return ASSET_REVIEW_KINDS.includes(value as ReviewAssetKind) ? (value as ReviewAssetKind) : "unknown";
+  return ASSET_REVIEW_KINDS.includes(value as ReviewAssetKind)
+    ? (value as ReviewAssetKind)
+    : "unknown";
 }
 
 function qualityFromConfidence(value: number | null): number {
@@ -504,7 +584,12 @@ function stableRandomScore(value: string): number {
 
 async function getAssetGroupReviewsPath(): Promise<string> {
   const workspaceRoot = await findWorkspaceRoot(process.cwd());
-  return path.join(workspaceRoot, "data", "indexes", "asset-group-reviews.json");
+  return path.join(
+    workspaceRoot,
+    "data",
+    "indexes",
+    "asset-group-reviews.json"
+  );
 }
 
 function isMissingFileError(error: unknown): boolean {

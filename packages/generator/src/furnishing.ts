@@ -1,4 +1,9 @@
-import type { MapDocument, MapTile, PlacedAsset, RoomNode } from "@dm-instamap/core";
+import type {
+  MapDocument,
+  MapTile,
+  PlacedAsset,
+  RoomNode
+} from "@dm-instamap/core";
 import type { NarrativeRoom } from "./blueprint";
 
 export const FURNISHING_DENSITIES = ["sparse", "normal", "rich"] as const;
@@ -121,10 +126,45 @@ const DENSITY_RATIO: Record<FurnishingDensity, number> = {
 };
 
 const ROOM_TYPE_TERMS: Record<FurnishingRoomType, string[]> = {
-  boss_room: ["altar", "boss", "boss_room", "final", "ritual", "sarcophagus", "throne"],
-  cave: ["boulder", "cave", "cavern", "moss", "rock", "rocks", "stalagmite", "stalactite"],
-  chapel: ["altar", "candle", "chapel", "holy", "pew", "reliquary", "shrine", "temple"],
-  clearing: ["bush", "clearing", "fern", "log", "outdoor", "rocks", "stump", "tree"],
+  boss_room: [
+    "altar",
+    "boss",
+    "boss_room",
+    "final",
+    "ritual",
+    "sarcophagus",
+    "throne"
+  ],
+  cave: [
+    "boulder",
+    "cave",
+    "cavern",
+    "moss",
+    "rock",
+    "rocks",
+    "stalagmite",
+    "stalactite"
+  ],
+  chapel: [
+    "altar",
+    "candle",
+    "chapel",
+    "holy",
+    "pew",
+    "reliquary",
+    "shrine",
+    "temple"
+  ],
+  clearing: [
+    "bush",
+    "clearing",
+    "fern",
+    "log",
+    "outdoor",
+    "rocks",
+    "stump",
+    "tree"
+  ],
   corridor: ["corridor", "hall", "light", "torch"],
   crypt: ["bone", "coffin", "crypt", "grave", "sarcophagus", "skull", "tomb"],
   entrance: ["door", "entrance", "gate", "light", "stairs", "torch"],
@@ -139,21 +179,32 @@ const ROOM_TYPE_TERMS: Record<FurnishingRoomType, string[]> = {
   village_building: ["bed", "chair", "rug", "shelf", "table", "village"]
 };
 
-export function autoFurnishMap(document: MapDocument, options: AutoFurnishOptions): AutoFurnishResult {
+export function autoFurnishMap(
+  document: MapDocument,
+  options: AutoFurnishOptions
+): AutoFurnishResult {
   const density = options.density ?? "normal";
   const tileLookup = createTileLookup(document.tiles);
   const occupied = createOccupiedSet(document.assets);
-  const assets = [...options.assets, ...createAssetsFromGroups(options.assetGroups ?? [])]
+  const assets = [
+    ...options.assets,
+    ...createAssetsFromGroups(options.assetGroups ?? [])
+  ]
     .map(normalizeAsset)
     .sort(compareAssetsForPlacement);
-  const rooms = selectRooms(document, Boolean(options.includeCorridors)).sort(compareRoomsForFurnishing);
+  const rooms = selectRooms(document, Boolean(options.includeCorridors)).sort(
+    compareRoomsForFurnishing
+  );
   const styleTags = normalizeTokens(options.styleTags ?? []);
   const additions: PlacedAsset[] = [];
   const placed: FurnishingPlacementDebug[] = [];
   const skipped: AutoFurnishResult["skipped"] = [];
 
   for (const room of rooms) {
-    const narrativeRoom = findNarrativeRoomForRoom(room, options.narrativeRooms ?? []);
+    const narrativeRoom = findNarrativeRoomForRoom(
+      room,
+      options.narrativeRooms ?? []
+    );
     const roomType = inferFurnishingRoomType(room, narrativeRoom);
     const context = createRoomFurnishingContext(room, roomType, narrativeRoom);
     const roomBudget = calculateRoomBudget(room, density);
@@ -172,7 +223,14 @@ export function autoFurnishMap(document: MapDocument, options: AutoFurnishOption
       }
 
       const placement = inferPlacementPreference(asset, context);
-      const candidate = findPlacement({ asset, occupied, placement, room, roomType, tileLookup });
+      const candidate = findPlacement({
+        asset,
+        occupied,
+        placement,
+        room,
+        roomType,
+        tileLookup
+      });
 
       if (!candidate) {
         skipped.push({
@@ -183,7 +241,13 @@ export function autoFurnishMap(document: MapDocument, options: AutoFurnishOption
         continue;
       }
 
-      markOccupied(occupied, candidate.x, candidate.y, asset.width, asset.height);
+      markOccupied(
+        occupied,
+        candidate.x,
+        candidate.y,
+        asset.width,
+        asset.height
+      );
       usedArea += asset.area;
       additions.push(createPlacedAsset(document, additions.length, candidate));
       placed.push({
@@ -223,7 +287,10 @@ export function autoFurnishMap(document: MapDocument, options: AutoFurnishOption
   };
 }
 
-export function inferFurnishingRoomType(room: RoomNode, narrativeRoom?: NarrativeRoom | null): FurnishingRoomType {
+export function inferFurnishingRoomType(
+  room: RoomNode,
+  narrativeRoom?: NarrativeRoom | null
+): FurnishingRoomType {
   if (room.kind === "entrance") {
     return "entrance";
   }
@@ -240,7 +307,10 @@ export function inferFurnishingRoomType(room: RoomNode, narrativeRoom?: Narrativ
     ...(narrativeRoom?.tags ?? [])
   ]).join(" ");
 
-  if (room.kind === "service" || /\b(clearing|outdoor|forest|trail|wilderness)\b/u.test(text)) {
+  if (
+    room.kind === "service" ||
+    /\b(clearing|outdoor|forest|trail|wilderness)\b/u.test(text)
+  ) {
     return "clearing";
   }
 
@@ -268,7 +338,14 @@ export function inferFurnishingRoomType(room: RoomNode, narrativeRoom?: Narrativ
     return "shrine";
   }
 
-  const specificRoomTypes: FurnishingRoomType[] = ["prison", "forge", "library", "chapel", "storage", "crypt"];
+  const specificRoomTypes: FurnishingRoomType[] = [
+    "prison",
+    "forge",
+    "library",
+    "chapel",
+    "storage",
+    "crypt"
+  ];
 
   for (const roomType of specificRoomTypes) {
     const terms = ROOM_TYPE_TERMS[roomType];
@@ -292,10 +369,19 @@ export function inferPlacementPreference(
   const terms = new Set(
     "area" in asset
       ? [asset.kind, ...asset.tags, ...asset.usableFor]
-      : normalizeTokens([asset.kind, ...(asset.tags ?? []), ...(asset.usableFor ?? [])])
+      : normalizeTokens([
+          asset.kind,
+          ...(asset.tags ?? []),
+          ...(asset.usableFor ?? [])
+        ])
   );
 
-  if (terms.has("light") || terms.has("torch") || terms.has("lantern") || asset.kind === "light") {
+  if (
+    terms.has("light") ||
+    terms.has("torch") ||
+    terms.has("lantern") ||
+    asset.kind === "light"
+  ) {
     return "light";
   }
 
@@ -326,32 +412,52 @@ export function inferPlacementPreference(
   return "scatter";
 }
 
-function createAssetsFromGroups(groups: FurnishingAssetGroup[]): FurnishingAsset[] {
+function createAssetsFromGroups(
+  groups: FurnishingAssetGroup[]
+): FurnishingAsset[] {
   return groups
     .filter((group) => group.assetIds[0])
     .map((group) => ({
       assetId: group.assetIds[0] as string,
       kind: group.kind ?? "prop",
       qualityScore: group.qualityScore,
-      tags: [...(group.tags ?? []), ...(group.themes ?? []), ...(group.theme ? [group.theme] : [])],
+      tags: [
+        ...(group.tags ?? []),
+        ...(group.themes ?? []),
+        ...(group.theme ? [group.theme] : [])
+      ],
       usableFor: group.usableFor
     }));
 }
 
-function selectRooms(document: MapDocument, includeCorridors: boolean): RoomNode[] {
+function selectRooms(
+  document: MapDocument,
+  includeCorridors: boolean
+): RoomNode[] {
   const supportedKinds = new Set<RoomNode["kind"]>(
-    includeCorridors ? ["corridor", "entrance", "room", "service"] : ["entrance", "room", "service"]
+    includeCorridors
+      ? ["corridor", "entrance", "room", "service"]
+      : ["entrance", "room", "service"]
   );
-  return (document.plan?.rooms ?? []).filter((room) => supportedKinds.has(room.kind));
+  return (document.plan?.rooms ?? []).filter((room) =>
+    supportedKinds.has(room.kind)
+  );
 }
 
 function compareRoomsForFurnishing(left: RoomNode, right: RoomNode): number {
-  return roomKindPriority(left) - roomKindPriority(right) || left.id.localeCompare(right.id);
+  return (
+    roomKindPriority(left) - roomKindPriority(right) ||
+    left.id.localeCompare(right.id)
+  );
 }
 
 function roomKindPriority(room: RoomNode): number {
   if (room.kind === "room") {
-    return room.tags.some((tag) => tag === "boss" || tag === "final" || tag === "role-boss") ? 0 : 1;
+    return room.tags.some(
+      (tag) => tag === "boss" || tag === "final" || tag === "role-boss"
+    )
+      ? 0
+      : 1;
   }
 
   if (room.kind === "entrance") {
@@ -364,7 +470,9 @@ function roomKindPriority(room: RoomNode): number {
 function normalizeAsset(asset: FurnishingAsset): NormalizedFurnishingAsset {
   const inferredFootprint = inferAssetFootprint(asset);
   const width = normalizeFootprint(asset.widthCells ?? inferredFootprint.width);
-  const height = normalizeFootprint(asset.heightCells ?? inferredFootprint.height);
+  const height = normalizeFootprint(
+    asset.heightCells ?? inferredFootprint.height
+  );
 
   return {
     area: width * height,
@@ -379,23 +487,47 @@ function normalizeAsset(asset: FurnishingAsset): NormalizedFurnishingAsset {
   };
 }
 
-function inferAssetFootprint(asset: FurnishingAsset): { height: number; width: number } {
-  const terms = normalizeTokens([asset.kind, ...(asset.tags ?? []), ...(asset.usableFor ?? [])]);
+function inferAssetFootprint(asset: FurnishingAsset): {
+  height: number;
+  width: number;
+} {
+  const terms = normalizeTokens([
+    asset.kind,
+    ...(asset.tags ?? []),
+    ...(asset.usableFor ?? [])
+  ]);
   const termSet = new Set(terms);
 
-  if (termSet.has("table") || termSet.has("altar") || termSet.has("throne") || termSet.has("sarcophagus")) {
+  if (
+    termSet.has("table") ||
+    termSet.has("altar") ||
+    termSet.has("throne") ||
+    termSet.has("sarcophagus")
+  ) {
     return { height: 2, width: 2 };
   }
 
-  if (termSet.has("bookshelf") || termSet.has("shelf") || termSet.has("bench") || termSet.has("bars")) {
+  if (
+    termSet.has("bookshelf") ||
+    termSet.has("shelf") ||
+    termSet.has("bench") ||
+    termSet.has("bars")
+  ) {
     return { height: 1, width: 2 };
   }
 
   return { height: 1, width: 1 };
 }
 
-function compareAssetsForPlacement(left: NormalizedFurnishingAsset, right: NormalizedFurnishingAsset): number {
-  return right.area - left.area || right.qualityScore - left.qualityScore || left.assetId.localeCompare(right.assetId);
+function compareAssetsForPlacement(
+  left: NormalizedFurnishingAsset,
+  right: NormalizedFurnishingAsset
+): number {
+  return (
+    right.area - left.area ||
+    right.qualityScore - left.qualityScore ||
+    left.assetId.localeCompare(right.assetId)
+  );
 }
 
 function compareRoomAssetCandidates(
@@ -423,7 +555,10 @@ function scoreAssetForRoom(
   }
 
   for (const term of assetTerms) {
-    if (context.terms.includes(term) || ROOM_TYPE_TERMS[context.roomType].includes(term)) {
+    if (
+      context.terms.includes(term) ||
+      ROOM_TYPE_TERMS[context.roomType].includes(term)
+    ) {
       score += 3;
     }
 
@@ -445,11 +580,17 @@ function scoreAssetForRoom(
     }
   }
 
-  if (context.roomType === "corridor" && (asset.kind === "light" || asset.usableFor.includes("corridor"))) {
+  if (
+    context.roomType === "corridor" &&
+    (asset.kind === "light" || asset.usableFor.includes("corridor"))
+  ) {
     score += 5;
   }
 
-  if (context.roomType === "entrance" && (asset.kind === "door" || asset.kind === "light")) {
+  if (
+    context.roomType === "entrance" &&
+    (asset.kind === "door" || asset.kind === "light")
+  ) {
     score += 4;
   }
 
@@ -473,7 +614,10 @@ function explainAssetRoomMatch(
   }
 
   for (const term of assetTerms) {
-    if (context.terms.includes(term) || ROOM_TYPE_TERMS[context.roomType].includes(term)) {
+    if (
+      context.terms.includes(term) ||
+      ROOM_TYPE_TERMS[context.roomType].includes(term)
+    ) {
       reasons.push(`term:${term}`);
     }
 
@@ -487,17 +631,24 @@ function explainAssetRoomMatch(
       ...context.narrativeRoom.suggestedAssets,
       ...context.narrativeRoom.suggestedLights
     ]);
-    const matchedSuggestion = [...assetTerms].find((term) => suggestedTerms.includes(term));
+    const matchedSuggestion = [...assetTerms].find((term) =>
+      suggestedTerms.includes(term)
+    );
 
     if (matchedSuggestion) {
       reasons.push(`narrative:${matchedSuggestion}`);
     }
   }
 
-  return reasons.length > 0 ? [...new Set(reasons)].slice(0, 5) : ["generic-usable"];
+  return reasons.length > 0
+    ? [...new Set(reasons)].slice(0, 5)
+    : ["generic-usable"];
 }
 
-function calculateRoomBudget(room: RoomNode, density: FurnishingDensity): number {
+function calculateRoomBudget(
+  room: RoomNode,
+  density: FurnishingDensity
+): number {
   const area = room.bounds.width * room.bounds.height;
   return Math.max(1, Math.floor(area * DENSITY_RATIO[density]));
 }
@@ -537,12 +688,17 @@ function findPlacement(input: {
   return null;
 }
 
-function createCandidatePositions(room: RoomNode, placement: PlacementPreference): Array<{ x: number; y: number }> {
+function createCandidatePositions(
+  room: RoomNode,
+  placement: PlacementPreference
+): Array<{ x: number; y: number }> {
   const positions: Array<{ x: number; y: number }> = [];
   const startX = room.bounds.x + (room.bounds.width > 3 ? 1 : 0);
   const startY = room.bounds.y + (room.bounds.height > 3 ? 1 : 0);
-  const endX = room.bounds.x + room.bounds.width - (room.bounds.width > 3 ? 1 : 0);
-  const endY = room.bounds.y + room.bounds.height - (room.bounds.height > 3 ? 1 : 0);
+  const endX =
+    room.bounds.x + room.bounds.width - (room.bounds.width > 3 ? 1 : 0);
+  const endY =
+    room.bounds.y + room.bounds.height - (room.bounds.height > 3 ? 1 : 0);
 
   for (let y = startY; y < endY; y += 1) {
     for (let x = startX; x < endX; x += 1) {
@@ -550,7 +706,9 @@ function createCandidatePositions(room: RoomNode, placement: PlacementPreference
     }
   }
 
-  return positions.sort((left, right) => comparePositionsForPlacement(left, right, room, placement));
+  return positions.sort((left, right) =>
+    comparePositionsForPlacement(left, right, room, placement)
+  );
 }
 
 function comparePositionsForPlacement(
@@ -565,14 +723,29 @@ function comparePositionsForPlacement(
   const rightCenter = distanceToRoomCenter(right, room);
 
   if (placement === "center") {
-    return leftCenter - rightCenter || rightEdge - leftEdge || left.y - right.y || left.x - right.x;
+    return (
+      leftCenter - rightCenter ||
+      rightEdge - leftEdge ||
+      left.y - right.y ||
+      left.x - right.x
+    );
   }
 
   if (placement === "wall" || placement === "light") {
-    return leftEdge - rightEdge || leftCenter - rightCenter || left.y - right.y || left.x - right.x;
+    return (
+      leftEdge - rightEdge ||
+      leftCenter - rightCenter ||
+      left.y - right.y ||
+      left.x - right.x
+    );
   }
 
-  return Math.abs(leftEdge - 1) - Math.abs(rightEdge - 1) || leftCenter - rightCenter || left.y - right.y || left.x - right.x;
+  return (
+    Math.abs(leftEdge - 1) - Math.abs(rightEdge - 1) ||
+    leftCenter - rightCenter ||
+    left.y - right.y ||
+    left.x - right.x
+  );
 }
 
 function canPlaceFootprint(input: {
@@ -606,7 +779,11 @@ function canPlaceFootprint(input: {
   return true;
 }
 
-function createPlacedAsset(document: MapDocument, offset: number, placement: CandidatePlacement): PlacedAsset {
+function createPlacedAsset(
+  document: MapDocument,
+  offset: number,
+  placement: CandidatePlacement
+): PlacedAsset {
   return {
     assetId: placement.asset.assetId,
     flipX: false,
@@ -620,7 +797,12 @@ function createPlacedAsset(document: MapDocument, offset: number, placement: Can
     },
     rotation: 0,
     scale: 1,
-    tags: ["auto-furnished", placement.room.id, placement.roomType, ...placement.asset.tags]
+    tags: [
+      "auto-furnished",
+      placement.room.id,
+      placement.roomType,
+      ...placement.asset.tags
+    ]
   };
 }
 
@@ -629,10 +811,18 @@ function createTileLookup(tiles: MapTile[]): Map<string, MapTile> {
 }
 
 function createOccupiedSet(assets: PlacedAsset[]): Set<string> {
-  return new Set(assets.map((asset) => cellKey(asset.position.x, asset.position.y)));
+  return new Set(
+    assets.map((asset) => cellKey(asset.position.x, asset.position.y))
+  );
 }
 
-function markOccupied(occupied: Set<string>, x: number, y: number, width: number, height: number): void {
+function markOccupied(
+  occupied: Set<string>,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+): void {
   for (let cellY = y; cellY < y + height; cellY += 1) {
     for (let cellX = x; cellX < x + width; cellX += 1) {
       occupied.add(cellKey(cellX, cellY));
@@ -640,7 +830,10 @@ function markOccupied(occupied: Set<string>, x: number, y: number, width: number
   }
 }
 
-function distanceToRoomEdge(position: { x: number; y: number }, room: RoomNode): number {
+function distanceToRoomEdge(
+  position: { x: number; y: number },
+  room: RoomNode
+): number {
   return Math.min(
     position.x - room.bounds.x,
     position.y - room.bounds.y,
@@ -649,10 +842,15 @@ function distanceToRoomEdge(position: { x: number; y: number }, room: RoomNode):
   );
 }
 
-function distanceToRoomCenter(position: { x: number; y: number }, room: RoomNode): number {
+function distanceToRoomCenter(
+  position: { x: number; y: number },
+  room: RoomNode
+): number {
   const centerX = room.bounds.x + room.bounds.width / 2;
   const centerY = room.bounds.y + room.bounds.height / 2;
-  return Math.abs(position.x + 0.5 - centerX) + Math.abs(position.y + 0.5 - centerY);
+  return (
+    Math.abs(position.x + 0.5 - centerX) + Math.abs(position.y + 0.5 - centerY)
+  );
 }
 
 function createRoomFurnishingContext(
@@ -676,15 +874,22 @@ function createRoomFurnishingContext(
   };
 }
 
-function findNarrativeRoomForRoom(room: RoomNode, narrativeRooms: NarrativeRoom[]): NarrativeRoom | null {
+function findNarrativeRoomForRoom(
+  room: RoomNode,
+  narrativeRooms: NarrativeRoom[]
+): NarrativeRoom | null {
   if (narrativeRooms.length === 0) {
     return null;
   }
 
-  const blueprintTag = room.tags.find((tag) => tag.startsWith("blueprint-"))?.replace(/^blueprint-/u, "");
+  const blueprintTag = room.tags
+    .find((tag) => tag.startsWith("blueprint-"))
+    ?.replace(/^blueprint-/u, "");
 
   if (blueprintTag) {
-    const byTag = narrativeRooms.find((narrativeRoom) => narrativeRoom.id === blueprintTag);
+    const byTag = narrativeRooms.find(
+      (narrativeRoom) => narrativeRoom.id === blueprintTag
+    );
 
     if (byTag) {
       return byTag;
@@ -693,8 +898,12 @@ function findNarrativeRoomForRoom(room: RoomNode, narrativeRooms: NarrativeRoom[
 
   const normalizedLabel = normalizeToken(room.label);
   return (
-    narrativeRooms.find((narrativeRoom) => normalizeToken(narrativeRoom.label) === normalizedLabel) ??
-    narrativeRooms.find((narrativeRoom) => room.tags.includes(`role-${narrativeRoom.tacticalRole}`)) ??
+    narrativeRooms.find(
+      (narrativeRoom) => normalizeToken(narrativeRoom.label) === normalizedLabel
+    ) ??
+    narrativeRooms.find((narrativeRoom) =>
+      room.tags.includes(`role-${narrativeRoom.tacticalRole}`)
+    ) ??
     null
   );
 }
@@ -715,7 +924,10 @@ function normalizeTokens(values: string[]): string[] {
   return [
     ...new Set(
       values
-        .flatMap((value) => [normalizeToken(value), ...value.split(/[^a-z0-9]+/iu).map(normalizeToken)])
+        .flatMap((value) => [
+          normalizeToken(value),
+          ...value.split(/[^a-z0-9]+/iu).map(normalizeToken)
+        ])
         .filter(Boolean)
     )
   ];
@@ -725,8 +937,15 @@ function normalizeToken(value: string): string {
   return value.trim().toLowerCase();
 }
 
-function createPlacedAssetId(document: MapDocument, assetId: string, offset: number): string {
-  const safeAssetId = assetId.toLowerCase().replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "");
+function createPlacedAssetId(
+  document: MapDocument,
+  assetId: string,
+  offset: number
+): string {
+  const safeAssetId = assetId
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/gu, "-")
+    .replace(/^-|-$/gu, "");
   return `auto-${safeAssetId || "asset"}-${document.assets.length + offset + 1}`;
 }
 

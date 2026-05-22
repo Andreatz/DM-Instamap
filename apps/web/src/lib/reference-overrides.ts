@@ -48,7 +48,12 @@ export async function saveReferenceOverride(input: {
 
 async function getReferenceOverridesPath(): Promise<string> {
   const workspaceRoot = await findWorkspaceRoot(process.cwd());
-  return path.join(workspaceRoot, "data", "indexes", "reference-overrides.json");
+  return path.join(
+    workspaceRoot,
+    "data",
+    "indexes",
+    "reference-overrides.json"
+  );
 }
 
 function isMissingFileError(error: unknown): boolean {

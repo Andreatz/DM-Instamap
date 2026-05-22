@@ -6,7 +6,10 @@ import { loadReferenceMaps } from "@/lib/references";
 export const dynamic = "force-dynamic";
 
 export default async function AiBridgePage() {
-  const [assetGroups, references] = await Promise.all([loadAssetGroups(), loadReferenceMaps()]);
+  const [assetGroups, references] = await Promise.all([
+    loadAssetGroups(),
+    loadReferenceMaps()
+  ]);
 
   return (
     <main className="asset-page">
@@ -14,7 +17,10 @@ export default async function AiBridgePage() {
         <div>
           <strong>DM-Instamap</strong>
           <h1>AI Bridge</h1>
-          <p>La modalita automatica parla con un provider configurato; quella manuale mantiene il flusso copia/incolla con ChatGPT.</p>
+          <p>
+            La modalita automatica parla con un provider configurato; quella
+            manuale mantiene il flusso copia/incolla con ChatGPT.
+          </p>
         </div>
         <dl>
           <div>
@@ -28,9 +34,15 @@ export default async function AiBridgePage() {
         </dl>
       </header>
 
-      <AiAutoWorkspace assetGroups={assetGroups.groups} references={references.references} />
+      <AiAutoWorkspace
+        assetGroups={assetGroups.groups}
+        references={references.references}
+      />
 
-      <AiBridgeWorkspace assetGroups={assetGroups.groups} references={references.references} />
+      <AiBridgeWorkspace
+        assetGroups={assetGroups.groups}
+        references={references.references}
+      />
     </main>
   );
 }

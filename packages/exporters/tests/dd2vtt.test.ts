@@ -1,10 +1,24 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { createMapDocument, type DoorSegment, type LightSource, type MapPlan, type WallSegment } from "@dm-instamap/core";
-import { exportMapDocumentDd2Vtt, importDd2Vtt, importDd2VttFile } from "../src";
+import {
+  createMapDocument,
+  type DoorSegment,
+  type LightSource,
+  type MapPlan,
+  type WallSegment
+} from "@dm-instamap/core";
+import {
+  exportMapDocumentDd2Vtt,
+  importDd2Vtt,
+  importDd2VttFile
+} from "../src";
 
-const fixturePath = path.join(path.dirname(fileURLToPath(import.meta.url)), "fixtures", "simple.dd2vtt");
+const fixturePath = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "fixtures",
+  "simple.dd2vtt"
+);
 
 describe("importDd2VttFile", () => {
   it("reads Universal VTT files and converts them to editable MapDocuments", async () => {
@@ -160,9 +174,12 @@ describe("exportMapDocumentDd2Vtt", () => {
   });
 
   it("round-trips through import after export", async () => {
-    const exported = await exportMapDocumentDd2Vtt(createDd2VttExportFixture(), {
-      embedImage: true
-    });
+    const exported = await exportMapDocumentDd2Vtt(
+      createDd2VttExportFixture(),
+      {
+        embedImage: true
+      }
+    );
     const imported = importDd2Vtt(exported.json, {
       name: "Round Trip"
     });

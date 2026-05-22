@@ -52,16 +52,25 @@ type RawAssetGroup = {
 
 export async function loadAssetGroups(): Promise<LoadedAssetGroups> {
   const workspaceRoot = await findWorkspaceRoot(process.cwd());
-  const groupsPath = path.join(workspaceRoot, "data", "indexes", "asset-groups.json");
+  const groupsPath = path.join(
+    workspaceRoot,
+    "data",
+    "indexes",
+    "asset-groups.json"
+  );
 
   try {
     const raw = await readFile(groupsPath, "utf8");
     const file = parseJsonFileContent(raw) as AssetGroupsFile;
-    const groups = Array.isArray(file.groups) ? normalizeAssetGroups(file.groups) : [];
+    const groups = Array.isArray(file.groups)
+      ? normalizeAssetGroups(file.groups)
+      : [];
 
     return {
-      generatedAt: typeof file.generatedAt === "string" ? file.generatedAt : null,
-      groupCount: typeof file.groupCount === "number" ? file.groupCount : groups.length,
+      generatedAt:
+        typeof file.generatedAt === "string" ? file.generatedAt : null,
+      groupCount:
+        typeof file.groupCount === "number" ? file.groupCount : groups.length,
       groups,
       groupsPath,
       missing: false
@@ -91,7 +100,8 @@ export function normalizeAssetGroups(groups: unknown[]): AssetGroupView[] {
       const input = group as RawAssetGroup;
       const id = readString(input.id);
       const assetIds = readStringArray(input.assetIds);
-      const representativeAssetId = readString(input.representativeAssetId) || assetIds[0] || null;
+      const representativeAssetId =
+        readString(input.representativeAssetId) || assetIds[0] || null;
 
       if (!id || assetIds.length === 0) {
         return null;
@@ -103,10 +113,13 @@ export function normalizeAssetGroups(groups: unknown[]): AssetGroupView[] {
         id,
         kind: readString(input.kind) || "unknown",
         name: readString(input.name) || id,
-        previewUrl: representativeAssetId ? `/assets/preview/${encodeURIComponent(representativeAssetId)}` : null,
+        previewUrl: representativeAssetId
+          ? `/assets/preview/${encodeURIComponent(representativeAssetId)}`
+          : null,
         qualityScore: readScore(input.qualityScore),
         representativeAssetId,
-        representativeThumbnail: readString(input.representativeThumbnail) || null,
+        representativeThumbnail:
+          readString(input.representativeThumbnail) || null,
         sourceFolders: readStringArray(input.sourceFolders),
         tags: readStringArray(input.tags),
         theme: readString(input.theme) || null,
@@ -115,15 +128,23 @@ export function normalizeAssetGroups(groups: unknown[]): AssetGroupView[] {
       };
     })
     .filter((group): group is AssetGroupView => group !== null)
-    .sort((left, right) => right.assetCount - left.assetCount || left.name.localeCompare(right.name));
+    .sort(
+      (left, right) =>
+        right.assetCount - left.assetCount ||
+        left.name.localeCompare(right.name)
+    );
 }
 
 function readPositiveInteger(value: unknown): number | null {
-  return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : null;
+  return typeof value === "number" && Number.isInteger(value) && value > 0
+    ? value
+    : null;
 }
 
 function readScore(value: unknown): number | null {
-  return typeof value === "number" && Number.isFinite(value) ? Math.min(100, Math.max(0, Math.round(value))) : null;
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.min(100, Math.max(0, Math.round(value)))
+    : null;
 }
 
 function readString(value: unknown): string {

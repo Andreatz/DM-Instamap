@@ -12,17 +12,29 @@ import {
 
 describe("project export history", () => {
   it("returns an empty history when nothing has been exported", async () => {
-    const outputRoot = await mkdtemp(path.join(os.tmpdir(), "dm-instamap-exports-"));
-    const history = await readProjectExportHistory("demo-project", { outputRoot });
+    const outputRoot = await mkdtemp(
+      path.join(os.tmpdir(), "dm-instamap-exports-")
+    );
+    const history = await readProjectExportHistory("demo-project", {
+      outputRoot
+    });
     expect(history).toEqual([]);
   });
 
   it("records exports newest-first and summarizes them", async () => {
-    const outputRoot = await mkdtemp(path.join(os.tmpdir(), "dm-instamap-exports-"));
+    const outputRoot = await mkdtemp(
+      path.join(os.tmpdir(), "dm-instamap-exports-")
+    );
 
     await recordProjectExport(
       "demo-project",
-      { filename: "demo.png", format: "png", includeGrid: true, mode: "gm", scale: 2 },
+      {
+        filename: "demo.png",
+        format: "png",
+        includeGrid: true,
+        mode: "gm",
+        scale: 2
+      },
       { outputRoot, now: new Date("2026-05-01T10:00:00.000Z") }
     );
     await recordProjectExport(
@@ -31,7 +43,9 @@ describe("project export history", () => {
       { outputRoot, now: new Date("2026-05-02T10:00:00.000Z") }
     );
 
-    const history = await readProjectExportHistory("demo-project", { outputRoot });
+    const history = await readProjectExportHistory("demo-project", {
+      outputRoot
+    });
     expect(history).toHaveLength(2);
     expect(history[0]?.format).toBe("session-pack");
     expect(history[1]?.format).toBe("png");
@@ -44,7 +58,9 @@ describe("project export history", () => {
   });
 
   it("rejects unsafe project ids by recording nothing", async () => {
-    const outputRoot = await mkdtemp(path.join(os.tmpdir(), "dm-instamap-exports-"));
+    const outputRoot = await mkdtemp(
+      path.join(os.tmpdir(), "dm-instamap-exports-")
+    );
     const result = await recordProjectExport(
       "../escape",
       { filename: "x.png", format: "png", mode: "gm" },

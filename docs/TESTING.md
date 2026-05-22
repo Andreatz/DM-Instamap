@@ -11,22 +11,26 @@ Esegui dalla root del repository:
 
 ```bash
 pnpm repo:audit
+pnpm format:check
 pnpm lint
-pnpm test
+pnpm typecheck
+pnpm test:coverage
 pnpm build
+pnpm --filter @dm-instamap/worker lint
 pnpm --filter @dm-instamap/worker test
 ```
 
-Al momento `pnpm lint` esegue il controllo TypeScript dei package TS e
-`compileall` sul worker. La roadmap attiva prevede di separare questo gate in
-`lint`, `typecheck`, `format:check`, coverage e lint Python reale con ruff/mypy.
+`lint` (Biome), `typecheck` (`tsc --noEmit`) e `format:check` sono comandi
+distinti; il worker usa `ruff` + `mypy --strict`; `test:coverage` applica le
+soglie di coverage. Dettagli, regole disattivate, soglie e CI in
+[docs/CODE_QUALITY.md](CODE_QUALITY.md).
 
 Controlli mirati usati durante le fasi generator/UI:
 
 ```bash
-pnpm --filter @dm-instamap/generator lint
+pnpm --filter @dm-instamap/generator typecheck
 pnpm --filter @dm-instamap/generator test
-pnpm --filter @dm-instamap/web lint
+pnpm --filter @dm-instamap/web typecheck
 pnpm --filter @dm-instamap/web test
 pnpm test:e2e
 ```
@@ -34,12 +38,23 @@ pnpm test:e2e
 ## Playwright
 
 Playwright e configurato in `playwright.config.ts`. Avvia l'app Next.js locale
-su `127.0.0.1:3000` e lancia test Chromium sotto `tests/e2e/`.
+su `127.0.0.1:3000` (con `AI_PROVIDER=mock`, nessuna chiamata esterna) e lancia
+test Chromium sotto `tests/e2e/`. Gli helper condivisi sono in
+`tests/e2e/helpers.ts`; ogni test crea e ripulisce i propri dati temporanei.
 
-La suite include smoke test di route/pagine e un flusso editor reale: crea un
-progetto, apre il canvas, dipinge una cella, salva, verifica il documento via
-API ed esporta PNG. Copre anche snapshot create/diff/restore e verifica export
-WEBP, dd2vtt e Session Pack.
+Copertura E2E (Fase D):
+
+- `core-flows`: home, wizard, generator preview, editor save + PNG, snapshot
+  diff/restore, export WEBP/dd2vtt/Session Pack, session-ready;
+- `editor-interactions`: undo/redo e copia/incolla + raggruppa/separa asset
+  nell'editor reale;
+- `foundry-export`: zip Foundry valido e toggle dei journal;
+- `import-pack`: indicizzazione di una fixture asset versionata
+  (`tests/fixtures/asset-pack/`, due PNG sintetici) con backup/restore del
+  manifest locale;
+- `multi-floor`: creazione di piani collegati e pagina `/projects/[id]/floors`;
+- `campaigns`: crea campagna, collega un progetto, aggiungi una sessione;
+- `ai-bridge`: provider mock locale (`AI_PROVIDER=mock`), nessuna chiave.
 
 Installa il browser una volta con:
 

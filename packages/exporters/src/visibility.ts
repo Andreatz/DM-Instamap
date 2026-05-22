@@ -13,13 +13,22 @@ import {
 export type MapVisibilityMode = "player" | "gm" | "clean";
 
 const HIDDEN_ROOM_KINDS = new Set<RoomNode["kind"]>(["secret"]);
-const HIDDEN_TAG_PATTERNS = [/^secret$/iu, /^trap$/iu, /^hidden$/iu, /^gm[-_]?only$/iu, /^spoiler$/iu];
+const HIDDEN_TAG_PATTERNS = [
+  /^secret$/iu,
+  /^trap$/iu,
+  /^hidden$/iu,
+  /^gm[-_]?only$/iu,
+  /^spoiler$/iu
+];
 
 export function listVisibilityModes(): MapVisibilityMode[] {
   return ["player", "gm", "clean"];
 }
 
-export function applyVisibilityMode(document: MapDocument, mode: MapVisibilityMode): MapDocument {
+export function applyVisibilityMode(
+  document: MapDocument,
+  mode: MapVisibilityMode
+): MapDocument {
   if (mode === "gm") {
     return document;
   }
@@ -30,8 +39,15 @@ export function applyVisibilityMode(document: MapDocument, mode: MapVisibilityMo
     hiddenRoomIds,
     rooms: document.plan?.rooms ?? []
   });
-  const filteredAssets = filterAssets(document.assets, hiddenRoomIds, document.plan?.rooms ?? [], mode);
-  const filteredPlan = document.plan ? filterPlan(document.plan, hiddenRoomIds, mode) : undefined;
+  const filteredAssets = filterAssets(
+    document.assets,
+    hiddenRoomIds,
+    document.plan?.rooms ?? [],
+    mode
+  );
+  const filteredPlan = document.plan
+    ? filterPlan(document.plan, hiddenRoomIds, mode)
+    : undefined;
 
   return MapDocumentSchema.parse({
     ...document,
@@ -46,7 +62,9 @@ export function isHiddenRoom(room: RoomNode): boolean {
     return true;
   }
 
-  return room.tags.some((tag) => HIDDEN_TAG_PATTERNS.some((pattern) => pattern.test(tag)));
+  return room.tags.some((tag) =>
+    HIDDEN_TAG_PATTERNS.some((pattern) => pattern.test(tag))
+  );
 }
 
 function collectHiddenRoomIds(rooms: RoomNode[]): Set<string> {
@@ -61,7 +79,11 @@ function collectHiddenRoomIds(rooms: RoomNode[]): Set<string> {
   return hidden;
 }
 
-function filterTiles(input: { document: MapDocument; hiddenRoomIds: Set<string>; rooms: RoomNode[] }): MapTile[] {
+function filterTiles(input: {
+  document: MapDocument;
+  hiddenRoomIds: Set<string>;
+  rooms: RoomNode[];
+}): MapTile[] {
   if (input.hiddenRoomIds.size === 0) {
     return input.document.tiles;
   }
@@ -75,8 +97,14 @@ function filterTiles(input: { document: MapDocument; hiddenRoomIds: Set<string>;
 
     const startX = Math.max(0, Math.floor(room.bounds.x));
     const startY = Math.max(0, Math.floor(room.bounds.y));
-    const endX = Math.min(input.document.width, Math.ceil(room.bounds.x + room.bounds.width));
-    const endY = Math.min(input.document.height, Math.ceil(room.bounds.y + room.bounds.height));
+    const endX = Math.min(
+      input.document.width,
+      Math.ceil(room.bounds.x + room.bounds.width)
+    );
+    const endY = Math.min(
+      input.document.height,
+      Math.ceil(room.bounds.y + room.bounds.height)
+    );
 
     for (let y = startY; y < endY; y += 1) {
       for (let x = startX; x < endX; x += 1) {
@@ -109,11 +137,18 @@ function filterAssets(
       return true;
     }
 
-    if (asset.tags.some((tag) => HIDDEN_TAG_PATTERNS.some((pattern) => pattern.test(tag)))) {
+    if (
+      asset.tags.some((tag) =>
+        HIDDEN_TAG_PATTERNS.some((pattern) => pattern.test(tag))
+      )
+    ) {
       return false;
     }
 
-    if (hiddenRoomIds.size > 0 && isAssetInsideHiddenRoom(asset, rooms, hiddenRoomIds)) {
+    if (
+      hiddenRoomIds.size > 0 &&
+      isAssetInsideHiddenRoom(asset, rooms, hiddenRoomIds)
+    ) {
       return false;
     }
 
@@ -121,7 +156,11 @@ function filterAssets(
   });
 }
 
-function isAssetInsideHiddenRoom(asset: PlacedAsset, rooms: RoomNode[], hiddenRoomIds: Set<string>): boolean {
+function isAssetInsideHiddenRoom(
+  asset: PlacedAsset,
+  rooms: RoomNode[],
+  hiddenRoomIds: Set<string>
+): boolean {
   for (const room of rooms) {
     if (!hiddenRoomIds.has(room.id)) {
       continue;
@@ -140,17 +179,34 @@ function isAssetInsideHiddenRoom(asset: PlacedAsset, rooms: RoomNode[], hiddenRo
   return false;
 }
 
-function filterPlan(plan: MapPlan, hiddenRoomIds: Set<string>, mode: MapVisibilityMode): MapPlan {
+function filterPlan(
+  plan: MapPlan,
+  hiddenRoomIds: Set<string>,
+  mode: MapVisibilityMode
+): MapPlan {
   const visibleRooms = plan.rooms.filter((room) => !hiddenRoomIds.has(room.id));
   const visibleRoomIds = new Set(visibleRooms.map((room) => room.id));
   const cleanedRooms = visibleRooms.map((room) => ({
     ...room,
-    connections: room.connections.filter((connection) => visibleRoomIds.has(connection))
+    connections: room.connections.filter((connection) =>
+      visibleRoomIds.has(connection)
+    )
   }));
-  const visibleDoors = plan.doors.filter((door: DoorSegment) => isVisibleSegment(door.roomIds, hiddenRoomIds));
-  const visibleWalls = plan.walls.filter((wall: WallSegment) => isVisibleSegment(wall.roomIds, hiddenRoomIds));
-  const visibleLights = plan.lights.filter((light: LightSource) => !isSecretId(light.id));
-  const visiblePlacements = filterAssets(plan.assetPlacements, hiddenRoomIds, plan.rooms, mode);
+  const visibleDoors = plan.doors.filter((door: DoorSegment) =>
+    isVisibleSegment(door.roomIds, hiddenRoomIds)
+  );
+  const visibleWalls = plan.walls.filter((wall: WallSegment) =>
+    isVisibleSegment(wall.roomIds, hiddenRoomIds)
+  );
+  const visibleLights = plan.lights.filter(
+    (light: LightSource) => !isSecretId(light.id)
+  );
+  const visiblePlacements = filterAssets(
+    plan.assetPlacements,
+    hiddenRoomIds,
+    plan.rooms,
+    mode
+  );
 
   return {
     ...plan,
@@ -163,7 +219,10 @@ function filterPlan(plan: MapPlan, hiddenRoomIds: Set<string>, mode: MapVisibili
   };
 }
 
-function isVisibleSegment(roomIds: string[], hiddenRoomIds: Set<string>): boolean {
+function isVisibleSegment(
+  roomIds: string[],
+  hiddenRoomIds: Set<string>
+): boolean {
   if (roomIds.length === 0) {
     return true;
   }

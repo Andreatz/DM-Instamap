@@ -5,7 +5,11 @@ import { formatAssetKind } from "@/lib/asset-browser";
 
 type ProviderStatus =
   | { configured: false; reason: string }
-  | { configured: true; id: string; vendor: "replicate" | "automatic1111" | "custom" };
+  | {
+      configured: true;
+      id: string;
+      vendor: "replicate" | "automatic1111" | "custom";
+    };
 
 type GeneratedAsset = {
   classification: string;
@@ -24,9 +28,15 @@ type ManifestUpdate = {
 };
 
 export function AssetGeneratorForm() {
-  const [providerStatus, setProviderStatus] = useState<ProviderStatus | null>(null);
-  const [prompt, setPrompt] = useState("porta di legno ornata con bande di ferro, vista dall'alto");
-  const [negativePrompt, setNegativePrompt] = useState("testo, watermark, bassa qualita");
+  const [providerStatus, setProviderStatus] = useState<ProviderStatus | null>(
+    null
+  );
+  const [prompt, setPrompt] = useState(
+    "porta di legno ornata con bande di ferro, vista dall'alto"
+  );
+  const [negativePrompt, setNegativePrompt] = useState(
+    "testo, watermark, bassa qualita"
+  );
   const [classification, setClassification] = useState("door");
   const [styleTags, setStyleTags] = useState("legno, ferro");
   const [seed, setSeed] = useState("");
@@ -34,13 +44,17 @@ export function AssetGeneratorForm() {
   const [status, setStatus] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [lastAsset, setLastAsset] = useState<GeneratedAsset | null>(null);
-  const [manifestUpdate, setManifestUpdate] = useState<ManifestUpdate | null>(null);
+  const [manifestUpdate, setManifestUpdate] = useState<ManifestUpdate | null>(
+    null
+  );
 
   useEffect(() => {
     void (async () => {
       try {
         const response = await fetch("/api/assets/generate");
-        const payload = (await response.json()) as { provider?: ProviderStatus };
+        const payload = (await response.json()) as {
+          provider?: ProviderStatus;
+        };
         setProviderStatus(payload.provider ?? null);
       } catch {
         setProviderStatus(null);
@@ -87,9 +101,13 @@ export function AssetGeneratorForm() {
             ? " Voce manifest esistente aggiornata."
             : ""
         : " Manifest non aggiornato: esegui pnpm assets:scan per ricaricare.";
-      setStatus(`Asset scritto in ${payload.asset.relativePath}.${manifestNote}`);
+      setStatus(
+        `Asset scritto in ${payload.asset.relativePath}.${manifestNote}`
+      );
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Generazione fallita.");
+      setStatus(
+        error instanceof Error ? error.message : "Generazione fallita."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -101,12 +119,16 @@ export function AssetGeneratorForm() {
     <section className="asset-details">
       <h2>Genera asset (D3)</h2>
       <p className="muted">
-        Invia un prompt al provider di generazione immagini configurato e salva il risultato nella libreria locale. Env:{" "}
-        <code>IMAGE_GEN_PROVIDER=replicate|automatic1111</code>, <code>IMAGE_GEN_API_KEY</code>, <code>IMAGE_GEN_MODEL</code>.
+        Invia un prompt al provider di generazione immagini configurato e salva
+        il risultato nella libreria locale. Env:{" "}
+        <code>IMAGE_GEN_PROVIDER=replicate|automatic1111</code>,{" "}
+        <code>IMAGE_GEN_API_KEY</code>, <code>IMAGE_GEN_MODEL</code>.
       </p>
 
       <div className="manifest-note">
-        {providerStatus === null ? <span>Caricamento stato provider...</span> : null}
+        {providerStatus === null ? (
+          <span>Caricamento stato provider...</span>
+        ) : null}
         {providerStatus?.configured ? (
           <>
             <span className="pill">fornitore: {providerStatus.vendor}</span>
@@ -120,18 +142,28 @@ export function AssetGeneratorForm() {
 
       <label className="field">
         <span>Prompt</span>
-        <textarea onChange={(event) => setPrompt(event.target.value)} rows={3} value={prompt} />
+        <textarea
+          onChange={(event) => setPrompt(event.target.value)}
+          rows={3}
+          value={prompt}
+        />
       </label>
 
       <label className="field">
         <span>Prompt negativo (facoltativo)</span>
-        <input onChange={(event) => setNegativePrompt(event.target.value)} value={negativePrompt} />
+        <input
+          onChange={(event) => setNegativePrompt(event.target.value)}
+          value={negativePrompt}
+        />
       </label>
 
       <div className="field-row">
         <label className="field">
           <span>Classificazione</span>
-          <select onChange={(event) => setClassification(event.target.value)} value={classification}>
+          <select
+            onChange={(event) => setClassification(event.target.value)}
+            value={classification}
+          >
             <option value="prop">{formatAssetKind("prop")}</option>
             <option value="furniture">{formatAssetKind("furniture")}</option>
             <option value="door">{formatAssetKind("door")}</option>
@@ -145,17 +177,27 @@ export function AssetGeneratorForm() {
         </label>
         <label className="field">
           <span>Seed (facoltativo)</span>
-          <input onChange={(event) => setSeed(event.target.value)} placeholder="42" value={seed} />
+          <input
+            onChange={(event) => setSeed(event.target.value)}
+            placeholder="42"
+            value={seed}
+          />
         </label>
         <label className="field">
           <span>Passi</span>
-          <input onChange={(event) => setSteps(event.target.value)} value={steps} />
+          <input
+            onChange={(event) => setSteps(event.target.value)}
+            value={steps}
+          />
         </label>
       </div>
 
       <label className="field">
         <span>Tag stile (separati da virgola)</span>
-        <input onChange={(event) => setStyleTags(event.target.value)} value={styleTags} />
+        <input
+          onChange={(event) => setStyleTags(event.target.value)}
+          value={styleTags}
+        />
       </label>
 
       <button
@@ -192,7 +234,11 @@ export function AssetGeneratorForm() {
             <dd>
               {manifestUpdate
                 ? `${manifestUpdate.totalAssets} voci (${
-                    manifestUpdate.appended ? "aggiunta" : manifestUpdate.replaced ? "aggiornata" : "invariata"
+                    manifestUpdate.appended
+                      ? "aggiunta"
+                      : manifestUpdate.replaced
+                        ? "aggiornata"
+                        : "invariata"
                   })`
                 : "non aggiornato"}
             </dd>

@@ -152,16 +152,37 @@ describe("buildAuditBatches", () => {
     const batches = buildAuditBatches(createAudit());
     const find = (id: string) => batches.find((batch) => batch.id === id);
 
-    expect(find("critical")?.entries.map((entry) => entry.assetId)).toEqual(["asset-b"]);
-    expect(find("high")?.entries.map((entry) => entry.assetId)).toEqual(["asset-c"]);
-    expect(find("medium")?.entries.map((entry) => entry.assetId).sort()).toEqual(["asset-d", "asset-e"]);
-    expect(find("duplicates")?.entries.map((entry) => entry.assetId).sort()).toEqual(["asset-d", "asset-e"]);
-    expect(find("low-quality")?.entries.map((entry) => entry.assetId).sort()).toEqual(["asset-b", "asset-c"]);
-    expect(find("unknown-classification")?.entries.map((entry) => entry.assetId)).toEqual(["asset-b"]);
-    expect(find("missing-metadata")?.entries.map((entry) => entry.assetId)).toEqual(["asset-c"]);
-    expect(find("classification-conflict")?.entries.map((entry) => entry.assetId).sort()).toEqual([
-      "asset-d",
-      "asset-e"
+    expect(find("critical")?.entries.map((entry) => entry.assetId)).toEqual([
+      "asset-b"
     ]);
+    expect(find("high")?.entries.map((entry) => entry.assetId)).toEqual([
+      "asset-c"
+    ]);
+    expect(
+      find("medium")
+        ?.entries.map((entry) => entry.assetId)
+        .sort()
+    ).toEqual(["asset-d", "asset-e"]);
+    expect(
+      find("duplicates")
+        ?.entries.map((entry) => entry.assetId)
+        .sort()
+    ).toEqual(["asset-d", "asset-e"]);
+    expect(
+      find("low-quality")
+        ?.entries.map((entry) => entry.assetId)
+        .sort()
+    ).toEqual(["asset-b", "asset-c"]);
+    expect(
+      find("unknown-classification")?.entries.map((entry) => entry.assetId)
+    ).toEqual(["asset-b"]);
+    expect(
+      find("missing-metadata")?.entries.map((entry) => entry.assetId)
+    ).toEqual(["asset-c"]);
+    expect(
+      find("classification-conflict")
+        ?.entries.map((entry) => entry.assetId)
+        .sort()
+    ).toEqual(["asset-d", "asset-e"]);
   });
 });

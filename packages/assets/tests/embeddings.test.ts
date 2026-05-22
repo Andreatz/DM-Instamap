@@ -23,10 +23,20 @@ describe("local asset embeddings", () => {
 
     expect(index.provider).toBe("local-color-layout-v1");
     expect(index.vectors).toHaveLength(2);
-    expect(index.vectors.every((entry) => entry.vector.length === index.dimensions)).toBe(true);
-    expect(written?.vectors.map((entry) => entry.assetId).sort()).toEqual(["asset-blue-water", "asset-red-floor"]);
+    expect(
+      index.vectors.every((entry) => entry.vector.length === index.dimensions)
+    ).toBe(true);
+    expect(written?.vectors.map((entry) => entry.assetId).sort()).toEqual([
+      "asset-blue-water",
+      "asset-red-floor"
+    ]);
 
-    const file = JSON.parse(await readFile(path.join(outputRoot, "data", "indexes", "asset-embeddings.json"), "utf8")) as {
+    const file = JSON.parse(
+      await readFile(
+        path.join(outputRoot, "data", "indexes", "asset-embeddings.json"),
+        "utf8"
+      )
+    ) as {
       version: number;
     };
     expect(file.version).toBe(1);
@@ -75,7 +85,10 @@ describe("local asset embeddings", () => {
   it("falls back to manifest metadata when no embedding index exists", async () => {
     const outputRoot = await createEmbeddingFixture();
 
-    const results = await searchAssetsByText({ outputRoot, query: "blue water" });
+    const results = await searchAssetsByText({
+      outputRoot,
+      query: "blue water"
+    });
 
     expect(results[0]).toMatchObject({
       assetId: "asset-blue-water",
@@ -87,7 +100,9 @@ describe("local asset embeddings", () => {
     const outputRoot = await createEmbeddingFixture();
     const provider = createLocalEmbeddingProvider();
     const textVector = await provider.embedText("blue water");
-    const imageVector = await provider.embedImage(path.join(outputRoot, "data", "previews", "assets", "blue.webp"));
+    const imageVector = await provider.embedImage(
+      path.join(outputRoot, "data", "previews", "assets", "blue.webp")
+    );
 
     expect(provider.dimensions).toBe(textVector.length);
     expect(provider.dimensions).toBe(imageVector.length);
@@ -110,7 +125,9 @@ describe("local asset embeddings", () => {
 });
 
 async function createEmbeddingFixture(): Promise<string> {
-  const outputRoot = await mkdtemp(path.join(os.tmpdir(), "dm-instamap-embeddings-"));
+  const outputRoot = await mkdtemp(
+    path.join(os.tmpdir(), "dm-instamap-embeddings-")
+  );
   const previewDir = path.join(outputRoot, "data", "previews", "assets");
   const indexDir = path.join(outputRoot, "data", "indexes");
   await mkdir(previewDir, { recursive: true });
@@ -196,18 +213,25 @@ describe("remote embedding provider", () => {
     const vector = await provider.embedText("dark gothic library");
 
     expect(vector).toHaveLength(8);
-    expect(vector.every((value) => typeof value === "number" && Number.isFinite(value))).toBe(true);
+    expect(
+      vector.every(
+        (value) => typeof value === "number" && Number.isFinite(value)
+      )
+    ).toBe(true);
     expect((capturedBody as { model: string }).model).toBe("test-embed");
   });
 
   it("throws when the API responds with an error", async () => {
-    const fetchImpl: typeof fetch = async () => new Response("nope", { status: 500 });
+    const fetchImpl: typeof fetch = async () =>
+      new Response("nope", { status: 500 });
     const provider = createRemoteEmbeddingProvider({
       endpoint: "https://example.test/embed",
       fetchImpl
     });
 
-    await expect(provider.embedText("query")).rejects.toThrow(/Remote embedding request failed/u);
+    await expect(provider.embedText("query")).rejects.toThrow(
+      /Remote embedding request failed/u
+    );
   });
 });
 
@@ -235,7 +259,9 @@ describe("resolveEmbeddingConfigFromEnv", () => {
   });
 
   it("falls back to local provider when remote endpoint is missing", () => {
-    const provider = createEmbeddingProviderFromEnv({ EMBEDDINGS_PROVIDER: "remote" });
+    const provider = createEmbeddingProviderFromEnv({
+      EMBEDDINGS_PROVIDER: "remote"
+    });
     expect(provider.id).toBe("local-color-layout-v1");
   });
 });

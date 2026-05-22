@@ -19,7 +19,9 @@ export function NewProjectForm() {
     "Una cripta sotto una cattedrale con non-morti prigionieri ma non ostili."
   );
   const [theme, setTheme] = useState("cripta");
-  const [requiredRooms, setRequiredRooms] = useState("chapel, prison, reliquary, boss");
+  const [requiredRooms, setRequiredRooms] = useState(
+    "chapel, prison, reliquary, boss"
+  );
   const [widthCells, setWidthCells] = useState(52);
   const [heightCells, setHeightCells] = useState(36);
   const [roomCount, setRoomCount] = useState(8);
@@ -54,7 +56,11 @@ export function NewProjectForm() {
       setStatus("Progetto creato");
       router.push(`/projects/${payload.project.id}`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Impossibile creare il progetto.");
+      setStatus(
+        error instanceof Error
+          ? error.message
+          : "Impossibile creare il progetto."
+      );
     }
   }
 
@@ -64,11 +70,18 @@ export function NewProjectForm() {
         <h2>Nuova mappa</h2>
         <label className="field">
           <span>Nome</span>
-          <input onChange={(event) => setName(event.target.value)} required value={name} />
+          <input
+            onChange={(event) => setName(event.target.value)}
+            required
+            value={name}
+          />
         </label>
         <label className="field">
           <span>Tema</span>
-          <input onChange={(event) => setTheme(event.target.value)} value={theme} />
+          <input
+            onChange={(event) => setTheme(event.target.value)}
+            value={theme}
+          />
         </label>
         <label className="field">
           <span>Larghezza (celle)</span>

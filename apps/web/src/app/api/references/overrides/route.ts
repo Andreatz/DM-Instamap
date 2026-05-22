@@ -1,5 +1,8 @@
 import { saveReferenceOverride } from "@/lib/reference-overrides";
-import { buildReferenceCorrectionFromDraft, type ReferenceReviewDraft } from "@/lib/reference-review";
+import {
+  buildReferenceCorrectionFromDraft,
+  type ReferenceReviewDraft
+} from "@/lib/reference-review";
 import { loadReferenceMaps } from "@/lib/references";
 
 export const dynamic = "force-dynamic";
@@ -12,20 +15,29 @@ type OverrideRequestBody = {
 
 export async function POST(request: Request) {
   const body = (await request.json()) as OverrideRequestBody;
-  const referenceId = typeof body.referenceId === "string" ? body.referenceId : "";
-  const referencePath = typeof body.referencePath === "string" ? body.referencePath : "";
+  const referenceId =
+    typeof body.referenceId === "string" ? body.referenceId : "";
+  const referencePath =
+    typeof body.referencePath === "string" ? body.referencePath : "";
 
   if (!referenceId || !referencePath || !isDraft(body.draft)) {
-    return Response.json({ error: "Invalid reference override payload." }, { status: 400 });
+    return Response.json(
+      { error: "Invalid reference override payload." },
+      { status: 400 }
+    );
   }
 
   const manifest = await loadReferenceMaps();
   const reference = manifest.references.find(
-    (candidate) => candidate.id === referenceId && candidate.path === referencePath
+    (candidate) =>
+      candidate.id === referenceId && candidate.path === referencePath
   );
 
   if (!reference) {
-    return Response.json({ error: "Reference not found in manifest." }, { status: 404 });
+    return Response.json(
+      { error: "Reference not found in manifest." },
+      { status: 404 }
+    );
   }
 
   const correction = buildReferenceCorrectionFromDraft(body.draft);

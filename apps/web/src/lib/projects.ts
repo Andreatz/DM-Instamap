@@ -1,10 +1,22 @@
-import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
+import {
+  mkdir,
+  readFile,
+  readdir,
+  rename,
+  rm,
+  writeFile
+} from "node:fs/promises";
 import path from "node:path";
-import { MapDocumentSchema, migrateMapDocument, type MapDocument } from "@dm-instamap/core/server";
+import {
+  MapDocumentSchema,
+  migrateMapDocument,
+  type MapDocument
+} from "@dm-instamap/core/server";
 import { generateDungeon } from "@dm-instamap/generator";
 import { z } from "zod";
 import { findWorkspaceRoot } from "./assets-manifest";
 import { parseJsonFileContent } from "./json-file";
+import { assertSafeWorkspaceId } from "./local-paths";
 
 export const ProjectMetadataSchema = z
   .object({
@@ -73,7 +85,9 @@ const PROJECT_METADATA_FILE = "project.json";
 const PROJECT_MAP_FILE = "map.dmimap.json";
 
 export async function getProjectsRoot(outputRoot?: string): Promise<string> {
-  const workspaceRoot = outputRoot ? path.resolve(outputRoot) : await findWorkspaceRoot(process.cwd());
+  const workspaceRoot = outputRoot
+    ? path.resolve(outputRoot)
+    : await findWorkspaceRoot(process.cwd());
   return path.join(workspaceRoot, PROJECTS_DIR);
 }
 
@@ -90,6 +104,14 @@ export function createProjectSlug(name: string): string {
 }
 
 export function assertSafeProjectId(projectId: string): string {
+  // Shared workspace-id policy first (traversal safety), then the stricter
+  // project slug rule. Both failures surface as InvalidProjectIdError.
+  try {
+    assertSafeWorkspaceId(projectId, "projectId");
+  } catch {
+    throw new InvalidProjectIdError(projectId);
+  }
+
   if (!/^[a-z0-9][a-z0-9-]{0,95}$/u.test(projectId)) {
     throw new InvalidProjectIdError(projectId);
   }
@@ -97,7 +119,9 @@ export function assertSafeProjectId(projectId: string): string {
   return projectId;
 }
 
-export async function listProjects(options: { outputRoot?: string } = {}): Promise<DmInstamapProjectSummary[]> {
+export async function listProjects(
+  options: { outputRoot?: string } = {}
+): Promise<DmInstamapProjectSummary[]> {
   const projectsRoot = await getProjectsRoot(options.outputRoot);
 
   try {
@@ -116,7 +140,9 @@ export async function listProjects(options: { outputRoot?: string } = {}): Promi
     );
 
     return projects
-      .filter((project): project is DmInstamapProjectSummary => project !== null)
+      .filter(
+        (project): project is DmInstamapProjectSummary => project !== null
+      )
       .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
   } catch (error) {
     if (isMissingFileError(error)) {
@@ -174,7 +200,11 @@ export async function createMultiFloorProjects(
   }
 
   const baseSlug = createProjectSlug(input.baseSlug);
-  const ids = await reserveMultiFloorIds(baseSlug, input.documents.length, options);
+  const ids = await reserveMultiFloorIds(
+    baseSlug,
+    input.documents.length,
+    options
+  );
   const projects: DmInstamapProject[] = [];
 
   for (let index = 0; index < input.documents.length; index += 1) {
@@ -216,7 +246,9 @@ export async function readProject(
       readFile(path.join(projectDir, PROJECT_METADATA_FILE), "utf8"),
       readFile(path.join(projectDir, PROJECT_MAP_FILE), "utf8")
     ]);
-    const metadata = ProjectMetadataSchema.parse(parseJsonFileContent(metadataRaw));
+    const metadata = ProjectMetadataSchema.parse(
+      parseJsonFileContent(metadataRaw)
+    );
     const document = migrateMapDocument(parseJsonFileContent(documentRaw));
 
     return DmInstamapProjectSchema.parse({
@@ -239,7 +271,10 @@ export async function updateProject(
 ): Promise<DmInstamapProject> {
   const current = await readProject(projectId, options);
   const now = new Date().toISOString();
-  const document = input.document === undefined ? current.document : migrateMapDocument(input.document);
+  const document =
+    input.document === undefined
+      ? current.document
+      : migrateMapDocument(input.document);
   const project = DmInstamapProjectSchema.parse({
     ...current,
     document,
@@ -257,8 +292,13 @@ export async function updateProject(
         ? current.selectedReferenceIds
         : readStringArray(input.selectedReferenceIds),
     sourceRequest:
-      input.sourceRequest === undefined ? current.sourceRequest : readOptionalString(input.sourceRequest),
-    styleDnaIds: input.styleDnaIds === undefined ? current.styleDnaIds : readStringArray(input.styleDnaIds),
+      input.sourceRequest === undefined
+        ? current.sourceRequest
+        : readOptionalString(input.sourceRequest),
+    styleDnaIds:
+      input.styleDnaIds === undefined
+        ? current.styleDnaIds
+        : readStringArray(input.styleDnaIds),
     updatedAt: now
   });
 
@@ -266,7 +306,10 @@ export async function updateProject(
   return project;
 }
 
-export async function deleteProject(projectId: string, options: { outputRoot?: string } = {}): Promise<void> {
+export async function deleteProject(
+  projectId: string,
+  options: { outputRoot?: string } = {}
+): Promise<void> {
   const projectDir = await getProjectDir(projectId, options);
   await rm(projectDir, { force: true, recursive: true });
 }
@@ -293,10 +336,15 @@ export async function writeProject(
   await mkdir(path.join(projectDir, "exports"), { recursive: true });
   await mkdir(path.join(projectDir, "thumbnails"), { recursive: true });
   await writeJsonAtomic(path.join(projectDir, PROJECT_METADATA_FILE), metadata);
-  await writeJsonAtomic(path.join(projectDir, PROJECT_MAP_FILE), parsed.document);
+  await writeJsonAtomic(
+    path.join(projectDir, PROJECT_MAP_FILE),
+    parsed.document
+  );
 }
 
-export function toProjectSummary(project: DmInstamapProject): DmInstamapProjectSummary {
+export function toProjectSummary(
+  project: DmInstamapProject
+): DmInstamapProjectSummary {
   return {
     createdAt: project.createdAt,
     id: project.id,
@@ -315,7 +363,10 @@ export function toProjectSummary(project: DmInstamapProject): DmInstamapProjectS
   };
 }
 
-async function createUniqueProjectId(name: string, options: { outputRoot?: string }): Promise<string> {
+async function createUniqueProjectId(
+  name: string,
+  options: { outputRoot?: string }
+): Promise<string> {
   const root = await getProjectsRoot(options.outputRoot);
   const base = createProjectSlug(name);
 
@@ -386,7 +437,9 @@ async function reserveMultiFloorIds(
     );
 
     if (collisions.every((collided) => !collided)) {
-      candidates.forEach((id) => assertSafeProjectId(id));
+      for (const id of candidates) {
+        assertSafeProjectId(id);
+      }
       return candidates;
     }
   }
@@ -398,7 +451,10 @@ async function reserveMultiFloorIds(
   });
 }
 
-async function getProjectDir(projectId: string, options: { outputRoot?: string }): Promise<string> {
+async function getProjectDir(
+  projectId: string,
+  options: { outputRoot?: string }
+): Promise<string> {
   const safeProjectId = assertSafeProjectId(projectId);
   const root = await getProjectsRoot(options.outputRoot);
   const projectDir = path.resolve(root, safeProjectId);
@@ -427,14 +483,23 @@ function createProjectDocument(input: CreateProjectInput): MapDocument {
   });
 }
 
-async function writeJsonAtomic(filePath: string, value: unknown): Promise<void> {
+async function writeJsonAtomic(
+  filePath: string,
+  value: unknown
+): Promise<void> {
   const tempPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
   await writeFile(tempPath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
   await rename(tempPath, filePath);
 }
 
-function readInteger(value: unknown, fallback: number, min: number, max: number): number {
-  const parsed = typeof value === "number" ? value : Number.parseInt(readString(value), 10);
+function readInteger(
+  value: unknown,
+  fallback: number,
+  min: number,
+  max: number
+): number {
+  const parsed =
+    typeof value === "number" ? value : Number.parseInt(readString(value), 10);
 
   if (!Number.isFinite(parsed)) {
     return fallback;
@@ -454,7 +519,14 @@ function readString(value: unknown): string {
 
 function readStringArray(value: unknown): string[] {
   if (Array.isArray(value)) {
-    return [...new Set(value.filter((item): item is string => typeof item === "string").map((item) => item.trim()).filter(Boolean))];
+    return [
+      ...new Set(
+        value
+          .filter((item): item is string => typeof item === "string")
+          .map((item) => item.trim())
+          .filter(Boolean)
+      )
+    ];
   }
 
   if (typeof value === "string") {

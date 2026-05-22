@@ -3,9 +3,17 @@ import os from "node:os";
 import path from "node:path";
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
-import { applyPackRulesToEntry, importAssetPack, listPackPresets, type AssetManifestEntry } from "../src";
+import {
+  applyPackRulesToEntry,
+  importAssetPack,
+  listPackPresets,
+  type AssetManifestEntry
+} from "../src";
 
-function buildEntry(relativePath: string, overrides: Partial<AssetManifestEntry> = {}): AssetManifestEntry {
+function buildEntry(
+  relativePath: string,
+  overrides: Partial<AssetManifestEntry> = {}
+): AssetManifestEntry {
   return {
     classification: "unknown",
     classificationSource: "automatic",
@@ -42,7 +50,9 @@ describe("applyPackRulesToEntry", () => {
 
     expect(result.entry.classification).toBe("wall");
     expect(result.reclassified).toBe(true);
-    expect(result.entry.tags).toEqual(expect.arrayContaining(["forgotten-adventures", "walls", "existing"]));
+    expect(result.entry.tags).toEqual(
+      expect.arrayContaining(["forgotten-adventures", "walls", "existing"])
+    );
   });
 
   it("does not reclassify manually-tagged assets", () => {
@@ -58,16 +68,23 @@ describe("applyPackRulesToEntry", () => {
 
   it("applies defaultTags regardless of pattern matches", () => {
     const entry = buildEntry("Misc/something.png");
-    const result = applyPackRulesToEntry(entry, "generic", ["imported", "needs-review"]);
+    const result = applyPackRulesToEntry(entry, "generic", [
+      "imported",
+      "needs-review"
+    ]);
 
-    expect(result.entry.tags).toEqual(expect.arrayContaining(["imported", "needs-review"]));
+    expect(result.entry.tags).toEqual(
+      expect.arrayContaining(["imported", "needs-review"])
+    );
   });
 
   it("recognizes 2-minute-tabletop sacred locations", () => {
     const entry = buildEntry("Maps/Temple/temple-of-the-sun.png");
     const result = applyPackRulesToEntry(entry, "two-minute-tabletop");
 
-    expect(result.entry.tags).toEqual(expect.arrayContaining(["2-minute-tabletop", "sacred"]));
+    expect(result.entry.tags).toEqual(
+      expect.arrayContaining(["2-minute-tabletop", "sacred"])
+    );
   });
 });
 
@@ -78,7 +95,12 @@ describe("importAssetPack", () => {
     const wallsDir = path.join(assetRoot, "Walls", "Stone");
     await mkdir(wallsDir, { recursive: true });
     const image = await sharp({
-      create: { background: { alpha: 1, b: 100, g: 100, r: 100 }, channels: 4, height: 32, width: 32 }
+      create: {
+        background: { alpha: 1, b: 100, g: 100, r: 100 },
+        channels: 4,
+        height: 32,
+        width: 32
+      }
     })
       .png()
       .toBuffer();
@@ -93,14 +115,23 @@ describe("importAssetPack", () => {
     expect(result.preset).toBe("forgotten-adventures");
     expect(result.added).toHaveLength(1);
     expect(result.added[0]?.classification).toBe("wall");
-    expect(result.added[0]?.tags).toEqual(expect.arrayContaining(["forgotten-adventures", "walls"]));
+    expect(result.added[0]?.tags).toEqual(
+      expect.arrayContaining(["forgotten-adventures", "walls"])
+    );
     expect(result.presetTagsApplied).toBeGreaterThan(0);
     expect(result.reclassifiedCount).toBeGreaterThanOrEqual(0);
 
-    const manifest = JSON.parse(await readFile(path.join(tempRoot, "data", "indexes", "assets.manifest.json"), "utf8")) as {
+    const manifest = JSON.parse(
+      await readFile(
+        path.join(tempRoot, "data", "indexes", "assets.manifest.json"),
+        "utf8"
+      )
+    ) as {
       assets: Array<{ classification: string; tags: string[] }>;
     };
     expect(manifest.assets[0]?.classification).toBe("wall");
-    expect(manifest.assets[0]?.tags).toEqual(expect.arrayContaining(["forgotten-adventures", "walls"]));
+    expect(manifest.assets[0]?.tags).toEqual(
+      expect.arrayContaining(["forgotten-adventures", "walls"])
+    );
   });
 });

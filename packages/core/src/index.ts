@@ -6,7 +6,6 @@ const LocalPathSchema = z.string().trim().min(1);
 const TagsSchema = z.array(z.string().trim().min(1)).default([]);
 const CoordinateSchema = z.number().finite();
 const PositiveNumberSchema = z.number().finite().positive();
-const NonNegativeNumberSchema = z.number().finite().nonnegative();
 const PositiveIntegerSchema = z.number().int().positive();
 const HexColorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 const TimestampSchema = z.string().datetime();
@@ -87,7 +86,16 @@ export type GridConfig = z.infer<typeof GridConfigSchema>;
 
 export const AssetMetadataSchema = z
   .object({
-    classification: z.enum(["texture", "tile", "prop", "wall", "door", "light", "reference", "unknown"]),
+    classification: z.enum([
+      "texture",
+      "tile",
+      "prop",
+      "wall",
+      "door",
+      "light",
+      "reference",
+      "unknown"
+    ]),
     discoveredAt: TimestampSchema.optional(),
     height: PositiveIntegerSchema.optional(),
     id: IdSchema,
@@ -164,7 +172,9 @@ export const MapRequestSchema = z
     mapKind: z.enum(["dungeon", "building", "city"]),
     name: NameSchema,
     referenceMapIds: z.array(IdSchema).default([]),
-    requestedExports: z.array(z.enum(["png", "webp", "dd2vtt", "foundry"])).default([]),
+    requestedExports: z
+      .array(z.enum(["png", "webp", "dd2vtt", "foundry"]))
+      .default([]),
     requiredRooms: z.array(NameSchema).default([]),
     theme: z.string().trim().max(120).optional()
   })
@@ -177,7 +187,14 @@ export const RoomNodeSchema = z
     bounds: BoundsSchema,
     connections: z.array(IdSchema).default([]),
     id: IdSchema,
-    kind: z.enum(["entrance", "room", "corridor", "stairs", "secret", "service"]),
+    kind: z.enum([
+      "entrance",
+      "room",
+      "corridor",
+      "stairs",
+      "secret",
+      "service"
+    ]),
     label: NameSchema,
     tags: TagsSchema
   })
@@ -253,7 +270,15 @@ export const InitiativeEntrySchema = z
 
 export type InitiativeEntry = z.infer<typeof InitiativeEntrySchema>;
 
-export const MapLayerKindSchema = z.enum(["background", "terrain", "walls", "props", "lighting", "gm-only", "notes"]);
+export const MapLayerKindSchema = z.enum([
+  "background",
+  "terrain",
+  "walls",
+  "props",
+  "lighting",
+  "gm-only",
+  "notes"
+]);
 
 export type MapLayerKind = z.infer<typeof MapLayerKindSchema>;
 
@@ -289,7 +314,11 @@ export const PlacedAssetSchema = z
 
 export type PlacedAsset = z.infer<typeof PlacedAssetSchema>;
 
-export const AssetUsageKindSchema = z.enum(["asset-placement", "tile-texture", "semantic-object"]);
+export const AssetUsageKindSchema = z.enum([
+  "asset-placement",
+  "tile-texture",
+  "semantic-object"
+]);
 
 export type AssetUsageKind = z.infer<typeof AssetUsageKindSchema>;
 
@@ -332,13 +361,69 @@ export const MapDocumentSchema = z
     height: PositiveIntegerSchema,
     id: IdSchema,
     layers: z.array(MapLayerSchema).default([
-      { id: "layer-background", kind: "background", locked: true, name: "Background", opacity: 1, order: 0, visible: true },
-      { id: "layer-terrain", kind: "terrain", locked: false, name: "Terrain", opacity: 1, order: 1, visible: true },
-      { id: "layer-walls", kind: "walls", locked: false, name: "Walls", opacity: 1, order: 2, visible: true },
-      { id: "layer-props", kind: "props", locked: false, name: "Props", opacity: 1, order: 3, visible: true },
-      { id: "layer-lighting", kind: "lighting", locked: false, name: "Lighting", opacity: 1, order: 4, visible: true },
-      { id: "layer-gm-only", kind: "gm-only", locked: false, name: "GM Only", opacity: 1, order: 5, visible: true },
-      { id: "layer-notes", kind: "notes", locked: false, name: "Notes", opacity: 1, order: 6, visible: true }
+      {
+        id: "layer-background",
+        kind: "background",
+        locked: true,
+        name: "Background",
+        opacity: 1,
+        order: 0,
+        visible: true
+      },
+      {
+        id: "layer-terrain",
+        kind: "terrain",
+        locked: false,
+        name: "Terrain",
+        opacity: 1,
+        order: 1,
+        visible: true
+      },
+      {
+        id: "layer-walls",
+        kind: "walls",
+        locked: false,
+        name: "Walls",
+        opacity: 1,
+        order: 2,
+        visible: true
+      },
+      {
+        id: "layer-props",
+        kind: "props",
+        locked: false,
+        name: "Props",
+        opacity: 1,
+        order: 3,
+        visible: true
+      },
+      {
+        id: "layer-lighting",
+        kind: "lighting",
+        locked: false,
+        name: "Lighting",
+        opacity: 1,
+        order: 4,
+        visible: true
+      },
+      {
+        id: "layer-gm-only",
+        kind: "gm-only",
+        locked: false,
+        name: "GM Only",
+        opacity: 1,
+        order: 5,
+        visible: true
+      },
+      {
+        id: "layer-notes",
+        kind: "notes",
+        locked: false,
+        name: "Notes",
+        opacity: 1,
+        order: 6,
+        visible: true
+      }
     ]),
     name: NameSchema,
     plan: MapPlanSchema.optional(),
@@ -354,14 +439,23 @@ export type MapDocument = z.infer<typeof MapDocumentSchema>;
 export const MapDocumentExportHistoryMetadataSchema = z
   .object({
     exportedAt: TimestampSchema,
-    format: z.enum(["png", "webp", "dd2vtt", "foundry", "dmimap", "session-pack"]),
+    format: z.enum([
+      "png",
+      "webp",
+      "dd2vtt",
+      "foundry",
+      "dmimap",
+      "session-pack"
+    ]),
     id: IdSchema,
     mode: z.enum(["gm", "player", "clean"]).optional(),
     outputPath: LocalPathSchema.optional()
   })
   .strict();
 
-export type MapDocumentExportHistoryMetadata = z.infer<typeof MapDocumentExportHistoryMetadataSchema>;
+export type MapDocumentExportHistoryMetadata = z.infer<
+  typeof MapDocumentExportHistoryMetadataSchema
+>;
 
 export const MapDocumentV2MetadataSchema = z
   .object({
@@ -417,8 +511,12 @@ export function validateMapDocumentAssetReferences(
     });
   };
 
-  document.assets.forEach((asset, index) => inspect(asset, `assets[${index}].assetId`));
-  document.plan?.assetPlacements.forEach((asset, index) => inspect(asset, `plan.assetPlacements[${index}].assetId`));
+  document.assets.forEach((asset, index) => {
+    inspect(asset, `assets[${index}].assetId`);
+  });
+  document.plan?.assetPlacements.forEach((asset, index) => {
+    inspect(asset, `plan.assetPlacements[${index}].assetId`);
+  });
 
   return {
     issues,
@@ -492,7 +590,13 @@ export function createMapDocument(input: {
   });
 }
 
-export { CampaignSchema, createCampaign, type Campaign, type CampaignSession, type CampaignMapLink } from "./campaign";
+export {
+  CampaignSchema,
+  createCampaign,
+  type Campaign,
+  type CampaignSession,
+  type CampaignMapLink
+} from "./campaign";
 export {
   CURRENT_MAP_DOCUMENT_VERSION,
   MapDocumentMigrationError,

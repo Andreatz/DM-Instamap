@@ -7,10 +7,19 @@ import {
   type BridgeAssetSearchSummary,
   type BridgeReferenceSummary
 } from "@dm-instamap/ai-bridge";
-import { convertPlanToMapDocument, type ImportPlanMode } from "@/lib/ai-bridge-import";
+import {
+  convertPlanToMapDocument,
+  type ImportPlanMode
+} from "@/lib/ai-bridge-import";
 import { loadAssetGroups } from "@/lib/asset-groups";
 import { loadReferenceMaps } from "@/lib/references";
-import { createProject, readProject, updateProject, createProjectSlug, ProjectNotFoundError } from "@/lib/projects";
+import {
+  createProject,
+  readProject,
+  updateProject,
+  createProjectSlug,
+  ProjectNotFoundError
+} from "@/lib/projects";
 
 type ImportPlanRequest = {
   applyAutoRepair?: unknown;
@@ -31,65 +40,91 @@ export async function POST(request: Request) {
   try {
     body = (await request.json()) as ImportPlanRequest;
   } catch {
-    return Response.json({ error: "Request body must be JSON.", ok: false }, { status: 400 });
+    return Response.json(
+      { error: "Request body must be JSON.", ok: false },
+      { status: 400 }
+    );
   }
 
   const mode = parseMode(body.mode);
 
   if (!mode) {
-    return Response.json({ error: "mode must be new-project or update-project.", ok: false }, { status: 400 });
+    return Response.json(
+      { error: "mode must be new-project or update-project.", ok: false },
+      { status: 400 }
+    );
   }
 
   const responseText = typeof body.response === "string" ? body.response : "";
 
   if (!responseText.trim()) {
-    return Response.json({ error: "response is required.", ok: false }, { status: 400 });
+    return Response.json(
+      { error: "response is required.", ok: false },
+      { status: 400 }
+    );
   }
 
   const validation = validateBridgeResponse(responseText);
 
   if (!validation.ok) {
-    return Response.json({ errors: validation.errors, ok: false }, { status: 400 });
+    return Response.json(
+      { errors: validation.errors, ok: false },
+      { status: 400 }
+    );
   }
 
-  const userRequest = typeof body.userRequest === "string" ? body.userRequest : "";
-  const [assetGroupsView, referencesView] = await Promise.all([loadAssetGroups(), loadReferenceMaps()]);
-  const assetGroupSummaries: BridgeAssetGroupSummary[] = assetGroupsView.groups.map((group) => ({
-    assetCount: group.assetCount,
-    id: group.id,
-    kind: group.kind,
-    name: group.name,
-    qualityScore: group.qualityScore,
-    tags: group.tags,
-    theme: group.theme,
-    usableFor: group.usableFor
-  }));
-  const referenceSummaries: BridgeReferenceSummary[] = referencesView.references.map((reference) => ({
-    height: reference.height,
-    id: reference.id,
-    mapType: reference.mapType,
-    mapTypeConfidence: reference.mapTypeConfidence,
-    path: reference.path,
-    styleDna: reference.styleDna
-      ? {
-          density: reference.styleDna.density,
-          layoutTraits: reference.styleDna.layoutTraits,
-          mood: reference.styleDna.mood,
-          promptSummary: reference.styleDna.promptSummary,
-          recommendedAssetTags: reference.styleDna.recommendedAssetTags,
-          visualTags: reference.styleDna.visualTags
-        }
-      : null,
-    tags: reference.tags,
-    width: reference.width
-  }));
+  const userRequest =
+    typeof body.userRequest === "string" ? body.userRequest : "";
+  const [assetGroupsView, referencesView] = await Promise.all([
+    loadAssetGroups(),
+    loadReferenceMaps()
+  ]);
+  const assetGroupSummaries: BridgeAssetGroupSummary[] =
+    assetGroupsView.groups.map((group) => ({
+      assetCount: group.assetCount,
+      id: group.id,
+      kind: group.kind,
+      name: group.name,
+      qualityScore: group.qualityScore,
+      tags: group.tags,
+      theme: group.theme,
+      usableFor: group.usableFor
+    }));
+  const referenceSummaries: BridgeReferenceSummary[] =
+    referencesView.references.map((reference) => ({
+      height: reference.height,
+      id: reference.id,
+      mapType: reference.mapType,
+      mapTypeConfidence: reference.mapTypeConfidence,
+      path: reference.path,
+      styleDna: reference.styleDna
+        ? {
+            density: reference.styleDna.density,
+            layoutTraits: reference.styleDna.layoutTraits,
+            mood: reference.styleDna.mood,
+            promptSummary: reference.styleDna.promptSummary,
+            recommendedAssetTags: reference.styleDna.recommendedAssetTags,
+            visualTags: reference.styleDna.visualTags
+          }
+        : null,
+      tags: reference.tags,
+      width: reference.width
+    }));
   const knownAssetIds = collectKnownAssetIds(assetGroupsView.groups);
-  const applyAutoRepair = body.applyAutoRepair === false ? false : Boolean(body.applyAutoRepair ?? true);
+  const applyAutoRepair =
+    body.applyAutoRepair === false
+      ? false
+      : Boolean(body.applyAutoRepair ?? true);
 
   try {
-    const projectIdHint = typeof body.projectId === "string" ? body.projectId : null;
-    const documentName = typeof body.documentName === "string" ? body.documentName : undefined;
-    const sourceProject = mode === "update-project" && projectIdHint ? await readProject(projectIdHint) : null;
+    const projectIdHint =
+      typeof body.projectId === "string" ? body.projectId : null;
+    const documentName =
+      typeof body.documentName === "string" ? body.documentName : undefined;
+    const sourceProject =
+      mode === "update-project" && projectIdHint
+        ? await readProject(projectIdHint)
+        : null;
     const mapWidth = sourceProject?.document.width;
     const mapHeight = sourceProject?.document.height;
     const initialContext = {
@@ -99,7 +134,10 @@ export async function POST(request: Request) {
       mapHeight,
       mapWidth
     };
-    const initialIssues = validatePlanSemantics(validation.data, initialContext);
+    const initialIssues = validatePlanSemantics(
+      validation.data,
+      initialContext
+    );
     let plan = validation.data;
     let repairSummary: ReturnType<typeof repairPlanLocally> | null = null;
 
@@ -109,7 +147,11 @@ export async function POST(request: Request) {
     }
 
     const conversion = convertPlanToMapDocument({
-      documentId: projectIdHint ? projectIdHint : createProjectSlug(documentName ?? plan.name ?? userRequest ?? "imported-plan"),
+      documentId: projectIdHint
+        ? projectIdHint
+        : createProjectSlug(
+            documentName ?? plan.name ?? userRequest ?? "imported-plan"
+          ),
       documentName,
       mode,
       plan,
@@ -123,7 +165,13 @@ export async function POST(request: Request) {
 
     if (mode === "update-project") {
       if (!projectIdHint) {
-        return Response.json({ error: "projectId is required for update-project mode.", ok: false }, { status: 400 });
+        return Response.json(
+          {
+            error: "projectId is required for update-project mode.",
+            ok: false
+          },
+          { status: 400 }
+        );
       }
 
       const updated = await updateProject(projectIdHint, {
@@ -131,7 +179,10 @@ export async function POST(request: Request) {
         name: documentName,
         selectedAssetGroupIds: parseStringArray(body.selectedAssetGroupIds),
         selectedReferenceIds: parseStringArray(body.selectedReferenceIds),
-        sourceRequest: typeof body.sourceRequest === "string" ? body.sourceRequest : undefined,
+        sourceRequest:
+          typeof body.sourceRequest === "string"
+            ? body.sourceRequest
+            : undefined,
         styleDnaIds: parseStringArray(body.styleDnaIds)
       });
 
@@ -155,7 +206,10 @@ export async function POST(request: Request) {
       name: documentName ?? plan.name,
       selectedAssetGroupIds: parseStringArray(body.selectedAssetGroupIds),
       selectedReferenceIds: parseStringArray(body.selectedReferenceIds),
-      sourceRequest: typeof body.sourceRequest === "string" ? body.sourceRequest : userRequest,
+      sourceRequest:
+        typeof body.sourceRequest === "string"
+          ? body.sourceRequest
+          : userRequest,
       styleDnaIds: parseStringArray(body.styleDnaIds)
     });
 
@@ -172,7 +226,10 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     if (error instanceof ProjectNotFoundError) {
-      return Response.json({ error: error.message, ok: false }, { status: 404 });
+      return Response.json(
+        { error: error.message, ok: false },
+        { status: 404 }
+      );
     }
 
     const message = error instanceof Error ? error.message : "Import failed.";
@@ -200,7 +257,9 @@ function parseStringArray(value: unknown): string[] | undefined {
   return [];
 }
 
-function collectKnownAssetIds(groups: Array<{ assetIds: string[]; id: string }>): string[] {
+function collectKnownAssetIds(
+  groups: Array<{ assetIds: string[]; id: string }>
+): string[] {
   const ids = new Set<string>();
 
   for (const group of groups) {

@@ -12,7 +12,8 @@ vi.mock("@/lib/projects", () => ({
 import { POST } from "./route";
 import { createMultiFloorProjects } from "@/lib/projects";
 
-const createMultiFloorProjectsMock = createMultiFloorProjects as unknown as ReturnType<typeof vi.fn>;
+const createMultiFloorProjectsMock =
+  createMultiFloorProjects as unknown as ReturnType<typeof vi.fn>;
 
 describe("POST /api/projects/multi-floor", () => {
   beforeEach(() => {
@@ -59,7 +60,10 @@ describe("POST /api/projects/multi-floor", () => {
       projects: Array<{ id: string; name: string }>;
     };
     expect(body.ok).toBe(true);
-    expect(body.projects.map((project) => project.id)).toEqual(["crypt-floor-1", "crypt-floor-2"]);
+    expect(body.projects.map((project) => project.id)).toEqual([
+      "crypt-floor-1",
+      "crypt-floor-2"
+    ]);
     expect(createMultiFloorProjectsMock).toHaveBeenCalledWith(
       expect.objectContaining({
         baseSlug: "Crypt",
@@ -70,7 +74,9 @@ describe("POST /api/projects/multi-floor", () => {
   });
 
   it("returns 400 with a friendly message when the factory throws", async () => {
-    createMultiFloorProjectsMock.mockRejectedValue(new Error("Could not reserve project id for floor"));
+    createMultiFloorProjectsMock.mockRejectedValue(
+      new Error("Could not reserve project id for floor")
+    );
 
     const response = await POST(
       new Request("http://test/api/projects/multi-floor", {

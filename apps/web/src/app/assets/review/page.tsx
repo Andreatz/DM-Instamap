@@ -5,7 +5,10 @@ import { loadAssetOverrides } from "@/lib/asset-overrides";
 export const dynamic = "force-dynamic";
 
 export default async function AssetReviewPage() {
-  const [manifest, overrides] = await Promise.all([loadAssetManifest(), loadAssetOverrides()]);
+  const [manifest, overrides] = await Promise.all([
+    loadAssetManifest(),
+    loadAssetOverrides()
+  ]);
 
   return (
     <main className="asset-page review-page">

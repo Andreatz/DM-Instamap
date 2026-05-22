@@ -8,14 +8,15 @@ from unittest.mock import patch
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "src"))
 
 GLOBAL_DB_DIR = tempfile.TemporaryDirectory()
-os.environ["DM_INSTAMAP_JOBS_DB"] = str(pathlib.Path(GLOBAL_DB_DIR.name) / "global-jobs.db")
+os.environ["DM_INSTAMAP_JOBS_DB"] = str(
+    pathlib.Path(GLOBAL_DB_DIR.name) / "global-jobs.db"
+)
 
 from fastapi.testclient import TestClient
 
 from dm_instamap_worker.jobs import JobStore, run_subprocess_job
 from dm_instamap_worker.main import create_app
 from dm_instamap_worker.models import JobStatus
-
 
 SAMPLE_PNG = bytes.fromhex(
     "89504e470d0a1a0a0000000d4948445200000001000000010804000000b51c0c02"
@@ -64,8 +65,12 @@ class WorkerJobTests(unittest.TestCase):
         self.assertEqual(response.json(), [])
 
     def test_asset_scan_job_completes_with_local_runner_result(self) -> None:
-        with patch("dm_instamap_worker.routes.assets.run_asset_scan_job", complete_asset_scan):
-            created = self.client.post("/jobs/assets/scan", json={"folder": "local-assets"})
+        with patch(
+            "dm_instamap_worker.routes.assets.run_asset_scan_job", complete_asset_scan
+        ):
+            created = self.client.post(
+                "/jobs/assets/scan", json={"folder": "local-assets"}
+            )
 
         self.assertEqual(created.status_code, 200)
         job_id = created.json()["id"]
@@ -81,8 +86,13 @@ class WorkerJobTests(unittest.TestCase):
         self.assertIn("Scanned", payload["result"]["stdout"])
 
     def test_reference_scan_job_completes_with_local_runner_result(self) -> None:
-        with patch("dm_instamap_worker.routes.references.run_reference_scan_job", complete_reference_scan):
-            created = self.client.post("/jobs/references/scan", json={"folder": "local-references"})
+        with patch(
+            "dm_instamap_worker.routes.references.run_reference_scan_job",
+            complete_reference_scan,
+        ):
+            created = self.client.post(
+                "/jobs/references/scan", json={"folder": "local-references"}
+            )
 
         self.assertEqual(created.status_code, 200)
         job_id = created.json()["id"]
@@ -96,7 +106,9 @@ class WorkerJobTests(unittest.TestCase):
         image_path = pathlib.Path(self.temp_dir.name) / "map.png"
         image_path.write_bytes(SAMPLE_PNG)
 
-        created = self.client.post("/jobs/images/analyze", json={"imagePath": str(image_path)})
+        created = self.client.post(
+            "/jobs/images/analyze", json={"imagePath": str(image_path)}
+        )
 
         self.assertEqual(created.status_code, 200)
         job_id = created.json()["id"]
@@ -111,7 +123,14 @@ class WorkerJobTests(unittest.TestCase):
         self.assertGreater(len(payload["result"]["analysis"]["dominantColors"]), 0)
 
     def test_import_pack_job_uses_local_runner(self) -> None:
-        def complete(store: JobStore, job_id: str, *, root: str, preset: str, default_tags: list[str]) -> None:
+        def complete(
+            store: JobStore,
+            job_id: str,
+            *,
+            root: str,
+            preset: str,
+            default_tags: list[str],
+        ) -> None:
             store.update_job(
                 job_id,
                 status=JobStatus.completed,
@@ -120,17 +139,25 @@ class WorkerJobTests(unittest.TestCase):
                 result={"root": root, "preset": preset, "defaultTags": default_tags},
             )
 
-        with patch("dm_instamap_worker.routes.assets.run_asset_import_pack_job", complete):
+        with patch(
+            "dm_instamap_worker.routes.assets.run_asset_import_pack_job", complete
+        ):
             created = self.client.post(
                 "/jobs/assets/import-pack",
-                json={"root": "./packs/fa", "preset": "forgotten-adventures", "defaultTags": ["fa", "dungeon"]},
+                json={
+                    "root": "./packs/fa",
+                    "preset": "forgotten-adventures",
+                    "defaultTags": ["fa", "dungeon"],
+                },
             )
 
         self.assertEqual(created.status_code, 200)
         payload = self.client.get(f"/jobs/{created.json()['id']}").json()
         self.assertEqual(payload["type"], "assets.import-pack")
         self.assertEqual(payload["status"], "completed")
-        self.assertTrue(payload["result"]["root"].endswith(str(pathlib.Path("packs") / "fa")))
+        self.assertTrue(
+            payload["result"]["root"].endswith(str(pathlib.Path("packs") / "fa"))
+        )
         self.assertEqual(payload["result"]["preset"], "forgotten-adventures")
         self.assertEqual(payload["result"]["defaultTags"], ["fa", "dungeon"])
 
@@ -141,7 +168,9 @@ class WorkerJobTests(unittest.TestCase):
         self.assertIn("Relative paths must stay inside", response.text)
 
     def test_rejects_remote_host_without_explicit_opt_in(self) -> None:
-        response = self.client.get("/health", headers={"host": "dm-instamap.example.com"})
+        response = self.client.get(
+            "/health", headers={"host": "dm-instamap.example.com"}
+        )
 
         self.assertEqual(response.status_code, 403)
         self.assertIn("non include autenticazione", response.text)
@@ -153,13 +182,20 @@ class WorkerJobTests(unittest.TestCase):
                 status=JobStatus.completed,
                 progress=100,
                 message="Job completed.",
-                result={"prompt": kwargs["prompt"], "classification": kwargs["classification"]},
+                result={
+                    "prompt": kwargs["prompt"],
+                    "classification": kwargs["classification"],
+                },
             )
 
         with patch("dm_instamap_worker.routes.assets.run_asset_generate_job", complete):
             created = self.client.post(
                 "/jobs/assets/generate",
-                json={"prompt": "ornate iron door", "classification": "door", "seed": 42},
+                json={
+                    "prompt": "ornate iron door",
+                    "classification": "door",
+                    "seed": 42,
+                },
             )
 
         self.assertEqual(created.status_code, 200)
@@ -169,7 +205,9 @@ class WorkerJobTests(unittest.TestCase):
         self.assertEqual(payload["result"]["classification"], "door")
 
     def test_ai_plan_job_uses_local_runner(self) -> None:
-        def complete(store: JobStore, job_id: str, *, user_request: str, max_retries: int | None) -> None:
+        def complete(
+            store: JobStore, job_id: str, *, user_request: str, max_retries: int | None
+        ) -> None:
             store.update_job(
                 job_id,
                 status=JobStatus.completed,
@@ -200,7 +238,9 @@ class WorkerJobTests(unittest.TestCase):
                 result={"projectId": kwargs["project_id"], "scale": kwargs["scale"]},
             )
 
-        with patch("dm_instamap_worker.routes.exports.run_exports_session_pack_job", complete):
+        with patch(
+            "dm_instamap_worker.routes.exports.run_exports_session_pack_job", complete
+        ):
             created = self.client.post(
                 "/jobs/exports/session-pack",
                 json={"projectId": "crypt", "scale": 2, "includeInitiative": True},
@@ -257,7 +297,11 @@ class WorkerJobTests(unittest.TestCase):
         run_subprocess_job(
             self.store,
             job.id,
-            [sys.executable, "-c", "import sys; sys.stderr.write('bad folder'); sys.exit(2)"],
+            [
+                sys.executable,
+                "-c",
+                "import sys; sys.stderr.write('bad folder'); sys.exit(2)",
+            ],
             "Running test command.",
             cwd=pathlib.Path(self.temp_dir.name),
         )
@@ -270,7 +314,9 @@ class WorkerJobTests(unittest.TestCase):
 
     def test_running_jobs_are_marked_failed_after_restart(self) -> None:
         job = self.store.create_job("test.restart", "Queued.")
-        self.store.update_job(job.id, status=JobStatus.running, progress=25, message="Running.")
+        self.store.update_job(
+            job.id, status=JobStatus.running, progress=25, message="Running."
+        )
 
         reloaded_store = JobStore(self.db_path)
         reloaded_job = reloaded_store.get_job(job.id)
@@ -281,7 +327,9 @@ class WorkerJobTests(unittest.TestCase):
 
     def test_cleanup_old_terminal_jobs(self) -> None:
         job = self.store.create_job("test.cleanup", "Queued.")
-        self.store.update_job(job.id, status=JobStatus.completed, progress=100, message="Done.")
+        self.store.update_job(
+            job.id, status=JobStatus.completed, progress=100, message="Done."
+        )
 
         removed = self.store.cleanup_old_jobs(max_age_days=0, max_terminal_jobs=500)
 

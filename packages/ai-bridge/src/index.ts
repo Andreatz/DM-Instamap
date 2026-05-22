@@ -85,7 +85,9 @@ export type BridgeValidationResult =
 const DEFAULT_ASSET_LIMIT = 12;
 const DEFAULT_REFERENCE_LIMIT = 5;
 
-export function getBridgeStatus(env: NodeJS.ProcessEnv = process.env): BridgeStatus {
+export function getBridgeStatus(
+  env: NodeJS.ProcessEnv = process.env
+): BridgeStatus {
   const config = resolveAiConfigFromEnv(env);
 
   if (!config) {
@@ -144,15 +146,27 @@ export {
 
 export function searchBridgeContext(input: BridgePromptInput): BridgeContext {
   const tokens = tokenize(input.userRequest);
-  const assetGroups = rankByTokens(input.assetGroups, tokens, summarizeAssetGroupForSearch)
+  const assetGroups = rankByTokens(
+    input.assetGroups,
+    tokens,
+    summarizeAssetGroupForSearch
+  )
     .slice(0, input.maxAssetGroups ?? DEFAULT_ASSET_LIMIT)
     .map((ranked) => ranked.item);
-  const references = rankByTokens(input.references, tokens, summarizeReferenceForSearch)
+  const references = rankByTokens(
+    input.references,
+    tokens,
+    summarizeReferenceForSearch
+  )
     .slice(0, input.maxReferences ?? DEFAULT_REFERENCE_LIMIT)
     .map((ranked) => ranked.item);
   const assetSearchResults = (input.assetSearchResults ?? [])
     .slice()
-    .sort((left, right) => right.score - left.score || left.relativePath.localeCompare(right.relativePath))
+    .sort(
+      (left, right) =>
+        right.score - left.score ||
+        left.relativePath.localeCompare(right.relativePath)
+    )
     .slice(0, input.maxSearchResults ?? 8);
 
   return {
@@ -229,7 +243,9 @@ export function validateBridgeResponse(value: string): BridgeValidationResult {
     };
   } catch (error) {
     return {
-      errors: [error instanceof Error ? error.message : "Response is not valid JSON."],
+      errors: [
+        error instanceof Error ? error.message : "Response is not valid JSON."
+      ],
       ok: false
     };
   }
@@ -245,7 +261,9 @@ export function buildRepairPrompt(input: {
     "Return JSON only. Do not include Markdown fences or explanation.",
     "",
     "VALIDATION ERRORS:",
-    input.errors.length > 0 ? input.errors.map((error) => `- ${error}`).join("\n") : "- Unknown validation error",
+    input.errors.length > 0
+      ? input.errors.map((error) => `- ${error}`).join("\n")
+      : "- Unknown validation error",
     "",
     "REQUIRED JSON SCHEMA:",
     REQUIRED_MAP_PLAN_SCHEMA,
@@ -331,14 +349,21 @@ function rankByTokens<T>(
   return items
     .map((item) => {
       const text = summarize(item);
-      const score = tokens.reduce((sum, token) => sum + (text.includes(token) ? 1 : 0), 0);
+      const score = tokens.reduce(
+        (sum, token) => sum + (text.includes(token) ? 1 : 0),
+        0
+      );
       return {
         item,
         score: score + (tokens.length === 0 ? 1 : 0)
       };
     })
     .filter((ranked) => ranked.score > 0)
-    .sort((left, right) => right.score - left.score || getItemName(left.item).localeCompare(getItemName(right.item)));
+    .sort(
+      (left, right) =>
+        right.score - left.score ||
+        getItemName(left.item).localeCompare(getItemName(right.item))
+    );
 }
 
 function formatAssetGroups(groups: BridgeAssetGroupSummary[]): string {
@@ -372,7 +397,10 @@ function formatReferences(references: BridgeReferenceSummary[]): string {
       id: reference.id,
       mapType: reference.mapType,
       path: reference.path,
-      size: reference.width && reference.height ? `${reference.width}x${reference.height}` : "unknown",
+      size:
+        reference.width && reference.height
+          ? `${reference.width}x${reference.height}`
+          : "unknown",
       tags: reference.tags.slice(0, 10)
     })),
     null,
@@ -388,7 +416,10 @@ function formatReferenceStyleDna(references: BridgeReferenceSummary[]): string {
       layoutTraits: reference.styleDna?.layoutTraits.slice(0, 8),
       mood: reference.styleDna?.mood.slice(0, 8),
       promptSummary: reference.styleDna?.promptSummary,
-      recommendedAssetTags: reference.styleDna?.recommendedAssetTags.slice(0, 12),
+      recommendedAssetTags: reference.styleDna?.recommendedAssetTags.slice(
+        0,
+        12
+      ),
       referenceId: reference.id,
       visualTags: reference.styleDna?.visualTags.slice(0, 12)
     }));
@@ -397,28 +428,34 @@ function formatReferenceStyleDna(references: BridgeReferenceSummary[]): string {
 }
 
 function summarizeAssetGroupForSearch(group: BridgeAssetGroupSummary): string {
-  return tokenize([
-    group.id,
-    group.kind,
-    group.name,
-    group.theme ?? "",
-    ...group.tags,
-    ...(group.usableFor ?? [])
-  ].join(" ")).join(" ");
+  return tokenize(
+    [
+      group.id,
+      group.kind,
+      group.name,
+      group.theme ?? "",
+      ...group.tags,
+      ...(group.usableFor ?? [])
+    ].join(" ")
+  ).join(" ");
 }
 
-function summarizeReferenceForSearch(reference: BridgeReferenceSummary): string {
-  return tokenize([
-    reference.id,
-    reference.mapType,
-    reference.path,
-    ...(reference.styleDna?.mood ?? []),
-    ...(reference.styleDna?.layoutTraits ?? []),
-    ...(reference.styleDna?.recommendedAssetTags ?? []),
-    ...(reference.styleDna?.visualTags ?? []),
-    reference.styleDna?.promptSummary ?? "",
-    ...reference.tags
-  ].join(" ")).join(" ");
+function summarizeReferenceForSearch(
+  reference: BridgeReferenceSummary
+): string {
+  return tokenize(
+    [
+      reference.id,
+      reference.mapType,
+      reference.path,
+      ...(reference.styleDna?.mood ?? []),
+      ...(reference.styleDna?.layoutTraits ?? []),
+      ...(reference.styleDna?.recommendedAssetTags ?? []),
+      ...(reference.styleDna?.visualTags ?? []),
+      reference.styleDna?.promptSummary ?? "",
+      ...reference.tags
+    ].join(" ")
+  ).join(" ");
 }
 
 function formatZodErrors(error: ZodError): string[] {
@@ -447,11 +484,21 @@ function tokenize(value: string): string[] {
 }
 
 function getItemName(item: unknown): string {
-  if (item && typeof item === "object" && "name" in item && typeof item.name === "string") {
+  if (
+    item &&
+    typeof item === "object" &&
+    "name" in item &&
+    typeof item.name === "string"
+  ) {
     return item.name;
   }
 
-  if (item && typeof item === "object" && "path" in item && typeof item.path === "string") {
+  if (
+    item &&
+    typeof item === "object" &&
+    "path" in item &&
+    typeof item.path === "string"
+  ) {
     return item.path;
   }
 
@@ -464,7 +511,9 @@ export type PromptPacketInput = BridgePromptInput & {
 
 export function buildPromptPacket(input: PromptPacketInput): string {
   const context = searchBridgeContext(input);
-  const title = (input.packetTitle ?? "DM-Instamap Prompt Packet").trim() || "DM-Instamap Prompt Packet";
+  const title =
+    (input.packetTitle ?? "DM-Instamap Prompt Packet").trim() ||
+    "DM-Instamap Prompt Packet";
   const sections: string[] = [
     `# ${title}`,
     "",
@@ -508,7 +557,10 @@ function formatAssetGroupsMarkdown(groups: BridgeAssetGroupSummary[]): string {
     .map((group) => {
       const tags = group.tags.slice(0, 8).join(", ");
       const usable = (group.usableFor ?? []).slice(0, 6).join(", ");
-      const quality = typeof group.qualityScore === "number" ? ` quality ${Math.round(group.qualityScore)}` : "";
+      const quality =
+        typeof group.qualityScore === "number"
+          ? ` quality ${Math.round(group.qualityScore)}`
+          : "";
       const theme = group.theme ? ` theme ${group.theme}` : "";
 
       return [
@@ -522,7 +574,9 @@ function formatAssetGroupsMarkdown(groups: BridgeAssetGroupSummary[]): string {
     .join("\n");
 }
 
-function formatAssetSearchMarkdown(results: BridgeAssetSearchSummary[]): string {
+function formatAssetSearchMarkdown(
+  results: BridgeAssetSearchSummary[]
+): string {
   if (results.length === 0) {
     return "_(no local search results provided)_";
   }
@@ -542,7 +596,9 @@ function formatAssetSearchMarkdown(results: BridgeAssetSearchSummary[]): string 
     .join("\n");
 }
 
-function formatReferenceStyleMarkdown(references: BridgeReferenceSummary[]): string {
+function formatReferenceStyleMarkdown(
+  references: BridgeReferenceSummary[]
+): string {
   const styled = references.filter((reference) => reference.styleDna);
 
   if (styled.length === 0) {
@@ -722,7 +778,8 @@ export function validatePlanSemantics(
     if (
       Number.isFinite(mapWidth) &&
       Number.isFinite(mapHeight) &&
-      (outOfBounds(door.position.x, mapWidth) || outOfBounds(door.position.y, mapHeight))
+      (outOfBounds(door.position.x, mapWidth) ||
+        outOfBounds(door.position.y, mapHeight))
     ) {
       issues.push({
         doorId: door.id,
@@ -752,7 +809,8 @@ export function validatePlanSemantics(
     if (
       Number.isFinite(mapWidth) &&
       Number.isFinite(mapHeight) &&
-      (outOfBounds(light.position.x, mapWidth) || outOfBounds(light.position.y, mapHeight))
+      (outOfBounds(light.position.x, mapWidth) ||
+        outOfBounds(light.position.y, mapHeight))
     ) {
       issues.push({
         level: "warning",
@@ -805,7 +863,8 @@ export function validatePlanSemantics(
     if (
       Number.isFinite(mapWidth) &&
       Number.isFinite(mapHeight) &&
-      (outOfBounds(asset.position.x, mapWidth) || outOfBounds(asset.position.y, mapHeight))
+      (outOfBounds(asset.position.x, mapWidth) ||
+        outOfBounds(asset.position.y, mapHeight))
     ) {
       issues.push({
         assetId: asset.assetId,
@@ -833,13 +892,22 @@ export type SuggestionInput = {
   limit?: number;
 };
 
-export function suggestAssetReplacements(missingAssetId: string, input: SuggestionInput): AssetReplacementSuggestion[] {
+export function suggestAssetReplacements(
+  missingAssetId: string,
+  input: SuggestionInput
+): AssetReplacementSuggestion[] {
   const tokens = tokenize(missingAssetId);
   const limit = Math.max(1, Math.min(10, input.limit ?? 3));
   const groupSuggestions = input.assetGroups.map((group) => {
     const text = summarizeAssetGroupForSearch(group);
-    const score = tokens.reduce((sum, token) => sum + (text.includes(token) ? 1 : 0), 0);
-    const reason = score === 0 ? "fallback (no token overlap)" : `matches ${tokens.filter((token) => text.includes(token)).join(", ")}`;
+    const score = tokens.reduce(
+      (sum, token) => sum + (text.includes(token) ? 1 : 0),
+      0
+    );
+    const reason =
+      score === 0
+        ? "fallback (no token overlap)"
+        : `matches ${tokens.filter((token) => text.includes(token)).join(", ")}`;
     return {
       reason,
       score,
@@ -853,7 +921,11 @@ export function suggestAssetReplacements(missingAssetId: string, input: Suggesti
   }));
   const combined = [...groupSuggestions, ...searchSuggestions]
     .filter((suggestion) => suggestion.suggestionId !== missingAssetId)
-    .sort((left, right) => right.score - left.score || left.suggestionId.localeCompare(right.suggestionId));
+    .sort(
+      (left, right) =>
+        right.score - left.score ||
+        left.suggestionId.localeCompare(right.suggestionId)
+    );
   const seen = new Set<string>();
   const unique: AssetReplacementSuggestion[] = [];
 
@@ -906,31 +978,48 @@ export function repairPlanLocally(input: RepairPlanInput): RepairPlanResult {
     outOfBoundsAssets: [] as string[],
     outOfBoundsDoors: [] as string[]
   };
-  const appliedSubstitutions: Array<{ from: string; placedAssetId: string; to: string }> = [];
+  const appliedSubstitutions: Array<{
+    from: string;
+    placedAssetId: string;
+    to: string;
+  }> = [];
   const seenIds = new Set<string>();
   const rooms = dedupe(input.plan.rooms, removed.duplicateIds, seenIds);
   const roomIds = new Set(rooms.map((room) => room.id));
   const sanitizedRooms = rooms.map((room) => ({
     ...room,
-    connections: room.connections.filter((connection) => roomIds.has(connection))
+    connections: room.connections.filter((connection) =>
+      roomIds.has(connection)
+    )
   }));
-  const walls = dedupe(input.plan.walls, removed.duplicateIds, seenIds).filter((wall) => {
-    if (wall.start.x === wall.end.x && wall.start.y === wall.end.y) {
-      removed.invalidWalls.push(wall.id);
-      return false;
-    }
+  const walls = dedupe(input.plan.walls, removed.duplicateIds, seenIds).filter(
+    (wall) => {
+      if (wall.start.x === wall.end.x && wall.start.y === wall.end.y) {
+        removed.invalidWalls.push(wall.id);
+        return false;
+      }
 
-    return true;
-  });
-  const doors = dedupe(input.plan.doors, removed.duplicateIds, seenIds).filter((door) => {
-    if (outOfBounds(door.position.x, mapWidth) || outOfBounds(door.position.y, mapHeight)) {
-      removed.outOfBoundsDoors.push(door.id);
-      return false;
+      return true;
     }
+  );
+  const doors = dedupe(input.plan.doors, removed.duplicateIds, seenIds).filter(
+    (door) => {
+      if (
+        outOfBounds(door.position.x, mapWidth) ||
+        outOfBounds(door.position.y, mapHeight)
+      ) {
+        removed.outOfBoundsDoors.push(door.id);
+        return false;
+      }
 
-    return true;
-  });
-  const lights = dedupe(input.plan.lights, removed.duplicateIds, seenIds).filter((light) => {
+      return true;
+    }
+  );
+  const lights = dedupe(
+    input.plan.lights,
+    removed.duplicateIds,
+    seenIds
+  ).filter((light) => {
     if (!Number.isFinite(light.radius) || light.radius <= 0) {
       removed.invalidLights.push(light.id);
       return false;
@@ -944,9 +1033,16 @@ export function repairPlanLocally(input: RepairPlanInput): RepairPlanResult {
     ...(input.context.assetSearchResults ?? []).map((result) => result.assetId)
   ]);
   const apply = input.applyAssetSubstitutions ?? true;
-  const placements = dedupe(input.plan.assetPlacements, removed.duplicateIds, seenIds)
+  const placements = dedupe(
+    input.plan.assetPlacements,
+    removed.duplicateIds,
+    seenIds
+  )
     .filter((placement) => {
-      if (outOfBounds(placement.position.x, mapWidth) || outOfBounds(placement.position.y, mapHeight)) {
+      if (
+        outOfBounds(placement.position.x, mapWidth) ||
+        outOfBounds(placement.position.y, mapHeight)
+      ) {
         removed.outOfBoundsAssets.push(placement.id);
         return false;
       }
@@ -954,7 +1050,11 @@ export function repairPlanLocally(input: RepairPlanInput): RepairPlanResult {
       return true;
     })
     .map<PlacedAsset>((placement) => {
-      if (!apply || knownAssetIds.size === 0 || knownAssetIds.has(placement.assetId)) {
+      if (
+        !apply ||
+        knownAssetIds.size === 0 ||
+        knownAssetIds.has(placement.assetId)
+      ) {
         return placement;
       }
 
@@ -998,7 +1098,11 @@ export function repairPlanLocally(input: RepairPlanInput): RepairPlanResult {
   };
 }
 
-function dedupe<T extends { id: string }>(items: T[], removedIds: string[], seenIds: Set<string>): T[] {
+function dedupe<T extends { id: string }>(
+  items: T[],
+  removedIds: string[],
+  seenIds: Set<string>
+): T[] {
   const localSeen = new Set<string>();
   const result: T[] = [];
 
@@ -1020,7 +1124,12 @@ function outOfBounds(value: number, max: number): boolean {
   return !Number.isFinite(value) || value < 0 || value > max;
 }
 
-function pushDuplicate(issues: SemanticIssue[], seenIds: Set<string>, id: string, path: string): void {
+function pushDuplicate(
+  issues: SemanticIssue[],
+  seenIds: Set<string>,
+  id: string,
+  path: string
+): void {
   if (seenIds.has(id)) {
     issues.push({
       level: "error",
@@ -1034,6 +1143,11 @@ function pushDuplicate(issues: SemanticIssue[], seenIds: Set<string>, id: string
   seenIds.add(id);
 }
 
-export function listRoomLabels(plan: MapPlan): Array<{ id: string; label: string }> {
-  return plan.rooms.map((room: RoomNode) => ({ id: room.id, label: room.label }));
+export function listRoomLabels(
+  plan: MapPlan
+): Array<{ id: string; label: string }> {
+  return plan.rooms.map((room: RoomNode) => ({
+    id: room.id,
+    label: room.label
+  }));
 }

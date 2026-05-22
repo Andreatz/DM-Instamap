@@ -25,20 +25,23 @@ describe("normalizeReferenceMaps", () => {
         }
       ]
     ]);
-    const references = normalizeReferenceMaps([
-      {
-        dominantColors: [{ hex: "#406080", population: 10 }],
-        extension: "png",
-        height: 800,
-        id: "reference-a",
-        mapType: "dungeon",
-        mapTypeConfidence: 0.75,
-        path: "Maps/old-dungeon.png",
-        tags: ["dungeon", "old"],
-        thumbnailPath: "data/previews/references/reference-a.webp",
-        width: 1200
-      }
-    ], styleDnaByReferenceId);
+    const references = normalizeReferenceMaps(
+      [
+        {
+          dominantColors: [{ hex: "#406080", population: 10 }],
+          extension: "png",
+          height: 800,
+          id: "reference-a",
+          mapType: "dungeon",
+          mapTypeConfidence: 0.75,
+          path: "Maps/old-dungeon.png",
+          tags: ["dungeon", "old"],
+          thumbnailPath: "data/previews/references/reference-a.webp",
+          width: 1200
+        }
+      ],
+      styleDnaByReferenceId
+    );
 
     expect(references).toEqual([
       {

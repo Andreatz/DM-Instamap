@@ -46,7 +46,8 @@ const references = [
       density: "dense",
       layoutTraits: ["room-cluster"],
       mood: ["urban", "warm-lit"],
-      promptSummary: "Warm-lit keep library battlemap with dense room-cluster layout.",
+      promptSummary:
+        "Warm-lit keep library battlemap with dense room-cluster layout.",
       recommendedAssetTags: ["library", "bookshelf", "table"],
       visualTags: ["building", "dense", "warm-lit"]
     },
@@ -107,7 +108,9 @@ describe("getBridgeStatus", () => {
 
   it("creates a mock provider from env for tests and demos", async () => {
     const provider = createProviderFromEnv({ AI_PROVIDER: "mock" });
-    const response = await provider?.complete({ messages: [{ content: "hello", role: "user" }] });
+    const response = await provider?.complete({
+      messages: [{ content: "hello", role: "user" }]
+    });
 
     expect(provider?.vendor).toBe("mock");
     expect(response?.text).toContain("plan-mock");
@@ -144,7 +147,7 @@ describe("buildChatGptBridgePrompt", () => {
     expect(prompt).toContain("REFERENCE STYLE DNA");
     expect(prompt).toContain("Warm-lit keep library battlemap");
     expect(prompt).toContain("REQUIRED JSON SCHEMA");
-    expect(prompt).toContain("\"rooms\"");
+    expect(prompt).toContain('"rooms"');
   });
 });
 
@@ -174,14 +177,20 @@ describe("validateBridgeResponse", () => {
     const result = validateBridgeResponse("{ bad json");
 
     expect(result.ok).toBe(false);
-    expect(result.ok ? [] : result.errors).toEqual(expect.arrayContaining([expect.stringContaining("JSON")]));
+    expect(result.ok ? [] : result.errors).toEqual(
+      expect.arrayContaining([expect.stringContaining("JSON")])
+    );
   });
 
   it("returns clear Zod path errors for invalid plans", () => {
-    const result = validateBridgeResponse(JSON.stringify({ id: "", name: "Broken", requestId: "request" }));
+    const result = validateBridgeResponse(
+      JSON.stringify({ id: "", name: "Broken", requestId: "request" })
+    );
 
     expect(result.ok).toBe(false);
-    expect(result.ok ? [] : result.errors.some((error) => error.includes("id"))).toBe(true);
+    expect(
+      result.ok ? [] : result.errors.some((error) => error.includes("id"))
+    ).toBe(true);
   });
 });
 
@@ -190,12 +199,12 @@ describe("buildRepairPrompt", () => {
     const prompt = buildRepairPrompt({
       errors: ["id: Too small"],
       originalPrompt: "Original prompt",
-      pastedResponse: "{\"id\":\"\"}"
+      pastedResponse: '{"id":""}'
     });
 
     expect(prompt).toContain("id: Too small");
     expect(prompt).toContain("INVALID RESPONSE");
-    expect(prompt).toContain("{\"id\":\"\"}");
+    expect(prompt).toContain('{"id":""}');
   });
 });
 
@@ -308,10 +317,19 @@ describe("validatePlanSemantics", () => {
     );
 
     expect(result.ok).toBe(false);
-    expect(result.issues.some((issue) => issue.type === "door_out_of_bounds")).toBe(true);
-    expect(result.issues.some((issue) => issue.type === "missing_asset")).toBe(true);
-    expect(result.issues.some((issue) => issue.type === "missing_room_reference")).toBe(true);
-    expect(result.missingAssets.find((report) => report.assetId === "missing_asset")?.suggestions.length ?? 0).toBeGreaterThan(0);
+    expect(
+      result.issues.some((issue) => issue.type === "door_out_of_bounds")
+    ).toBe(true);
+    expect(result.issues.some((issue) => issue.type === "missing_asset")).toBe(
+      true
+    );
+    expect(
+      result.issues.some((issue) => issue.type === "missing_room_reference")
+    ).toBe(true);
+    expect(
+      result.missingAssets.find((report) => report.assetId === "missing_asset")
+        ?.suggestions.length ?? 0
+    ).toBeGreaterThan(0);
   });
 
   it("returns ok when there are no issues", () => {
@@ -374,7 +392,13 @@ describe("repairPlanLocally", () => {
     });
 
     expect(result.removed.invalidWalls).toContain("wall-zero");
-    expect(result.appliedSubstitutions.some((substitution) => substitution.from === "missing_asset")).toBe(true);
-    expect(result.remainingIssues.filter((issue) => issue.level === "error").length).toBe(0);
+    expect(
+      result.appliedSubstitutions.some(
+        (substitution) => substitution.from === "missing_asset"
+      )
+    ).toBe(true);
+    expect(
+      result.remainingIssues.filter((issue) => issue.level === "error").length
+    ).toBe(0);
   });
 });

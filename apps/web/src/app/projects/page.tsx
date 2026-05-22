@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { ProjectThumbnail } from "@/components/projects/project-thumbnail";
 import { computeProjectReadiness } from "@/lib/project-readiness";
-import { listProjects, readProject, type DmInstamapProject } from "@/lib/projects";
+import {
+  listProjects,
+  readProject,
+  type DmInstamapProject
+} from "@/lib/projects";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +46,10 @@ export default async function ProjectsPage() {
       {projects.length === 0 ? (
         <section className="asset-empty">
           <h2>Nessun progetto</h2>
-          <p>Crea la tua prima mappa locale: potrai modificarla nel canvas, salvarla ed esportarla per il tavolo.</p>
+          <p>
+            Crea la tua prima mappa locale: potrai modificarla nel canvas,
+            salvarla ed esportarla per il tavolo.
+          </p>
           <p>
             <Link href="/projects/new">Crea il primo progetto</Link>
           </p>
@@ -71,7 +78,11 @@ export default async function ProjectsPage() {
                     </div>
                     <div>
                       <dt>Stato</dt>
-                      <dd>{readiness.isSessionReady ? "Pronto" : `${readiness.requiredPassed}/${readiness.requiredTotal} requisiti`}</dd>
+                      <dd>
+                        {readiness.isSessionReady
+                          ? "Pronto"
+                          : `${readiness.requiredPassed}/${readiness.requiredTotal} requisiti`}
+                      </dd>
                     </div>
                     <div>
                       <dt>Aggiornato</dt>
@@ -81,7 +92,9 @@ export default async function ProjectsPage() {
                   <div className="tag-list">
                     <Link href={`/projects/${project.id}`}>Apri</Link>
                     <Link href={`/projects/${project.id}/editor`}>Editor</Link>
-                    <Link href={`/projects/${project.id}/session-ready`}>Sessione</Link>
+                    <Link href={`/projects/${project.id}/session-ready`}>
+                      Sessione
+                    </Link>
                   </div>
                 </div>
               </article>

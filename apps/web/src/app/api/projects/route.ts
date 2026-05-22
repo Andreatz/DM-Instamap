@@ -12,7 +12,9 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as unknown;
-    const project = await createProject(body && typeof body === "object" ? body : {});
+    const project = await createProject(
+      body && typeof body === "object" ? body : {}
+    );
 
     return Response.json(
       {
@@ -24,7 +26,8 @@ export async function POST(request: Request) {
   } catch (error) {
     return Response.json(
       {
-        error: error instanceof Error ? error.message : "Could not create project.",
+        error:
+          error instanceof Error ? error.message : "Could not create project.",
         ok: false
       },
       { status: 400 }

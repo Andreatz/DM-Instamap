@@ -31,10 +31,13 @@ describe("createAutomatic1111Provider", () => {
   });
 
   it("throws when the SD endpoint returns an error", async () => {
-    const fetchImpl: typeof fetch = async () => new Response("bad", { status: 500 });
+    const fetchImpl: typeof fetch = async () =>
+      new Response("bad", { status: 500 });
     const provider = createAutomatic1111Provider({ fetchImpl });
 
-    await expect(provider.generate({ prompt: "x" })).rejects.toThrow(/Automatic1111 request failed/u);
+    await expect(provider.generate({ prompt: "x" })).rejects.toThrow(
+      /Automatic1111 request failed/u
+    );
   });
 });
 
@@ -107,7 +110,9 @@ describe("createReplicateImageGenerationProvider", () => {
       pollIntervalMs: 100
     });
 
-    await expect(provider.generate({ prompt: "x" })).rejects.toThrow(/model exploded/u);
+    await expect(provider.generate({ prompt: "x" })).rejects.toThrow(
+      /model exploded/u
+    );
   });
 });
 
@@ -135,7 +140,9 @@ describe("importGeneratedAssetToLibrary", () => {
     });
 
     expect(metadata.provider).toBe("custom:test");
-    expect(metadata.relativePath).toBe(`library/generated/${metadata.filename}`);
+    expect(metadata.relativePath).toBe(
+      `library/generated/${metadata.filename}`
+    );
     expect(metadata.classification).toBe("door");
     expect(metadata.styleTags).toEqual(["wood", "iron"]);
 
