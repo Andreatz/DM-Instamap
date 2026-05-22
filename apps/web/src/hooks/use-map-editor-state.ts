@@ -3,11 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DragEvent, PointerEvent } from "react";
 import type {
-  InitiativeEntry,
   MapDocument,
   MapLayer,
-  MapLayerKind,
-  MapNote
+  MapLayerKind
 } from "@dm-instamap/core/browser";
 import {
   matchAssetGroupsForRoom,
@@ -16,44 +14,26 @@ import {
 import { autoFurnishMap, type FurnishingDensity } from "@dm-instamap/generator";
 import {
   addPlacedAsset,
-  addInitiativeEntry,
-  addMapNote,
   computeVisibleCells,
-  createPlacedAssetClipboard,
-  deleteInitiativeEntry,
-  deleteMapNote,
-  deletePlacedAssets,
-  duplicatePlacedAssets,
   ensureEditorLayers,
   findRoomAtCell,
-  groupPlacedAssets,
   isEditorLayerLocked,
   isEditorLayerVisible,
   movePlacedAsset,
   movePlacedAssets,
-  pastePlacedAssetClipboard,
   parseMapDocumentJson,
   selectElementAtCell,
   selectPlacedAssetsInBounds,
   serializeMapDocument,
-  ungroupPlacedAssets,
-  updateInitiativeEntry,
-  updateLightSource,
   updateMapLayer,
-  updateMapNote,
   updateDocumentForTool,
-  updatePlacedAssetLayer,
-  updatePlacedAssetTransform,
   type EditorPaletteAsset,
   type EditorSelection,
-  type EditorTool,
-  type PlacedAssetClipboard
+  type EditorTool
 } from "@/lib/map-editor";
 import type { AssetSearchApiResult } from "@/lib/asset-search";
 import { drawMapCanvas } from "@/lib/map-canvas-renderer";
 import {
-  CLIPBOARD_STORAGE_KEY,
-  DEFAULT_NOTE_TEXT,
   DOCUMENT_STORAGE_KEY,
   assetToLayerKind,
   createExportFilename,
@@ -64,19 +44,20 @@ import {
   createToolStatus,
   isSelectionVisible,
   isTextInputTarget,
-  hasLockedSelectedAsset,
   layerLabel,
   loadRecentGeneratedFromStorage,
-  parseInteger,
-  parseOptionalInteger,
   readDragPayload,
   saveRecentGeneratedToStorage,
   toggleSelection,
   toolToLayerKind,
   type ExportFormat
 } from "@/lib/map-editor-view";
+import { useAssetClipboard } from "./use-asset-clipboard";
+import { useAssetSelection } from "./use-asset-selection";
 import { useCanvasViewport } from "./use-canvas-viewport";
 import { useEditorHistory } from "./use-editor-history";
+import { useLightingTools } from "./use-lighting-tools";
+import { useNotesAndInitiative } from "./use-notes-and-initiative";
 
 export type MapEditorStateOptions = {
   assetGroups: MatchableAssetGroup[];
@@ -127,13 +108,6 @@ export function useMapEditorState({
     AssetSearchApiResult[]
   >([]);
   const [isExporting, setIsExporting] = useState(false);
-  const [noteDraft, setNoteDraft] = useState(DEFAULT_NOTE_TEXT);
-  const [initiativeDraft, setInitiativeDraft] = useState({
-    hitPoints: "",
-    initiative: "10",
-    name: "",
-    side: "enemy" as InitiativeEntry["side"]
-  });
   const [status, setStatus] = useState("Pronto");
   const [isHydrated, setIsHydrated] = useState(false);
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
@@ -213,6 +187,67 @@ export function useMapEditorState({
           (note) => note.id === selectedElement.id
         ) ?? null)
       : null;
+
+  const {
+    addInitiativeDraft,
+    addNoteAtHoverCell,
+    damageInitiativeEntry,
+    deleteSelectedNote,
+    initiativeDraft,
+    noteDraft,
+    removeInitiativeEntry,
+    setInitiativeDraft,
+    setNoteDraft,
+    updateSelectedNote
+  } = useNotesAndInitiative({
+    commitDocument,
+    document,
+    hoverCell,
+    selectedNote,
+    setSelectedElement,
+    setStatus
+  });
+
+  const {
+    clearAssetSelection,
+    deleteSelectedAsset,
+    duplicateSelectedAsset,
+    groupSelectedAssets,
+    selectAllVisibleAssets,
+    ungroupSelectedAssets,
+    updateSelectedAssetLayer,
+    updateSelectedAssetTransform
+  } = useAssetSelection({
+    commitDocument,
+    document,
+    selectedAsset,
+    selectedAssetId,
+    selectedAssetIds,
+    selectedAssets,
+    setSelectedAssetId,
+    setSelectedAssetIds,
+    setSelectedElement,
+    setStatus
+  });
+
+  const { copySelectedAssets, pasteAssetClipboard } = useAssetClipboard({
+    commitDocument,
+    document,
+    selectedAssetId,
+    selectedAssetIds,
+    setSelectedAssetId,
+    setSelectedAssetIds,
+    setSelectedElement,
+    setStatus
+  });
+
+  const { updateSelectedLight } = useLightingTools({
+    commitDocument,
+    document,
+    selectedLight,
+    setStatus
+  });
+
   const visibleCellKeys = useMemo(
     () => (fogPreviewEnabled ? computeVisibleCells(document) : []),
     [document, fogPreviewEnabled]
@@ -321,10 +356,8 @@ export function useMapEditorState({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
-    // biome-ignore lint/correctness/useExhaustiveDependencies: closure non memoizzata, stabilizzazione con useCallback prevista in Fase C
     copySelectedAssets,
     createSnapshot,
-    // biome-ignore lint/correctness/useExhaustiveDependencies: closure non memoizzata, stabilizzazione con useCallback prevista in Fase C
     pasteAssetClipboard,
     redo,
     undo,
@@ -746,213 +779,6 @@ export function useMapEditorState({
     setStatus("Documento locale salvato caricato");
   }
 
-  function deleteSelectedAsset() {
-    const assetIds =
-      selectedAssetIds.length > 0
-        ? selectedAssetIds
-        : selectedAssetId
-          ? [selectedAssetId]
-          : [];
-
-    if (assetIds.length === 0) {
-      return;
-    }
-
-    if (hasLockedSelectedAsset(document, selectedAssets, assetIds)) {
-      setStatus("Uno o piu livelli degli asset selezionati sono bloccati");
-      return;
-    }
-
-    commitDocument(
-      (current) => deletePlacedAssets(current, assetIds),
-      `Deleted ${assetIds.length} selected asset${assetIds.length === 1 ? "" : "s"}`
-    );
-    setSelectedAssetId(null);
-    setSelectedAssetIds([]);
-  }
-
-  function duplicateSelectedAsset() {
-    const assetIds =
-      selectedAssetIds.length > 0
-        ? selectedAssetIds
-        : selectedAssetId
-          ? [selectedAssetId]
-          : [];
-
-    if (assetIds.length === 0) {
-      return;
-    }
-
-    if (hasLockedSelectedAsset(document, selectedAssets, assetIds)) {
-      setStatus("Uno o piu livelli degli asset selezionati sono bloccati");
-      return;
-    }
-
-    commitDocument(
-      (current) => duplicatePlacedAssets(current, assetIds),
-      `Duplicated ${assetIds.length} selected asset${assetIds.length === 1 ? "" : "s"}`
-    );
-  }
-
-  function groupSelectedAssets() {
-    const assetIds =
-      selectedAssetIds.length > 0
-        ? selectedAssetIds
-        : selectedAssetId
-          ? [selectedAssetId]
-          : [];
-
-    if (assetIds.length < 2) {
-      setStatus("Seleziona almeno due asset da raggruppare");
-      return;
-    }
-
-    if (hasLockedSelectedAsset(document, selectedAssets, assetIds)) {
-      setStatus("Uno o piu livelli degli asset selezionati sono bloccati");
-      return;
-    }
-
-    const grouped = groupPlacedAssets(document, assetIds);
-    commitDocument(() => grouped.document, `Grouped ${assetIds.length} assets`);
-  }
-
-  function ungroupSelectedAssets() {
-    const assetIds =
-      selectedAssetIds.length > 0
-        ? selectedAssetIds
-        : selectedAssetId
-          ? [selectedAssetId]
-          : [];
-
-    if (assetIds.length === 0) {
-      return;
-    }
-
-    if (hasLockedSelectedAsset(document, selectedAssets, assetIds)) {
-      setStatus("Uno o piu livelli degli asset selezionati sono bloccati");
-      return;
-    }
-
-    commitDocument(
-      (current) => ungroupPlacedAssets(current, assetIds),
-      "Asset selezionati separati"
-    );
-  }
-
-  function copySelectedAssets() {
-    const assetIds =
-      selectedAssetIds.length > 0
-        ? selectedAssetIds
-        : selectedAssetId
-          ? [selectedAssetId]
-          : [];
-
-    if (assetIds.length === 0) {
-      return;
-    }
-
-    const clipboard = createPlacedAssetClipboard(document, assetIds);
-    window.localStorage.setItem(
-      CLIPBOARD_STORAGE_KEY,
-      JSON.stringify(clipboard)
-    );
-    setStatus(`${clipboard.assets.length} asset selezionati copiati`);
-  }
-
-  function pasteAssetClipboard() {
-    const rawClipboard = window.localStorage.getItem(CLIPBOARD_STORAGE_KEY);
-
-    if (!rawClipboard) {
-      setStatus("Nessun asset copiato trovato");
-      return;
-    }
-
-    try {
-      const clipboard = JSON.parse(rawClipboard) as PlacedAssetClipboard;
-      const result = pastePlacedAssetClipboard(document, clipboard);
-      const lastPastedId = result.pastedIds.at(-1) ?? null;
-      commitDocument(
-        () => result.document,
-        `Pasted ${result.pastedIds.length} asset${result.pastedIds.length === 1 ? "" : "s"}`
-      );
-      setSelectedAssetIds(result.pastedIds);
-      setSelectedAssetId(lastPastedId);
-      setSelectedElement(
-        lastPastedId ? { id: lastPastedId, type: "asset" } : null
-      );
-    } catch {
-      setStatus("I dati dell'asset copiato non sono validi");
-    }
-  }
-
-  function selectAllVisibleAssets() {
-    const assetIds = document.assets
-      .filter((asset) =>
-        isEditorLayerVisible(document, assetToLayerKind(asset.layer))
-      )
-      .map((asset) => asset.id);
-    const lastAssetId = assetIds.at(-1) ?? null;
-
-    setSelectedAssetIds(assetIds);
-    setSelectedAssetId(lastAssetId);
-    setSelectedElement(lastAssetId ? { id: lastAssetId, type: "asset" } : null);
-    setStatus(`${assetIds.length} asset visibili selezionati`);
-  }
-
-  function clearAssetSelection() {
-    setSelectedAssetIds([]);
-    setSelectedAssetId(null);
-    setSelectedElement(null);
-    setStatus("Selezione asset cancellata");
-  }
-
-  function updateSelectedAssetTransform(
-    transform: Parameters<typeof updatePlacedAssetTransform>[2]
-  ) {
-    if (!selectedAssetId) {
-      return;
-    }
-
-    if (
-      selectedAsset &&
-      isEditorLayerLocked(document, assetToLayerKind(selectedAsset.layer))
-    ) {
-      setStatus(
-        `Il livello ${layerLabel(assetToLayerKind(selectedAsset.layer))} e bloccato`
-      );
-      return;
-    }
-
-    commitDocument(
-      (current) =>
-        updatePlacedAssetTransform(current, selectedAssetId, transform),
-      "Trasformazione asset aggiornata"
-    );
-  }
-
-  function updateSelectedAssetLayer(
-    layer: MapDocument["assets"][number]["layer"]
-  ) {
-    if (!selectedAssetId) {
-      return;
-    }
-
-    if (
-      selectedAsset &&
-      isEditorLayerLocked(document, assetToLayerKind(selectedAsset.layer))
-    ) {
-      setStatus(
-        `Il livello ${layerLabel(assetToLayerKind(selectedAsset.layer))} e bloccato`
-      );
-      return;
-    }
-
-    commitDocument(
-      (current) => updatePlacedAssetLayer(current, selectedAssetId, layer),
-      "Asset spostato di livello"
-    );
-  }
-
   function updateLayer(
     layerKind: MapLayerKind,
     patch: Partial<Pick<MapLayer, "locked" | "opacity" | "visible">>
@@ -967,113 +793,6 @@ export function useMapEditorState({
     updateLayer("gm-only", {
       visible: !isEditorLayerVisible(document, "gm-only")
     });
-  }
-
-  function updateSelectedLight(patch: Parameters<typeof updateLightSource>[2]) {
-    if (!selectedLight) {
-      return;
-    }
-
-    if (isEditorLayerLocked(document, "lighting")) {
-      setStatus("Il livello luci e bloccato");
-      return;
-    }
-
-    commitDocument(
-      (current) => updateLightSource(current, selectedLight.id, patch),
-      "Luce aggiornata"
-    );
-  }
-
-  function addNoteAtHoverCell() {
-    const position = hoverCell ?? { x: 0, y: 0 };
-
-    if (isEditorLayerLocked(document, "notes")) {
-      setStatus("Il livello note e bloccato");
-      return;
-    }
-
-    commitDocument(
-      (current) => addMapNote(current, position, noteDraft),
-      `Added note at ${position.x}, ${position.y}`
-    );
-    setNoteDraft(DEFAULT_NOTE_TEXT);
-  }
-
-  function updateSelectedNote(patch: Partial<Pick<MapNote, "text" | "title">>) {
-    if (!selectedNote) {
-      return;
-    }
-
-    if (isEditorLayerLocked(document, "notes")) {
-      setStatus("Il livello note e bloccato");
-      return;
-    }
-
-    commitDocument(
-      (current) => updateMapNote(current, selectedNote.id, patch),
-      "Nota aggiornata"
-    );
-  }
-
-  function deleteSelectedNote() {
-    if (!selectedNote) {
-      return;
-    }
-
-    if (isEditorLayerLocked(document, "notes")) {
-      setStatus("Il livello note e bloccato");
-      return;
-    }
-
-    commitDocument(
-      (current) => deleteMapNote(current, selectedNote.id),
-      "Nota eliminata"
-    );
-    setSelectedElement(null);
-  }
-
-  function addInitiativeDraft() {
-    const name = initiativeDraft.name.trim();
-
-    if (!name) {
-      setStatus("La voce iniziativa richiede un nome");
-      return;
-    }
-
-    commitDocument(
-      (current) =>
-        addInitiativeEntry(current, {
-          hitPoints: parseOptionalInteger(initiativeDraft.hitPoints),
-          initiative: parseInteger(initiativeDraft.initiative, 10),
-          name,
-          side: initiativeDraft.side
-        }),
-      `Added ${name} to initiative`
-    );
-    setInitiativeDraft({
-      hitPoints: "",
-      initiative: "10",
-      name: "",
-      side: "enemy"
-    });
-  }
-
-  function damageInitiativeEntry(entry: InitiativeEntry, amount: number) {
-    commitDocument(
-      (current) =>
-        updateInitiativeEntry(current, entry.id, {
-          hitPoints: Math.max(0, (entry.hitPoints ?? 0) - amount)
-        }),
-      `Updated ${entry.name}`
-    );
-  }
-
-  function removeInitiativeEntry(entry: InitiativeEntry) {
-    commitDocument(
-      (current) => deleteInitiativeEntry(current, entry.id),
-      `Removed ${entry.name}`
-    );
   }
 
   function handleAutoFurnish() {

@@ -97,7 +97,9 @@
       "Bash(pnpm --filter @dm-instamap/generator test)",
       "Bash(echo \"exit=$?\")",
       "Bash(pnpm --filter @dm-instamap/generator test:coverage)",
-      "Bash(pnpm --filter @dm-instamap/ai-bridge test:coverage)"
+      "Bash(pnpm --filter @dm-instamap/ai-bridge test:coverage)",
+      "Bash(pnpm --filter @dm-instamap/web exec vitest run src/hooks/use-notes-and-initiative.test.ts)",
+      "Bash(pnpm --filter @dm-instamap/web test:coverage)"
     ]
   }
 }
