@@ -1,4 +1,4 @@
-# Snapshots (E2 / F4)
+# Snapshots
 
 Project snapshots let you archive the current `MapDocument` state and roll back
 later without leaving the local-first workflow.
@@ -31,13 +31,13 @@ returns `{ written: false, filePath }` when the same hash already exists.
 
 The web app exposes:
 
-- `GET /api/projects/[id]/snapshots` — list snapshots (metadata only).
-- `POST /api/projects/[id]/snapshots` — body `{ "label": "..." }`. Creates a
+- `GET /api/projects/[id]/snapshots` - list snapshots (metadata only).
+- `POST /api/projects/[id]/snapshots` - body `{ "label": "..." }`. Creates a
   snapshot of the current `project.document`.
-- `GET /api/projects/[id]/snapshots/[hash]` — full record.
-- `POST /api/projects/[id]/snapshots/[hash]` — restores the snapshot's
+- `GET /api/projects/[id]/snapshots/[hash]` - full record.
+- `POST /api/projects/[id]/snapshots/[hash]` - restores the snapshot's
   `MapDocument` into the project.
-- `GET /api/projects/[id]/snapshots/[hash]/diff?against=current|<otherHash>` —
+- `GET /api/projects/[id]/snapshots/[hash]/diff?against=current|<otherHash>` -
   returns a `SnapshotDiff` listing `changedFields`. When `against=current` the
   diff is computed against the live project document.
 
@@ -69,15 +69,15 @@ These commands operate on the same `data/projects/<id>/snapshots` directory.
 The project page hosts a `ProjectSnapshotsPanel` with:
 
 - inline label + "Snapshot Current State" form;
-- per-snapshot "Diff vs current" button (F4) showing the list of changed
+- per-snapshot "Diff vs current" button showing the list of changed
   fields;
 - "Restore" button that overwrites the live document.
 
 The Map Editor toolbar adds an inline "Snapshot" button and the
-`Ctrl+Shift+S` hotkey (I1), labelling automatic snapshots as
+`Ctrl+Shift+S` hotkey, labelling automatic snapshots as
 `editor-<timestamp>`.
 
-## Delta snapshots (L1)
+## Delta snapshots
 
 `packages/core/src/snapshots.ts` exposes a parallel delta-snapshot API for
 the eventual move from "snapshot zero + full copies" to "snapshot zero +
@@ -110,6 +110,6 @@ const restored = restoreDeltaSnapshot(baseRecord, delta);
 
 `DeltaSnapshotRecordSchema` is the Zod schema for the delta record, with
 `parentHash`, `delta.fields`, and the usual metadata. The on-disk format
-remains the full `SnapshotRecord` for now — the delta helpers are
+remains the full `SnapshotRecord` for now - the delta helpers are
 library-ready for an opt-in migration when full snapshots start to weigh
 on disk.

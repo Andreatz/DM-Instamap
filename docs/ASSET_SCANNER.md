@@ -54,7 +54,7 @@ rest of the manifest. `appendAssetToManifest` reads the existing
 `relativePath`), re-runs duplicate detection / audit enrichment on the
 combined list, and writes the manifest back atomically.
 
-These helpers back the F3 rescan path: after `POST /api/assets/generate`
+These helpers back the partial rescan path: after `POST /api/assets/generate`
 imports a generated file into `data/assets/generated/`, the route calls
 `scanSingleAsset` + `appendAssetToManifest` so the new asset shows up in the
 manifest (and in `/assets`) without invoking `pnpm assets:scan`. The CLI

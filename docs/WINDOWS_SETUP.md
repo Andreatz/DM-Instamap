@@ -1,65 +1,67 @@
 # Windows Setup
 
-This is the short local-first setup path for a new Windows machine.
+Percorso rapido local-first per una nuova macchina Windows. Per una panoramica
+del progetto parti da [../README.md](../README.md).
 
-## Requirements
+## Requisiti
 
-- Node.js 24 or newer.
-- pnpm 10 or newer.
-- Python 3.12 or newer when using the worker.
+- Node.js 24 o superiore.
+- pnpm 10 o superiore.
+- Python 3.12 o superiore quando usi il worker.
 - Git.
 
-## Install
+## Installazione
 
 ```powershell
 pnpm install
 pnpm worker:install
+pnpm doctor
 ```
 
-Copy the local template only when you need machine-specific overrides:
+Copia il template locale solo quando servono override specifici della macchina:
 
 ```powershell
 Copy-Item .env.local.example .env.local
 ```
 
-Keep AI variables empty for local-only/manual bridge mode.
+Lascia vuote le variabili AI per la modalita local-first/manuale.
 
-## Check The Machine
+## Diagnosi
 
 ```powershell
-pnpm run doctor
+pnpm doctor
 ```
 
-The doctor checks Node, pnpm, Python, worker requirement files, Sharp, env
-templates, and whether the default web/worker ports are already occupied.
+Il doctor controlla Node, pnpm, Python, requisiti worker, Sharp, template env e
+porte predefinite web/worker.
 
-Warnings are usually recoverable. Failures should be fixed before importing a
-large asset pack.
+I warning sono spesso recuperabili. Le failure vanno sistemate prima di
+importare un pack asset grande.
 
-## Run
+## Avvio
 
-Terminal 1:
+Terminale 1:
 
 ```powershell
 pnpm dev
 ```
 
-Terminal 2, only when using worker offload:
+Terminale 2, solo quando usi il worker per job lunghi:
 
 ```powershell
 pnpm worker:dev
 ```
 
-Open:
+Apri:
 
 ```txt
 http://127.0.0.1:3000
 ```
 
-## First Asset Import
+## Primo Import Asset
 
-Place personal or licensed asset packs outside Git-tracked folders, for
-example under `local-assets/`, then run:
+Metti pack personali o con licenza fuori dai file tracciati da Git, ad esempio
+sotto `local-assets/`, poi esegui:
 
 ```powershell
 pnpm assets:scan .\local-assets
@@ -67,4 +69,4 @@ pnpm assets:group
 pnpm assets:audit
 ```
 
-Generated indexes and previews live under `data/` and are ignored by Git.
+Indici e preview generati vivono sotto `data/` e sono ignorati da Git.

@@ -92,7 +92,7 @@ linking to the matching journal page via `entryId`/`pageId`. See
 Trigger it from:
 
 - `POST /api/projects/[id]/export` with `{ "format": "session-pack", ... }`
-- the editor toolbar "Session Pack" button (I2)
+- the editor toolbar "Session Pack" button
 - the CLI:
 
 ```bash
@@ -105,4 +105,4 @@ choose a file or directory. Supported image formats are `png` and `webp`.
 
 The same job is also exposed as a fire-and-forget worker task at
 `POST /jobs/exports/session-pack` for scales that would otherwise tie up a
-Next.js request (see [WORKER.md](WORKER.md) H4).
+Next.js request (see [WORKER.md](WORKER.md)).

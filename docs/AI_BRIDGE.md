@@ -2,7 +2,8 @@
 
 The manual bridge is available at `/ai-bridge`.
 
-It does not call the OpenAI API or any paid service. The workflow is:
+The default/manual workflow does not call the OpenAI API or any paid service.
+The workflow is:
 
 1. Write a map request.
 2. DM-Instamap searches local asset groups and reference summaries.
@@ -53,28 +54,26 @@ pnpm ai:plan "three-room cave shrine with a river crossing"
 asset groups plus reference/style DNA from `data/indexes` and validates the
 returned `MapPlan`.
 
-## Web API endpoints
+## Web API Endpoints
 
-When API mode is enabled (env configured):
+When API mode is enabled through explicit env configuration:
 
-- `GET /api/ai/status` — returns provider id, model and "api" mode, or a
+- `GET /api/ai/status` - returns provider id, model and `api` mode, or a
   `manual-only` payload when env is missing.
-- `POST /api/ai/blueprint` — body `{ "request": "..." }`. Returns a validated
-  `MapGenerationBlueprint`.
-  Status payloads include `localOnly`, so the UI can distinguish external API
-  mode from local-only mock/manual mode.
-- `POST /api/ai/plan` — body `{ "userRequest": "...", "assetGroups": [...], "references": [...], "maxRetries": 2 }`.
+- `POST /api/ai/blueprint` - body `{ "request": "..." }`. Returns a validated
+  `MapGenerationBlueprint`. Status payloads include `localOnly`, so the UI can
+  distinguish external API mode from local-only mock/manual mode.
+- `POST /api/ai/plan` - body `{ "userRequest": "...", "assetGroups": [...], "references": [...], "maxRetries": 2 }`.
   The `assetGroups` and `references` are converted to bridge summaries on the
   client (see `apps/web/src/lib/bridge-mappers.ts`) and let the model reference
   real local asset ids.
-- `POST /api/ai/describe` — body
+- `POST /api/ai/describe` - body
   `{ "mapName": "...", "rooms": [{ "id": "...", "label": "...", "tags": [] }], "theme": "...", "styleTags": [] }`.
   Calls `describeMapWithAi` and returns a narrative description. Used by the
-  `ProjectDescribeButton` on the project page and by the editor AI drawer
-  (L4).
-- `POST /api/ai-bridge/import` — imports a validated `MapPlan` as a new project.
+  `ProjectDescribeButton` on the project page and by the editor AI drawer.
+- `POST /api/ai-bridge/import` - imports a validated `MapPlan` as a new project.
 
-## Retry policy
+## Retry Policy
 
 `generateMapPlanWithAi` validates the response against `MapPlanSchema` with
 `maxRetries` (default 2). On failure it builds a repair prompt from
@@ -92,7 +91,7 @@ provider. The final response includes:
 }
 ```
 
-## Worker offload
+## Worker Offload
 
 The web app can also run `pnpm ai:plan` inside the worker via
 `POST /jobs/ai/plan` (see [WORKER.md](WORKER.md)). Useful when the round-trip

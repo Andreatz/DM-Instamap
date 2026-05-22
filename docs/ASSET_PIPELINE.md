@@ -54,10 +54,10 @@ runtime from an external service.
 Both import-pack and generate are also wired to the FastAPI worker as
 fire-and-forget jobs:
 
-- `POST /jobs/assets/import-pack` (H1) — body
+- `POST /jobs/assets/import-pack` - body
   `{ root, preset, defaultTags }`. Runs `pnpm assets:import-pack` in a
   subprocess and reports progress through the SQLite-backed job store.
-- `POST /jobs/assets/generate` (H2) — body
+- `POST /jobs/assets/generate` - body
   `{ prompt, classification, seed, steps, styleTags, ... }`. Runs
   `pnpm assets:generate`. Requires `IMAGE_GEN_*` env vars on the worker.
 

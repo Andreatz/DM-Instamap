@@ -157,17 +157,17 @@ the job is marked `failed` with `log.interrupted: true`.
 5. For exports, verify whether the target zip/image was written before
    starting a new export.
 
-## Worker offload (H1–H4)
+## Worker offload
 
 The following endpoints expose longer-running tasks as background jobs. Each
 shells out to a `pnpm` CLI registered at the monorepo root (see
-[ROADMAP.md](ROADMAP.md) FASE G), so the worker stays thin and
-the same logic is reachable from the terminal.
+[../README.md](../README.md) and [LEGACY_ROADMAP.md](LEGACY_ROADMAP.md)), so the
+worker stays thin and the same logic is reachable from the terminal.
 
-- `POST /jobs/assets/import-pack` — body `{ "root": "...", "preset": "generic|forgotten-adventures|two-minute-tabletop|czepeku", "defaultTags": ["..."] }`. Runs `pnpm assets:import-pack`.
-- `POST /jobs/assets/generate` — body `{ "prompt": "...", "classification": "prop", "seed": 42, "steps": 24, "styleTags": ["..."], "negativePrompt": "...", "fileNameHint": "...", "outputDirectory": "..." }`. Runs `pnpm assets:generate`. Requires `IMAGE_GEN_*` env vars.
-- `POST /jobs/ai/plan` — body `{ "userRequest": "...", "maxRetries": 2 }`. Runs `pnpm ai:plan`. Requires `AI_*` env vars. Useful when retries can take 30–90s round-trip.
-- `POST /jobs/exports/session-pack` — body `{ "projectId": "...", "scale": 2, "description": "...", "includeInitiative": true, "imageFormat": "png|webp", "includeGrid": true, "output": "data/exports/foo.zip" }`. Runs `pnpm exports:session-pack`.
+- `POST /jobs/assets/import-pack` - body `{ "root": "...", "preset": "generic|forgotten-adventures|two-minute-tabletop|czepeku", "defaultTags": ["..."] }`. Runs `pnpm assets:import-pack`.
+- `POST /jobs/assets/generate` - body `{ "prompt": "...", "classification": "prop", "seed": 42, "steps": 24, "styleTags": ["..."], "negativePrompt": "...", "fileNameHint": "...", "outputDirectory": "..." }`. Runs `pnpm assets:generate`. Requires `IMAGE_GEN_*` env vars.
+- `POST /jobs/ai/plan` - body `{ "userRequest": "...", "maxRetries": 2 }`. Runs `pnpm ai:plan`. Requires `AI_*` env vars. Useful when retries can take 30-90s round-trip.
+- `POST /jobs/exports/session-pack` - body `{ "projectId": "...", "scale": 2, "description": "...", "includeInitiative": true, "imageFormat": "png|webp", "includeGrid": true, "output": "data/exports/foo.zip" }`. Runs `pnpm exports:session-pack`.
 
 Example:
 

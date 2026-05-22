@@ -38,18 +38,18 @@ const moduleZip = await exportFoundryModule(mapDocument, {
 });
 ```
 
-## Journal entries (E4 / F5)
+## Journal entries
 
 `exportFoundryModule` emits up to three journal entries derived from the
 `MapDocument`:
 
-- `<Name> — Rooms`: one page per `RoomNode` with bounds, tags, and connections.
-- `<Name> — GM Notes`: one page per `MapNote` with the note title, body, and
+- `<Name> - Rooms`: one page per `RoomNode` with bounds, tags, and connections.
+- `<Name> - GM Notes`: one page per `MapNote` with the note title, body, and
   anchor coordinates. The scene notes array references these pages via
   `entryId`/`pageId`, so GM pins on the map open the corresponding journal page.
-- `<Name> — Plan Notes`: one page collecting plan-level notes.
+- `<Name> - Plan Notes`: one page collecting plan-level notes.
 
-Pass `includeJournals: false` to revert to the pre-E4 behaviour (no
+Pass `includeJournals: false` to revert to the journal-free behaviour (no
 `journal.db`, no scene notes).
 
 ## Manual verification
@@ -60,7 +60,7 @@ Foundry import side. After exporting:
 1. Open Foundry as world admin.
 2. Install the generated `.zip` via "Setup → Add-on Modules → Install module
    from file/URL".
-3. Enable the module in your world and open "Compendiums" — the new packs
+3. Enable the module in your world and open "Compendiums" - the new packs
    (`Scenes` and, when enabled, `Journals`) should appear.
 4. Drag the scene into the world. Confirm walls/doors/lights match the
    `MapDocument`.

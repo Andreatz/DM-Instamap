@@ -40,17 +40,17 @@ It starts from a generated `MapDocument` and supports:
 - inspecting local asset group matches for the selected room
 - auto-furnishing rooms with sparse, normal, or rich density
 - exporting PNG or WEBP images with optional grid lines and resolution scale
-- **toolbar quick actions (I1, I2)**: a Snapshot button (also bound to
+- **toolbar quick actions**: a Snapshot button (also bound to
   `Ctrl+Shift+S`) that calls `POST /api/projects/[id]/snapshots` with an
   auto label `editor-<timestamp>`, and a Session Pack button that posts to
   `/api/projects/[id]/export` (`format: session-pack`) and triggers a
   direct zip download
-- **AI Assist drawer (I3)**: side panel toggled by the toolbar AI Assist
-  button with three actions — "Describe map" (calls `/api/ai/blueprint`),
+- **AI Assist drawer**: side panel toggled by the toolbar AI Assist
+  button with three actions - "Describe map" (calls `/api/ai/blueprint`),
   "Suggest assets for room" (calls `/api/assets/search`), and "Generate
   asset from prompt" (calls `/api/assets/generate`). Generated assets are
   appended to the Recently Generated palette section
-- **Recently Generated palette section (I4)**: shows the last 12 assets
+- **Recently Generated palette section**: shows the last 12 assets
   generated from the inline AI drawer, persisted in
   `localStorage` under `dm-instamap-editor-recent-generated`, and
   drag-and-droppable on the canvas like any other palette entry
@@ -60,10 +60,10 @@ artwork in exports, autosave, or advanced grouped transforms yet.
 
 ## Hotkeys
 
-- `Ctrl+Z` / `Ctrl+Shift+Z` / `Ctrl+Y` — undo / redo
-- `Ctrl+C` / `Ctrl+V` — copy / paste selected assets
-- `Ctrl+Shift+S` — snapshot the current project
-- `G` — toggle GM-only layer visibility
+- `Ctrl+Z` / `Ctrl+Shift+Z` / `Ctrl+Y` - undo / redo
+- `Ctrl+C` / `Ctrl+V` - copy / paste selected assets
+- `Ctrl+Shift+S` - snapshot the current project
+- `G` - toggle GM-only layer visibility
 
 Layer locking prevents painting, placing, moving, deleting, duplicating, or
 transforming content on that layer. Layer visibility and opacity affect the

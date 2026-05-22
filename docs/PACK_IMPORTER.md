@@ -1,4 +1,4 @@
-# Asset Pack Importer (E1)
+# Asset Pack Importer
 
 The pack importer reuses the local `scanAssets` pipeline and applies preset
 rules to tag and reclassify assets coming from popular community packs.
@@ -17,8 +17,8 @@ Currently supported:
 - `generic`
 
 Each preset has filename + folder regexes that map common substrings to
-classifications/tags (e.g. `Forgotten Adventures/Doors/...` → classification
-`door`, tags `forgotten-adventures`, `wood`).
+classifications/tags (for example `Forgotten Adventures/Doors/...` maps to
+classification `door`, tags `forgotten-adventures`, `wood`).
 
 ## API
 
@@ -30,7 +30,7 @@ Behaviour:
 
 - Runs `scanAssets(assetRoot, { outputRoot })`.
 - For every entry whose `classificationSource` is `unknown` or `heuristic`,
-  applies the preset rules — manually classified assets are left alone.
+  applies the preset rules; manually classified assets are left alone.
 - Adds preset tags and the optional `defaultTags` to every imported asset.
 
 The returned summary lists `added` entries, `presetTagsApplied`,
@@ -49,7 +49,7 @@ The returned summary lists `added` entries, `presetTagsApplied`,
 ```
 
 The web UI form (`PackImporterForm`) also offers a "Run on local worker"
-toggle that delegates the work to the FastAPI worker (H1) and shows a
+toggle that delegates the work to the FastAPI worker and shows a
 `JobProgressBar` polling `/api/jobs/<id>`.
 
 ## CLI

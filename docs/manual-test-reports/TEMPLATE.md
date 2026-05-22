@@ -15,10 +15,13 @@
 
 | Comando | Esito | Note |
 |---|---|---|
+| `pnpm doctor` | PASS/FAIL | |
+| `pnpm repo:audit` | PASS/FAIL | |
 | `pnpm lint` | PASS/FAIL | |
 | `pnpm test` | PASS/FAIL | |
 | `pnpm build` | PASS/FAIL | |
 | `pnpm --filter @dm-instamap/worker test` | PASS/FAIL | |
+| `pnpm test:e2e` | PASS/FAIL | |
 
 ## Asset Usati
 

@@ -141,13 +141,13 @@ Stored at `data/projects/<id>/project.json`, this metadata describes the
 project around the editable `MapDocument`. Fields:
 
 - `id`, `name`, `createdAt`, `updatedAt`
-- `sourceRequest` — narrative request used to seed the map
+- `sourceRequest` - narrative request used to seed the map
 - `selectedAssetGroupIds`, `selectedReferenceIds`, `styleDnaIds`
-- `relatedProjectIds` — ids of other projects linked to this one, used by
+- `relatedProjectIds` - ids of other projects linked to this one, used by
   multi-floor dungeons. The `POST /api/projects/multi-floor` route fills
-  this list during multi-floor save (F2); the project page surfaces the
+  this list during multi-floor save; the project page surfaces the
   links and routes the "Open Floors Overview" button to
-  `/projects/[id]/floors` (L5).
+  `/projects/[id]/floors`.
 
 ## SnapshotRecord and DeltaSnapshotRecord
 
@@ -155,7 +155,7 @@ Snapshots are stored at `data/projects/<id>/snapshots/<iso>__<hash>.json`.
 Each `SnapshotRecord` carries the full `MapDocument` and a stable
 `contentHash` for dedup.
 
-`DeltaSnapshotRecord` (added in L1) carries only the fields that changed
+`DeltaSnapshotRecord` carries only the fields that changed
 versus a `parentHash`, plus the same metadata. `computeMapDocumentDelta`,
 `applyMapDocumentDelta`, `createDeltaSnapshot`, and `restoreDeltaSnapshot`
 in `packages/core/src/snapshots.ts` provide the API for it. The on-disk

@@ -1,4 +1,4 @@
-# Campaigns (E5)
+# Campaigns
 
 Campaigns group local projects (maps) and a per-session timeline. The feature is
 intentionally scoped for a single DM's personal usage: no sync, no sharing.
@@ -33,10 +33,10 @@ The `apps/web/src/lib/campaigns.ts` module wraps `read`, `list`, `write`,
 
 ## API
 
-- `GET /api/campaigns` — list with map / session counts.
-- `POST /api/campaigns` — body `{ "name": "...", "description": "...", "tags": [...] }`.
-- `GET /api/campaigns/[id]` — full payload.
-- `PUT /api/campaigns/[id]` — overwrite maps/sessions/description.
+- `GET /api/campaigns` - list with map / session counts.
+- `POST /api/campaigns` - body `{ "name": "...", "description": "...", "tags": [...] }`.
+- `GET /api/campaigns/[id]` - full payload.
+- `PUT /api/campaigns/[id]` - overwrite maps/sessions/description.
 
 ## UI
 
