@@ -621,6 +621,7 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
             <option value="sparse">Sparsa</option>
             <option value="normal">Normale</option>
             <option value="rich">Ricca</option>
+            <option value="packed">Totale</option>
           </select>
         </label>
         <button

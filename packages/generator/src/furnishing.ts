@@ -6,7 +6,12 @@ import type {
 } from "@dm-instamap/core";
 import type { NarrativeRoom } from "./blueprint";
 
-export const FURNISHING_DENSITIES = ["sparse", "normal", "rich"] as const;
+export const FURNISHING_DENSITIES = [
+  "sparse",
+  "normal",
+  "rich",
+  "packed"
+] as const;
 export type FurnishingDensity = (typeof FURNISHING_DENSITIES)[number];
 
 export const FURNISHING_ROOM_TYPES = [
@@ -121,6 +126,7 @@ type RoomFurnishingContext = {
 
 const DENSITY_RATIO: Record<FurnishingDensity, number> = {
   normal: 0.1,
+  packed: 0.45,
   rich: 0.16,
   sparse: 0.05
 };

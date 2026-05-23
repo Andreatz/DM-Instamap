@@ -81,7 +81,7 @@ export function useMapEditorState({
   } | null>(null);
   const [fogPreviewEnabled, setFogPreviewEnabled] = useState(true);
   const [furnishingDensity, setFurnishingDensity] =
-    useState<FurnishingDensity>("normal");
+    useState<FurnishingDensity>("rich");
   const [exportFormat, setExportFormat] = useState<ExportFormat>("png");
   const [exportIncludeGrid, setExportIncludeGrid] = useState(true);
   const [exportScale, setExportScale] = useState(1);

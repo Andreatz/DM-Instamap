@@ -17,6 +17,12 @@ export type RasterExportLayer =
 
 export type RasterExportOptions = {
   assetResolver?: AssetResolver;
+  /**
+   * Reference pixels-per-cell of the source artwork, used to size composited
+   * assets to their real footprint (preserving aspect ratio) instead of forcing
+   * them into a single cell. Most VTT object packs author near 256px/tile.
+   */
+  assetPixelsPerCell?: number;
   background?: "default" | "transparent";
   /**
    * Explicit pixels-per-cell. Overrides `scale` when set. Used by the VTT
@@ -53,6 +59,9 @@ export type RasterLayerBundleResult = {
 };
 
 const BASE_CELL_PIXELS = 28;
+const DEFAULT_ASSET_PIXELS_PER_CELL = 256;
+const MIN_ASSET_CELL_SPAN = 0.5;
+const MAX_ASSET_CELL_SPAN = 8;
 const DEFAULT_LAYERS: RasterExportLayer[] = [
   "floor",
   "walls",
@@ -92,7 +101,8 @@ export async function exportMapDocumentRaster(
     .toBuffer();
   const compositeInputs = await buildAssetCompositeInputs(
     assetRenderPlan,
-    cellPixels
+    cellPixels,
+    options.assetPixelsPerCell ?? DEFAULT_ASSET_PIXELS_PER_CELL
   );
   const pipeline =
     compositeInputs.length > 0
@@ -383,7 +393,8 @@ async function resolveRasterAssets(
 
 async function buildAssetCompositeInputs(
   plan: AssetRenderPlan,
-  cellPixels: number
+  cellPixels: number,
+  assetPixelsPerCell: number
 ): Promise<Array<{ assetId: string; composite: sharp.OverlayOptions }>> {
   const inputs: Array<{ assetId: string; composite: sharp.OverlayOptions }> =
     [];
@@ -393,7 +404,8 @@ async function buildAssetCompositeInputs(
       const image = await renderAssetImage(
         entry.asset,
         entry.source,
-        cellPixels
+        cellPixels,
+        assetPixelsPerCell
       );
       const metadata = await sharp(image).metadata();
       const width = metadata.width ?? cellPixels;
@@ -421,17 +433,59 @@ async function buildAssetCompositeInputs(
   return inputs;
 }
 
+/**
+ * Real-scale footprint for a placed asset: map the source pixel dimensions to
+ * cells via `assetPixelsPerCell`, preserve aspect ratio, clamp the larger side
+ * to a sane cell range, then apply the placement scale.
+ */
+function assetTargetSize(
+  asset: PlacedAsset,
+  source: RasterAssetSource,
+  cellPixels: number,
+  assetPixelsPerCell: number
+): { height: number; width: number } {
+  const ppc =
+    assetPixelsPerCell > 0 ? assetPixelsPerCell : DEFAULT_ASSET_PIXELS_PER_CELL;
+  const srcWidth = source.width && source.width > 0 ? source.width : ppc;
+  const srcHeight = source.height && source.height > 0 ? source.height : ppc;
+  const rawWidthCells = srcWidth / ppc;
+  const rawHeightCells = srcHeight / ppc;
+  const span = Math.max(rawWidthCells, rawHeightCells);
+  const clampedSpan = Math.min(
+    MAX_ASSET_CELL_SPAN,
+    Math.max(MIN_ASSET_CELL_SPAN, span)
+  );
+  const fit = span > 0 ? clampedSpan / span : 1;
+
+  return {
+    height: Math.max(
+      1,
+      Math.round(rawHeightCells * fit * cellPixels * asset.scale)
+    ),
+    width: Math.max(
+      1,
+      Math.round(rawWidthCells * fit * cellPixels * asset.scale)
+    )
+  };
+}
+
 async function renderAssetImage(
   asset: PlacedAsset,
   source: RasterAssetSource,
-  cellPixels: number
+  cellPixels: number,
+  assetPixelsPerCell: number
 ): Promise<Buffer> {
-  const targetSize = Math.max(1, Math.round(cellPixels * asset.scale));
+  const { width: targetWidth, height: targetHeight } = assetTargetSize(
+    asset,
+    source,
+    cellPixels,
+    assetPixelsPerCell
+  );
   let pipeline = sharp(source.absolutePath).resize({
     background: { alpha: 0, b: 0, g: 0, r: 0 },
-    fit: "contain",
-    height: targetSize,
-    width: targetSize
+    fit: "inside",
+    height: targetHeight,
+    width: targetWidth
   });
 
   if (asset.flipX) {
