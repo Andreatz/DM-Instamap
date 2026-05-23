@@ -25,6 +25,14 @@ export type RasterExportOptions = {
   assetPixelsPerCell?: number;
   background?: "default" | "transparent";
   /**
+   * Optional asset ids (resolved via `assetResolver`) for the floor and wall
+   * tile textures. When set, the texture is tiled across floor/wall cells over
+   * the flat base colour, so any transparency falls back to the base instead of
+   * leaving gaps.
+   */
+  floorTextureAssetId?: string;
+  wallTextureAssetId?: string;
+  /**
    * Explicit pixels-per-cell. Overrides `scale` when set. Used by the VTT
    * exporters to render the battlemap at the document's true grid resolution so
    * the embedded image lines up with `pixels_per_grid`.
@@ -87,13 +95,27 @@ export async function exportMapDocumentRaster(
     cellPixels,
     layers: options.layers
   });
+  const [floorPattern, wallPattern] = await Promise.all([
+    prepareTexturePattern(
+      options.floorTextureAssetId,
+      options.assetResolver,
+      cellPixels
+    ),
+    prepareTexturePattern(
+      options.wallTextureAssetId,
+      options.assetResolver,
+      cellPixels
+    )
+  ]);
   const svg = renderMapDocumentSvg(document, {
     assetMarkers: !options.assetResolver,
     background: options.background ?? "default",
     cellPixels,
     fallbackAssetIds: assetRenderPlan.missingPlacedAssetIds,
+    floorPattern,
     includeGrid: options.includeGrid ?? true,
-    layers: options.layers
+    layers: options.layers,
+    wallPattern
   });
   const base = await sharp(Buffer.from(svg))
     .resize(width, height, { fit: "fill" })
@@ -218,8 +240,10 @@ export function renderMapDocumentSvg(
     background?: "default" | "transparent";
     cellPixels?: number;
     fallbackAssetIds?: readonly string[];
+    floorPattern?: string | null;
     includeGrid?: boolean;
     layers?: readonly RasterExportLayer[];
+    wallPattern?: string | null;
   } = {}
 ): string {
   const cellPixels = Math.max(
@@ -230,27 +254,49 @@ export function renderMapDocumentSvg(
   const height = document.height * cellPixels;
   const layers = new Set(options.layers ?? DEFAULT_LAYERS);
   const fallbackAssetIds = new Set(options.fallbackAssetIds ?? []);
+  const floorPatternId = options.floorPattern ? "dm-floor-tex" : null;
+  const wallPatternId = options.wallPattern ? "dm-wall-tex" : null;
   const tileLookup = new Map(
     document.tiles.map((tile) => [cellKey(tile.x, tile.y), tile])
   );
   const parts: string[] = [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`
+    `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`
   ];
 
+  const defs: string[] = [];
   if ((options.background ?? "default") === "default") {
-    parts.push(
-      '<defs><radialGradient id="dm-backdrop" cx="50%" cy="48%" r="75%">' +
+    defs.push(
+      '<radialGradient id="dm-backdrop" cx="50%" cy="48%" r="75%">' +
         '<stop offset="0%" stop-color="#15191d"/>' +
         '<stop offset="100%" stop-color="#080a0b"/>' +
-        "</radialGradient></defs>",
-      '<rect width="100%" height="100%" fill="url(#dm-backdrop)"/>'
+        "</radialGradient>"
     );
+  }
+  if (options.floorPattern && floorPatternId) {
+    defs.push(
+      texturePatternDef(floorPatternId, options.floorPattern, cellPixels)
+    );
+  }
+  if (options.wallPattern && wallPatternId) {
+    defs.push(
+      texturePatternDef(wallPatternId, options.wallPattern, cellPixels)
+    );
+  }
+  if (defs.length > 0) {
+    parts.push(`<defs>${defs.join("")}</defs>`);
+  }
+
+  if ((options.background ?? "default") === "default") {
+    parts.push('<rect width="100%" height="100%" fill="url(#dm-backdrop)"/>');
   }
 
   for (let y = 0; y < document.height; y += 1) {
     for (let x = 0; x < document.width; x += 1) {
       const tile = tileLookup.get(cellKey(x, y));
-      const renderedTile = renderTile(tile, x, y, cellPixels, layers);
+      const renderedTile = renderTile(tile, x, y, cellPixels, layers, {
+        floorPatternId,
+        wallPatternId
+      });
       if (renderedTile) {
         parts.push(renderedTile);
       }
@@ -301,15 +347,65 @@ function renderTile(
   x: number,
   y: number,
   cellPixels: number,
-  layers: Set<RasterExportLayer>
+  layers: Set<RasterExportLayer>,
+  patterns: { floorPatternId: string | null; wallPatternId: string | null }
 ): string | null {
   const kind = tile?.kind ?? "empty";
   if (!shouldRenderTile(kind, layers)) {
     return null;
   }
 
-  const color = tileColor(kind);
-  return `<rect x="${x * cellPixels}" y="${y * cellPixels}" width="${cellPixels}" height="${cellPixels}" fill="${color}"/>`;
+  const px = x * cellPixels;
+  const py = y * cellPixels;
+  const rect = (fill: string) =>
+    `<rect x="${px}" y="${py}" width="${cellPixels}" height="${cellPixels}" fill="${fill}"/>`;
+  const base = rect(tileColor(kind));
+  const patternId =
+    kind === "floor"
+      ? patterns.floorPatternId
+      : kind === "wall"
+        ? patterns.wallPatternId
+        : null;
+
+  // Texture overlays the flat colour: transparent areas fall back to the base.
+  return patternId ? base + rect(`url(#${patternId})`) : base;
+}
+
+function texturePatternDef(
+  id: string,
+  dataUri: string,
+  cellPixels: number
+): string {
+  return (
+    `<pattern id="${id}" patternUnits="userSpaceOnUse" width="${cellPixels}" height="${cellPixels}">` +
+    `<image xlink:href="${dataUri}" width="${cellPixels}" height="${cellPixels}"/>` +
+    "</pattern>"
+  );
+}
+
+async function prepareTexturePattern(
+  assetId: string | undefined,
+  resolver: AssetResolver | undefined,
+  cellPixels: number
+): Promise<string | null> {
+  if (!assetId || !resolver) {
+    return null;
+  }
+
+  try {
+    const source = await resolver.resolveAsset(assetId);
+    if (!source) {
+      return null;
+    }
+
+    const tile = await sharp(source.absolutePath)
+      .resize(cellPixels, cellPixels, { fit: "cover" })
+      .png()
+      .toBuffer();
+    return `data:image/png;base64,${tile.toString("base64")}`;
+  } catch {
+    return null;
+  }
 }
 
 function renderPlacedAsset(asset: PlacedAsset, cellPixels: number): string {

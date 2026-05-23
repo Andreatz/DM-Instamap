@@ -211,6 +211,19 @@ describe("exportMapDocumentRaster", () => {
     expect(propsOnly).not.toContain("stop-opacity");
   });
 
+  it("tiles floor and wall textures over the base colour when provided", () => {
+    const svg = renderMapDocumentSvg(createExportFixture(), {
+      cellPixels: 28,
+      floorPattern: "data:image/png;base64,Zm9vcg==",
+      wallPattern: "data:image/png;base64,d2FsbA=="
+    });
+
+    expect(svg).toContain('<pattern id="dm-floor-tex"');
+    expect(svg).toContain('<pattern id="dm-wall-tex"');
+    expect(svg).toContain('xlink:href="data:image/png;base64,Zm9vcg=="');
+    expect(svg).toContain('fill="url(#dm-floor-tex)"');
+  });
+
   it("bundles separated raster layers into a zip with a manifest", async () => {
     const bundle = await exportMapDocumentRasterLayerBundle(
       createLayeredExportFixture(),

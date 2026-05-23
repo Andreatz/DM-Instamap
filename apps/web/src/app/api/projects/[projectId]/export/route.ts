@@ -10,7 +10,10 @@ import {
   type MapVisibilityMode,
   type RasterExportFormat
 } from "@dm-instamap/exporters";
-import { createWorkspaceAssetResolver } from "@/lib/export-assets";
+import {
+  createWorkspaceAssetResolver,
+  pickTileTextureIds
+} from "@/lib/export-assets";
 import {
   InvalidProjectIdError,
   ProjectNotFoundError,
@@ -118,7 +121,8 @@ export async function POST(request: Request, context: RouteContext) {
         format: format as RasterExportFormat,
         includeGrid,
         scale,
-        webpQuality
+        webpQuality,
+        ...(await pickTileTextureIds())
       });
 
       return finalize(

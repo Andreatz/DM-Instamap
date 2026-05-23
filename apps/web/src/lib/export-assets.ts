@@ -1,6 +1,12 @@
 import path from "node:path";
 import { createAssetManifestResolver } from "@dm-instamap/exporters";
+import { loadAssetGroups } from "./asset-groups";
 import { findWorkspaceRoot } from "./assets-manifest";
+
+export type TileTextureSelection = {
+  floorTextureAssetId?: string;
+  wallTextureAssetId?: string;
+};
 
 /**
  * Build an asset resolver pinned to the workspace `data/` directory.
@@ -17,4 +23,38 @@ export async function createWorkspaceAssetResolver() {
   return createAssetManifestResolver({
     outputRoot: path.join(workspaceRoot, "data")
   });
+}
+
+/**
+ * Pick representative floor and wall tile textures from the local asset groups
+ * (highest quality per kind). Returns group ids, which the resolver maps to a
+ * real file. Empty when the library has no floor/wall groups; the export then
+ * keeps the flat tile colours.
+ */
+export async function pickTileTextureIds(): Promise<TileTextureSelection> {
+  let groups: Awaited<ReturnType<typeof loadAssetGroups>>["groups"];
+  try {
+    ({ groups } = await loadAssetGroups());
+  } catch {
+    return {};
+  }
+
+  const bestByKind = (kind: string): string | undefined =>
+    groups
+      .filter((group) => group.kind === kind)
+      .sort(
+        (left, right) => (right.qualityScore ?? 0) - (left.qualityScore ?? 0)
+      )
+      .at(0)?.id;
+
+  const selection: TileTextureSelection = {};
+  const floor = bestByKind("floor");
+  const wall = bestByKind("wall");
+  if (floor) {
+    selection.floorTextureAssetId = floor;
+  }
+  if (wall) {
+    selection.wallTextureAssetId = wall;
+  }
+  return selection;
 }

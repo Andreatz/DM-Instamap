@@ -11,7 +11,10 @@ import {
   type MapVisibilityMode,
   type RasterExportFormat
 } from "@dm-instamap/exporters";
-import { createWorkspaceAssetResolver } from "@/lib/export-assets";
+import {
+  createWorkspaceAssetResolver,
+  pickTileTextureIds
+} from "@/lib/export-assets";
 
 type WebExportFormat = ExportFormat | "session-pack";
 
@@ -89,7 +92,8 @@ export async function POST(request: Request) {
         format: format as RasterExportFormat,
         includeGrid,
         scale,
-        webpQuality
+        webpQuality,
+        ...(await pickTileTextureIds())
       });
 
       return new Response(toArrayBuffer(result.buffer), {
