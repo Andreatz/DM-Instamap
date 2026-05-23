@@ -116,7 +116,13 @@ class WorkerJobTests(unittest.TestCase):
 
         self.assertEqual(payload["type"], "images.analyze")
         self.assertEqual(payload["status"], "completed")
-        self.assertEqual(payload["result"]["imagePath"], str(image_path))
+        # The job returns the resolved (canonical) path; compare canonically so
+        # Windows 8.3 short names (RUNNER~1 vs runneradmin) do not cause a false
+        # mismatch.
+        self.assertEqual(
+            pathlib.Path(payload["result"]["imagePath"]).resolve(),
+            image_path.resolve(),
+        )
         self.assertEqual(payload["result"]["analysis"]["width"], 1)
         self.assertEqual(payload["result"]["analysis"]["height"], 1)
         self.assertFalse(payload["result"]["analysis"]["transparency"])

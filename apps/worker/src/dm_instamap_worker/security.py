@@ -42,14 +42,16 @@ def validate_local_path(
     if not raw:
         raise HTTPException(status_code=400, detail="Path is required.")
 
+    # Resolve the workspace root too: on Windows an unresolved root (e.g. an 8.3
+    # short name like RUNNER~1) would not match the resolved candidate
+    # (runneradmin), making relative_to wrongly reject valid in-workspace paths.
+    root = repo_root.resolve()
     candidate = Path(raw)
     resolved = (
-        candidate.resolve()
-        if candidate.is_absolute()
-        else (repo_root / candidate).resolve()
+        candidate.resolve() if candidate.is_absolute() else (root / candidate).resolve()
     )
 
-    if not candidate.is_absolute() and not is_relative_to(resolved, repo_root):
+    if not candidate.is_absolute() and not is_relative_to(resolved, root):
         raise HTTPException(
             status_code=400,
             detail="Relative paths must stay inside the DM-Instamap workspace.",
