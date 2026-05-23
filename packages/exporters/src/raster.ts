@@ -17,7 +17,21 @@ export type RasterExportLayer =
 
 export type RasterExportOptions = {
   assetResolver?: AssetResolver;
+  /**
+   * Reference pixels-per-cell of the source artwork, used to size composited
+   * assets to their real footprint (preserving aspect ratio) instead of forcing
+   * them into a single cell. Most VTT object packs author near 256px/tile.
+   */
+  assetPixelsPerCell?: number;
   background?: "default" | "transparent";
+  /**
+   * Optional asset ids (resolved via `assetResolver`) for the floor and wall
+   * tile textures. When set, the texture is tiled across floor/wall cells over
+   * the flat base colour, so any transparency falls back to the base instead of
+   * leaving gaps.
+   */
+  floorTextureAssetId?: string;
+  wallTextureAssetId?: string;
   /**
    * Explicit pixels-per-cell. Overrides `scale` when set. Used by the VTT
    * exporters to render the battlemap at the document's true grid resolution so
@@ -53,6 +67,9 @@ export type RasterLayerBundleResult = {
 };
 
 const BASE_CELL_PIXELS = 28;
+const DEFAULT_ASSET_PIXELS_PER_CELL = 256;
+const MIN_ASSET_CELL_SPAN = 0.5;
+const MAX_ASSET_CELL_SPAN = 8;
 const DEFAULT_LAYERS: RasterExportLayer[] = [
   "floor",
   "walls",
@@ -78,13 +95,27 @@ export async function exportMapDocumentRaster(
     cellPixels,
     layers: options.layers
   });
+  const [floorPattern, wallPattern] = await Promise.all([
+    prepareTexturePattern(
+      options.floorTextureAssetId,
+      options.assetResolver,
+      cellPixels
+    ),
+    prepareTexturePattern(
+      options.wallTextureAssetId,
+      options.assetResolver,
+      cellPixels
+    )
+  ]);
   const svg = renderMapDocumentSvg(document, {
     assetMarkers: !options.assetResolver,
     background: options.background ?? "default",
     cellPixels,
     fallbackAssetIds: assetRenderPlan.missingPlacedAssetIds,
+    floorPattern,
     includeGrid: options.includeGrid ?? true,
-    layers: options.layers
+    layers: options.layers,
+    wallPattern
   });
   const base = await sharp(Buffer.from(svg))
     .resize(width, height, { fit: "fill" })
@@ -92,7 +123,8 @@ export async function exportMapDocumentRaster(
     .toBuffer();
   const compositeInputs = await buildAssetCompositeInputs(
     assetRenderPlan,
-    cellPixels
+    cellPixels,
+    options.assetPixelsPerCell ?? DEFAULT_ASSET_PIXELS_PER_CELL
   );
   const pipeline =
     compositeInputs.length > 0
@@ -208,8 +240,10 @@ export function renderMapDocumentSvg(
     background?: "default" | "transparent";
     cellPixels?: number;
     fallbackAssetIds?: readonly string[];
+    floorPattern?: string | null;
     includeGrid?: boolean;
     layers?: readonly RasterExportLayer[];
+    wallPattern?: string | null;
   } = {}
 ): string {
   const cellPixels = Math.max(
@@ -220,21 +254,49 @@ export function renderMapDocumentSvg(
   const height = document.height * cellPixels;
   const layers = new Set(options.layers ?? DEFAULT_LAYERS);
   const fallbackAssetIds = new Set(options.fallbackAssetIds ?? []);
+  const floorPatternId = options.floorPattern ? "dm-floor-tex" : null;
+  const wallPatternId = options.wallPattern ? "dm-wall-tex" : null;
   const tileLookup = new Map(
     document.tiles.map((tile) => [cellKey(tile.x, tile.y), tile])
   );
   const parts: string[] = [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`
+    `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`
   ];
 
+  const defs: string[] = [];
   if ((options.background ?? "default") === "default") {
-    parts.push(`<rect width="100%" height="100%" fill="#080a0b"/>`);
+    defs.push(
+      '<radialGradient id="dm-backdrop" cx="50%" cy="48%" r="75%">' +
+        '<stop offset="0%" stop-color="#15191d"/>' +
+        '<stop offset="100%" stop-color="#080a0b"/>' +
+        "</radialGradient>"
+    );
+  }
+  if (options.floorPattern && floorPatternId) {
+    defs.push(
+      texturePatternDef(floorPatternId, options.floorPattern, cellPixels)
+    );
+  }
+  if (options.wallPattern && wallPatternId) {
+    defs.push(
+      texturePatternDef(wallPatternId, options.wallPattern, cellPixels)
+    );
+  }
+  if (defs.length > 0) {
+    parts.push(`<defs>${defs.join("")}</defs>`);
+  }
+
+  if ((options.background ?? "default") === "default") {
+    parts.push('<rect width="100%" height="100%" fill="url(#dm-backdrop)"/>');
   }
 
   for (let y = 0; y < document.height; y += 1) {
     for (let x = 0; x < document.width; x += 1) {
       const tile = tileLookup.get(cellKey(x, y));
-      const renderedTile = renderTile(tile, x, y, cellPixels, layers);
+      const renderedTile = renderTile(tile, x, y, cellPixels, layers, {
+        floorPatternId,
+        wallPatternId
+      });
       if (renderedTile) {
         parts.push(renderedTile);
       }
@@ -244,7 +306,7 @@ export function renderMapDocumentSvg(
   if (layers.has("walls")) {
     for (const wall of document.plan?.walls ?? []) {
       parts.push(
-        `<path d="M${wall.start.x * cellPixels} ${wall.start.y * cellPixels}L${wall.end.x * cellPixels} ${wall.end.y * cellPixels}" stroke="#2f383d" stroke-width="${Math.max(3, wall.thickness * cellPixels * 0.16)}" stroke-linecap="round"/>`
+        `<path d="M${wall.start.x * cellPixels} ${wall.start.y * cellPixels}L${wall.end.x * cellPixels} ${wall.end.y * cellPixels}" stroke="#1b2125" stroke-width="${Math.max(3, wall.thickness * cellPixels * 0.16)}" stroke-linecap="round"/>`
       );
     }
   }
@@ -252,7 +314,7 @@ export function renderMapDocumentSvg(
   if (layers.has("doors")) {
     for (const door of document.plan?.doors ?? []) {
       parts.push(
-        `<rect x="${door.position.x * cellPixels + cellPixels * 0.2}" y="${door.position.y * cellPixels + cellPixels * 0.2}" width="${cellPixels * 0.6}" height="${cellPixels * 0.6}" fill="#f0b84c"/>`
+        `<rect x="${door.position.x * cellPixels + cellPixels * 0.2}" y="${door.position.y * cellPixels + cellPixels * 0.2}" width="${cellPixels * 0.6}" height="${cellPixels * 0.6}" rx="${cellPixels * 0.08}" fill="#caa24a" stroke="#5a3c18" stroke-width="${Math.max(1, cellPixels * 0.04)}"/>`
       );
     }
   }
@@ -267,8 +329,8 @@ export function renderMapDocumentSvg(
   }
 
   if (layers.has("lighting")) {
-    for (const light of document.plan?.lights ?? []) {
-      parts.push(renderLight(light, cellPixels));
+    for (const [index, light] of (document.plan?.lights ?? []).entries()) {
+      parts.push(renderLight(light, cellPixels, index));
     }
   }
 
@@ -285,15 +347,65 @@ function renderTile(
   x: number,
   y: number,
   cellPixels: number,
-  layers: Set<RasterExportLayer>
+  layers: Set<RasterExportLayer>,
+  patterns: { floorPatternId: string | null; wallPatternId: string | null }
 ): string | null {
   const kind = tile?.kind ?? "empty";
   if (!shouldRenderTile(kind, layers)) {
     return null;
   }
 
-  const color = tileColor(kind);
-  return `<rect x="${x * cellPixels}" y="${y * cellPixels}" width="${cellPixels}" height="${cellPixels}" fill="${color}"/>`;
+  const px = x * cellPixels;
+  const py = y * cellPixels;
+  const rect = (fill: string) =>
+    `<rect x="${px}" y="${py}" width="${cellPixels}" height="${cellPixels}" fill="${fill}"/>`;
+  const base = rect(tileColor(kind));
+  const patternId =
+    kind === "floor"
+      ? patterns.floorPatternId
+      : kind === "wall"
+        ? patterns.wallPatternId
+        : null;
+
+  // Texture overlays the flat colour: transparent areas fall back to the base.
+  return patternId ? base + rect(`url(#${patternId})`) : base;
+}
+
+function texturePatternDef(
+  id: string,
+  dataUri: string,
+  cellPixels: number
+): string {
+  return (
+    `<pattern id="${id}" patternUnits="userSpaceOnUse" width="${cellPixels}" height="${cellPixels}">` +
+    `<image xlink:href="${dataUri}" width="${cellPixels}" height="${cellPixels}"/>` +
+    "</pattern>"
+  );
+}
+
+async function prepareTexturePattern(
+  assetId: string | undefined,
+  resolver: AssetResolver | undefined,
+  cellPixels: number
+): Promise<string | null> {
+  if (!assetId || !resolver) {
+    return null;
+  }
+
+  try {
+    const source = await resolver.resolveAsset(assetId);
+    if (!source) {
+      return null;
+    }
+
+    const tile = await sharp(source.absolutePath)
+      .resize(cellPixels, cellPixels, { fit: "cover" })
+      .png()
+      .toBuffer();
+    return `data:image/png;base64,${tile.toString("base64")}`;
+  } catch {
+    return null;
+  }
 }
 
 function renderPlacedAsset(asset: PlacedAsset, cellPixels: number): string {
@@ -302,10 +414,10 @@ function renderPlacedAsset(asset: PlacedAsset, cellPixels: number): string {
   const radius = cellPixels * 0.34;
   const color =
     asset.layer === "lighting"
-      ? "#f5cc63"
+      ? "#e6bd62"
       : asset.layer === "floor"
         ? "#6fa0a8"
-        : "#86b38f";
+        : "#7fb39a";
   const label = escapeXml(getAssetInitial(asset.assetId));
   const scaleX = (asset.flipX ? -1 : 1) * asset.scale;
   const scaleY = (asset.flipY ? -1 : 1) * asset.scale;
@@ -377,7 +489,8 @@ async function resolveRasterAssets(
 
 async function buildAssetCompositeInputs(
   plan: AssetRenderPlan,
-  cellPixels: number
+  cellPixels: number,
+  assetPixelsPerCell: number
 ): Promise<Array<{ assetId: string; composite: sharp.OverlayOptions }>> {
   const inputs: Array<{ assetId: string; composite: sharp.OverlayOptions }> =
     [];
@@ -387,7 +500,8 @@ async function buildAssetCompositeInputs(
       const image = await renderAssetImage(
         entry.asset,
         entry.source,
-        cellPixels
+        cellPixels,
+        assetPixelsPerCell
       );
       const metadata = await sharp(image).metadata();
       const width = metadata.width ?? cellPixels;
@@ -415,17 +529,59 @@ async function buildAssetCompositeInputs(
   return inputs;
 }
 
+/**
+ * Real-scale footprint for a placed asset: map the source pixel dimensions to
+ * cells via `assetPixelsPerCell`, preserve aspect ratio, clamp the larger side
+ * to a sane cell range, then apply the placement scale.
+ */
+function assetTargetSize(
+  asset: PlacedAsset,
+  source: RasterAssetSource,
+  cellPixels: number,
+  assetPixelsPerCell: number
+): { height: number; width: number } {
+  const ppc =
+    assetPixelsPerCell > 0 ? assetPixelsPerCell : DEFAULT_ASSET_PIXELS_PER_CELL;
+  const srcWidth = source.width && source.width > 0 ? source.width : ppc;
+  const srcHeight = source.height && source.height > 0 ? source.height : ppc;
+  const rawWidthCells = srcWidth / ppc;
+  const rawHeightCells = srcHeight / ppc;
+  const span = Math.max(rawWidthCells, rawHeightCells);
+  const clampedSpan = Math.min(
+    MAX_ASSET_CELL_SPAN,
+    Math.max(MIN_ASSET_CELL_SPAN, span)
+  );
+  const fit = span > 0 ? clampedSpan / span : 1;
+
+  return {
+    height: Math.max(
+      1,
+      Math.round(rawHeightCells * fit * cellPixels * asset.scale)
+    ),
+    width: Math.max(
+      1,
+      Math.round(rawWidthCells * fit * cellPixels * asset.scale)
+    )
+  };
+}
+
 async function renderAssetImage(
   asset: PlacedAsset,
   source: RasterAssetSource,
-  cellPixels: number
+  cellPixels: number,
+  assetPixelsPerCell: number
 ): Promise<Buffer> {
-  const targetSize = Math.max(1, Math.round(cellPixels * asset.scale));
+  const { width: targetWidth, height: targetHeight } = assetTargetSize(
+    asset,
+    source,
+    cellPixels,
+    assetPixelsPerCell
+  );
   let pipeline = sharp(source.absolutePath).resize({
     background: { alpha: 0, b: 0, g: 0, r: 0 },
-    fit: "contain",
-    height: targetSize,
-    width: targetSize
+    fit: "inside",
+    height: targetHeight,
+    width: targetWidth
   });
 
   if (asset.flipX) {
@@ -452,12 +608,26 @@ function renderLight(
     position: { x: number; y: number };
     radius: number;
   },
-  cellPixels: number
+  cellPixels: number,
+  index: number
 ): string {
   const cx = light.position.x * cellPixels;
   const cy = light.position.y * cellPixels;
-  const radius = light.radius * cellPixels;
-  return `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="${escapeXml(light.color)}" fill-opacity="${Math.min(0.55, Math.max(0.08, light.intensity * 0.45))}"/>`;
+  const radius = Math.max(0.5, light.radius) * cellPixels;
+  const core = cellPixels * 0.22;
+  const color = escapeXml(light.color);
+  const id = `dm-light-${index}`;
+  const peak = Math.min(0.6, Math.max(0.12, light.intensity * 0.5));
+  // Soft radial falloff so exported lights read as glows, not flat discs.
+  return (
+    `<radialGradient id="${id}" cx="50%" cy="50%" r="50%">` +
+    `<stop offset="0%" stop-color="${color}" stop-opacity="${peak.toFixed(3)}"/>` +
+    `<stop offset="55%" stop-color="${color}" stop-opacity="${(peak * 0.3).toFixed(3)}"/>` +
+    `<stop offset="100%" stop-color="${color}" stop-opacity="0"/>` +
+    "</radialGradient>" +
+    `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="url(#${id})"/>` +
+    `<circle cx="${cx}" cy="${cy}" r="${core}" fill="${color}"/>`
+  );
 }
 
 function renderGrid(
@@ -521,13 +691,13 @@ function shouldRenderAsset(
 function tileColor(kind: MapTile["kind"] | "empty"): string {
   switch (kind) {
     case "door":
-      return "#d7a447";
+      return "#9b6f35";
     case "floor":
-      return "#a88d5d";
+      return "#ad9160";
     case "wall":
-      return "#394348";
+      return "#333c41";
     default:
-      return "#080a0b";
+      return "#0a0c0e";
   }
 }
 

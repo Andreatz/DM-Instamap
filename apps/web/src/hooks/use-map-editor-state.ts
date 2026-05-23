@@ -21,6 +21,7 @@ import {
   type EditorSelection,
   type EditorTool
 } from "@/lib/map-editor";
+import { useAssetImages } from "@/hooks/use-asset-images";
 import type { AssetSearchApiResult } from "@/lib/asset-search";
 import { drawMapCanvas } from "@/lib/map-canvas-renderer";
 import {
@@ -81,7 +82,7 @@ export function useMapEditorState({
   } | null>(null);
   const [fogPreviewEnabled, setFogPreviewEnabled] = useState(true);
   const [furnishingDensity, setFurnishingDensity] =
-    useState<FurnishingDensity>("normal");
+    useState<FurnishingDensity>("rich");
   const [exportFormat, setExportFormat] = useState<ExportFormat>("png");
   const [exportIncludeGrid, setExportIncludeGrid] = useState(true);
   const [exportScale, setExportScale] = useState(1);
@@ -407,6 +408,20 @@ export function useMapEditorState({
     return () => observer.disconnect();
   }, []);
 
+  const assetImageSources = useMemo(() => {
+    const sources = new Map<string, string>();
+    for (const asset of document.assets) {
+      if (!sources.has(asset.assetId)) {
+        sources.set(
+          asset.assetId,
+          `/assets/preview/${encodeURIComponent(asset.assetId)}`
+        );
+      }
+    }
+    return sources;
+  }, [document.assets]);
+  const assetImages = useAssetImages(assetImageSources);
+
   useEffect(() => {
     const canvas = canvasRef.current;
 
@@ -415,6 +430,7 @@ export function useMapEditorState({
     }
 
     drawMapCanvas(canvas, {
+      assetImages,
       canvasSize,
       document,
       hoverCell,
@@ -430,6 +446,7 @@ export function useMapEditorState({
       viewport
     });
   }, [
+    assetImages,
     canvasSize,
     document,
     editorLayers,

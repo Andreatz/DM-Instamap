@@ -25,6 +25,8 @@ function createMockContext() {
     beginPath: record("beginPath"),
     clearRect: record("clearRect"),
     closePath: record("closePath"),
+    createLinearGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
+    createRadialGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
     fill: record("fill"),
     fillRect: record("fillRect"),
     fillText: record("fillText"),
@@ -32,6 +34,7 @@ function createMockContext() {
     moveTo: record("moveTo"),
     restore: record("restore"),
     rotate: record("rotate"),
+    roundRect: record("roundRect"),
     save: record("save"),
     scale: record("scale"),
     setLineDash: record("setLineDash"),
@@ -41,8 +44,12 @@ function createMockContext() {
     fillStyle: "",
     font: "",
     globalAlpha: 1,
+    globalCompositeOperation: "source-over",
     lineCap: "butt",
     lineWidth: 1,
+    shadowBlur: 0,
+    shadowColor: "",
+    shadowOffsetY: 0,
     strokeStyle: "",
     textAlign: "start",
     textBaseline: "alphabetic"
@@ -85,11 +92,11 @@ function createInput(doc = document): MapCanvasRenderInput {
 
 describe("map canvas renderer", () => {
   it("returns palette colors per tile kind", () => {
-    expect(getTileColor("floor")).toBe("#a88d5d");
-    expect(getTileColor("wall")).toBe("#394348");
-    expect(getTileColor("door")).toBe("#8a6431");
-    expect(getTileColor("empty")).toBe("#080a0b");
-    expect(getTileColor("unknown")).toBe("#080a0b");
+    expect(getTileColor("floor")).toBe("#ad9160");
+    expect(getTileColor("wall")).toBe("#333c41");
+    expect(getTileColor("door")).toBe("#9b6f35");
+    expect(getTileColor("empty")).toBe("#0a0c0e");
+    expect(getTileColor("unknown")).toBe("#0a0c0e");
   });
 
   it("clears, transforms, and paints the scene without throwing", () => {

@@ -1,7 +1,6 @@
 import { migrateMapDocument, type MapDocument } from "@dm-instamap/core/server";
 import {
   applyVisibilityMode,
-  createAssetManifestResolver,
   exportDmImap,
   exportFoundryModule,
   exportMapDocumentDd2Vtt,
@@ -12,6 +11,10 @@ import {
   type MapVisibilityMode,
   type RasterExportFormat
 } from "@dm-instamap/exporters";
+import {
+  createWorkspaceAssetResolver,
+  pickTileTextureIds
+} from "@/lib/export-assets";
 
 type WebExportFormat = ExportFormat | "session-pack";
 
@@ -63,7 +66,7 @@ export async function POST(request: Request) {
       typeof body.splitLayers === "boolean" ? body.splitLayers : false;
     const webpQuality =
       typeof body.webpQuality === "number" ? body.webpQuality : undefined;
-    const assetResolver = createAssetManifestResolver();
+    const assetResolver = await createWorkspaceAssetResolver();
 
     if (RASTER_FORMATS.has(format)) {
       if (splitLayers) {
@@ -89,7 +92,8 @@ export async function POST(request: Request) {
         format: format as RasterExportFormat,
         includeGrid,
         scale,
-        webpQuality
+        webpQuality,
+        ...(await pickTileTextureIds())
       });
 
       return new Response(toArrayBuffer(result.buffer), {

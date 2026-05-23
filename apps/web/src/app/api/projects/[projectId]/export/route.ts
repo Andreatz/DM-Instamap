@@ -1,6 +1,5 @@
 import {
   applyVisibilityMode,
-  createAssetManifestResolver,
   exportDmImap,
   exportFoundryModule,
   exportMapDocumentDd2Vtt,
@@ -11,6 +10,10 @@ import {
   type MapVisibilityMode,
   type RasterExportFormat
 } from "@dm-instamap/exporters";
+import {
+  createWorkspaceAssetResolver,
+  pickTileTextureIds
+} from "@/lib/export-assets";
 import {
   InvalidProjectIdError,
   ProjectNotFoundError,
@@ -78,7 +81,7 @@ export async function POST(request: Request, context: RouteContext) {
       typeof body.splitLayers === "boolean" ? body.splitLayers : false;
     const webpQuality =
       typeof body.webpQuality === "number" ? body.webpQuality : undefined;
-    const assetResolver = createAssetManifestResolver();
+    const assetResolver = await createWorkspaceAssetResolver();
 
     const finalize = async (
       buffer: Buffer,
@@ -118,7 +121,8 @@ export async function POST(request: Request, context: RouteContext) {
         format: format as RasterExportFormat,
         includeGrid,
         scale,
-        webpQuality
+        webpQuality,
+        ...(await pickTileTextureIds())
       });
 
       return finalize(
