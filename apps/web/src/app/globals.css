@@ -513,6 +513,13 @@ textarea:focus {
   padding-top: 12px;
 }
 
+.editor-render-note {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 4px 0 0;
+}
+
 .asset-results {
   min-width: 0;
 }

@@ -215,6 +215,10 @@ evitare injection HTML. Dettagli in [docs/EXPORTS.md](docs/EXPORTS.md).
 - [docs/WORKER.md](docs/WORKER.md): worker locale e job lunghi.
 - [docs/AI_BRIDGE.md](docs/AI_BRIDGE.md): bridge AI manuale, mock e provider
   opzionali.
+- [docs/RENDERING.md](docs/RENDERING.md): modalita di resa Debug e Artistic
+  Battlemap (preset, luci clampate, fallback procedurale, griglia discreta).
+- [docs/REFERENCE_STYLE_DNA.md](docs/REFERENCE_STYLE_DNA.md): come la Reference
+  Style DNA guida layout, tag e preset di rendering.
 - [docs/PERFORMANCE.md](docs/PERFORMANCE.md): virtualizzazione browser asset e
   budget di hydration per librerie grandi.
 - [docs/PROJECTS.md](docs/PROJECTS.md): progetti locali e multi-floor.

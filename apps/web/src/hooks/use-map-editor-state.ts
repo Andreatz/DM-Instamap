@@ -11,6 +11,7 @@ import {
   type MatchableAssetGroup
 } from "@dm-instamap/assets/matcher";
 import { autoFurnishMap, type FurnishingDensity } from "@dm-instamap/generator";
+import { deriveRenderPreset, getRenderPreset } from "@dm-instamap/core/browser";
 import {
   computeVisibleCells,
   ensureEditorLayers,
@@ -41,6 +42,8 @@ import { useEditorHistory } from "./use-editor-history";
 import { useEditorPersistence } from "./use-editor-persistence";
 import { useLightingTools } from "./use-lighting-tools";
 import { useNotesAndInitiative } from "./use-notes-and-initiative";
+
+export type EditorRenderMode = "debug" | "artistic";
 
 export type MapEditorStateOptions = {
   assetGroups: MatchableAssetGroup[];
@@ -86,6 +89,9 @@ export function useMapEditorState({
   const [exportFormat, setExportFormat] = useState<ExportFormat>("png");
   const [exportIncludeGrid, setExportIncludeGrid] = useState(true);
   const [exportScale, setExportScale] = useState(1);
+  // Artistic by default so exports look like illustrated battlemaps; debug
+  // remains one toggle away.
+  const [renderMode, setRenderMode] = useState<EditorRenderMode>("artistic");
   const [assetSearchQuery, setAssetSearchQuery] = useState("");
   const [assetSearchResults, setAssetSearchResults] = useState<
     AssetSearchApiResult[]
@@ -295,6 +301,11 @@ export function useMapEditorState({
     setStatus
   });
 
+  const stylePreset = useMemo(() => {
+    const tags = (document.plan?.rooms ?? []).flatMap((room) => room.tags);
+    return getRenderPreset(deriveRenderPreset({ tags, theme: document.name }));
+  }, [document.plan?.rooms, document.name]);
+
   const { createSnapshot, exportSessionPackQuick, handleExport } =
     useEditorExport({
       document,
@@ -302,6 +313,7 @@ export function useMapEditorState({
       exportIncludeGrid,
       exportScale,
       projectId,
+      renderMode,
       setIsExporting,
       setStatus
     });
@@ -436,6 +448,13 @@ export function useMapEditorState({
       hoverCell,
       layers: editorLayers,
       marqueeSelection,
+      renderStyle:
+        renderMode === "artistic"
+          ? {
+              gridOpacity: stylePreset.gridOpacity,
+              palette: stylePreset.palette
+            }
+          : null,
       selectedAssetId,
       selectedAssetIds,
       selectedDoor,
@@ -452,6 +471,8 @@ export function useMapEditorState({
     editorLayers,
     hoverCell,
     marqueeSelection,
+    renderMode,
+    stylePreset,
     selectedAssetId,
     selectedAssetIds,
     selectedDoor,
@@ -551,6 +572,8 @@ export function useMapEditorState({
     exportScale,
     fogPreviewEnabled,
     furnishingDensity,
+    renderMode,
+    stylePreset,
     initiativeDraft,
     isExporting,
     isHydrated,
@@ -566,6 +589,7 @@ export function useMapEditorState({
     setExportScale,
     setFogPreviewEnabled,
     setFurnishingDensity,
+    setRenderMode,
     setInitiativeDraft,
     setJsonText,
     setNoteDraft,

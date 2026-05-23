@@ -1,11 +1,18 @@
 import JSZip from "jszip";
 import sharp from "sharp";
-import type {
-  MapDocument,
-  MapTile,
-  PlacedAsset
+import {
+  deriveRenderPreset,
+  getRenderPreset,
+  type MapDocument,
+  type MapTile,
+  type PlacedAsset,
+  type RenderStyleHint,
+  type RenderStylePresetId
 } from "@dm-instamap/core/browser";
+import { renderArtisticMapSvg } from "./artistic";
 import type { AssetResolver, RasterAssetSource } from "./asset-resolver";
+
+export type RenderMode = "debug" | "artistic";
 
 export type RasterExportFormat = "png" | "webp";
 export type RasterExportLayer =
@@ -42,6 +49,15 @@ export type RasterExportOptions = {
   includeGrid?: boolean;
   layers?: readonly RasterExportLayer[];
   filenameSuffix?: string;
+  /**
+   * "debug" (default) keeps the schematic logical render; "artistic" produces
+   * the illustrated battlemap using a render style preset.
+   */
+  renderMode?: RenderMode;
+  /** Explicit artistic preset; overrides derivation from styleHint. */
+  stylePreset?: RenderStylePresetId;
+  /** Hint (theme/tags/palette) used to derive the artistic preset. */
+  styleHint?: RenderStyleHint;
   scale?: number;
   webpQuality?: number;
 };
@@ -53,6 +69,8 @@ export type RasterExportResult = {
   format: RasterExportFormat;
   height: number;
   missingAssets: string[];
+  /** True when the artistic render fell back to procedural floor/wall. */
+  usedProceduralFallback: boolean;
   usedAssets: string[];
   warnings: string[];
   width: number;
@@ -107,16 +125,37 @@ export async function exportMapDocumentRaster(
       cellPixels
     )
   ]);
-  const svg = renderMapDocumentSvg(document, {
-    assetMarkers: !options.assetResolver,
-    background: options.background ?? "default",
-    cellPixels,
-    fallbackAssetIds: assetRenderPlan.missingPlacedAssetIds,
-    floorPattern,
-    includeGrid: options.includeGrid ?? true,
-    layers: options.layers,
-    wallPattern
-  });
+  let svg: string;
+  let usedProceduralFallback = false;
+
+  if (options.renderMode === "artistic") {
+    const preset = getRenderPreset(
+      options.stylePreset ?? deriveRenderPreset(options.styleHint)
+    );
+    const artistic = renderArtisticMapSvg(document, {
+      assetMarkers: !options.assetResolver,
+      cellPixels,
+      fallbackAssetIds: assetRenderPlan.missingPlacedAssetIds,
+      floorPattern,
+      includeGrid: options.includeGrid ?? true,
+      layers: options.layers,
+      preset,
+      wallPattern
+    });
+    svg = artistic.svg;
+    usedProceduralFallback = artistic.usedProceduralFallback;
+  } else {
+    svg = renderMapDocumentSvg(document, {
+      assetMarkers: !options.assetResolver,
+      background: options.background ?? "default",
+      cellPixels,
+      fallbackAssetIds: assetRenderPlan.missingPlacedAssetIds,
+      floorPattern,
+      includeGrid: options.includeGrid ?? true,
+      layers: options.layers,
+      wallPattern
+    });
+  }
   const base = await sharp(Buffer.from(svg))
     .resize(width, height, { fit: "fill" })
     .png()
@@ -145,6 +184,7 @@ export async function exportMapDocumentRaster(
     height,
     missingAssets: unique(assetRenderPlan.missingAssets),
     usedAssets: unique(compositeInputs.map((input) => input.assetId)),
+    usedProceduralFallback,
     warnings: assetRenderPlan.warnings,
     width
   };

@@ -7,8 +7,14 @@ export {
   type RasterLayerBundleResult,
   type RasterExportLayer,
   type RasterExportOptions,
-  type RasterExportResult
+  type RasterExportResult,
+  type RenderMode
 } from "./raster";
+export {
+  renderArtisticMapSvg,
+  type ArtisticSvgOptions,
+  type ArtisticSvgResult
+} from "./artistic";
 
 export {
   exportMapDocumentDd2Vtt,

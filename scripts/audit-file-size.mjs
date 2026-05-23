@@ -48,13 +48,14 @@ const ALLOWLIST = {
       "Exporter/parser dd2vtt con hardening import (Fase L); split incrementale futuro."
   },
   "packages/exporters/src/raster.ts": {
-    maxLines: 755,
+    maxLines: 806,
     reason:
-      "Render raster: scala reale asset + texture floor/wall via pattern; split per-helper futuro."
+      "Render raster: scala reale asset, texture floor/wall, delega modalita artistic; split per-helper futuro."
   },
   "apps/web/src/components/editor/editor-inspector.tsx": {
-    maxLines: 705,
-    reason: "Inspector editor; estrazione sotto-pannelli futura."
+    maxLines: 737,
+    reason:
+      "Inspector editor con toggle resa Debug/Artistic; estrazione sotto-pannelli futura."
   }
 };
 

@@ -10,6 +10,7 @@ type EditorExportDeps = {
   exportIncludeGrid: boolean;
   exportScale: number;
   projectId?: string;
+  renderMode: "debug" | "artistic";
   setIsExporting: (exporting: boolean) => void;
   setStatus: (message: string) => void;
 };
@@ -25,6 +26,7 @@ export function useEditorExport(deps: EditorExportDeps) {
     exportIncludeGrid,
     exportScale,
     projectId,
+    renderMode,
     setIsExporting,
     setStatus
   } = deps;
@@ -125,6 +127,7 @@ export function useEditorExport(deps: EditorExportDeps) {
           document,
           format: exportFormat,
           includeGrid: exportIncludeGrid,
+          renderMode,
           scale: exportScale
         }),
         headers: {

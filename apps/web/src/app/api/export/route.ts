@@ -26,6 +26,7 @@ type ExportRequest = {
   includeInitiative?: unknown;
   includeJournals?: unknown;
   mode?: unknown;
+  renderMode?: unknown;
   scale?: unknown;
   splitLayers?: unknown;
   webpQuality?: unknown;
@@ -91,7 +92,12 @@ export async function POST(request: Request) {
         assetResolver,
         format: format as RasterExportFormat,
         includeGrid,
+        renderMode: body.renderMode === "artistic" ? "artistic" : "debug",
         scale,
+        styleHint: {
+          tags: (document.plan?.rooms ?? []).flatMap((room) => room.tags),
+          theme: document.name
+        },
         webpQuality,
         ...(await pickTileTextureIds())
       });
