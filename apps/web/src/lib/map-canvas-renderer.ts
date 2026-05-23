@@ -16,6 +16,8 @@ import {
 } from "./map-editor-view";
 
 export type MapCanvasRenderInput = {
+  /** Loaded asset thumbnails keyed by placed-asset id (group or asset id). */
+  assetImages?: Map<string, HTMLImageElement>;
   canvasSize: { height: number; width: number };
   document: MapDocument;
   hoverCell: { x: number; y: number } | null;
@@ -38,6 +40,8 @@ export type MapCanvasRenderInput = {
 const ACCENT = "#e0b450";
 const ACCENT_SAGE = "#7fb39a";
 const HIGHLIGHT = "#f4efe7";
+// Reference px-per-cell for sizing real asset thumbnails (mirrors the export).
+const ASSET_PIXELS_PER_CELL = 256;
 
 export function drawMapCanvas(
   canvas: HTMLCanvasElement,
@@ -117,7 +121,8 @@ export function drawMapCanvas(
     document.assets,
     selectedAssetId,
     selectedAssetIds,
-    layerState
+    layerState,
+    input.assetImages
   );
   drawLayer(context, layerState, "notes", () =>
     drawNotes(context, document.plan?.gmNotes ?? [], selectedNote?.id ?? null)
@@ -443,7 +448,8 @@ function drawPlacedAssets(
   assets: MapDocument["assets"],
   selectedAssetId: string | null,
   selectedAssetIds: string[],
-  layerState: Map<MapLayerKind, { opacity: number; visible: boolean }>
+  layerState: Map<MapLayerKind, { opacity: number; visible: boolean }>,
+  images?: Map<string, HTMLImageElement>
 ) {
   const selectedAssetSet = new Set(selectedAssetIds);
 
@@ -460,11 +466,32 @@ function drawPlacedAssets(
     const radius = CANVAS_CELL_SIZE * 0.34 * asset.scale;
     const selected =
       asset.id === selectedAssetId || selectedAssetSet.has(asset.id);
+    const image = images?.get(asset.assetId);
     context.save();
     context.globalAlpha *= state?.opacity ?? 1;
     context.translate(x, y);
     context.rotate((asset.rotation * Math.PI) / 180);
     context.scale(asset.flipX ? -1 : 1, asset.flipY ? -1 : 1);
+
+    if (image && image.naturalWidth > 0) {
+      const { height, width } = imageFootprint(image, asset.scale);
+      context.shadowColor = "rgba(0, 0, 0, 0.5)";
+      context.shadowBlur = 6;
+      context.shadowOffsetY = 1;
+      context.drawImage(image, -width / 2, -height / 2, width, height);
+      context.shadowBlur = 0;
+      context.shadowOffsetY = 0;
+
+      if (selected) {
+        context.strokeStyle = ACCENT;
+        context.lineWidth = 2;
+        context.strokeRect(-width / 2, -height / 2, width, height);
+      }
+
+      context.restore();
+      continue;
+    }
+
     context.shadowColor = "rgba(0, 0, 0, 0.5)";
     context.shadowBlur = 6;
     context.shadowOffsetY = 1;
@@ -484,6 +511,23 @@ function drawPlacedAssets(
     context.fillText(getAssetLabel(asset.assetId), 0, 0);
     context.restore();
   }
+}
+
+/** Footprint in canvas pixels from the image's natural size (see export F2). */
+function imageFootprint(
+  image: HTMLImageElement,
+  scale: number
+): { height: number; width: number } {
+  const rawWidth = image.naturalWidth / ASSET_PIXELS_PER_CELL;
+  const rawHeight = image.naturalHeight / ASSET_PIXELS_PER_CELL;
+  const span = Math.max(rawWidth, rawHeight);
+  const clamped = Math.min(8, Math.max(0.5, span));
+  const fit = span > 0 ? clamped / span : 1;
+
+  return {
+    height: rawHeight * fit * CANVAS_CELL_SIZE * scale,
+    width: rawWidth * fit * CANVAS_CELL_SIZE * scale
+  };
 }
 
 function hexToRgba(hex: string, alpha: number): string {
