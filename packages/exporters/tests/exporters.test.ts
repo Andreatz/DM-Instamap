@@ -206,9 +206,9 @@ describe("exportMapDocumentRaster", () => {
     });
 
     expect(propsOnly).toContain("<circle");
-    expect(propsOnly).not.toContain("#394348");
-    expect(propsOnly).not.toContain("#f0b84c");
-    expect(propsOnly).not.toContain("fill-opacity");
+    expect(propsOnly).not.toContain("#333c41");
+    expect(propsOnly).not.toContain("#caa24a");
+    expect(propsOnly).not.toContain("stop-opacity");
   });
 
   it("bundles separated raster layers into a zip with a manifest", async () => {

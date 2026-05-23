@@ -228,7 +228,13 @@ export function renderMapDocumentSvg(
   ];
 
   if ((options.background ?? "default") === "default") {
-    parts.push(`<rect width="100%" height="100%" fill="#080a0b"/>`);
+    parts.push(
+      '<defs><radialGradient id="dm-backdrop" cx="50%" cy="48%" r="75%">' +
+        '<stop offset="0%" stop-color="#15191d"/>' +
+        '<stop offset="100%" stop-color="#080a0b"/>' +
+        "</radialGradient></defs>",
+      '<rect width="100%" height="100%" fill="url(#dm-backdrop)"/>'
+    );
   }
 
   for (let y = 0; y < document.height; y += 1) {
@@ -244,7 +250,7 @@ export function renderMapDocumentSvg(
   if (layers.has("walls")) {
     for (const wall of document.plan?.walls ?? []) {
       parts.push(
-        `<path d="M${wall.start.x * cellPixels} ${wall.start.y * cellPixels}L${wall.end.x * cellPixels} ${wall.end.y * cellPixels}" stroke="#2f383d" stroke-width="${Math.max(3, wall.thickness * cellPixels * 0.16)}" stroke-linecap="round"/>`
+        `<path d="M${wall.start.x * cellPixels} ${wall.start.y * cellPixels}L${wall.end.x * cellPixels} ${wall.end.y * cellPixels}" stroke="#1b2125" stroke-width="${Math.max(3, wall.thickness * cellPixels * 0.16)}" stroke-linecap="round"/>`
       );
     }
   }
@@ -252,7 +258,7 @@ export function renderMapDocumentSvg(
   if (layers.has("doors")) {
     for (const door of document.plan?.doors ?? []) {
       parts.push(
-        `<rect x="${door.position.x * cellPixels + cellPixels * 0.2}" y="${door.position.y * cellPixels + cellPixels * 0.2}" width="${cellPixels * 0.6}" height="${cellPixels * 0.6}" fill="#f0b84c"/>`
+        `<rect x="${door.position.x * cellPixels + cellPixels * 0.2}" y="${door.position.y * cellPixels + cellPixels * 0.2}" width="${cellPixels * 0.6}" height="${cellPixels * 0.6}" rx="${cellPixels * 0.08}" fill="#caa24a" stroke="#5a3c18" stroke-width="${Math.max(1, cellPixels * 0.04)}"/>`
       );
     }
   }
@@ -267,8 +273,8 @@ export function renderMapDocumentSvg(
   }
 
   if (layers.has("lighting")) {
-    for (const light of document.plan?.lights ?? []) {
-      parts.push(renderLight(light, cellPixels));
+    for (const [index, light] of (document.plan?.lights ?? []).entries()) {
+      parts.push(renderLight(light, cellPixels, index));
     }
   }
 
@@ -302,10 +308,10 @@ function renderPlacedAsset(asset: PlacedAsset, cellPixels: number): string {
   const radius = cellPixels * 0.34;
   const color =
     asset.layer === "lighting"
-      ? "#f5cc63"
+      ? "#e6bd62"
       : asset.layer === "floor"
         ? "#6fa0a8"
-        : "#86b38f";
+        : "#7fb39a";
   const label = escapeXml(getAssetInitial(asset.assetId));
   const scaleX = (asset.flipX ? -1 : 1) * asset.scale;
   const scaleY = (asset.flipY ? -1 : 1) * asset.scale;
@@ -452,12 +458,26 @@ function renderLight(
     position: { x: number; y: number };
     radius: number;
   },
-  cellPixels: number
+  cellPixels: number,
+  index: number
 ): string {
   const cx = light.position.x * cellPixels;
   const cy = light.position.y * cellPixels;
-  const radius = light.radius * cellPixels;
-  return `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="${escapeXml(light.color)}" fill-opacity="${Math.min(0.55, Math.max(0.08, light.intensity * 0.45))}"/>`;
+  const radius = Math.max(0.5, light.radius) * cellPixels;
+  const core = cellPixels * 0.22;
+  const color = escapeXml(light.color);
+  const id = `dm-light-${index}`;
+  const peak = Math.min(0.6, Math.max(0.12, light.intensity * 0.5));
+  // Soft radial falloff so exported lights read as glows, not flat discs.
+  return (
+    `<radialGradient id="${id}" cx="50%" cy="50%" r="50%">` +
+    `<stop offset="0%" stop-color="${color}" stop-opacity="${peak.toFixed(3)}"/>` +
+    `<stop offset="55%" stop-color="${color}" stop-opacity="${(peak * 0.3).toFixed(3)}"/>` +
+    `<stop offset="100%" stop-color="${color}" stop-opacity="0"/>` +
+    "</radialGradient>" +
+    `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="url(#${id})"/>` +
+    `<circle cx="${cx}" cy="${cy}" r="${core}" fill="${color}"/>`
+  );
 }
 
 function renderGrid(
@@ -521,13 +541,13 @@ function shouldRenderAsset(
 function tileColor(kind: MapTile["kind"] | "empty"): string {
   switch (kind) {
     case "door":
-      return "#d7a447";
+      return "#9b6f35";
     case "floor":
-      return "#a88d5d";
+      return "#ad9160";
     case "wall":
-      return "#394348";
+      return "#333c41";
     default:
-      return "#080a0b";
+      return "#0a0c0e";
   }
 }
 

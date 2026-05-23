@@ -34,6 +34,11 @@ export type MapCanvasRenderInput = {
   viewport: { offsetX: number; offsetY: number; zoom: number };
 };
 
+// Theme accents, mirrored from globals.css so the canvas matches the UI.
+const ACCENT = "#e0b450";
+const ACCENT_SAGE = "#7fb39a";
+const HIGHLIGHT = "#f4efe7";
+
 export function drawMapCanvas(
   canvas: HTMLCanvasElement,
   input: MapCanvasRenderInput
@@ -61,9 +66,7 @@ export function drawMapCanvas(
   const tilesByCell = createTileLookup(document.tiles);
   const layerState = createLayerState(layers);
 
-  context.clearRect(0, 0, input.canvasSize.width, input.canvasSize.height);
-  context.fillStyle = "#080a0b";
-  context.fillRect(0, 0, input.canvasSize.width, input.canvasSize.height);
+  drawBackdrop(context, input.canvasSize);
 
   context.save();
   context.translate(viewport.offsetX, viewport.offsetY);
@@ -79,13 +82,7 @@ export function drawMapCanvas(
           continue;
         }
 
-        context.fillStyle = getTileColor(kind);
-        context.fillRect(
-          x * CANVAS_CELL_SIZE,
-          y * CANVAS_CELL_SIZE,
-          CANVAS_CELL_SIZE,
-          CANVAS_CELL_SIZE
-        );
+        drawFloorCell(context, x, y, kind);
       }
     }
   });
@@ -99,13 +96,7 @@ export function drawMapCanvas(
           continue;
         }
 
-        context.fillStyle = getTileColor(tile.kind);
-        context.fillRect(
-          x * CANVAS_CELL_SIZE,
-          y * CANVAS_CELL_SIZE,
-          CANVAS_CELL_SIZE,
-          CANVAS_CELL_SIZE
-        );
+        drawSolidCell(context, x, y, tile.kind);
       }
     }
   });
@@ -151,7 +142,7 @@ export function drawMapCanvas(
       marqueeSelection.start,
       marqueeSelection.current
     );
-    context.strokeStyle = "rgba(215, 164, 71, 0.95)";
+    context.strokeStyle = "rgba(224, 180, 80, 0.95)";
     context.lineWidth = 2 / viewport.zoom;
     context.setLineDash([6 / viewport.zoom, 4 / viewport.zoom]);
     context.strokeRect(
@@ -169,14 +160,88 @@ export function drawMapCanvas(
 export function getTileColor(kind: string): string {
   switch (kind) {
     case "floor":
-      return "#a88d5d";
+      return "#ad9160";
     case "wall":
-      return "#394348";
+      return "#333c41";
     case "door":
-      return "#8a6431";
+      return "#9b6f35";
     default:
-      return "#080a0b";
+      return "#0a0c0e";
   }
+}
+
+/** Screen-space backdrop with a soft radial vignette for depth. */
+function drawBackdrop(
+  context: CanvasRenderingContext2D,
+  size: { height: number; width: number }
+) {
+  context.clearRect(0, 0, size.width, size.height);
+  const cx = size.width / 2;
+  const cy = size.height / 2;
+  const outer = Math.hypot(size.width, size.height) * 0.62;
+  const vignette = context.createRadialGradient(cx, cy, 0, cx, cy, outer);
+  vignette.addColorStop(0, "#15191d");
+  vignette.addColorStop(1, "#080a0b");
+  context.fillStyle = vignette;
+  context.fillRect(0, 0, size.width, size.height);
+}
+
+/** Floor cell: base colour plus a faint deterministic grain for texture. */
+function drawFloorCell(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  kind: string
+) {
+  const px = x * CANVAS_CELL_SIZE;
+  const py = y * CANVAS_CELL_SIZE;
+  context.fillStyle = getTileColor(kind);
+  context.fillRect(px, py, CANVAS_CELL_SIZE, CANVAS_CELL_SIZE);
+
+  if (kind !== "floor") {
+    return;
+  }
+
+  context.fillStyle = floorGrain(x, y);
+  context.fillRect(px, py, CANVAS_CELL_SIZE, CANVAS_CELL_SIZE);
+}
+
+/** Solid cell (wall/door) with a top highlight and bottom shadow bevel. */
+function drawSolidCell(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  kind: string
+) {
+  const px = x * CANVAS_CELL_SIZE;
+  const py = y * CANVAS_CELL_SIZE;
+  context.fillStyle = getTileColor(kind);
+  context.fillRect(px, py, CANVAS_CELL_SIZE, CANVAS_CELL_SIZE);
+
+  if (kind !== "wall") {
+    return;
+  }
+
+  context.fillStyle = "rgba(255, 255, 255, 0.07)";
+  context.fillRect(px, py, CANVAS_CELL_SIZE, 2);
+  context.fillStyle = "rgba(0, 0, 0, 0.3)";
+  context.fillRect(px, py + CANVAS_CELL_SIZE - 2, CANVAS_CELL_SIZE, 2);
+}
+
+function floorGrain(x: number, y: number): string {
+  // Stable per-cell hash -> subtle light/dark overlay for a stone-like grain.
+  const hash = ((x * 73_856_093) ^ (y * 19_349_663)) >>> 0;
+  const bucket = hash % 100;
+
+  if (bucket < 40) {
+    return "rgba(0, 0, 0, 0.06)";
+  }
+
+  if (bucket > 78) {
+    return "rgba(255, 244, 214, 0.05)";
+  }
+
+  return "rgba(0, 0, 0, 0)";
 }
 
 function createTileLookup(tiles: MapTile[]): Map<string, MapTile> {
@@ -201,7 +266,7 @@ function drawGrid(
     return;
   }
 
-  context.strokeStyle = "rgba(244, 239, 231, 0.08)";
+  context.strokeStyle = "rgba(244, 239, 231, 0.07)";
   context.lineWidth = 1 / zoom;
   context.beginPath();
 
@@ -226,8 +291,8 @@ function drawRooms(
   for (const room of rooms) {
     context.strokeStyle =
       room.id === selectedRoomId
-        ? "rgba(215, 164, 71, 0.95)"
-        : "rgba(120, 168, 144, 0.4)";
+        ? "rgba(224, 180, 80, 0.95)"
+        : "rgba(127, 179, 154, 0.4)";
     context.lineWidth = room.id === selectedRoomId ? 3 : 1.5;
     context.strokeRect(
       room.bounds.x * CANVAS_CELL_SIZE,
@@ -239,8 +304,8 @@ function drawRooms(
 }
 
 function drawWalls(context: CanvasRenderingContext2D, walls: WallSegment[]) {
-  context.strokeStyle = "#20272b";
-  context.lineCap = "square";
+  context.strokeStyle = "#1b2125";
+  context.lineCap = "round";
 
   for (const wall of walls) {
     context.lineWidth = Math.max(2, wall.thickness * 2);
@@ -266,11 +331,18 @@ function drawDoors(
     const size = CANVAS_CELL_SIZE * 0.56;
     const x = door.position.x * CANVAS_CELL_SIZE - size / 2;
     const y = door.position.y * CANVAS_CELL_SIZE - size / 2;
-    context.fillStyle = door.id === selectedDoorId ? "#f4efe7" : "#d7a447";
-    context.fillRect(x, y, size, size);
+    context.save();
+    context.shadowColor = "rgba(0, 0, 0, 0.45)";
+    context.shadowBlur = 5;
+    context.fillStyle = door.id === selectedDoorId ? HIGHLIGHT : ACCENT;
+    context.beginPath();
+    context.roundRect(x, y, size, size, 3);
+    context.fill();
+    context.shadowBlur = 0;
     context.strokeStyle = "#5a3c18";
     context.lineWidth = 2;
-    context.strokeRect(x, y, size, size);
+    context.stroke();
+    context.restore();
   }
 }
 
@@ -283,20 +355,29 @@ function drawLights(
     const x = light.position.x * CANVAS_CELL_SIZE;
     const y = light.position.y * CANVAS_CELL_SIZE;
     const flickerScale = light.flicker ? 0.88 : 1;
+    const glowRadius =
+      Math.max(0.5, light.radius) * CANVAS_CELL_SIZE * flickerScale;
+
+    // Additive radial glow for an atmospheric falloff.
+    context.save();
+    context.globalCompositeOperation = "lighter";
+    const glow = context.createRadialGradient(x, y, 0, x, y, glowRadius);
+    glow.addColorStop(0, hexToRgba(light.color, 0.42));
+    glow.addColorStop(0.45, hexToRgba(light.color, 0.14));
+    glow.addColorStop(1, hexToRgba(light.color, 0));
+    context.fillStyle = glow;
     context.beginPath();
-    context.fillStyle = light.id === selectedLightId ? "#f4efe7" : light.color;
-    context.arc(x, y, CANVAS_CELL_SIZE * 0.28, 0, Math.PI * 2);
+    context.arc(x, y, glowRadius, 0, Math.PI * 2);
     context.fill();
-    context.strokeStyle = "rgba(215, 164, 71, 0.25)";
-    context.lineWidth = 1.5;
+    context.restore();
+
+    // Light source core.
     context.beginPath();
-    context.arc(
-      x,
-      y,
-      light.radius * CANVAS_CELL_SIZE * flickerScale,
-      0,
-      Math.PI * 2
-    );
+    context.fillStyle = light.id === selectedLightId ? HIGHLIGHT : light.color;
+    context.arc(x, y, CANVAS_CELL_SIZE * 0.24, 0, Math.PI * 2);
+    context.fill();
+    context.strokeStyle = "rgba(224, 180, 80, 0.35)";
+    context.lineWidth = 1.5;
     context.stroke();
   }
 }
@@ -311,7 +392,9 @@ function drawNotes(
     const y = (note.position.y + 0.5) * CANVAS_CELL_SIZE;
     context.save();
     context.translate(x, y);
-    context.fillStyle = note.id === selectedNoteId ? "#f4efe7" : "#d7a447";
+    context.shadowColor = "rgba(0, 0, 0, 0.45)";
+    context.shadowBlur = 4;
+    context.fillStyle = note.id === selectedNoteId ? HIGHLIGHT : ACCENT;
     context.strokeStyle = "#5a3c18";
     context.lineWidth = 1.5;
     context.beginPath();
@@ -320,6 +403,7 @@ function drawNotes(
     context.lineTo(-8, 6);
     context.closePath();
     context.fill();
+    context.shadowBlur = 0;
     context.stroke();
     context.restore();
   }
@@ -336,7 +420,7 @@ function drawFogPreview(
 
   const visibleCells = new Set(visibleCellKeys);
   context.save();
-  context.fillStyle = "rgba(0, 0, 0, 0.52)";
+  context.fillStyle = "rgba(0, 0, 0, 0.55)";
 
   for (let y = 0; y < document.height; y += 1) {
     for (let x = 0; x < document.width; x += 1) {
@@ -374,28 +458,46 @@ function drawPlacedAssets(
     const x = (asset.position.x + 0.5) * CANVAS_CELL_SIZE;
     const y = (asset.position.y + 0.5) * CANVAS_CELL_SIZE;
     const radius = CANVAS_CELL_SIZE * 0.34 * asset.scale;
+    const selected =
+      asset.id === selectedAssetId || selectedAssetSet.has(asset.id);
     context.save();
     context.globalAlpha *= state?.opacity ?? 1;
     context.translate(x, y);
     context.rotate((asset.rotation * Math.PI) / 180);
     context.scale(asset.flipX ? -1 : 1, asset.flipY ? -1 : 1);
+    context.shadowColor = "rgba(0, 0, 0, 0.5)";
+    context.shadowBlur = 6;
+    context.shadowOffsetY = 1;
     context.beginPath();
-    context.fillStyle =
-      asset.id === selectedAssetId || selectedAssetSet.has(asset.id)
-        ? "#d7a447"
-        : "#78a890";
+    context.fillStyle = selected ? ACCENT : ACCENT_SAGE;
     context.arc(0, 0, radius, 0, Math.PI * 2);
     context.fill();
+    context.shadowBlur = 0;
+    context.shadowOffsetY = 0;
     context.strokeStyle = "rgba(244, 239, 231, 0.8)";
     context.lineWidth = 1.5;
     context.stroke();
     context.fillStyle = "#0f1214";
-    context.font = "700 10px Arial";
+    context.font = "700 10px system-ui, sans-serif";
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.fillText(getAssetLabel(asset.assetId), 0, 0);
     context.restore();
   }
+}
+
+function hexToRgba(hex: string, alpha: number): string {
+  const match = /^#?([0-9a-f]{6})$/iu.exec(hex.trim());
+
+  if (!match?.[1]) {
+    return `rgba(224, 180, 80, ${alpha})`;
+  }
+
+  const value = Number.parseInt(match[1], 16);
+  const r = (value >> 16) & 0xff;
+  const g = (value >> 8) & 0xff;
+  const b = value & 0xff;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 function createLayerState(
