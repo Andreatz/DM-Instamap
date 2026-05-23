@@ -42,6 +42,14 @@ DM-Instamap is organized as a local-first monorepo.
   pair it with the `JobProgressBar` component.
 - `apps/web/src/lib/local-paths.ts` is the web-side path validation policy for
   local filesystem input.
+- `apps/web/src/lib/local-security.ts` + `apps/web/src/proxy.ts` enforce the
+  local-first access model: localhost-only by default, an opt-in remote flag,
+  and an optional LAN IP allowlist and per-IP rate limit when remote access is
+  enabled.
+- `apps/web/src/lib/virtual-grid.ts` + `apps/web/src/hooks/use-virtual-grid.ts`
+  virtualize the asset browser so only on-screen rows mount, and
+  `apps/web/src/lib/editor-hydration.ts` caps how many asset groups are hydrated
+  into the editor (see [PERFORMANCE.md](PERFORMANCE.md)).
 
 ## Principles
 

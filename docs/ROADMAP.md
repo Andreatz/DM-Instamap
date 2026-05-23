@@ -1,5 +1,11 @@
 # DM-Instamap - Roadmap verso 9.5 e completezza
 
+> **Stato: completata (2026-05-23).** Tutte le fasi A-M sono implementate,
+> testate e documentate; gli obiettivi 9.5/10 e "feature-complete per uso DM
+> personale" sono raggiunti. Questo documento resta come piano storico e
+> riferimento delle Definition of Done. Le novita per fase sono riassunte in
+> [CHANGELOG.md](../CHANGELOG.md).
+
 ## Premessa
 
 Questa roadmap parte dalla baseline attuale, valutata circa **8/10** in una
