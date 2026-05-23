@@ -84,6 +84,57 @@ function cryptFixture() {
   });
 }
 
+function redLightsFixture() {
+  const width = 16;
+  const height = 14;
+  const tiles: MapTile[] = [];
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const edge = x === 0 || y === 0 || x === width - 1 || y === height - 1;
+      tiles.push({ id: `tile-${x}-${y}`, kind: edge ? "wall" : "floor", x, y });
+    }
+  }
+  // Ten pure-red, max-intensity, oversized torches: the exact "debug blob" case.
+  const lights: LightSource[] = Array.from({ length: 10 }, (_, i) => ({
+    color: "#ff0000",
+    flicker: false,
+    id: `red-${i}`,
+    intensity: 1,
+    kind: "torch" as const,
+    position: { x: 2 + (i % 5) * 3, y: 3 + Math.floor(i / 5) * 6 },
+    radius: 9
+  }));
+  const plan: MapPlan = {
+    assetPlacements: [],
+    doors: [],
+    gmNotes: [],
+    id: "plan-red",
+    initiative: [],
+    lights,
+    name: "Red Plan",
+    notes: [],
+    requestId: "test-red",
+    rooms: [],
+    walls: []
+  };
+  return createMapDocument({
+    grid: {
+      cellSize: 5,
+      height,
+      pixelsPerCell: 70,
+      type: "square",
+      unit: "ft",
+      width
+    },
+    height,
+    id: "red-fixture",
+    name: "Red",
+    plan,
+    tiles,
+    width
+  });
+}
+
 describe("artistic renderer", () => {
   it("uses the preset palette and procedural fallback without textures", () => {
     const preset = getRenderPreset("dark-warm-crypt");
@@ -145,6 +196,38 @@ describe("artistic renderer", () => {
 
     // Clamped warm lights must never blow the scene out to white, and the
     // procedural fallback must not be the old red debug fill.
+    expect(nearWhite / pixels).toBeLessThan(0.02);
+    expect(saturatedRed / pixels).toBeLessThan(0.01);
+  });
+
+  it("normalises ten pure-red lights into a warm scene, not a red blob", async () => {
+    const result = await exportMapDocumentRaster(redLightsFixture(), {
+      format: "png",
+      renderMode: "artistic",
+      scale: 1.5,
+      stylePreset: "tavern-topdown"
+    });
+
+    const { data, info } = await sharp(result.buffer)
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    const pixels = info.width * info.height;
+    let nearWhite = 0;
+    let saturatedRed = 0;
+    for (let i = 0; i < pixels; i += 1) {
+      const r = data[i * info.channels] ?? 0;
+      const g = data[i * info.channels + 1] ?? 0;
+      const b = data[i * info.channels + 2] ?? 0;
+      if (r > 235 && g > 235 && b > 235) {
+        nearWhite += 1;
+      }
+      if (r > 180 && g < 80 && b < 80) {
+        saturatedRed += 1;
+      }
+    }
+
+    // Even with #ff0000 lights, the artistic renderer must produce warm amber
+    // glows: no white blowout and no dominant saturated-red area.
     expect(nearWhite / pixels).toBeLessThan(0.02);
     expect(saturatedRed / pixels).toBeLessThan(0.01);
   });

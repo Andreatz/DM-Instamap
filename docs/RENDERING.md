@@ -51,15 +51,25 @@ la "Cripta sotto la Cattedrale" ottiene automaticamente `dark-warm-crypt`.
 
 ## Luci controllate
 
-Per evitare overlay bianchi/rossi bruciati:
+Canvas editor ed export condividono lo stesso stile luce artistico
+(`artisticLightStyle(kind, color)` in `render-style.ts`), così la modalita
+artistica non produce mai gli overlay bianchi/rossi bruciati della modalita
+debug:
 
-- le luci **ambient** non vengono dipinte (tingono l'intera scena);
-- l'intensita e clampata per tipo (`clampLightIntensity`): torce ≤ 0.45, magia
-  ≤ 0.55;
-- il raggio del bagliore e cappato (`lightRadiusCapCells`), cosi una luce non
-  copre piu di ~25-30% di una stanza;
-- il bagliore e un gradiente morbido in alpha compositing con un picco basso
-  (mai blob bianco); il colore vira al caldo secondo `lightWarmth`.
+- le luci **ambient** non vengono dipinte (tingono l'intera scena): mostrano
+  solo un piccolo marker;
+- niente blending additivo (`lighter`): il bagliore usa `source-over`;
+- torce/lanterne/fuoco (e qualsiasi tipo sconosciuto) diventano un **ambra
+  caldo** `#ff9f4a`, mai rosso; le luci **magic** mantengono la loro tinta
+  (blu/viola), ma un rosso puro `#ff0000` viene normalizzato ad ambra;
+- alpha di picco basso: ≤ 0.26 per torce, ≤ 0.32 per magia (mai blob bianco);
+- raggio del bagliore cappato: ≤ 3.5 celle per torce, ≤ 4 per magia, così una
+  luce non inonda l'intera stanza;
+- il core e un piccolo cerchio caldo, **mai bianco** (la selezione usa l'accent
+  ambra, non il tint chiaro).
+
+La modalita **debug** mantiene il bagliore additivo tecnico: e pensata per
+l'ispezione, non per la resa finale.
 
 ## Fallback procedurale
 

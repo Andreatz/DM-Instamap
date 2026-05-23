@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  ARTISTIC_WARM_LIGHT,
   DEFAULT_RENDER_PRESET,
   RENDER_STYLE_PRESETS,
+  artisticLightStyle,
   clampLightIntensity,
   deriveRenderPreset,
   getRenderPreset
@@ -54,5 +56,28 @@ describe("render style presets", () => {
     expect(clampLightIntensity(0.2, "torch", preset)).toBe(0.2);
     expect(clampLightIntensity(-5, "torch", preset)).toBe(0);
     expect(clampLightIntensity(Number.NaN, "magic", preset)).toBe(0);
+  });
+
+  it("turns torch/lantern lights into a contained warm amber glow", () => {
+    const torch = artisticLightStyle("torch", "#ff0000");
+    expect(torch.color).toBe(ARTISTIC_WARM_LIGHT);
+    expect(torch.alpha).toBeLessThanOrEqual(0.26);
+    expect(torch.radiusCells).toBeLessThanOrEqual(3.5);
+
+    // Unknown kinds default to the same safe warm glow.
+    expect(artisticLightStyle(undefined, "#ffffff").color).toBe(
+      ARTISTIC_WARM_LIGHT
+    );
+  });
+
+  it("keeps magic hues but normalises pure-red magic to amber", () => {
+    const blue = artisticLightStyle("magic", "#6fa8d6");
+    expect(blue.color).toBe("#6fa8d6");
+    expect(blue.alpha).toBeLessThanOrEqual(0.32);
+    expect(blue.radiusCells).toBeLessThanOrEqual(4);
+
+    expect(artisticLightStyle("magic", "#ff0000").color).toBe(
+      ARTISTIC_WARM_LIGHT
+    );
   });
 });

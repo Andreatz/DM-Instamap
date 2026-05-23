@@ -83,7 +83,7 @@ export function useMapEditorState({
     current: { x: number; y: number };
     start: { x: number; y: number };
   } | null>(null);
-  const [fogPreviewEnabled, setFogPreviewEnabled] = useState(true);
+  const [fogPreviewEnabled, setFogPreviewEnabled] = useState(false);
   const [furnishingDensity, setFurnishingDensity] =
     useState<FurnishingDensity>("rich");
   const [exportFormat, setExportFormat] = useState<ExportFormat>("png");

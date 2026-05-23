@@ -225,3 +225,61 @@ export function clampLightIntensity(
   }
   return Math.min(cap, intensity);
 }
+
+/** Warm amber used for torch/lantern/fire lights in artistic mode. */
+export const ARTISTIC_WARM_LIGHT = "#ff9f4a";
+
+/**
+ * Final artistic light parameters: a soft warm glow with a low alpha peak and a
+ * small radius, shared verbatim by the editor canvas and the export renderer.
+ */
+export type ArtisticLightStyle = {
+  /** Peak glow alpha (never high enough to read as a white/red blob). */
+  alpha: number;
+  /** Resolved hex colour (warm amber for fire, base colour for magic). */
+  color: string;
+  /** Max glow radius in cells. */
+  radiusCells: number;
+};
+
+/** A near-pure-red colour reads as a debug overlay, not real light. */
+function isDebugRed(hex: string): boolean {
+  const c = parseHex6(hex);
+  if (!c) {
+    return false;
+  }
+  return c.r > 170 && c.g < 90 && c.b < 90;
+}
+
+function parseHex6(hex: string): { b: number; g: number; r: number } | null {
+  const match = /^#?([0-9a-f]{6})$/iu.exec(hex.trim());
+  if (!match?.[1]) {
+    return null;
+  }
+  const value = Number.parseInt(match[1], 16);
+  return { b: value & 0xff, g: (value >> 8) & 0xff, r: (value >> 16) & 0xff };
+}
+
+function normalizeHex6(hex: string): string | null {
+  const match = /^#?([0-9a-f]{6})$/iu.exec(hex.trim());
+  return match?.[1] ? `#${match[1].toLowerCase()}` : null;
+}
+
+/**
+ * Resolve the artistic glow style for a light. Torch/lantern/fire (and any
+ * unknown kind) always become a contained warm amber — never red, never a white
+ * core. Magic keeps its own hue (e.g. blue/purple) but pure-red magic is also
+ * normalised to amber so a debug "#ff0000" never floods the scene.
+ */
+export function artisticLightStyle(
+  kind: string | undefined,
+  baseColor: string
+): ArtisticLightStyle {
+  if (kind === "magic") {
+    const normalized = normalizeHex6(baseColor);
+    const color =
+      !normalized || isDebugRed(baseColor) ? ARTISTIC_WARM_LIGHT : normalized;
+    return { alpha: 0.32, color, radiusCells: 4 };
+  }
+  return { alpha: 0.26, color: ARTISTIC_WARM_LIGHT, radiusCells: 3.5 };
+}
