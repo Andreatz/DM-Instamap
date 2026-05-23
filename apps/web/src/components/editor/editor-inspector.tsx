@@ -31,6 +31,9 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
     exportScale,
     fogPreviewEnabled,
     furnishingDensity,
+    renderMode,
+    setRenderMode,
+    stylePreset,
     groupSelectedAssets,
     handleAutoFurnish,
     handleExport,
@@ -634,6 +637,32 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
       </section>
 
       <section className="detail-block editor-export-controls">
+        <h3>Resa</h3>
+        <label>
+          <span>Modalita</span>
+          <select
+            onChange={(event) =>
+              setRenderMode(
+                event.target.value === "artistic" ? "artistic" : "debug"
+              )
+            }
+            value={renderMode}
+          >
+            <option value="artistic">Artistica (battlemap)</option>
+            <option value="debug">Debug (schematica)</option>
+          </select>
+        </label>
+        {renderMode === "artistic" ? (
+          <p className="editor-render-note">
+            Preset: {stylePreset.label}.{" "}
+            {assetGroups.length === 0
+              ? "Nessun asset locale: uso fallback pittorico procedurale."
+              : "Texture e asset reali usati se disponibili."}
+          </p>
+        ) : null}
+      </section>
+
+      <section className="detail-block editor-export-controls">
         <h3>Esportazione</h3>
         <label>
           <span>Formato</span>
@@ -673,7 +702,11 @@ export function EditorInspector({ editor }: { editor: MapEditorController }) {
           onClick={handleExport}
           type="button"
         >
-          {isExporting ? "Esportazione..." : "Esporta mappa"}
+          {isExporting
+            ? "Esportazione..."
+            : renderMode === "artistic"
+              ? "Esporta mappa artistica"
+              : "Esporta mappa debug"}
         </button>
       </section>
 

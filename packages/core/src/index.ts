@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export * from "./render-style";
+
 const IdSchema = z.string().trim().min(1);
 const NameSchema = z.string().trim().min(1);
 const LocalPathSchema = z.string().trim().min(1);

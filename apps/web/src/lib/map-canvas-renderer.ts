@@ -5,6 +5,7 @@ import type {
   MapLayer,
   MapLayerKind,
   MapNote,
+  RenderPalette,
   MapTile,
   RoomNode,
   WallSegment
@@ -20,6 +21,11 @@ export type MapCanvasRenderInput = {
   assetImages?: Map<string, HTMLImageElement>;
   canvasSize: { height: number; width: number };
   document: MapDocument;
+  /**
+   * Artistic render style. When set, the canvas uses the preset palette and a
+   * discreet grid; when omitted it keeps the schematic debug look.
+   */
+  renderStyle?: { gridOpacity: number; palette: RenderPalette } | null;
   hoverCell: { x: number; y: number } | null;
   layers: MapLayer[];
   marqueeSelection: {
@@ -42,6 +48,8 @@ const ACCENT_SAGE = "#7fb39a";
 const HIGHLIGHT = "#f4efe7";
 // Reference px-per-cell for sizing real asset thumbnails (mirrors the export).
 const ASSET_PIXELS_PER_CELL = 256;
+// Cap on the light glow radius (cells) so big lights do not wash out the map.
+const MAX_LIGHT_GLOW_CELLS = 6;
 
 export function drawMapCanvas(
   canvas: HTMLCanvasElement,
@@ -69,8 +77,9 @@ export function drawMapCanvas(
   } = input;
   const tilesByCell = createTileLookup(document.tiles);
   const layerState = createLayerState(layers);
+  const palette = input.renderStyle?.palette ?? null;
 
-  drawBackdrop(context, input.canvasSize);
+  drawBackdrop(context, input.canvasSize, palette);
 
   context.save();
   context.translate(viewport.offsetX, viewport.offsetY);
@@ -86,7 +95,7 @@ export function drawMapCanvas(
           continue;
         }
 
-        drawFloorCell(context, x, y, kind);
+        drawFloorCell(context, x, y, kind, palette);
       }
     }
   });
@@ -100,12 +109,12 @@ export function drawMapCanvas(
           continue;
         }
 
-        drawSolidCell(context, x, y, tile.kind);
+        drawSolidCell(context, x, y, tile.kind, palette);
       }
     }
   });
 
-  drawGrid(context, document, viewport.zoom);
+  drawGrid(context, document, viewport.zoom, input.renderStyle?.gridOpacity);
   drawLayer(context, layerState, "notes", () =>
     drawRooms(context, document.plan?.rooms ?? [], selectedRoomId)
   );
@@ -178,15 +187,16 @@ export function getTileColor(kind: string): string {
 /** Screen-space backdrop with a soft radial vignette for depth. */
 function drawBackdrop(
   context: CanvasRenderingContext2D,
-  size: { height: number; width: number }
+  size: { height: number; width: number },
+  palette: RenderPalette | null
 ) {
   context.clearRect(0, 0, size.width, size.height);
   const cx = size.width / 2;
   const cy = size.height / 2;
   const outer = Math.hypot(size.width, size.height) * 0.62;
   const vignette = context.createRadialGradient(cx, cy, 0, cx, cy, outer);
-  vignette.addColorStop(0, "#15191d");
-  vignette.addColorStop(1, "#080a0b");
+  vignette.addColorStop(0, palette?.background ?? "#15191d");
+  vignette.addColorStop(1, palette?.backgroundEdge ?? "#080a0b");
   context.fillStyle = vignette;
   context.fillRect(0, 0, size.width, size.height);
 }
@@ -196,11 +206,12 @@ function drawFloorCell(
   context: CanvasRenderingContext2D,
   x: number,
   y: number,
-  kind: string
+  kind: string,
+  palette: RenderPalette | null
 ) {
   const px = x * CANVAS_CELL_SIZE;
   const py = y * CANVAS_CELL_SIZE;
-  context.fillStyle = getTileColor(kind);
+  context.fillStyle = palette ? palette.floor : getTileColor(kind);
   context.fillRect(px, py, CANVAS_CELL_SIZE, CANVAS_CELL_SIZE);
 
   if (kind !== "floor") {
@@ -216,11 +227,17 @@ function drawSolidCell(
   context: CanvasRenderingContext2D,
   x: number,
   y: number,
-  kind: string
+  kind: string,
+  palette: RenderPalette | null
 ) {
   const px = x * CANVAS_CELL_SIZE;
   const py = y * CANVAS_CELL_SIZE;
-  context.fillStyle = getTileColor(kind);
+  const fill = palette
+    ? kind === "wall"
+      ? palette.wall
+      : palette.floor
+    : null;
+  context.fillStyle = fill ?? getTileColor(kind);
   context.fillRect(px, py, CANVAS_CELL_SIZE, CANVAS_CELL_SIZE);
 
   if (kind !== "wall") {
@@ -229,7 +246,7 @@ function drawSolidCell(
 
   context.fillStyle = "rgba(255, 255, 255, 0.07)";
   context.fillRect(px, py, CANVAS_CELL_SIZE, 2);
-  context.fillStyle = "rgba(0, 0, 0, 0.3)";
+  context.fillStyle = palette ? palette.wallBorder : "rgba(0, 0, 0, 0.3)";
   context.fillRect(px, py + CANVAS_CELL_SIZE - 2, CANVAS_CELL_SIZE, 2);
 }
 
@@ -265,13 +282,15 @@ function getAssetLabel(assetId: string): string {
 function drawGrid(
   context: CanvasRenderingContext2D,
   document: MapDocument,
-  zoom: number
+  zoom: number,
+  gridOpacity?: number
 ) {
   if (zoom < 0.45) {
     return;
   }
 
-  context.strokeStyle = "rgba(244, 239, 231, 0.07)";
+  const opacity = Math.max(0, Math.min(0.2, gridOpacity ?? 0.07));
+  context.strokeStyle = `rgba(244, 239, 231, ${opacity})`;
   context.lineWidth = 1 / zoom;
   context.beginPath();
 
@@ -361,20 +380,25 @@ function drawLights(
     const y = light.position.y * CANVAS_CELL_SIZE;
     const flickerScale = light.flicker ? 0.88 : 1;
     const glowRadius =
-      Math.max(0.5, light.radius) * CANVAS_CELL_SIZE * flickerScale;
+      Math.min(MAX_LIGHT_GLOW_CELLS, Math.max(0.5, light.radius)) *
+      CANVAS_CELL_SIZE *
+      flickerScale;
 
-    // Additive radial glow for an atmospheric falloff.
-    context.save();
-    context.globalCompositeOperation = "lighter";
-    const glow = context.createRadialGradient(x, y, 0, x, y, glowRadius);
-    glow.addColorStop(0, hexToRgba(light.color, 0.42));
-    glow.addColorStop(0.45, hexToRgba(light.color, 0.14));
-    glow.addColorStop(1, hexToRgba(light.color, 0));
-    context.fillStyle = glow;
-    context.beginPath();
-    context.arc(x, y, glowRadius, 0, Math.PI * 2);
-    context.fill();
-    context.restore();
+    // Subtle additive glow, capped so the map stays readable. Ambient lights
+    // tint the whole scene, so they only get a marker (no big blob).
+    if (light.kind !== "ambient") {
+      context.save();
+      context.globalCompositeOperation = "lighter";
+      const glow = context.createRadialGradient(x, y, 0, x, y, glowRadius);
+      glow.addColorStop(0, hexToRgba(light.color, 0.16));
+      glow.addColorStop(0.5, hexToRgba(light.color, 0.05));
+      glow.addColorStop(1, hexToRgba(light.color, 0));
+      context.fillStyle = glow;
+      context.beginPath();
+      context.arc(x, y, glowRadius, 0, Math.PI * 2);
+      context.fill();
+      context.restore();
+    }
 
     // Light source core.
     context.beginPath();

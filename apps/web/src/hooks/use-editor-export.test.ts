@@ -16,6 +16,7 @@ function setup(projectId?: string) {
       exportIncludeGrid: true,
       exportScale: 1,
       projectId,
+      renderMode: "artistic",
       setIsExporting,
       setStatus
     })

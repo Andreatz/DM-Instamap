@@ -1,11 +1,18 @@
 import JSZip from "jszip";
 import sharp from "sharp";
-import type {
-  MapDocument,
-  MapTile,
-  PlacedAsset
+import {
+  deriveRenderPreset,
+  getRenderPreset,
+  type MapDocument,
+  type MapTile,
+  type PlacedAsset,
+  type RenderStyleHint,
+  type RenderStylePresetId
 } from "@dm-instamap/core/browser";
+import { renderArtisticMapSvg } from "./artistic";
 import type { AssetResolver, RasterAssetSource } from "./asset-resolver";
+
+export type RenderMode = "debug" | "artistic";
 
 export type RasterExportFormat = "png" | "webp";
 export type RasterExportLayer =
@@ -42,6 +49,15 @@ export type RasterExportOptions = {
   includeGrid?: boolean;
   layers?: readonly RasterExportLayer[];
   filenameSuffix?: string;
+  /**
+   * "debug" (default) keeps the schematic logical render; "artistic" produces
+   * the illustrated battlemap using a render style preset.
+   */
+  renderMode?: RenderMode;
+  /** Explicit artistic preset; overrides derivation from styleHint. */
+  stylePreset?: RenderStylePresetId;
+  /** Hint (theme/tags/palette) used to derive the artistic preset. */
+  styleHint?: RenderStyleHint;
   scale?: number;
   webpQuality?: number;
 };
@@ -53,6 +69,8 @@ export type RasterExportResult = {
   format: RasterExportFormat;
   height: number;
   missingAssets: string[];
+  /** True when the artistic render fell back to procedural floor/wall. */
+  usedProceduralFallback: boolean;
   usedAssets: string[];
   warnings: string[];
   width: number;
@@ -107,16 +125,37 @@ export async function exportMapDocumentRaster(
       cellPixels
     )
   ]);
-  const svg = renderMapDocumentSvg(document, {
-    assetMarkers: !options.assetResolver,
-    background: options.background ?? "default",
-    cellPixels,
-    fallbackAssetIds: assetRenderPlan.missingPlacedAssetIds,
-    floorPattern,
-    includeGrid: options.includeGrid ?? true,
-    layers: options.layers,
-    wallPattern
-  });
+  let svg: string;
+  let usedProceduralFallback = false;
+
+  if (options.renderMode === "artistic") {
+    const preset = getRenderPreset(
+      options.stylePreset ?? deriveRenderPreset(options.styleHint)
+    );
+    const artistic = renderArtisticMapSvg(document, {
+      assetMarkers: !options.assetResolver,
+      cellPixels,
+      fallbackAssetIds: assetRenderPlan.missingPlacedAssetIds,
+      floorPattern,
+      includeGrid: options.includeGrid ?? true,
+      layers: options.layers,
+      preset,
+      wallPattern
+    });
+    svg = artistic.svg;
+    usedProceduralFallback = artistic.usedProceduralFallback;
+  } else {
+    svg = renderMapDocumentSvg(document, {
+      assetMarkers: !options.assetResolver,
+      background: options.background ?? "default",
+      cellPixels,
+      fallbackAssetIds: assetRenderPlan.missingPlacedAssetIds,
+      floorPattern,
+      includeGrid: options.includeGrid ?? true,
+      layers: options.layers,
+      wallPattern
+    });
+  }
   const base = await sharp(Buffer.from(svg))
     .resize(width, height, { fit: "fill" })
     .png()
@@ -145,6 +184,7 @@ export async function exportMapDocumentRaster(
     height,
     missingAssets: unique(assetRenderPlan.missingAssets),
     usedAssets: unique(compositeInputs.map((input) => input.assetId)),
+    usedProceduralFallback,
     warnings: assetRenderPlan.warnings,
     width
   };
@@ -330,7 +370,10 @@ export function renderMapDocumentSvg(
 
   if (layers.has("lighting")) {
     for (const [index, light] of (document.plan?.lights ?? []).entries()) {
-      parts.push(renderLight(light, cellPixels, index));
+      const rendered = renderLight(light, cellPixels, index);
+      if (rendered) {
+        parts.push(rendered);
+      }
     }
   }
 
@@ -601,32 +644,42 @@ async function renderAssetImage(
   return pipeline.png().toBuffer();
 }
 
+const MAX_LIGHT_GLOW_CELLS = 6;
+
 function renderLight(
   light: {
     color: string;
     intensity: number;
+    kind?: string;
     position: { x: number; y: number };
     radius: number;
   },
   cellPixels: number,
   index: number
 ): string {
+  // Ambient lights tint the whole scene; baking them as a huge radial blob
+  // washes the map out, so they are skipped in the exported image.
+  if (light.kind === "ambient") {
+    return "";
+  }
+
   const cx = light.position.x * cellPixels;
   const cy = light.position.y * cellPixels;
-  const radius = Math.max(0.5, light.radius) * cellPixels;
-  const core = cellPixels * 0.22;
+  const radius =
+    Math.min(MAX_LIGHT_GLOW_CELLS, Math.max(0.5, light.radius)) * cellPixels;
+  const core = cellPixels * 0.16;
   const color = escapeXml(light.color);
   const id = `dm-light-${index}`;
-  const peak = Math.min(0.6, Math.max(0.12, light.intensity * 0.5));
-  // Soft radial falloff so exported lights read as glows, not flat discs.
+  // Keep the glow as a subtle tint so the map underneath stays readable.
+  const peak = Math.min(0.18, Math.max(0.05, light.intensity * 0.16));
   return (
     `<radialGradient id="${id}" cx="50%" cy="50%" r="50%">` +
     `<stop offset="0%" stop-color="${color}" stop-opacity="${peak.toFixed(3)}"/>` +
-    `<stop offset="55%" stop-color="${color}" stop-opacity="${(peak * 0.3).toFixed(3)}"/>` +
+    `<stop offset="45%" stop-color="${color}" stop-opacity="${(peak * 0.4).toFixed(3)}"/>` +
     `<stop offset="100%" stop-color="${color}" stop-opacity="0"/>` +
     "</radialGradient>" +
     `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="url(#${id})"/>` +
-    `<circle cx="${cx}" cy="${cy}" r="${core}" fill="${color}"/>`
+    `<circle cx="${cx}" cy="${cy}" r="${core}" fill="${color}" fill-opacity="0.7"/>`
   );
 }
 
