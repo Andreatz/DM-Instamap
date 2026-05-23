@@ -24,9 +24,13 @@ Il progetto e una monorepo pnpm con:
 - bridge AI manuale/opzionale in `packages/ai-bridge`;
 - documentazione operativa in `docs/`.
 
-La roadmap attiva e [docs/ROADMAP.md](docs/ROADMAP.md), dedicata al percorso
-verso 9.5/10. Le roadmap precedenti sono archiviate in
-[docs/LEGACY_ROADMAP.md](docs/LEGACY_ROADMAP.md).
+Il percorso verso **9.5/10** descritto in [docs/ROADMAP.md](docs/ROADMAP.md) e
+completato: tooling reale, CI multi-OS con gate di coverage, moduli sotto budget
+di dimensione, E2E completi, backup/restore locale, invarianti di giocabilita,
+accessibilita, onboarding one-command, performance su librerie grandi, hardening
+import e governance di base. Le roadmap precedenti sono archiviate in
+[docs/LEGACY_ROADMAP.md](docs/LEGACY_ROADMAP.md); le novita sono in
+[CHANGELOG.md](CHANGELOG.md).
 
 ## Requisiti
 
@@ -218,6 +222,14 @@ evitare injection HTML. Dettagli in [docs/EXPORTS.md](docs/EXPORTS.md).
 - [docs/SNAPSHOTS.md](docs/SNAPSHOTS.md): snapshot, diff e restore.
 - [docs/VTT_EXPORT.md](docs/VTT_EXPORT.md): fidelity export VTT.
 - [docs/manual-test-reports/](docs/manual-test-reports/): report manuali.
+
+## Governance
+
+- [LICENSE](LICENSE): licenza d'uso personale, tutti i diritti riservati.
+- [CHANGELOG.md](CHANGELOG.md): modifiche rilevanti per versione.
+- [docs/adr/](docs/adr/): Architecture Decision Records (decisioni chiave).
+- [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md): politica di aggiornamento
+  dipendenze (checklist trimestrale).
 
 ## Regole Di Progetto
 
