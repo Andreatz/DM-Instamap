@@ -15,6 +15,7 @@ export type AssetResolver = {
 };
 
 export type AssetManifestResolverOptions = {
+  groupsPath?: string;
   manifestPath?: string;
   outputRoot?: string;
   sourceRoot?: string;
@@ -32,29 +33,65 @@ type AssetManifest = {
   sourceRoot?: unknown;
 };
 
+type AssetGroupEntry = {
+  assetIds?: unknown;
+  id?: unknown;
+  representativeAssetId?: unknown;
+};
+
+type AssetGroupsManifest = {
+  groups?: unknown;
+};
+
+type ResolverIndex = {
+  byId: Map<string, RasterAssetSource>;
+  groupAlias: Map<string, string>;
+};
+
 const DEFAULT_DATA_DIRECTORY = "data";
 const DEFAULT_MANIFEST_PATH = path.join("indexes", "assets.manifest.json");
+const DEFAULT_GROUPS_PATH = path.join("indexes", "asset-groups.json");
 
 export function createAssetManifestResolver(
   options: AssetManifestResolverOptions = {}
 ): AssetResolver {
-  let loaded: Promise<Map<string, RasterAssetSource>> | null = null;
+  let loaded: Promise<ResolverIndex> | null = null;
 
   return {
     async resolveAsset(assetId: string): Promise<RasterAssetSource | null> {
-      loaded ??= loadManifestAssets(options);
-      const assets = await loaded;
-      return assets.get(assetId) ?? null;
+      loaded ??= loadResolverIndex(options);
+      const { byId, groupAlias } = await loaded;
+
+      const direct = byId.get(assetId);
+      if (direct) {
+        return direct;
+      }
+
+      // Generated maps reference asset *groups* (so a DM can swap the member
+      // used). Resolve a group id to its representative member, then to a file.
+      const alias = groupAlias.get(assetId);
+      return alias ? (byId.get(alias) ?? null) : null;
     }
   };
 }
 
-async function loadManifestAssets(
+async function loadResolverIndex(
   options: AssetManifestResolverOptions
-): Promise<Map<string, RasterAssetSource>> {
+): Promise<ResolverIndex> {
   const outputRoot = options.outputRoot
     ? path.resolve(options.outputRoot)
     : path.join(process.cwd(), DEFAULT_DATA_DIRECTORY);
+  const [byId, groupAlias] = await Promise.all([
+    loadManifestAssets(options, outputRoot),
+    loadGroupAliases(options, outputRoot)
+  ]);
+  return { byId, groupAlias };
+}
+
+async function loadManifestAssets(
+  options: AssetManifestResolverOptions,
+  outputRoot: string
+): Promise<Map<string, RasterAssetSource>> {
   const manifestPath = options.manifestPath
     ? path.resolve(outputRoot, options.manifestPath)
     : path.join(outputRoot, DEFAULT_MANIFEST_PATH);
@@ -91,6 +128,45 @@ async function loadManifestAssets(
   }
 
   return byId;
+}
+
+async function loadGroupAliases(
+  options: AssetManifestResolverOptions,
+  outputRoot: string
+): Promise<Map<string, string>> {
+  const groupsPath = options.groupsPath
+    ? path.resolve(outputRoot, options.groupsPath)
+    : path.join(outputRoot, DEFAULT_GROUPS_PATH);
+  const aliases = new Map<string, string>();
+
+  let raw: string;
+  try {
+    raw = await readFile(groupsPath, "utf8");
+  } catch {
+    // Groups are optional: without them only direct asset ids resolve.
+    return aliases;
+  }
+
+  const manifest = JSON.parse(raw) as AssetGroupsManifest;
+  const groups = Array.isArray(manifest.groups) ? manifest.groups : [];
+
+  for (const item of groups) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+
+    const group = item as AssetGroupEntry;
+    const id = readString(group.id);
+    const representative =
+      readString(group.representativeAssetId) ||
+      (Array.isArray(group.assetIds) ? readString(group.assetIds[0]) : "");
+
+    if (id && representative) {
+      aliases.set(id, representative);
+    }
+  }
+
+  return aliases;
 }
 
 function readString(value: unknown): string {
