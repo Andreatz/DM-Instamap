@@ -2,13 +2,12 @@ import { notFound } from "next/navigation";
 import { MapEditor } from "@/components/editor/map-editor";
 import { loadAssetGroups } from "@/lib/asset-groups";
 import { loadAssetManifest } from "@/lib/assets-manifest";
+import { limitAssetGroupsForHydration } from "@/lib/editor-hydration";
 import {
   createFallbackPalette,
   type EditorPaletteAsset
 } from "@/lib/map-editor";
 import { ProjectNotFoundError, readProject } from "@/lib/projects";
-
-const EDITOR_ASSET_GROUP_LIMIT = 500;
 
 type ProjectEditorPageProps = {
   params: Promise<{
@@ -28,7 +27,7 @@ export default async function ProjectEditorPage({
     loadAssetGroups()
   ]);
   const palette = createPalette(manifest.assets);
-  const editorGroups = groups.groups.slice(0, EDITOR_ASSET_GROUP_LIMIT);
+  const editorGroups = limitAssetGroupsForHydration(groups.groups).groups;
 
   return (
     <main className="asset-page">

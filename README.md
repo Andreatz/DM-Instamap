@@ -194,6 +194,8 @@ validazione path (anti traversal, cartelle di sistema, web vs worker).
 - [docs/WORKER.md](docs/WORKER.md): worker locale e job lunghi.
 - [docs/AI_BRIDGE.md](docs/AI_BRIDGE.md): bridge AI manuale, mock e provider
   opzionali.
+- [docs/PERFORMANCE.md](docs/PERFORMANCE.md): virtualizzazione browser asset e
+  budget di hydration per librerie grandi.
 - [docs/PROJECTS.md](docs/PROJECTS.md): progetti locali e multi-floor.
 - [docs/CAMPAIGNS.md](docs/CAMPAIGNS.md): campagne locali.
 - [docs/SNAPSHOTS.md](docs/SNAPSHOTS.md): snapshot, diff e restore.
