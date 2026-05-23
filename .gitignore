@@ -41,6 +41,7 @@ venv/
 .env
 .env.*
 !.env.example
+!.env.local.example
 *.log
 
 # OS / editor

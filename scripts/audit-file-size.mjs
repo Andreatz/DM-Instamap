@@ -43,8 +43,9 @@ const ALLOWLIST = {
     reason: "Audit duplicati/qualita asset; split incrementale futuro."
   },
   "packages/exporters/src/dd2vtt.ts": {
-    maxLines: 710,
-    reason: "Exporter dd2vtt; split incrementale futuro."
+    maxLines: 727,
+    reason:
+      "Exporter/parser dd2vtt con hardening import (Fase L); split incrementale futuro."
   },
   "apps/web/src/components/editor/editor-inspector.tsx": {
     maxLines: 705,

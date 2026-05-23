@@ -6,8 +6,9 @@ export default defineConfig({
       provider: "v8",
       include: ["src/**"],
       reporter: ["text-summary", "json-summary"],
+      // Soglia consolidata dopo i test di hardening import della Fase L.
       thresholds: {
-        lines: 80
+        lines: 82
       }
     }
   }

@@ -20,5 +20,8 @@
     "@dm-instamap/core": "workspace:*",
     "jszip": "^3.10.1",
     "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "fast-check": "^3.23.2"
   }
 }

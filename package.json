@@ -2,6 +2,7 @@
   "name": "dm-instamap",
   "version": "0.1.0",
   "private": true,
+  "license": "UNLICENSED",
   "description": "Local-first modular map generator for D&D.",
   "packageManager": "pnpm@10.33.3",
   "scripts": {

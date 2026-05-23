@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useVirtualGrid } from "@/hooks/use-virtual-grid";
 import {
   filterAssets,
   formatAssetKind,
@@ -11,6 +12,12 @@ import {
   type AssetFilterState
 } from "@/lib/asset-browser";
 import type { AssetSearchApiResult } from "@/lib/asset-search";
+
+// Geometry of a single `.asset-card`, mirrored from globals.css so the
+// virtualized window math stays in sync with the rendered grid.
+const CARD_MIN_WIDTH = 132;
+const CARD_GAP = 12;
+const CARD_ROW_HEIGHT = 210;
 
 type AssetBrowserProps = {
   assets: AssetBrowserEntry[];
@@ -46,6 +53,16 @@ export function AssetBrowser({
   const visibleAssets = useMemo(
     () => filterAssets(assets, filters),
     [assets, filters]
+  );
+  const grid = useVirtualGrid({
+    gap: CARD_GAP,
+    itemCount: visibleAssets.length,
+    minItemWidth: CARD_MIN_WIDTH,
+    rowHeight: CARD_ROW_HEIGHT
+  });
+  const windowedAssets = visibleAssets.slice(
+    grid.window.startIndex,
+    grid.window.endIndex
   );
   const selectedAsset =
     assets.find((asset) => asset.id === selectedAssetId) ??
@@ -291,27 +308,45 @@ export function AssetBrowser({
           </section>
         ) : null}
 
-        <div className="asset-grid" role="group" aria-label="Anteprime asset">
-          {visibleAssets.map((asset) => (
-            <button
-              aria-pressed={selectedAsset?.id === asset.id}
-              className="asset-card"
-              key={asset.id}
-              onClick={() => setSelectedAssetId(asset.id)}
-              type="button"
-            >
-              <span className="asset-thumb">
-                <img alt="" loading="lazy" src={asset.thumbnailUrl} />
-              </span>
-              <span className="asset-card-name">
-                {getFileName(asset.relativePath)}
-              </span>
-              <span className="asset-card-meta">
-                {formatAssetKind(asset.classification)} -{" "}
-                {formatPercent(asset.confidence)}
-              </span>
-            </button>
-          ))}
+        <div
+          className="asset-scroll"
+          onScroll={grid.onScroll}
+          ref={grid.containerRef}
+        >
+          <div style={{ height: grid.window.paddingTop }} aria-hidden="true" />
+          <div
+            className="asset-grid"
+            role="group"
+            aria-label="Anteprime asset"
+            style={{
+              gridTemplateColumns: `repeat(${grid.columns}, minmax(0, 1fr))`
+            }}
+          >
+            {windowedAssets.map((asset) => (
+              <button
+                aria-pressed={selectedAsset?.id === asset.id}
+                className="asset-card"
+                key={asset.id}
+                onClick={() => setSelectedAssetId(asset.id)}
+                type="button"
+              >
+                <span className="asset-thumb">
+                  <img alt="" loading="lazy" src={asset.thumbnailUrl} />
+                </span>
+                <span className="asset-card-name">
+                  {getFileName(asset.relativePath)}
+                </span>
+                <span className="asset-card-meta">
+                  {formatAssetKind(asset.classification)} -{" "}
+                  {formatPercent(asset.confidence)}
+                </span>
+              </button>
+            ))}
+          </div>
+          <div
+            style={{ height: grid.window.paddingBottom }}
+            aria-hidden="true"
+          />
         </div>
 
         {visibleAssets.length === 0 ? (

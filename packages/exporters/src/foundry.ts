@@ -327,7 +327,7 @@ function buildRoomJournalEntry(
 
   return {
     _id: toFoundryId(`journal-rooms-${document.id}`),
-    content: `Room overview for ${document.name}.`,
+    content: `Room overview for ${escapeHtml(document.name)}.`,
     name: `${document.name} — Rooms`,
     pages,
     sort: 0
@@ -354,7 +354,7 @@ function buildGmNotesJournalEntry(
 
   return {
     _id: toFoundryId(`journal-gmnotes-${document.id}`),
-    content: `GM notes for ${document.name}.`,
+    content: `GM notes for ${escapeHtml(document.name)}.`,
     name: `${document.name} — GM Notes`,
     pages,
     sort: 0
@@ -367,7 +367,7 @@ function buildPlanNotesJournalEntry(
 ): FoundryJournalEntryData {
   return {
     _id: toFoundryId(`journal-plan-${document.id}`),
-    content: `Plan-level notes for ${document.name}.`,
+    content: `Plan-level notes for ${escapeHtml(document.name)}.`,
     name: `${document.name} — Plan Notes`,
     pages: [
       {

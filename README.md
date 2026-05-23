@@ -24,9 +24,13 @@ Il progetto e una monorepo pnpm con:
 - bridge AI manuale/opzionale in `packages/ai-bridge`;
 - documentazione operativa in `docs/`.
 
-La roadmap attiva e [docs/ROADMAP.md](docs/ROADMAP.md), dedicata al percorso
-verso 9.5/10. Le roadmap precedenti sono archiviate in
-[docs/LEGACY_ROADMAP.md](docs/LEGACY_ROADMAP.md).
+Il percorso verso **9.5/10** descritto in [docs/ROADMAP.md](docs/ROADMAP.md) e
+completato: tooling reale, CI multi-OS con gate di coverage, moduli sotto budget
+di dimensione, E2E completi, backup/restore locale, invarianti di giocabilita,
+accessibilita, onboarding one-command, performance su librerie grandi, hardening
+import e governance di base. Le roadmap precedenti sono archiviate in
+[docs/LEGACY_ROADMAP.md](docs/LEGACY_ROADMAP.md); le novita sono in
+[CHANGELOG.md](CHANGELOG.md).
 
 ## Requisiti
 
@@ -183,6 +187,23 @@ Vedi [docs/LOCAL_DATA.md](docs/LOCAL_DATA.md) per rigenerazione e audit, e
 [docs/PATH_SECURITY.md](docs/PATH_SECURITY.md) per la policy unica di
 validazione path (anti traversal, cartelle di sistema, web vs worker).
 
+## Sicurezza Locale
+
+DM-Instamap non include autenticazione: per impostazione predefinita risponde
+solo da `localhost`. Per esporlo su una LAN fidata imposta
+`DM_INSTAMAP_ALLOW_REMOTE=true` con consapevolezza. In quel caso puoi
+restringere e limitare i client:
+
+- `DM_INSTAMAP_ALLOWED_IPS`: lista di IP client (oltre a localhost) ammessi;
+  vuota significa nessuna restrizione aggiuntiva;
+- `DM_INSTAMAP_RATE_LIMIT_PER_MINUTE`: tetto di richieste per IP al minuto
+  (`0` o assente disattiva il limite).
+
+I parser di import (`dd2vtt`, plan AI) rifiutano input malformati con errori
+chiari invece di crashare, e clampano dimensioni assurde per evitare allocazioni
+fuori controllo. Gli export Foundry sanitizzano note e testo nei journal per
+evitare injection HTML. Dettagli in [docs/EXPORTS.md](docs/EXPORTS.md).
+
 ## Documentazione
 
 - [docs/architecture.md](docs/architecture.md): architettura monorepo.
@@ -194,11 +215,21 @@ validazione path (anti traversal, cartelle di sistema, web vs worker).
 - [docs/WORKER.md](docs/WORKER.md): worker locale e job lunghi.
 - [docs/AI_BRIDGE.md](docs/AI_BRIDGE.md): bridge AI manuale, mock e provider
   opzionali.
+- [docs/PERFORMANCE.md](docs/PERFORMANCE.md): virtualizzazione browser asset e
+  budget di hydration per librerie grandi.
 - [docs/PROJECTS.md](docs/PROJECTS.md): progetti locali e multi-floor.
 - [docs/CAMPAIGNS.md](docs/CAMPAIGNS.md): campagne locali.
 - [docs/SNAPSHOTS.md](docs/SNAPSHOTS.md): snapshot, diff e restore.
 - [docs/VTT_EXPORT.md](docs/VTT_EXPORT.md): fidelity export VTT.
 - [docs/manual-test-reports/](docs/manual-test-reports/): report manuali.
+
+## Governance
+
+- [LICENSE](LICENSE): licenza d'uso personale, tutti i diritti riservati.
+- [CHANGELOG.md](CHANGELOG.md): modifiche rilevanti per versione.
+- [docs/adr/](docs/adr/): Architecture Decision Records (decisioni chiave).
+- [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md): politica di aggiornamento
+  dipendenze (checklist trimestrale).
 
 ## Regole Di Progetto
 
