@@ -62,6 +62,33 @@ Installa il browser una volta con:
 pnpm exec playwright install chromium
 ```
 
+## Test property-based e fuzz
+
+Oltre ai test a esempio, alcune aree usano `fast-check` per generare molti input
+casuali con seed fisso (riproducibile):
+
+- **Invarianti del generatore** (Fase G): ogni mappa generata e verificata su
+  centinaia di seed per algoritmo (connettivita stanze, porte su celle valide,
+  asset dentro la struttura, scale multi-floor accoppiate) in
+  `packages/generator/src/invariants.test.ts`.
+- **Robustezza import** (Fase L): i parser di import non devono mai crashare su
+  input malformati. `packages/exporters/tests/import-fuzz.test.ts` martella
+  `importDd2Vtt` con payload arbitrari (JSON non valido -> errore chiaro,
+  dimensioni assurde clampate); `packages/ai-bridge/tests/validation-fuzz.test.ts`
+  fa lo stesso su `validateBridgeResponse`.
+
+## Test di performance e sicurezza
+
+- **Virtualizzazione e hydration** (Fase K): l'invariante "finestra di rendering
+  limitata dalla viewport, non dal totale" e verificato su 200/5.000/50.000
+  asset in `apps/web/src/lib/virtual-grid.test.ts`; il budget di hydration
+  dell'editor e testato simulando 5.000 gruppi in
+  `apps/web/src/lib/editor-hydration.test.ts`.
+- **Sanitizzazione export** (Fase L): `packages/exporters/tests/foundry-sanitization.test.ts`
+  verifica che nessun tag HTML grezzo sopravviva nei journal Foundry.
+- **Accesso locale LAN** (Fase L): allowlist IP e rate-limit sono funzioni pure
+  testate in `apps/web/src/lib/local-security.test.ts`.
+
 ## UI Smoke Contract
 
 La web app mantiene un manifest leggero in

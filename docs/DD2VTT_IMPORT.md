@@ -27,6 +27,13 @@ import {
 `importDd2VttFile` reads a local `.dd2vtt` or `.uvtt` file. `importDd2Vtt`
 accepts already-loaded JSON, a JSON string, or a buffer.
 
+**Import safety.** Input is treated as untrusted: invalid JSON throws a clear
+`dd2vtt input is not valid JSON: ...` error instead of a raw `SyntaxError`,
+non-object payloads are rejected, and each grid dimension is clamped to
+`MAX_IMPORT_GRID_DIMENSION` (1024) so a malformed `map_size` cannot make the
+importer allocate billions of tiles. Robustness/fuzz coverage lives in
+`packages/exporters/tests/import-fuzz.test.ts`.
+
 `exportMapDocumentDd2Vtt` converts a `MapDocument` into dd2vtt-compatible JSON
 with:
 

@@ -136,10 +136,10 @@ coverage scende sotto.
 | --- | --- | --- | --- |
 | `core` | ~75% | 72 | Il target roadmap dell'80% richiede test aggiuntivi sui rami degli schemi Zod; gap noto. |
 | `generator` | ~92% | 85 | Supera il target 80%. |
-| `exporters` | ~86% | 80 | Rispetta il target 80%. |
-| `assets` | ~81% | 76 | — |
+| `exporters` | ~86% | 82 | Soglia consolidata 80 -> 82 dopo i test di hardening import (Fase L). |
+| `assets` | ~80% | 76 | — |
 | `ai-bridge` | ~72% | 68 | — |
-| `web` (`src/lib`) | ~66% | 63 | Solo logica `src/lib`; UI coperta dagli E2E (Fase D). Rispetta il target 65%. |
+| `web` (`src/lib`) | ~68% | 63 | Solo logica `src/lib`; UI coperta dagli E2E (Fase D). Rispetta il target 65%. |
 
 Gli output di coverage finiscono in `coverage/` (ignorato da git).
 

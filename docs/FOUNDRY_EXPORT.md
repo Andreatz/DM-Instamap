@@ -52,6 +52,13 @@ const moduleZip = await exportFoundryModule(mapDocument, {
 Pass `includeJournals: false` to revert to the journal-free behaviour (no
 `journal.db`, no scene notes).
 
+**Journal sanitization.** Journal content is HTML, so every piece of
+user-controlled text (document name, room labels/tags/connections, GM note title
+and body, plan notes) is HTML-escaped before it is embedded. A note containing
+`<script>` or `<img onerror=...>` becomes inert escaped text rather than a live
+element, preventing HTML injection. See
+`packages/exporters/tests/foundry-sanitization.test.ts`.
+
 ## Manual verification
 
 The automated tests cover schema and content of the produced zip but not the
