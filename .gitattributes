@@ -1,0 +1,15 @@
+# Force LF line endings in the working tree on every platform so the Biome
+# formatter gate (lineEnding "lf") passes regardless of core.autocrlf. Without
+# this, Windows checkouts produce CRLF and `pnpm format:check` fails in CI.
+* text=auto eol=lf
+
+# Binary assets: keep bytes untouched (never apply eol conversion).
+*.png binary
+*.webp binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
