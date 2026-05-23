@@ -39,13 +39,22 @@ export async function pickTileTextureIds(): Promise<TileTextureSelection> {
     return {};
   }
 
-  const bestByKind = (kind: string): string | undefined =>
-    groups
-      .filter((group) => group.kind === kind)
+  // "Colorable"/"Clr" tiles ship a flat placeholder tint (often a garish red)
+  // meant to be recoloured, so prefer non-colorable textures when available.
+  const isColorable = (group: (typeof groups)[number]): boolean =>
+    /\bclr\b|colou?rable/.test(
+      [group.name, ...group.tags].join(" ").toLowerCase()
+    );
+  const bestByKind = (kind: string): string | undefined => {
+    const candidates = groups.filter((group) => group.kind === kind);
+    const preferred = candidates.filter((group) => !isColorable(group));
+    const pool = preferred.length > 0 ? preferred : candidates;
+    return pool
       .sort(
         (left, right) => (right.qualityScore ?? 0) - (left.qualityScore ?? 0)
       )
       .at(0)?.id;
+  };
 
   const selection: TileTextureSelection = {};
   const floor = bestByKind("floor");

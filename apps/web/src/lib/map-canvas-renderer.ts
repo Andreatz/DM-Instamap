@@ -42,6 +42,8 @@ const ACCENT_SAGE = "#7fb39a";
 const HIGHLIGHT = "#f4efe7";
 // Reference px-per-cell for sizing real asset thumbnails (mirrors the export).
 const ASSET_PIXELS_PER_CELL = 256;
+// Cap on the light glow radius (cells) so big lights do not wash out the map.
+const MAX_LIGHT_GLOW_CELLS = 6;
 
 export function drawMapCanvas(
   canvas: HTMLCanvasElement,
@@ -361,20 +363,25 @@ function drawLights(
     const y = light.position.y * CANVAS_CELL_SIZE;
     const flickerScale = light.flicker ? 0.88 : 1;
     const glowRadius =
-      Math.max(0.5, light.radius) * CANVAS_CELL_SIZE * flickerScale;
+      Math.min(MAX_LIGHT_GLOW_CELLS, Math.max(0.5, light.radius)) *
+      CANVAS_CELL_SIZE *
+      flickerScale;
 
-    // Additive radial glow for an atmospheric falloff.
-    context.save();
-    context.globalCompositeOperation = "lighter";
-    const glow = context.createRadialGradient(x, y, 0, x, y, glowRadius);
-    glow.addColorStop(0, hexToRgba(light.color, 0.42));
-    glow.addColorStop(0.45, hexToRgba(light.color, 0.14));
-    glow.addColorStop(1, hexToRgba(light.color, 0));
-    context.fillStyle = glow;
-    context.beginPath();
-    context.arc(x, y, glowRadius, 0, Math.PI * 2);
-    context.fill();
-    context.restore();
+    // Subtle additive glow, capped so the map stays readable. Ambient lights
+    // tint the whole scene, so they only get a marker (no big blob).
+    if (light.kind !== "ambient") {
+      context.save();
+      context.globalCompositeOperation = "lighter";
+      const glow = context.createRadialGradient(x, y, 0, x, y, glowRadius);
+      glow.addColorStop(0, hexToRgba(light.color, 0.16));
+      glow.addColorStop(0.5, hexToRgba(light.color, 0.05));
+      glow.addColorStop(1, hexToRgba(light.color, 0));
+      context.fillStyle = glow;
+      context.beginPath();
+      context.arc(x, y, glowRadius, 0, Math.PI * 2);
+      context.fill();
+      context.restore();
+    }
 
     // Light source core.
     context.beginPath();
