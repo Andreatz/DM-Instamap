@@ -10,6 +10,7 @@ import type {
   RoomNode,
   WallSegment
 } from "@dm-instamap/core/browser";
+import { artisticLightStyle } from "@dm-instamap/core/browser";
 import {
   CANVAS_CELL_SIZE,
   assetToLayerKind,
@@ -123,7 +124,12 @@ export function drawMapCanvas(
     drawDoors(context, document.plan?.doors ?? [], selectedDoor?.id ?? null);
   });
   drawLayer(context, layerState, "lighting", () =>
-    drawLights(context, document.plan?.lights ?? [], selectedLight?.id ?? null)
+    drawLights(
+      context,
+      document.plan?.lights ?? [],
+      selectedLight?.id ?? null,
+      palette !== null
+    )
   );
   drawPlacedAssets(
     context,
@@ -373,42 +379,97 @@ function drawDoors(
 function drawLights(
   context: CanvasRenderingContext2D,
   lights: LightSource[],
-  selectedLightId: string | null
+  selectedLightId: string | null,
+  artistic: boolean
 ) {
   for (const light of lights) {
-    const x = light.position.x * CANVAS_CELL_SIZE;
-    const y = light.position.y * CANVAS_CELL_SIZE;
-    const flickerScale = light.flicker ? 0.88 : 1;
+    if (artistic) {
+      drawArtisticLight(context, light, selectedLightId);
+    } else {
+      drawDebugLight(context, light, selectedLightId);
+    }
+  }
+}
+
+/**
+ * Artistic glow: a soft warm gradient in normal (source-over) compositing with
+ * a low alpha peak and a small radius, plus a tiny warm core. Never additive,
+ * never a white/red blob. Ambient lights tint the whole scene, so they only get
+ * the small core marker.
+ */
+function drawArtisticLight(
+  context: CanvasRenderingContext2D,
+  light: LightSource,
+  selectedLightId: string | null
+) {
+  const x = light.position.x * CANVAS_CELL_SIZE;
+  const y = light.position.y * CANVAS_CELL_SIZE;
+  const style = artisticLightStyle(light.kind, light.color);
+
+  if (light.kind !== "ambient") {
+    const flickerScale = light.flicker ? 0.92 : 1;
     const glowRadius =
-      Math.min(MAX_LIGHT_GLOW_CELLS, Math.max(0.5, light.radius)) *
+      Math.min(style.radiusCells, Math.max(0.5, light.radius)) *
       CANVAS_CELL_SIZE *
       flickerScale;
-
-    // Subtle additive glow, capped so the map stays readable. Ambient lights
-    // tint the whole scene, so they only get a marker (no big blob).
-    if (light.kind !== "ambient") {
-      context.save();
-      context.globalCompositeOperation = "lighter";
-      const glow = context.createRadialGradient(x, y, 0, x, y, glowRadius);
-      glow.addColorStop(0, hexToRgba(light.color, 0.16));
-      glow.addColorStop(0.5, hexToRgba(light.color, 0.05));
-      glow.addColorStop(1, hexToRgba(light.color, 0));
-      context.fillStyle = glow;
-      context.beginPath();
-      context.arc(x, y, glowRadius, 0, Math.PI * 2);
-      context.fill();
-      context.restore();
-    }
-
-    // Light source core.
+    context.save();
+    context.globalCompositeOperation = "source-over";
+    const glow = context.createRadialGradient(x, y, 0, x, y, glowRadius);
+    glow.addColorStop(0, hexToRgba(style.color, style.alpha));
+    glow.addColorStop(0.55, hexToRgba(style.color, style.alpha * 0.35));
+    glow.addColorStop(1, hexToRgba(style.color, 0));
+    context.fillStyle = glow;
     context.beginPath();
-    context.fillStyle = light.id === selectedLightId ? HIGHLIGHT : light.color;
-    context.arc(x, y, CANVAS_CELL_SIZE * 0.24, 0, Math.PI * 2);
+    context.arc(x, y, glowRadius, 0, Math.PI * 2);
     context.fill();
-    context.strokeStyle = "rgba(224, 180, 80, 0.35)";
-    context.lineWidth = 1.5;
-    context.stroke();
+    context.restore();
   }
+
+  // Small warm core (selection uses the amber accent, never the white tint).
+  context.beginPath();
+  context.fillStyle = light.id === selectedLightId ? ACCENT : style.color;
+  context.arc(x, y, CANVAS_CELL_SIZE * 0.18, 0, Math.PI * 2);
+  context.fill();
+  context.strokeStyle = "rgba(224, 180, 80, 0.35)";
+  context.lineWidth = 1.2;
+  context.stroke();
+}
+
+/** Debug glow: subtle additive bloom, fine for the schematic inspection view. */
+function drawDebugLight(
+  context: CanvasRenderingContext2D,
+  light: LightSource,
+  selectedLightId: string | null
+) {
+  const x = light.position.x * CANVAS_CELL_SIZE;
+  const y = light.position.y * CANVAS_CELL_SIZE;
+  const flickerScale = light.flicker ? 0.88 : 1;
+  const glowRadius =
+    Math.min(MAX_LIGHT_GLOW_CELLS, Math.max(0.5, light.radius)) *
+    CANVAS_CELL_SIZE *
+    flickerScale;
+
+  if (light.kind !== "ambient") {
+    context.save();
+    context.globalCompositeOperation = "lighter";
+    const glow = context.createRadialGradient(x, y, 0, x, y, glowRadius);
+    glow.addColorStop(0, hexToRgba(light.color, 0.16));
+    glow.addColorStop(0.5, hexToRgba(light.color, 0.05));
+    glow.addColorStop(1, hexToRgba(light.color, 0));
+    context.fillStyle = glow;
+    context.beginPath();
+    context.arc(x, y, glowRadius, 0, Math.PI * 2);
+    context.fill();
+    context.restore();
+  }
+
+  context.beginPath();
+  context.fillStyle = light.id === selectedLightId ? HIGHLIGHT : light.color;
+  context.arc(x, y, CANVAS_CELL_SIZE * 0.24, 0, Math.PI * 2);
+  context.fill();
+  context.strokeStyle = "rgba(224, 180, 80, 0.35)";
+  context.lineWidth = 1.5;
+  context.stroke();
 }
 
 function drawNotes(

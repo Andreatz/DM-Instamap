@@ -5,7 +5,7 @@ import type {
   PlacedAsset,
   RenderStylePreset
 } from "@dm-instamap/core/browser";
-import { clampLightIntensity } from "@dm-instamap/core/browser";
+import { artisticLightStyle } from "@dm-instamap/core/browser";
 import type { RasterExportLayer } from "./raster";
 
 export type ArtisticSvgOptions = {
@@ -118,7 +118,7 @@ export function renderArtisticMapSvg(
 
   if (layers.has("lighting")) {
     for (const [index, light] of (document.plan?.lights ?? []).entries()) {
-      const rendered = renderLight(light, cellPixels, index, preset);
+      const rendered = renderLight(light, cellPixels, index);
       if (rendered) {
         parts.push(rendered);
       }
@@ -249,32 +249,28 @@ function renderPropPlaceholder(
 function renderLight(
   light: LightSource,
   cellPixels: number,
-  index: number,
-  preset: RenderStylePreset
+  index: number
 ): string {
   if (light.kind === "ambient") {
     return "";
   }
+  // Same warm, clamped, no-white-core style as the editor canvas.
+  const style = artisticLightStyle(light.kind, light.color);
   const cx = light.position.x * cellPixels;
   const cy = light.position.y * cellPixels;
   const radius =
-    Math.min(preset.lightRadiusCapCells, Math.max(0.5, light.radius)) *
-    cellPixels;
-  const intensity = clampLightIntensity(light.intensity, light.kind, preset);
-  const color = warmTint(light.color, light.kind, preset);
+    Math.min(style.radiusCells, Math.max(0.5, light.radius)) * cellPixels;
   const id = `art-light-${index}`;
-  // Peak alpha is a fraction of the clamped intensity: a soft tint, never a
-  // white blob.
-  const peak = Math.min(0.32, intensity * 0.6);
-  const core = cellPixels * 0.16;
+  const peak = style.alpha;
+  const core = cellPixels * 0.14;
   return (
     `<radialGradient id="${id}" cx="50%" cy="50%" r="50%">` +
-    `<stop offset="0%" stop-color="${color}" stop-opacity="${peak.toFixed(3)}"/>` +
-    `<stop offset="45%" stop-color="${color}" stop-opacity="${(peak * 0.4).toFixed(3)}"/>` +
-    `<stop offset="100%" stop-color="${color}" stop-opacity="0"/>` +
+    `<stop offset="0%" stop-color="${style.color}" stop-opacity="${peak.toFixed(3)}"/>` +
+    `<stop offset="55%" stop-color="${style.color}" stop-opacity="${(peak * 0.35).toFixed(3)}"/>` +
+    `<stop offset="100%" stop-color="${style.color}" stop-opacity="0"/>` +
     "</radialGradient>" +
     `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="url(#${id})"/>` +
-    `<circle cx="${cx}" cy="${cy}" r="${core}" fill="${color}" fill-opacity="0.65"/>`
+    `<circle cx="${cx}" cy="${cy}" r="${core}" fill="${style.color}" fill-opacity="0.5"/>`
   );
 }
 
@@ -349,38 +345,6 @@ function cellNoise(
     dark: bucket < 45,
     useAlt: bucket % 3 === 0
   };
-}
-
-function warmTint(
-  color: string,
-  kind: string | undefined,
-  preset: RenderStylePreset
-): string {
-  if (kind === "magic") {
-    return color;
-  }
-  // Blend the light colour toward the preset's warm accent for cohesive tone.
-  return mixHex(color, preset.palette.accentWarm, preset.lightWarmth);
-}
-
-function mixHex(from: string, to: string, t: number): string {
-  const a = parseHex(from);
-  const b = parseHex(to);
-  if (!a || !b) {
-    return from;
-  }
-  const k = Math.min(1, Math.max(0, t));
-  const ch = (x: number, y: number) => Math.round(x + (y - x) * k);
-  return `rgb(${ch(a.r, b.r)}, ${ch(a.g, b.g)}, ${ch(a.b, b.b)})`;
-}
-
-function parseHex(hex: string): { b: number; g: number; r: number } | null {
-  const match = /^#?([0-9a-f]{6})$/iu.exec(hex.trim());
-  if (!match?.[1]) {
-    return null;
-  }
-  const value = Number.parseInt(match[1], 16);
-  return { b: value & 0xff, g: (value >> 8) & 0xff, r: (value >> 16) & 0xff };
 }
 
 function cellKey(x: number, y: number): string {
