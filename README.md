@@ -183,6 +183,23 @@ Vedi [docs/LOCAL_DATA.md](docs/LOCAL_DATA.md) per rigenerazione e audit, e
 [docs/PATH_SECURITY.md](docs/PATH_SECURITY.md) per la policy unica di
 validazione path (anti traversal, cartelle di sistema, web vs worker).
 
+## Sicurezza Locale
+
+DM-Instamap non include autenticazione: per impostazione predefinita risponde
+solo da `localhost`. Per esporlo su una LAN fidata imposta
+`DM_INSTAMAP_ALLOW_REMOTE=true` con consapevolezza. In quel caso puoi
+restringere e limitare i client:
+
+- `DM_INSTAMAP_ALLOWED_IPS`: lista di IP client (oltre a localhost) ammessi;
+  vuota significa nessuna restrizione aggiuntiva;
+- `DM_INSTAMAP_RATE_LIMIT_PER_MINUTE`: tetto di richieste per IP al minuto
+  (`0` o assente disattiva il limite).
+
+I parser di import (`dd2vtt`, plan AI) rifiutano input malformati con errori
+chiari invece di crashare, e clampano dimensioni assurde per evitare allocazioni
+fuori controllo. Gli export Foundry sanitizzano note e testo nei journal per
+evitare injection HTML. Dettagli in [docs/EXPORTS.md](docs/EXPORTS.md).
+
 ## Documentazione
 
 - [docs/architecture.md](docs/architecture.md): architettura monorepo.

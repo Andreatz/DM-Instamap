@@ -120,6 +120,14 @@ type RawLight = {
 
 const DEFAULT_PIXELS_PER_GRID = 70;
 
+/**
+ * Upper bound on each grid dimension when importing untrusted dd2vtt files.
+ * Without it a malformed `map_size` (e.g. 1e9 x 1e9) would make
+ * `createImportedTiles` try to allocate billions of tiles and crash the
+ * process. Real Universal VTT exports are at most a few hundred cells per side.
+ */
+const MAX_IMPORT_GRID_DIMENSION = 1024;
+
 export async function exportMapDocumentDd2Vtt(
   document: MapDocument,
   options: Dd2VttExportOptions = {}
@@ -349,9 +357,16 @@ function parseDd2VttInput(input: string | Buffer | unknown): RawDd2Vtt {
   }
 
   if (typeof input === "string") {
-    const parsed = JSON.parse(
-      input.charCodeAt(0) === 0xfeff ? input.slice(1) : input
-    ) as unknown;
+    const text = input.charCodeAt(0) === 0xfeff ? input.slice(1) : input;
+    let parsed: unknown;
+
+    try {
+      parsed = JSON.parse(text);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "unknown error";
+      throw new Error(`dd2vtt input is not valid JSON: ${reason}`);
+    }
+
     return parseDd2VttInput(parsed);
   }
 
@@ -399,10 +414,18 @@ function readResolution(source: RawDd2Vtt): {
     1;
 
   return {
-    height: Math.max(1, Math.ceil(heightCells)),
+    height: clampGridDimension(heightCells),
     pixelsPerGrid: Math.max(1, Math.round(pixelsPerGrid)),
-    width: Math.max(1, Math.ceil(widthCells))
+    width: clampGridDimension(widthCells)
   };
+}
+
+function clampGridDimension(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 1;
+  }
+
+  return Math.min(MAX_IMPORT_GRID_DIMENSION, Math.max(1, Math.ceil(value)));
 }
 
 function readWalls(source: RawDd2Vtt): WallSegment[] {

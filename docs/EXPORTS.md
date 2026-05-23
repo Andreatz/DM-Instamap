@@ -56,6 +56,13 @@ Universal VTT / dd2vtt import is available from `packages/exporters` through
 into an editable `MapDocument` and extracts embedded map image bytes when they
 are available.
 
+**Import safety.** The parser treats input as untrusted: invalid JSON throws a
+clear `dd2vtt input is not valid JSON: ...` error instead of a raw
+`SyntaxError`, non-object payloads are rejected, and each grid dimension is
+clamped to `MAX_IMPORT_GRID_DIMENSION` (1024) so a malformed `map_size` cannot
+make the importer allocate billions of tiles. Robustness/fuzz coverage lives in
+`packages/exporters/tests/import-fuzz.test.ts`.
+
 ## dd2vtt Export
 
 `exportMapDocumentDd2Vtt` converts a `MapDocument` into dd2vtt-compatible JSON.
@@ -75,6 +82,13 @@ pack with one entry per `RoomNode`, one per `MapNote`, and one for plan-level
 notes. The scene then carries a `notes` array where each GM note is a pin
 linking to the matching journal page via `entryId`/`pageId`. See
 [FOUNDRY_EXPORT.md](FOUNDRY_EXPORT.md) for the manual-verification checklist.
+
+**Journal sanitization.** Journal entries are rendered as HTML, so every piece
+of user-controlled text (document name, room labels/tags/connections, GM note
+title and body, plan notes) is HTML-escaped before it is embedded. A note
+containing `<script>` or `<img onerror=...>` becomes inert escaped text rather
+than a live element, preventing HTML injection into the Foundry journal. This is
+covered by `packages/exporters/tests/foundry-sanitization.test.ts`.
 
 ## Session Pack
 
