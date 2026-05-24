@@ -1,4 +1,4 @@
-import { buildFinalTaxonomyManifest } from "@dm-instamap/assets/taxonomy";
+import { buildFinalTaxonomyManifest } from "@dm-instamap/assets/taxonomy/build-final-manifest";
 import { loadTaxonomyManifestItems } from "@/lib/asset-taxonomy-groups";
 import {
   buildReviewOverrideEntries,
