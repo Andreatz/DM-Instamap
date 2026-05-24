@@ -2,21 +2,4224 @@
   "assets": {
     "textures/objects/red_carpet_01.png": {
       "macroCategory": "decoration",
-      "assetGroups": ["carpet", "runner"],
-      "themeTags": ["tavern", "noble"],
-      "placementTags": ["floor", "corridor"],
+      "assetGroups": [
+        "carpet",
+        "runner"
+      ],
+      "themeTags": [
+        "tavern",
+        "noble"
+      ],
+      "placementTags": [
+        "floor",
+        "corridor"
+      ],
       "usageRules": {
         "canBeLightEmitter": false,
         "canBeFloorOverlay": true
       },
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 1.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 10.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 11.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 12.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 13.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 14.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 15.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 16.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 17.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 18.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 19.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 2.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 20.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 21.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 22.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 23.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 24.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 25.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 26.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 27.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 28.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 29.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 3.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 30.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 4.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 5.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 6.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 7.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 8.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Blood Splatter 9.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 100.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 101.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 102.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 103.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 104.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 105.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 106.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 107.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 108.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 109.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 110.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 111.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 112.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 113.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 31.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 32.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 33.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 34.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 35.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 36.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 37.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 38.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 39.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 40.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 41.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 42.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 43.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 44.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 45.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 46.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 47.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 48.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 49.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 50.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 51.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 52.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 53.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 54.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 55.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 56.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 57.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 58.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 59.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 60.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 61.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 62.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 63.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 64.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 65.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 66.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 67.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 68.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 69.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 70.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 71.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 72.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 73.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 74.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 75.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 76.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 77.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 78.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 79.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 80.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 81.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 82.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 83.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 84.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 85.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 86.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 87.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 88.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 89.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 90.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 91.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 92.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 93.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 94.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 95.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 96.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 97.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 98.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Bones 99.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Blood Splatter 21_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Blood Splatter 22_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Blood Splatter 23_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Blood Splatter 24_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Blood Splatter 25_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Blood Splatter 26_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Blood Splatter 27_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Blood Splatter 28_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Blood Splatter 29_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Blood Splatter 30_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 100_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 101_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 102_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 103_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 104_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 105_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 106_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 107_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 108_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 109_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 110_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 111_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 112_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 113_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 31_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 32_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 33_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 34_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 35_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 36_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 37_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 38_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 39_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 40_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 41_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 42_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 43_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 44_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 45_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 46_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 47_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 48_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 49_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 50_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 51_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 52_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 53_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 54_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 55_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 56_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 57_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 58_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 59_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 60_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 61_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 62_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 63_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 64_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 65_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 66_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 67_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 68_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 69_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 70_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 71_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 72_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 73_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 74_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 75_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 76_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 77_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 78_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 79_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 80_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 81_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 82_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 83_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 84_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 85_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 86_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 87_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 88_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 89_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 90_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 91_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 92_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 93_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 94_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 95_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 96_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 97_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 98_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Bones 99_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 34_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 34_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 35_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 35_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 36_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 36_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 37_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 37_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 38_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 38_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 39_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 39_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 40_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 40_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 41_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 41_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 42_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 42_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 43_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 43_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 44_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 44_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 45_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 45_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 46_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 46_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 47_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 47_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 48_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 48_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 49_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 49_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 50_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 50_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 51_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 51_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 52_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 52_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 53_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 53_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 54_fresh_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Corpse 54_skeleton_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Crater 1a_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Crater 2a_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Crater 3a_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Crater 4a_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Crater 5a_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Crater 6a_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Colorable/Crater 7a_clr.webp": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 34_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 34_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 34_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 35_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 35_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 35_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 36_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 36_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 36_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 37_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 37_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 37_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 38_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 38_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 38_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 39_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 39_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 39_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 40_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 40_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 40_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 41_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 41_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 41_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 42_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 42_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 42_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 43_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 43_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 43_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 44_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 44_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 44_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 45_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 45_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 45_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 46_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 46_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 46_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 47_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 47_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 47_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 48_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 48_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 48_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 49_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 49_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 49_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 50_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 50_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 50_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 51_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 51_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 51_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 52_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 52_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 52_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 53_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 53_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 53_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 54_fresh_a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 54_fresh_b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Corpse 54_skeleton.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Crater 1a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Crater 1b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Crater 2a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Crater 2b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Crater 3a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Crater 3b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Crater 4a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Crater 4b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Crater 5a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Crater 5b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Crater 6a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Crater 7a.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Crater 7b.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Flames 1.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Flames 2.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Flames 3.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Flames 4.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Scorch 1.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Scorch 2.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Scorch 3.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Scorch 4.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 1.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 10.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 11.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 12.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 13.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 14.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 15.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 16.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 17.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 18.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 19.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 2.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 3.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 4.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 5.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 6.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 7.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 8.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Combat/Weapon Debris 9.webp": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_01.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_02.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_03.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/book_04.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_05.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_06.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_07.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_08.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_09.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_10.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_11.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_12.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_13.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_14.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_15.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_16.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_17.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_18.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_19.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_1a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_1b.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_1c.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_1d.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_1x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/book_20.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_21.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_22.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_23.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_24.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_25.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_26.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_27.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_28.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_29.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_2a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_2b.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_2c.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_2x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/book_30.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_31.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_32.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_3a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_3b.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_3c.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_3x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/book_4a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_4b.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_4c.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_4x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/book_5a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_5b.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_5c.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_5x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/book_6a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_6b.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_6c.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_6x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/book_color_01.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/book_open_1a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_open_1b.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_open_1c.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_open_1x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/book_open_2a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_open_2b.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_open_2c.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_open_2x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/book_open_3a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_open_3b.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_open_3c.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_open_3x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/book_open_4a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_open_4b.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_open_4c.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_open_4x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/book_open_5a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_open_5b.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_open_5c.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_open_5x-001.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_open_5x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/book_slanted_1b.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_slanted_1c.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_slanted_1x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/book_slanted_2a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_slanted_2b.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_slanted_2c.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_slanted_2x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/book_slanted_3a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_slanted_3b.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_slanted_3c.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/book_slanted_3x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/bookcase_01.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/bookcase_02.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/bookcase_03.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/bookcase_04.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/books_side_1a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/books_side_2a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/books_side_3a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/books_side_4a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/books_top_01.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/books_top_02.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/books_top_03.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/cashregister_01.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/cashregister_02.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/cloth_02.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/cloth_03.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/cross_map_1x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/document_seal_1a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/document_seal_2a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/envelope_01.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/envelope_02.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/envelope_03.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/feather_01.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/feather_2a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/feather_2b.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/feather_2x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/globe_01.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/globe_02.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/globe_03.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/globe_1a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/globe_1b.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/globe_2a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/globe_2b.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/ink_01.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/ink_02.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/ink_03.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/inkpot_1a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/inkpot_1x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/inkwell_01.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/letter_01.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/letter_02.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/letter_1x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/letter_2x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/letter_3x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/map_1a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/map_2a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/map_3a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/map_4a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/map_5a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/map_scroll_1x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/map_scroll_2x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/map_scroll_3a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/page_04.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/page_05.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/pages_01.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/paper_map_01.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/paper_map_02.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/paper_pages_01.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/paper_pages_02.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/paper_pages_03.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/paper_pages_04.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/paper_pages_05.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/Quill_01.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/Quill_0c.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/scroll_01.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/scroll_02.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/scroll_03.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/scroll_04.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/scroll_05.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/scroll_1x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/scroll_2x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/scroll_3x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/scroll_case_01.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/scroll_pot_1x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/scroll_pot_2x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/scroll_pot_3x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/scroll_pot_4x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/door_1a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/door_1b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/door_2a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/door_2b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/door_2c.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/door_2d.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/door_3a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/door_3b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/door_3c.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/door_3d.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/door_4a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/door_4b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/door_frame_1a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/door_frame_1b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/door_frame_2a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/door_frame_2b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Door_Frame_Sliding_01.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Door_Frame_Sliding_02.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/doors_1a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/gate_stone_01.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Palisades_Gate_01.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Palisades_Gate_02.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/portal_04.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Portculis_Winding_Mid.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Portculis_Winding_Small.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Portcullis_01.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Portcullis_02.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Portcullis_03.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Portcullis_04.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/seagate_01.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/seawindow_01.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Stone_Metal_Gate_01.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_1a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_1b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_1c.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_1d.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_2a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_3a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_3b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_4a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_4b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_5a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_6a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_6b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_7a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_7b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Window_Bay.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_sides_1a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_sides_1b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_sides_2a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_sides_2b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_sides_3a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_sides_3b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_sides_4a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_sides_4b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_sides_4c.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_sides_paired_01.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_sides_paired.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_sill_1a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_sill_1b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_sill_2a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_sill_2b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/window_sill_2c.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/ladder_01.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/ladder_02.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/ladder_03.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/ladder_04.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/ladder_1aa.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/ladder_1ba.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/ladder_2aa.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/ladder_2ba.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/ladder_3aa.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/ladder_3ba.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/ladder_4aa.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/ladder_4ba.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/ladder_5aa.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/ladder_5ba.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_1ba.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_1ca.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_1da.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_3aa.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_3ba.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_4aa.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_4ba.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_5aa.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_5ba.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_5ca.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_5da.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_6aa.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_6ba.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_6da.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_7aa.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_7ba.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_7ca.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_7da.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stair_corner.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stairs_01.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stairs_02.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stairs_03.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stairs_1a.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stairs_1aa.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stairs_1ba.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stairs_1ca.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stairs_2aa.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stairs_2ba.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stairs_dark_single_01.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stairs_dark_single_02.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stairs_light_single_01.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stairs_round_01.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stairs_round_10.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/stairs1.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/Stepladder.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/steps_01.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/flute_1a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/flute_1b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/harp_1a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/harp_2a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/harp_3a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/harp_4a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/harp_5a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/harp_5b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/harp_6a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/harp_6b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/harp_6c.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/instrument_1a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/instrument_1b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/instrument_2a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/instrument_2b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/instrument_3a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/instrument_bit_1a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/instrument_bit_1b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/instrument_bit_2a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/instrument_bit_2b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/instrument_bit_3a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/instrument_bit_3b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/instrument_bit_4a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/instrument_bit_4b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Instrument_Drum.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Instrument_Harp.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Instrument_Lute_01.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Instrument_Lute_02.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/organ.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/piano_1a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/piano_1b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/piano_2a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/piano_3a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/piano_4a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/piano_4b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/piano.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/blood_01.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/Blood_01.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/blood_02.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/Blood_02.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/blood_03.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/Blood_03.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/Blood_04.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/Blood_05.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/Blood_06.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/Blood_07.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/Blood_08.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/Blood_09.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/Blood_10.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/Blood_11.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/blood_spatter_01.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/blood_spatter_02.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/blood_spatter_03.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/blood_spatter_04.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/blood_spatter_05.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/blood_spatter_06.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/blood_spatters_01.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/blood_spatters_02.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/blood_spatters_03.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/blood_spatters_04.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/blood_spatters_05.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/blood_spatters_06.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/Sign_Type_A_01.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Sign_Type_A_02.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Sign_Type_A_03.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Sign_Type_A_04.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Sign_Type_B_01.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Sign_Type_B_02.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Sign_Type_B_03.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Sign_Type_B_04.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Symbol_Helm_01.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Symbol_Shop_01.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Symbol_Shop_02.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Symbol_Small_Chalice.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Symbol_Small_Dragon.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Symbol_Small_Flower_01.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Symbol_Small_Potion_01.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Symbol_Small_Sun_01.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Symbol_Sun_01.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/Symbol_Sun_02.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_10a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_10b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_11a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_12a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_1a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_2a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_3a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_3b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_4a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_5a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_6a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_7a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_7b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_7c.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_8a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_8b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_8c.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_9a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_9b.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_9c.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_9d.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/fountain_statue_1a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/chest_01a.png": {
+      "macroCategory": "furniture",
+      "status": "approved"
+    },
+    "textures/objects/lock_04.png": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "chest"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/lock_05.png": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "chest"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/lock_06.png": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "chest"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/lock_07.png": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "chest"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/lock_08.png": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "chest"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/card_1a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/card_1x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/card_2a.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/card_2x.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/gameboard_01.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/gameboard_02.png": {
+      "macroCategory": "decoration",
+      "themeTags": [
+        "colorable"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/metal_detail_01.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/metal_detail_02.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/metal_detail_06.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/metal_detail_09.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/tar_01.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/tar_02.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/tar_03.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/tar_04.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/tar_05.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/tar_06.png": {
+      "macroCategory": "decoration",
+      "status": "approved"
+    },
+    "textures/objects/conveyor2_gold_edge.png": {
+      "status": "approved"
+    },
+    "textures/objects/mountain_25x.png": {
+      "assetGroups": [
+        "unknown"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/mug_2x.png": {
+      "assetGroups": [
+        "unknown"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/sofa_5x.png": {
+      "assetGroups": [
+        "unknown"
+      ],
+      "status": "approved"
+    },
+    "textures/objects/VM Castle/1. Stairs 5x5.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/VM Castle/10. Downstairs 10x5.webp": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/VM Castle/11. Downstairs 10x10.webp": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/VM Castle/12. Downstairs 10x15.webp": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/VM Castle/2. Stairs 5x10.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/VM Castle/3. Stairs 5x15.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/VM Castle/4. Stairs 10x5.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/VM Castle/5. Stairs 10x10.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/VM Castle/6. Stairs 10x15.png": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/VM Castle/7. Downstairs 5x5 .webp": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/VM Castle/8. Downstairs 5x10.webp": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/VM Castle/9. Downstairs 5x15.webp": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/VM Castle/Drawbridge.webp": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/VM Castle/Ladder.webp": {
+      "macroCategory": "floor",
+      "status": "approved"
+    },
+    "textures/objects/VM Castle/Trapdoor.webp": {
+      "macroCategory": "floor",
       "status": "approved"
     }
   },
   "groups": {
     ".Table": {
       "macroCategory": "furniture",
-      "themeTags": ["tavern", "interior", "wood"],
-      "placementTags": ["room_center", "near_chairs"]
+      "themeTags": [
+        "tavern",
+        "interior",
+        "wood"
+      ],
+      "placementTags": [
+        "room_center",
+        "near_chairs"
+      ]
     }
   },
   "packs": {
