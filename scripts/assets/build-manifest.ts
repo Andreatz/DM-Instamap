@@ -12,7 +12,13 @@ import {
   buildManifest,
   TAXONOMY_PATHS
 } from "../../packages/assets/src/taxonomy/index.ts";
-import { logLine, saveJson, tryLoadJson } from "./_shared.ts";
+import {
+  ASSET_GROUPS_INDEX_PATH,
+  logLine,
+  saveJson,
+  tryLoadJson,
+  writeAssetGroupsIndex
+} from "./_shared.ts";
 
 type MappedFile = { version: number; assets: AssetManifestItem[] };
 
@@ -42,6 +48,10 @@ async function main(): Promise<void> {
   const manifest = buildManifest(items);
   await saveJson(TAXONOMY_PATHS.finalManifest, manifest, { pretty: false });
 
+  // Keep the legacy integration index (consumed by the exporter/editor/AI
+  // bridge) in sync, now derived from the semantic taxonomy.
+  const groupCount = await writeAssetGroupsIndex(manifest.assets);
+
   logLine(
     [
       `Manifest finale: ${manifest.stats.totalAssets} asset`,
@@ -49,7 +59,8 @@ async function main(): Promise<void> {
       `Macro categorie: ${JSON.stringify(manifest.stats.macroCategoryCounts)}`,
       `Stati: ${JSON.stringify(manifest.stats.statusCounts)}`,
       `VM tagged: ${manifest.stats.vmTaggedAssets}`,
-      `Output: ${TAXONOMY_PATHS.finalManifest}`
+      `Output: ${TAXONOMY_PATHS.finalManifest}`,
+      `Gruppi semantici: ${groupCount} -> ${ASSET_GROUPS_INDEX_PATH}`
     ].join("\n")
   );
 }

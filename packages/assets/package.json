@@ -39,7 +39,6 @@
     "build": "tsc -p tsconfig.build.json",
     "embed": "tsx src/cli/embed.ts",
     "generate": "tsx src/cli/generate.ts",
-    "group": "tsx src/cli/group.ts",
     "import-pack": "tsx src/cli/import-pack.ts",
     "references:scan": "tsx src/cli/references-scan.ts",
     "references:style": "tsx src/cli/references-style.ts",

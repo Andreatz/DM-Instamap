@@ -1,71 +1,75 @@
-import { AssetGroupReviewWorkspace } from "@/components/assets/asset-group-review-workspace";
+import { AssetTaxonomyReviewWorkspace } from "@/components/assets/asset-taxonomy-review-workspace";
+import { loadTaxonomyGroups } from "@/lib/asset-taxonomy-groups";
 import {
-  loadAssetGroupReviews,
-  buildGroupReviewItems,
-  calculateGroupReviewStats
-} from "@/lib/asset-group-review";
-import { loadAssetGroups } from "@/lib/asset-groups";
-import { loadAssetManifest } from "@/lib/assets-manifest";
+  countAssetOverrides,
+  loadTaxonomyOverrides
+} from "@/lib/taxonomy-overrides";
 
 export const dynamic = "force-dynamic";
 
 export default async function AssetGroupReviewPage() {
-  const [groups, manifest, reviews] = await Promise.all([
-    loadAssetGroups(),
-    loadAssetManifest(),
-    loadAssetGroupReviews()
+  const [data, overrides] = await Promise.all([
+    loadTaxonomyGroups(),
+    loadTaxonomyOverrides()
   ]);
-  const items = buildGroupReviewItems(groups.groups, manifest.assets, reviews);
-  const stats = calculateGroupReviewStats(items);
+  const overrideCount = countAssetOverrides(overrides);
+  const attentionGroups = data.groups.filter(
+    (group) =>
+      group.statusCounts["needs-review"] +
+        group.statusCounts.quarantine +
+        group.statusCounts.rejected >
+      0
+  ).length;
 
   return (
     <main className="asset-page">
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>Revisione gruppi asset</h1>
+          <h1>Revisione gruppi semantici</h1>
           <p>
-            Revisiona migliaia di asset locali per gruppo, non un file alla
-            volta.
+            Revisiona i gruppi della tassonomia: approva, cambia stato o
+            correggi macroCategory/assetGroups/themeTags. Le correzioni vengono
+            salvate in <code>asset-overrides.json</code> e applicate con{" "}
+            <code>pnpm assets:manifest</code>.{" "}
+            <a href="/asset-groups">Torna ai gruppi</a>
           </p>
         </div>
         <dl>
           <div>
-            <dt>Asset totali</dt>
-            <dd>{stats.totalAssets}</dd>
+            <dt>Gruppi</dt>
+            <dd>{data.summary.groupCount}</dd>
           </div>
           <div>
-            <dt>Asset revisionati</dt>
-            <dd>{stats.reviewedAssets}</dd>
+            <dt>Da revisionare</dt>
+            <dd>{attentionGroups}</dd>
           </div>
           <div>
-            <dt>Gruppi revisionati</dt>
-            <dd>{stats.reviewedGroups}</dd>
+            <dt>Needs-review</dt>
+            <dd>{data.summary.needsReview}</dd>
           </div>
           <div>
-            <dt>Sconosciuti</dt>
-            <dd>{stats.unknownRemaining}</dd>
-          </div>
-          <div>
-            <dt>Bassa affidabilita</dt>
-            <dd>{stats.lowConfidenceRemaining}</dd>
+            <dt>Override</dt>
+            <dd>{overrideCount}</dd>
           </div>
         </dl>
       </header>
 
-      {groups.missing || manifest.missing ? (
+      {data.missing ? (
         <section className="asset-empty">
-          <h2>Indice revisione mancante</h2>
+          <h2>Manifest mancante</h2>
           <p>
-            Esegui <code>pnpm assets:scan</code> e{" "}
-            <code>pnpm assets:group</code> prima della revisione gruppi.
+            Genera la tassonomia con <code>pnpm assets:import-tags</code>,{" "}
+            <code>assets:map-taxonomy</code> e <code>assets:manifest</code>{" "}
+            prima della revisione.
           </p>
         </section>
       ) : (
-        <AssetGroupReviewWorkspace
-          initialItems={items}
-          initialReviews={reviews}
-          initialStats={stats}
+        <AssetTaxonomyReviewWorkspace
+          generatedAt={data.generatedAt}
+          groups={data.groups}
+          initialOverrideCount={overrideCount}
+          summary={data.summary}
         />
       )}
     </main>

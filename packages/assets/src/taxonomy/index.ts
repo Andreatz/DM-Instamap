@@ -69,3 +69,10 @@ export {
   type ValidationIssue,
   type ValidationResult
 } from "./validate";
+
+export {
+  buildAssetGroupsIndex,
+  type AssetGroupIndexEntry,
+  type AssetGroupsIndexFile,
+  type ScannerAssetResolver
+} from "./groups-index";

@@ -1,91 +1,96 @@
-import { loadAssetGroups } from "@/lib/asset-groups";
+import { AssetTaxonomyGroups } from "@/components/assets/asset-taxonomy-groups";
+import { loadTaxonomyGroups } from "@/lib/asset-taxonomy-groups";
 
 export const dynamic = "force-dynamic";
 
 export default async function AssetGroupsPage() {
-  const groups = await loadAssetGroups();
+  const data = await loadTaxonomyGroups();
 
   return (
     <main className="asset-page">
       <header className="asset-hero">
         <div>
           <strong>DM-Instamap</strong>
-          <h1>Gruppi di asset</h1>
+          <h1>Gruppi semantici di asset</h1>
           <p>
-            Set generati per navigazione, suggerimenti di generazione e futura
-            curatela manuale.
+            Tassonomia multilivello da <code>asset-manifest.json</code>:
+            macroCategoria / gruppo, con temi, source pack e stato.{" "}
+            <a href="/asset-groups/review">Revisiona i gruppi</a>
           </p>
         </div>
         <dl>
           <div>
-            <dt>Gruppi</dt>
-            <dd>{groups.groupCount}</dd>
+            <dt>Asset</dt>
+            <dd>{data.summary.totalAssets}</dd>
           </div>
           <div>
-            <dt>Index</dt>
-            <dd>{groups.missing ? "Mancante" : "Caricato"}</dd>
+            <dt>Gruppi</dt>
+            <dd>{data.summary.groupCount}</dd>
+          </div>
+          <div>
+            <dt>Manifest</dt>
+            <dd>{data.missing ? "Mancante" : "Caricato"}</dd>
           </div>
         </dl>
       </header>
 
-      {groups.missing ? (
+      {data.missing ? (
         <section className="asset-empty" aria-live="polite">
-          <h2>Nessun gruppo trovato</h2>
+          <h2>Nessun manifest trovato</h2>
           <p>
-            Esegui <code>pnpm assets:group</code> dopo aver indicizzato gli
-            asset.
+            Genera la tassonomia con <code>pnpm assets:import-tags</code>,{" "}
+            <code>assets:map-taxonomy</code> e <code>assets:manifest</code>.
           </p>
         </section>
       ) : (
         <>
-          <section className="group-toolbar">
-            <span>{groups.groups.length} gruppi mostrati</span>
-            {groups.generatedAt ? (
-              <span>
-                Raggruppati {new Date(groups.generatedAt).toLocaleString()}
-              </span>
-            ) : null}
-            <a href="/asset-groups/review">Revisiona gruppi a lotti</a>
+          <section
+            className="report-grid"
+            aria-label="Riepilogo tassonomia asset"
+          >
+            <ReportCard label="Asset totali" value={data.summary.totalAssets} />
+            <ReportCard
+              label="Gruppi semantici"
+              value={data.summary.groupCount}
+            />
+            <ReportCard label="Unknown" value={data.summary.unknown} />
+            <ReportCard label="Needs-review" value={data.summary.needsReview} />
+            <ReportCard
+              label="Light sospette"
+              value={data.summary.suspiciousLight}
+            />
+            <ReportCard
+              label="Source pack"
+              value={
+                data.summary.topSourcePacks
+                  .map((entry) => `${entry.pack} (${entry.count})`)
+                  .join(", ") || "nessuno"
+              }
+            />
           </section>
 
-          <section className="group-grid" aria-label="Gruppi di asset">
-            {groups.groups.map((group) => (
-              <article className="group-card" key={group.id}>
-                <div className="group-preview">
-                  {group.previewUrl ? (
-                    <img alt="" loading="lazy" src={group.previewUrl} />
-                  ) : null}
-                </div>
-                <div className="group-card-body">
-                  <div className="group-title-row">
-                    <h2>{group.name}</h2>
-                    <span>{group.kind}</span>
-                  </div>
-                  <dl>
-                    <div>
-                      <dt>Asset</dt>
-                      <dd>{group.assetCount}</dd>
-                    </div>
-                    <div>
-                      <dt>Rappresentativo</dt>
-                      <dd>{group.representativeAssetId ?? "nessuno"}</dd>
-                    </div>
-                  </dl>
-                  <div className="tag-list">
-                    {group.tags.slice(0, 10).map((tag) => (
-                      <span key={tag}>{tag}</span>
-                    ))}
-                  </div>
-                  <p>
-                    {group.sourceFolders.slice(0, 2).join(", ") ||
-                      "Nessuna cartella sorgente"}
-                  </p>
-                </div>
-              </article>
-            ))}
-          </section>
+          <AssetTaxonomyGroups
+            generatedAt={data.generatedAt}
+            groups={data.groups}
+            summary={data.summary}
+          />
         </>
       )}
     </main>
+  );
+}
+
+function ReportCard({
+  label,
+  value
+}: {
+  label: string;
+  value: number | string;
+}) {
+  return (
+    <article className="report-card">
+      <span className="report-label">{label}</span>
+      <span className="report-value">{value}</span>
+    </article>
   );
 }

@@ -42,13 +42,6 @@ export {
 } from "./scanner";
 
 export {
-  groupAssets,
-  type AssetGroupEntry,
-  type AssetGroupOptions,
-  type AssetGroupsFile
-} from "./groups";
-
-export {
   createEmbeddingProviderFromEnv,
   createLocalEmbeddingProvider,
   createRemoteEmbeddingProvider,

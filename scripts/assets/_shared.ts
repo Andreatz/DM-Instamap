@@ -7,6 +7,11 @@
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  type AssetManifestItem,
+  buildAssetGroupsIndex,
+  type ScannerAssetResolver
+} from "../../packages/assets/src/taxonomy/index.ts";
 
 export const REPO_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -212,6 +217,67 @@ export function parseCliArgs(argv: string[]): CliArgs {
   }
 
   return { positionals, flags };
+}
+
+/** Legacy integration file consumed by the exporter/editor/AI bridge. */
+export const ASSET_GROUPS_INDEX_PATH = "data/indexes/asset-groups.json";
+const SCANNER_MANIFEST_PATH = "data/indexes/assets.manifest.json";
+
+/**
+ * Build a resolver from a taxonomy asset path to its scanner-manifest entry
+ * (id + thumbnail), so the regenerated groups index can carry scanner ids the
+ * exporter knows how to turn into files. Best-effort: returns a null-resolver
+ * when the scanner manifest is absent.
+ */
+export async function loadScannerResolver(): Promise<ScannerAssetResolver> {
+  const data = await tryLoadJson<{
+    assets?: Array<{
+      id?: unknown;
+      relativePath?: unknown;
+      thumbnailPath?: unknown;
+    }>;
+  }>(SCANNER_MANIFEST_PATH);
+
+  const index = new Map<string, { id: string; thumbnailPath: string | null }>();
+  if (data?.assets && Array.isArray(data.assets)) {
+    for (const entry of data.assets) {
+      const id = typeof entry.id === "string" ? entry.id : "";
+      const relativePath =
+        typeof entry.relativePath === "string" ? entry.relativePath : "";
+      if (!id || !relativePath) {
+        continue;
+      }
+      const key = scannerKey(relativePath);
+      if (key && !index.has(key)) {
+        index.set(key, {
+          id,
+          thumbnailPath:
+            typeof entry.thumbnailPath === "string" ? entry.thumbnailPath : null
+        });
+      }
+    }
+  }
+
+  return (assetPath: string) => index.get(scannerKey(assetPath)) ?? null;
+}
+
+/**
+ * Derive `data/indexes/asset-groups.json` from taxonomy manifest items and
+ * write it. Returns the number of semantic groups written.
+ */
+export async function writeAssetGroupsIndex(
+  items: AssetManifestItem[]
+): Promise<number> {
+  const resolveScanner = await loadScannerResolver();
+  const index = buildAssetGroupsIndex(items, resolveScanner);
+  await saveJson(ASSET_GROUPS_INDEX_PATH, index, { pretty: false });
+  return index.groupCount;
+}
+
+function scannerKey(value: string): string {
+  const lower = value.replaceAll("\\", "/").toLowerCase();
+  const texturesAt = lower.indexOf("textures/");
+  return texturesAt >= 0 ? lower.slice(texturesAt) : lower;
 }
 
 export function logLine(message: string): void {

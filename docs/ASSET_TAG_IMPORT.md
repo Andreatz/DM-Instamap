@@ -32,7 +32,7 @@ pnpm assets:import-tags     # -> data/assets/imports/imported-tags.json
 pnpm assets:map-taxonomy    # -> mapped-assets.json + taxonomy/asset-taxonomy.json
 pnpm assets:metadata        # -> mapped-assets.with-metadata.json  (sharp; slow)
 pnpm assets:audit-manifest  # -> reports/audit-report.json + .md
-pnpm assets:manifest        # -> data/assets/asset-manifest.json   (FINAL)
+pnpm assets:manifest        # -> data/assets/asset-manifest.json (FINAL) + asset-groups.json
 pnpm assets:validate        # exits non-zero on hard failures
 pnpm assets:contact-sheets -- --only unknown,needs-review,suspicious-light
 ```
@@ -47,6 +47,21 @@ Notes:
   engine in [`mapping.ts`](../packages/assets/src/taxonomy/mapping.ts).
 - `assets:audit-manifest` is the new pipeline audit. The legacy
   `pnpm assets:audit` (scanner manifest under `data/indexes/`) is unchanged.
+- `assets:manifest` also (re)generates `data/indexes/asset-groups.json` from the
+  taxonomy — a few hundred semantic `macroCategory / assetGroup` groups that the
+  exporter resolver, editor and AI bridge consume. The old folder/aspect/colour
+  grouping is gone; `pnpm assets:group` now just regenerates that index from the
+  existing manifest (no rescan needed).
+
+## Reviewing groups (`/asset-groups/review`)
+
+The web review at `/asset-groups/review` works on the semantic taxonomy groups.
+For a group you can **approve** it, **set a status**
+(approved / needs-review / quarantine / rejected), or **correct** its
+`macroCategory` / `assetGroups` / `themeTags`. Each action is written as
+asset-level overrides (keyed by path) into
+`data/assets/overrides/asset-overrides.json`. Re-run `pnpm assets:manifest` to
+apply them and refresh the manifest + groups index.
 
 ## Where the generated files go
 

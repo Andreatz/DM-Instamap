@@ -2298,3 +2298,66 @@ textarea:focus {
 .library-status-empty {
   color: var(--muted);
 }
+
+/* Semantic asset-groups summary report + status chips */
+.report-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  margin-bottom: 18px;
+}
+
+.report-card {
+  background: var(--panel-gradient);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+}
+
+.report-label {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.report-value {
+  color: var(--foreground);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.status-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.status-counts span {
+  background: var(--accent-soft);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  color: var(--foreground);
+  font-size: 11px;
+  padding: 2px 8px;
+}
+
+.review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.review-outcome-ok {
+  color: var(--accent-2);
+  font-size: 12px;
+}
+
+.review-outcome-error {
+  color: var(--danger);
+  font-size: 12px;
+}

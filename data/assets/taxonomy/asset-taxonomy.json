@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-05-24T02:14:43.840Z",
+  "generatedAt": "2026-05-24T04:52:14.604Z",
   "vmHandling": {
     "decision": "VM è preservato in sourceTags/sourcePacks ma rimosso dai gruppi normalizzati.",
     "reason": "VM è un prefisso di pack/vendor (Venatus Maps), non una categoria semantica."

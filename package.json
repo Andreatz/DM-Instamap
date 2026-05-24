@@ -8,7 +8,7 @@
   "scripts": {
     "assets:analyze-image": "pnpm --filter @dm-instamap/assets analyze-image",
     "assets:generate": "pnpm --filter @dm-instamap/assets generate",
-    "assets:group": "pnpm --filter @dm-instamap/assets group",
+    "assets:group": "tsx scripts/assets/build-groups-index.ts",
     "assets:import-pack": "pnpm --filter @dm-instamap/assets import-pack",
     "assets:audit": "pnpm --filter @dm-instamap/assets run audit",
     "assets:embed": "pnpm --filter @dm-instamap/assets embed",
