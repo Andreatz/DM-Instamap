@@ -112,21 +112,20 @@ export function AssetTaxonomyReviewWorkspace({
   }
 
   function draftFor(group: TaxonomyGroupView): CorrectionDraft {
-    return (
-      drafts[group.id] ?? {
-        assetGroups: group.assetGroup,
-        macroCategory: group.macroCategory,
-        status: "",
-        themeTags: group.themeTags.join(", ")
-      }
-    );
+    return drafts[group.id] ?? createDraftForGroup(group);
   }
 
-  function updateDraft(groupId: string, patch: Partial<CorrectionDraft>) {
-    setDrafts((current) => ({
-      ...current,
-      [groupId]: { ...current[groupId], ...patch } as CorrectionDraft
-    }));
+  function updateDraft(
+    group: TaxonomyGroupView,
+    patch: Partial<CorrectionDraft>
+  ) {
+    setDrafts((current) => {
+      const base = current[group.id] ?? createDraftForGroup(group);
+      return {
+        ...current,
+        [group.id]: { ...base, ...patch }
+      };
+    });
   }
 
   return (
@@ -237,7 +236,7 @@ export function AssetTaxonomyReviewWorkspace({
                       <span>Macro categoria</span>
                       <select
                         onChange={(event) =>
-                          updateDraft(group.id, {
+                          updateDraft(group, {
                             macroCategory: event.target.value
                           })
                         }
@@ -254,7 +253,7 @@ export function AssetTaxonomyReviewWorkspace({
                       <span>Asset groups (csv)</span>
                       <input
                         onChange={(event) =>
-                          updateDraft(group.id, {
+                          updateDraft(group, {
                             assetGroups: event.target.value
                           })
                         }
@@ -266,7 +265,7 @@ export function AssetTaxonomyReviewWorkspace({
                       <span>Theme tags (csv)</span>
                       <input
                         onChange={(event) =>
-                          updateDraft(group.id, {
+                          updateDraft(group, {
                             themeTags: event.target.value
                           })
                         }
@@ -278,7 +277,7 @@ export function AssetTaxonomyReviewWorkspace({
                       <span>Stato</span>
                       <select
                         onChange={(event) =>
-                          updateDraft(group.id, {
+                          updateDraft(group, {
                             status: event.target
                               .value as CorrectionDraft["status"]
                           })
@@ -338,8 +337,17 @@ export function AssetTaxonomyReviewWorkspace({
   );
 }
 
-function csv(value: string): string[] {
-  return value
+function createDraftForGroup(group: TaxonomyGroupView): CorrectionDraft {
+  return {
+    assetGroups: group.assetGroup ?? "",
+    macroCategory: group.macroCategory || "unknown",
+    status: "",
+    themeTags: (group.themeTags ?? []).join(", ")
+  };
+}
+
+function csv(value: string | null | undefined): string[] {
+  return (value ?? "")
     .split(",")
     .map((item) => item.trim().toLowerCase())
     .filter(Boolean);
