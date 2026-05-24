@@ -74,7 +74,11 @@ describe("manifest-io", () => {
   it("buildManifest sorts by path and computes stats", () => {
     const manifest = buildManifest([
       makeItem({ path: "z.png", macroCategory: "prop", sourcePacks: ["VM"] }),
-      makeItem({ path: "a.png", macroCategory: "floor", status: "needs-review" })
+      makeItem({
+        path: "a.png",
+        macroCategory: "floor",
+        status: "needs-review"
+      })
     ]);
     expect(manifest.assets[0]?.path).toBe("a.png");
     expect(manifest.stats.totalAssets).toBe(2);
@@ -90,7 +94,9 @@ describe("manifest-io", () => {
   });
 
   it("exposes pipeline paths", () => {
-    expect(TAXONOMY_PATHS.finalManifest).toBe("data/assets/asset-manifest.json");
+    expect(TAXONOMY_PATHS.finalManifest).toBe(
+      "data/assets/asset-manifest.json"
+    );
   });
 });
 
@@ -155,7 +161,10 @@ describe("findAssetsScored", () => {
 
   it("filters by sourcePacks and excludeSourcePacks", () => {
     expect(
-      findAssetsScored(corpus, { macroCategory: "furniture", sourcePacks: ["VM"] })
+      findAssetsScored(corpus, {
+        macroCategory: "furniture",
+        sourcePacks: ["VM"]
+      })
     ).toHaveLength(1);
     expect(
       findAssetsScored(corpus, {
@@ -275,11 +284,17 @@ describe("validateManifest", () => {
   it("passes a complete corpus (with unknown within threshold as warning)", () => {
     const corpus = [
       ...validCorpus(),
-      makeItem({ path: "u.png", macroCategory: "unknown", status: "needs-review" })
+      makeItem({
+        path: "u.png",
+        macroCategory: "unknown",
+        status: "needs-review"
+      })
     ];
     const result = validateManifest(corpus, { maxUnknownRatio: 0.5 });
     expect(result.ok).toBe(true);
-    expect(result.warnings.some((w) => w.code === "unknown-present")).toBe(true);
+    expect(result.warnings.some((w) => w.code === "unknown-present")).toBe(
+      true
+    );
   });
 
   it("fails on empty manifest", () => {
@@ -314,9 +329,9 @@ describe("validateManifest", () => {
       { maxUnknownRatio: 0.01 }
     );
     expect(result.ok).toBe(false);
-    expect(result.errors.some((error) => error.code === "too-many-unknown")).toBe(
-      true
-    );
+    expect(
+      result.errors.some((error) => error.code === "too-many-unknown")
+    ).toBe(true);
   });
 });
 
@@ -345,7 +360,10 @@ describe("enrichAssetMetadata", () => {
     const file = join(dir, "tiny.png");
     await writeFile(file, buffer);
 
-    const result = await enrichAssetMetadata(makeItem({ path: "tiny.png" }), file);
+    const result = await enrichAssetMetadata(
+      makeItem({ path: "tiny.png" }),
+      file
+    );
     expect(result.metadata.width).toBe(10);
     expect(result.metadata.height).toBe(20);
     expect(result.metadata.hasTransparency).toBe(true);
@@ -362,7 +380,10 @@ describe("enrichAssetMetadata", () => {
     const file = join(dir, "broken.png");
     await writeFile(file, "not a real png");
 
-    const result = await enrichAssetMetadata(makeItem({ path: "broken.png" }), file);
+    const result = await enrichAssetMetadata(
+      makeItem({ path: "broken.png" }),
+      file
+    );
     expect(result.qualityFlags).toContain("corrupt");
   });
 });
