@@ -65,9 +65,9 @@ export function AssetTaxonomyReviewWorkspace({
     Record<string, Partial<CorrectionDraft>>
   >({});
   const [busyGroupId, setBusyGroupId] = useState<string | null>(null);
-  const [locallyHiddenGroupIds, setLocallyHiddenGroupIds] = useState<Set<string>>(
-    () => new Set()
-  );
+  const [locallyHiddenGroupIds, setLocallyHiddenGroupIds] = useState<
+    Set<string>
+  >(() => new Set());
 
   const visibleGroups = useMemo(
     () =>
