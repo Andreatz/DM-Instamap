@@ -1,3 +1,4 @@
+import { buildFinalTaxonomyManifest } from "@dm-instamap/assets/taxonomy";
 import { loadTaxonomyManifestItems } from "@/lib/asset-taxonomy-groups";
 import {
   buildReviewOverrideEntries,
@@ -6,6 +7,7 @@ import {
   type ReviewMember,
   type TaxonomyReviewAction
 } from "@/lib/asset-taxonomy-review";
+import { findWorkspaceRoot } from "@/lib/assets-manifest";
 import {
   countAssetOverrides,
   loadTaxonomyOverrides,
@@ -62,12 +64,33 @@ export async function POST(request: Request) {
     mergeAssetOverrides(overrides, entries)
   );
 
-  return Response.json({
-    changed: entries.length,
-    memberCount: members.length,
-    overrideCount: countAssetOverrides(saved),
-    saved: true
-  });
+  try {
+    const workspaceRoot = await findWorkspaceRoot(process.cwd());
+    const rebuild = await buildFinalTaxonomyManifest({ workspaceRoot });
+
+    return Response.json({
+      changed: entries.length,
+      groupCount: rebuild.groupCount,
+      legacyGroupsIndexPath: rebuild.legacyGroupsIndexPath,
+      manifestPath: rebuild.finalManifestPath,
+      manifestRebuilt: true,
+      memberCount: members.length,
+      overrideCount: countAssetOverrides(saved),
+      overriddenCount: rebuild.overriddenCount,
+      saved: true
+    });
+  } catch (error) {
+    return Response.json(
+      {
+        error:
+          "Override salvato ma manifest non rigenerato. Esegui pnpm assets:manifest.",
+        manifestRebuilt: false,
+        rebuildError: error instanceof Error ? error.message : "Errore sconosciuto",
+        saved: true
+      },
+      { status: 500 }
+    );
+  }
 }
 
 function parseAction(body: RequestBody): TaxonomyReviewAction | null {
