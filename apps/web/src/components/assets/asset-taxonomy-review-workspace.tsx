@@ -58,7 +58,9 @@ export function AssetTaxonomyReviewWorkspace({
   const [query, setQuery] = useState("");
   const [overrideCount, setOverrideCount] = useState(initialOverrideCount);
   const [outcomes, setOutcomes] = useState<Record<string, GroupOutcome>>({});
-  const [drafts, setDrafts] = useState<Record<string, CorrectionDraft>>({});
+  const [drafts, setDrafts] = useState<Record<string, Partial<CorrectionDraft>>>(
+    {}
+  );
   const [busyGroupId, setBusyGroupId] = useState<string | null>(null);
 
   const visibleGroups = useMemo(
@@ -112,7 +114,7 @@ export function AssetTaxonomyReviewWorkspace({
   }
 
   function draftFor(group: TaxonomyGroupView): CorrectionDraft {
-    return drafts[group.id] ?? createDraftForGroup(group);
+    return normalizeDraft(group, drafts[group.id]);
   }
 
   function updateDraft(
@@ -120,7 +122,7 @@ export function AssetTaxonomyReviewWorkspace({
     patch: Partial<CorrectionDraft>
   ) {
     setDrafts((current) => {
-      const base = current[group.id] ?? createDraftForGroup(group);
+      const base = normalizeDraft(group, current[group.id]);
       return {
         ...current,
         [group.id]: { ...base, ...patch }
@@ -343,6 +345,19 @@ function createDraftForGroup(group: TaxonomyGroupView): CorrectionDraft {
     macroCategory: group.macroCategory || "unknown",
     status: "",
     themeTags: (group.themeTags ?? []).join(", ")
+  };
+}
+
+function normalizeDraft(
+  group: TaxonomyGroupView,
+  draft: Partial<CorrectionDraft> | undefined
+): CorrectionDraft {
+  const fallback = createDraftForGroup(group);
+  return {
+    assetGroups: draft?.assetGroups ?? fallback.assetGroups,
+    macroCategory: draft?.macroCategory || fallback.macroCategory,
+    status: draft?.status ?? "",
+    themeTags: draft?.themeTags ?? fallback.themeTags
   };
 }
 
