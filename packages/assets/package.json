@@ -31,6 +31,10 @@
     "./taxonomy": {
       "import": "./src/taxonomy/index.ts",
       "types": "./src/taxonomy/index.ts"
+    },
+    "./taxonomy/build-final-manifest": {
+      "import": "./src/taxonomy/build-final-manifest.ts",
+      "types": "./src/taxonomy/build-final-manifest.ts"
     }
   },
   "scripts": {
