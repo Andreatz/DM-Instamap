@@ -1,0 +1,127 @@
+{
+  "generatedAt": "2026-05-24T02:31:36.782Z",
+  "totalAssets": 34026,
+  "checks": [
+    {
+      "id": "missing-files",
+      "label": "File mancanti sul disco",
+      "count": 201,
+      "examples": [
+        "textures/objects/Barrel_Contents_Flower_0c.png",
+        "textures/objects/Bed_Double_Matrass.png",
+        "textures/objects/body_17b.png",
+        "textures/objects/bowsprit_01a.png",
+        "textures/objects/brazier_03.png",
+        "textures/objects/broken_plates_10a.png",
+        "textures/objects/broken_plates_10b.png",
+        "textures/objects/broken_plates_10c.png",
+        "textures/objects/broken_plates_10d.png",
+        "textures/objects/broken_plates_11a.png"
+      ]
+    },
+    {
+      "id": "corrupt",
+      "label": "Asset corrotti / illeggibili",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "id": "unknown",
+      "label": "Asset con macroCategory unknown",
+      "count": 780,
+      "examples": [
+        "textures/objects/blood_01.png",
+        "textures/objects/Blood_01.png",
+        "textures/objects/blood_02.png",
+        "textures/objects/Blood_02.png",
+        "textures/objects/blood_03.png",
+        "textures/objects/Blood_03.png",
+        "textures/objects/Blood_04.png",
+        "textures/objects/Blood_05.png",
+        "textures/objects/Blood_06.png",
+        "textures/objects/Blood_07.png"
+      ]
+    },
+    {
+      "id": "no-source-tags",
+      "label": "Asset senza sourceTags",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "id": "duplicate-paths",
+      "label": "Path duplicati",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "id": "suspicious-light",
+      "label": "Light sospette",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "id": "carpet-as-light",
+      "label": "Carpet/rug/runner/banner classificati come light",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "id": "category-conflict",
+      "label": "Asset con conflitto di categoria",
+      "count": 4762,
+      "examples": [
+        "textures/objects/Animal_Pinned_Disected.png",
+        "textures/objects/animal_plow.png",
+        "textures/objects/Awning_Angled_01.png",
+        "textures/objects/Awning_Angled_02.png",
+        "textures/objects/Awning_Cloth_Large_01.png",
+        "textures/objects/Awning_Cloth_Large_02.png",
+        "textures/objects/Awning_Cloth_Large_03.png",
+        "textures/objects/Awning_Cloth_Large_04.png",
+        "textures/objects/Awning_Corner.png",
+        "textures/objects/Awning_Small_01.png"
+      ]
+    },
+    {
+      "id": "tiny",
+      "label": "Asset molto piccoli",
+      "count": 110,
+      "examples": [
+        "textures/objects/VM Academy/Colorable/Spell Component 15_clr.webp",
+        "textures/objects/VM Academy/Colorable/Spell Component 4_clr.webp",
+        "textures/objects/VM Academy/Ink Quill 3.webp",
+        "textures/objects/VM Academy/Ink Quill 5.webp",
+        "textures/objects/VM Academy/Spell Component 15.webp",
+        "textures/objects/VM Academy/Spell Component 4.webp",
+        "textures/objects/VM Adventure - Lost Mine of Phandelver/Colorable/Paper 24_clr.webp",
+        "textures/objects/VM Adventure - Lost Mine of Phandelver/Paper 24.webp",
+        "textures/objects/VM Ancestral/Surgical Tool 1.webp",
+        "textures/objects/VM Ancestral/Surgical Tool 2.webp"
+      ]
+    },
+    {
+      "id": "opaque-detail-asset",
+      "label": "Furniture/prop/light senza trasparenza (sospetto)",
+      "count": 61,
+      "examples": [
+        "textures/objects/cage_09_bottom.png",
+        "textures/objects/VM Academy/Stair cap 10ft.webp",
+        "textures/objects/VM Academy/Stair cap 15ft.webp",
+        "textures/objects/VM Academy/Stair cap 5ft.webp",
+        "textures/objects/VM Academy/VM Furniture/Table 1a.webp",
+        "textures/objects/VM Academy/VM Furniture/Table 1b.webp",
+        "textures/objects/VM Academy/VM Shelves/Shelf 1a - 5ft.webp",
+        "textures/objects/VM Academy/VM Shelves/Shelf 1b - 5ft.webp",
+        "textures/objects/VM Academy/VM Shelves/Shelf 2a - 10ft.webp",
+        "textures/objects/VM Academy/VM Shelves/Shelf 2b - 10ft.webp"
+      ]
+    },
+    {
+      "id": "vm-path-not-marked",
+      "label": "Path con VM non marcato come sourcePack VM",
+      "count": 0,
+      "examples": []
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "assets": {
+    "textures/objects/red_carpet_01.png": {
+      "macroCategory": "decoration",
+      "assetGroups": ["carpet", "runner"],
+      "themeTags": ["tavern", "noble"],
+      "placementTags": ["floor", "corridor"],
+      "usageRules": {
+        "canBeLightEmitter": false,
+        "canBeFloorOverlay": true
+      },
+      "status": "approved"
+    }
+  },
+  "groups": {
+    ".Table": {
+      "macroCategory": "furniture",
+      "themeTags": ["tavern", "interior", "wood"],
+      "placementTags": ["room_center", "near_chairs"]
+    }
+  },
+  "packs": {
+    "VM": {
+      "preserveAsSourcePack": true,
+      "stripFromNormalizedGroups": true
+    }
+  }
+}

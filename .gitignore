@@ -22,6 +22,16 @@ local-references/
 reference-maps-local/
 *.dungeondraft_pack
 
+# Asset taxonomy pipeline — large generated/input artifacts.
+# Regenerate with `pnpm assets:import-tags && assets:map-taxonomy && assets:manifest`.
+# Small, hand-maintained files (overrides, reports, asset-taxonomy.json and the
+# v3 taxonomy seed) stay tracked via the negations below.
+data/assets/imports/*.json
+data/assets/manifests/*.json
+data/assets/asset-manifest.json
+data/assets/contact-sheets/
+!data/assets/taxonomy/dm_instamap_taxonomy_merged_v3.json
+
 # Local generated project/export output
 data/projects/
 data/exports/

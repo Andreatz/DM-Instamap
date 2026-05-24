@@ -27,6 +27,10 @@
     "./matcher": {
       "import": "./src/matcher.ts",
       "types": "./src/matcher.ts"
+    },
+    "./taxonomy": {
+      "import": "./src/taxonomy/index.ts",
+      "types": "./src/taxonomy/index.ts"
     }
   },
   "scripts": {
