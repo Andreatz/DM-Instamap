@@ -57,12 +57,6 @@ export {
 } from "./manifest-io";
 
 export {
-  buildFinalTaxonomyManifest,
-  type BuildFinalTaxonomyManifestOptions,
-  type BuildFinalTaxonomyManifestResult
-} from "./build-final-manifest";
-
-export {
   auditManifest,
   renderAuditMarkdown,
   type AuditCheck,
