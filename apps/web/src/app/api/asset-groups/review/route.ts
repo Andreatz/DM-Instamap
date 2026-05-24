@@ -85,7 +85,8 @@ export async function POST(request: Request) {
         error:
           "Override salvato ma manifest non rigenerato. Esegui pnpm assets:manifest.",
         manifestRebuilt: false,
-        rebuildError: error instanceof Error ? error.message : "Errore sconosciuto",
+        rebuildError:
+          error instanceof Error ? error.message : "Errore sconosciuto",
         saved: true
       },
       { status: 500 }
