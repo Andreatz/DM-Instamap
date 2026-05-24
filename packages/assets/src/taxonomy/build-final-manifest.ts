@@ -8,7 +8,10 @@
 
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { buildAssetGroupsIndex, type ScannerAssetResolver } from "./groups-index";
+import {
+  buildAssetGroupsIndex,
+  type ScannerAssetResolver
+} from "./groups-index";
 import { buildManifest, TAXONOMY_PATHS } from "./manifest-io";
 import { applyOverrides, type AssetOverridesFile } from "./overrides";
 import type { AssetManifest, AssetManifestItem } from "./schema";
@@ -54,9 +57,11 @@ export async function buildFinalTaxonomyManifest(
   const workspaceRoot = path.resolve(options.workspaceRoot ?? process.cwd());
   const mappedWithMetadataPath =
     options.mappedWithMetadataPath ?? TAXONOMY_PATHS.mappedWithMetadata;
-  const mappedAssetsPath = options.mappedAssetsPath ?? TAXONOMY_PATHS.mappedAssets;
+  const mappedAssetsPath =
+    options.mappedAssetsPath ?? TAXONOMY_PATHS.mappedAssets;
   const overridesPath = options.overridesPath ?? TAXONOMY_PATHS.overridesFile;
-  const finalManifestPath = options.finalManifestPath ?? TAXONOMY_PATHS.finalManifest;
+  const finalManifestPath =
+    options.finalManifestPath ?? TAXONOMY_PATHS.finalManifest;
   const legacyGroupsIndexPath =
     options.legacyGroupsIndexPath ?? DEFAULT_LEGACY_GROUPS_INDEX_PATH;
   const scannerManifestPath =
@@ -72,10 +77,9 @@ export async function buildFinalTaxonomyManifest(
     );
   }
 
-  const sourcePath =
-    (await existsJson(workspaceRoot, mappedWithMetadataPath))
-      ? mappedWithMetadataPath
-      : mappedAssetsPath;
+  const sourcePath = (await existsJson(workspaceRoot, mappedWithMetadataPath))
+    ? mappedWithMetadataPath
+    : mappedAssetsPath;
 
   const overrides =
     (await tryLoadJson<AssetOverridesFile>(workspaceRoot, overridesPath)) ?? {};
@@ -158,7 +162,10 @@ async function tryLoadJson<T>(
   relativePath: string
 ): Promise<T | null> {
   try {
-    const raw = await readFile(resolveWorkspacePath(workspaceRoot, relativePath), "utf8");
+    const raw = await readFile(
+      resolveWorkspacePath(workspaceRoot, relativePath),
+      "utf8"
+    );
     return JSON.parse(raw) as T;
   } catch {
     return null;
@@ -191,7 +198,10 @@ async function saveJson(
   await writeFile(absolutePath, `${serialized}\n`, "utf8");
 }
 
-function resolveWorkspacePath(workspaceRoot: string, relativePath: string): string {
+function resolveWorkspacePath(
+  workspaceRoot: string,
+  relativePath: string
+): string {
   return path.resolve(workspaceRoot, relativePath);
 }
 
