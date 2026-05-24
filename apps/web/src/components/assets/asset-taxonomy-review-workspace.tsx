@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import type {
   TaxonomyGroupsSummary,
   TaxonomyGroupView
@@ -53,6 +54,8 @@ export function AssetTaxonomyReviewWorkspace({
   initialOverrideCount,
   summary
 }: ReviewWorkspaceProps) {
+  const router = useRouter();
+  const [isRefreshing, startRefresh] = useTransition();
   const [macroFilter, setMacroFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("attention");
   const [query, setQuery] = useState("");
@@ -62,10 +65,16 @@ export function AssetTaxonomyReviewWorkspace({
     {}
   );
   const [busyGroupId, setBusyGroupId] = useState<string | null>(null);
+  const [locallyHiddenGroupIds, setLocallyHiddenGroupIds] = useState<Set<string>>(
+    () => new Set()
+  );
 
   const visibleGroups = useMemo(
-    () => filterAndSort(groups, { macroFilter, query, statusFilter }),
-    [groups, macroFilter, statusFilter, query]
+    () =>
+      filterAndSort(groups, { macroFilter, query, statusFilter }).filter(
+        (group) => !locallyHiddenGroupIds.has(group.id)
+      ),
+    [groups, macroFilter, statusFilter, query, locallyHiddenGroupIds]
   );
 
   async function runAction(
@@ -81,12 +90,15 @@ export function AssetTaxonomyReviewWorkspace({
       });
       const data = (await response.json()) as {
         changed?: number;
+        manifestRebuilt?: boolean;
         memberCount?: number;
         overrideCount?: number;
         error?: string;
+        rebuildError?: string;
       };
       if (!response.ok) {
-        throw new Error(data.error ?? "Azione fallita");
+        const suffix = data.rebuildError ? ` (${data.rebuildError})` : "";
+        throw new Error(`${data.error ?? "Azione fallita"}${suffix}`);
       }
       setOverrideCount(data.overrideCount ?? overrideCount);
       setOutcomes((current) => ({
@@ -94,10 +106,16 @@ export function AssetTaxonomyReviewWorkspace({
         [groupId]: {
           changed: data.changed ?? 0,
           memberCount: data.memberCount ?? 0,
-          message: `${data.changed ?? 0}/${data.memberCount ?? 0} asset aggiornati`,
+          message: `${data.changed ?? 0}/${data.memberCount ?? 0} asset aggiornati${
+            data.manifestRebuilt ? " · manifest rigenerato" : ""
+          }`,
           status: "ok"
         }
       }));
+      if (data.manifestRebuilt) {
+        setLocallyHiddenGroupIds((current) => new Set(current).add(groupId));
+        startRefresh(() => router.refresh());
+      }
     } catch (error) {
       setOutcomes((current) => ({
         ...current,
@@ -145,6 +163,7 @@ export function AssetTaxonomyReviewWorkspace({
           {generatedAt ? (
             <span>Manifest {new Date(generatedAt).toLocaleString()}</span>
           ) : null}
+          {isRefreshing ? <span>Aggiornamento lista...</span> : null}
         </div>
 
         <label className="field">
