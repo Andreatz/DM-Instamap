@@ -1,0 +1,4573 @@
+{
+  "version": 1,
+  "generatedAt": "2026-05-24T02:14:43.840Z",
+  "vmHandling": {
+    "decision": "VM è preservato in sourceTags/sourcePacks ma rimosso dai gruppi normalizzati.",
+    "reason": "VM è un prefisso di pack/vendor (Venatus Maps), non una categoria semantica."
+  },
+  "sourceTagTaxonomy": {
+    ".Airship": {
+      "macroCategory": "water",
+      "assetGroups": [
+        "airship",
+        "ship"
+      ],
+      "themeTags": [
+        "naval"
+      ],
+      "placementTags": [
+        "outdoor",
+        "water"
+      ],
+      "sourcePacks": [],
+      "assetCount": 200
+    },
+    ".Armor": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "armor"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 128
+    },
+    ".Bakery": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "bakery"
+      ],
+      "themeTags": [
+        "bakery"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 96
+    },
+    ".Barrel": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "barrel"
+      ],
+      "themeTags": [
+        "tavern"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 81
+    },
+    ".Blacksmith": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "blacksmith"
+      ],
+      "themeTags": [
+        "blacksmith"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 164
+    },
+    ".Cart": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "cart"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 21
+    },
+    ".Cave": {
+      "macroCategory": "wall",
+      "assetGroups": [
+        "cave",
+        "wall"
+      ],
+      "themeTags": [
+        "cave"
+      ],
+      "placementTags": [
+        "wall"
+      ],
+      "sourcePacks": [],
+      "assetCount": 159
+    },
+    ".Cloud": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "cloud"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 90
+    },
+    ".Clutter": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "clutter"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 411
+    },
+    ".Crate": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "crate",
+        "storage"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 131
+    },
+    ".Creature": {
+      "macroCategory": "token",
+      "assetGroups": [
+        "creature"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 481
+    },
+    ".Decor": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "decor"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 335
+    },
+    ".Defense": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "defense"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 127
+    },
+    ".Desk": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "desk"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 105
+    },
+    ".Dining": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "dining"
+      ],
+      "themeTags": [
+        "tavern"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 493
+    },
+    ".Farm": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "farm"
+      ],
+      "themeTags": [
+        "farm"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 150
+    },
+    ".Fire": {
+      "macroCategory": "light",
+      "assetGroups": [
+        "fire"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "corner",
+        "floor",
+        "light_emitter",
+        "wall"
+      ],
+      "sourcePacks": [],
+      "assetCount": 67
+    },
+    ".Floor": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "floor"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 423
+    },
+    ".Gears": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "gear"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 47
+    },
+    ".Lighting": {
+      "macroCategory": "light",
+      "assetGroups": [
+        "lighting"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "corner",
+        "floor",
+        "light_emitter",
+        "wall"
+      ],
+      "sourcePacks": [],
+      "assetCount": 169
+    },
+    ".Mechanism": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "mechanism"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 90
+    },
+    ".Mushroom": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "mushroom"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 227
+    },
+    ".Path": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "path"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 13
+    },
+    ".Pillar": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "pillar"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 220
+    },
+    ".Rock": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "rock"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 642
+    },
+    ".Roof": {
+      "macroCategory": "roof",
+      "assetGroups": [
+        "roof"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "roof"
+      ],
+      "sourcePacks": [],
+      "assetCount": 333
+    },
+    ".Sack": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "sack"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 109
+    },
+    ".Ship": {
+      "macroCategory": "water",
+      "assetGroups": [
+        "ship"
+      ],
+      "themeTags": [
+        "naval"
+      ],
+      "placementTags": [
+        "outdoor",
+        "water"
+      ],
+      "sourcePacks": [],
+      "assetCount": 397
+    },
+    ".Storage": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "storage"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 230
+    },
+    ".Table": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "shelf",
+        "table"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 281
+    },
+    ".Tools": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "tool"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 76
+    },
+    ".Treasure": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "treasure"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 94
+    },
+    ".Wall": {
+      "macroCategory": "wall",
+      "assetGroups": [
+        "wall"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "wall"
+      ],
+      "sourcePacks": [],
+      "assetCount": 274
+    },
+    ".Weapon": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "weapon"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 332
+    },
+    ".Wood": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "chair",
+        "wood"
+      ],
+      "themeTags": [
+        "wood"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 253
+    },
+    "Colorable": {
+      "macroCategory": "unknown",
+      "assetGroups": [],
+      "themeTags": [
+        "colorable"
+      ],
+      "placementTags": [],
+      "sourcePacks": [],
+      "assetCount": 7563
+    },
+    ".Bridge": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "bridge",
+        "walkway"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 42
+    },
+    ".Chair": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "chair"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 217
+    },
+    ".Edge": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "edge"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [],
+      "assetCount": 1
+    },
+    ".Effect": {
+      "macroCategory": "light",
+      "assetGroups": [
+        "effect"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "corner",
+        "floor",
+        "light_emitter",
+        "wall"
+      ],
+      "sourcePacks": [],
+      "assetCount": 1
+    },
+    ".Gateway": {
+      "macroCategory": "door",
+      "assetGroups": [
+        "door",
+        "gateway"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "wall_opening"
+      ],
+      "sourcePacks": [],
+      "assetCount": 10
+    },
+    ".Lava": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "lava"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 106
+    },
+    ".Portal": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "portal"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [],
+      "assetCount": 122
+    },
+    ".Sewers": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "sewers"
+      ],
+      "themeTags": [
+        "sewer"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 4
+    },
+    ".Sigil": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "sigil"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 3
+    },
+    ".Statue": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "statue"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 255
+    },
+    ".BIOMES": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "biomes"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 257
+    },
+    ".Beams": {
+      "macroCategory": "wall",
+      "assetGroups": [
+        "beams"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "wall"
+      ],
+      "sourcePacks": [],
+      "assetCount": 14
+    },
+    ".Doors": {
+      "macroCategory": "door",
+      "assetGroups": [
+        "door"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "wall_opening"
+      ],
+      "sourcePacks": [],
+      "assetCount": 11
+    },
+    ".Flags": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "flag"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 12
+    },
+    ".Lights": {
+      "macroCategory": "light",
+      "assetGroups": [
+        "lighting"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "corner",
+        "floor",
+        "light_emitter",
+        "wall"
+      ],
+      "sourcePacks": [],
+      "assetCount": 9
+    },
+    ".Pillars": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "pillar"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 5
+    },
+    ".Plants": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "plant"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 25
+    },
+    ".Posters": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "posters"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 20
+    },
+    ".Pots": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "pots"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 103
+    },
+    ".Signs": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "signs"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [],
+      "assetCount": 18
+    },
+    ".Weapons": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "weapon"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 15
+    },
+    ".Windows": {
+      "macroCategory": "window",
+      "assetGroups": [
+        "window"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "wall"
+      ],
+      "sourcePacks": [],
+      "assetCount": 29
+    },
+    ".Administration": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "administration"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [],
+      "assetCount": 249
+    },
+    ".Alchemist": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "alchemist"
+      ],
+      "themeTags": [
+        "alchemist"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 76
+    },
+    ".Bar": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "bar"
+      ],
+      "themeTags": [
+        "tavern"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 161
+    },
+    ".Bathroom": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "bathroom",
+        "storage"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 100
+    },
+    ".Bed": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "bed"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 127
+    },
+    ".Blood": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "blood"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [],
+      "assetCount": 26
+    },
+    ".Broken": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "broken",
+        "storage"
+      ],
+      "themeTags": [
+        "broken"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 478
+    },
+    ".Cage": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "cage"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 72
+    },
+    ".Camp": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "camp"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 157
+    },
+    ".Carpet": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "carpet"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor",
+        "floor_overlay"
+      ],
+      "sourcePacks": [],
+      "assetCount": 344
+    },
+    ".Chest": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "chest"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [],
+      "assetCount": 23
+    },
+    ".Details": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "details"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 91
+    },
+    ".Fixture": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "fixture"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 191
+    },
+    ".Flag": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "carpet",
+        "decor",
+        "flag"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor",
+        "floor_overlay"
+      ],
+      "sourcePacks": [],
+      "assetCount": 25
+    },
+    ".Flowers": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "flowers"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 138
+    },
+    ".Garden": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "garden"
+      ],
+      "themeTags": [
+        "garden"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 567
+    },
+    ".Instrument": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "instrument"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [],
+      "assetCount": 41
+    },
+    ".Magic": {
+      "macroCategory": "light",
+      "assetGroups": [
+        "magic"
+      ],
+      "themeTags": [
+        "magic"
+      ],
+      "placementTags": [
+        "corner",
+        "floor",
+        "light_emitter",
+        "wall"
+      ],
+      "sourcePacks": [],
+      "assetCount": 89
+    },
+    ".Paths": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "path",
+        "walkway"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 83
+    },
+    ".Plant": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "plant"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 752
+    },
+    ".Skeleton": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "skeleton"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 194
+    },
+    ".Stairs": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "stairs"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [],
+      "assetCount": 54
+    },
+    ".Terrain": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "terrain"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 119
+    },
+    ".Vines": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "vines"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 49
+    },
+    ".Water": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "storage",
+        "water"
+      ],
+      "themeTags": [
+        "water"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 304
+    },
+    ".Boat": {
+      "macroCategory": "water",
+      "assetGroups": [
+        "boat"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor",
+        "water"
+      ],
+      "sourcePacks": [],
+      "assetCount": 35
+    },
+    ".Bush": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "bush"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 218
+    },
+    ".Cobweb": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "cobweb"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 24
+    },
+    ".Door": {
+      "macroCategory": "door",
+      "assetGroups": [
+        "door"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "wall_opening"
+      ],
+      "sourcePacks": [],
+      "assetCount": 21
+    },
+    ".Flesh": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "flesh"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 23
+    },
+    ".Fountain": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "fountain"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [],
+      "assetCount": 32
+    },
+    ".Games": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "games"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [],
+      "assetCount": 15
+    },
+    ".Grave": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "grave"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 95
+    },
+    ".Mine": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "mine"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 7
+    },
+    ".Rug": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "carpet",
+        "rug"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor",
+        "floor_overlay"
+      ],
+      "sourcePacks": [],
+      "assetCount": 18
+    },
+    ".Sewer": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "sewer"
+      ],
+      "themeTags": [
+        "sewer"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 97
+    },
+    ".Snow": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "snow"
+      ],
+      "themeTags": [
+        "winter"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 105
+    },
+    ".Stable": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "stable"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 10
+    },
+    ".Tar": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "tar"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [],
+      "assetCount": 6
+    },
+    ".Thorns": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "thorns"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 17
+    },
+    ".Trap": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "trap"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 19
+    },
+    ".Tree": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "tree"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 850
+    },
+    ".Window": {
+      "macroCategory": "window",
+      "assetGroups": [
+        "window"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "wall"
+      ],
+      "sourcePacks": [],
+      "assetCount": 1
+    },
+    ".Corpse": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "corpse"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 38
+    },
+    ".Crime": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "crime"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 13
+    },
+    ".Food": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "food"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 42
+    },
+    ".Fish": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "fish"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [],
+      "assetCount": 14
+    },
+    ".Gargoyle": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "gargoyle"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [],
+      "assetCount": 28
+    },
+    ".Shadow": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "shadow"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 110
+    },
+    ".Shelf": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "shelf"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 21
+    },
+    ".Thorn": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "thorn"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 26
+    },
+    ".Tool": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "tool"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 32
+    },
+    ".Crystals": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "crystals"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [],
+      "assetCount": 36
+    },
+    ".Mushrooms": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "mushroom"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 76
+    },
+    ".Corner": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "corner"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 10
+    },
+    ".Ice": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "ice"
+      ],
+      "themeTags": [
+        "ice"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 41
+    },
+    ".Shadows": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "shadows"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 4
+    },
+    ".Prefab": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "prefab"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 45
+    },
+    ".PrefabBroken": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "prefabbroken"
+      ],
+      "themeTags": [
+        "broken"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 23
+    },
+    ".Ruins": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "floor",
+        "ruins"
+      ],
+      "themeTags": [
+        "ruins"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 85
+    },
+    ".Metal": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "metal"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [],
+      "assetCount": 31
+    },
+    ".Rubble": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "rubble"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 8
+    },
+    ".Seaflora": {
+      "macroCategory": "water",
+      "assetGroups": [
+        "seaflora"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor",
+        "water"
+      ],
+      "sourcePacks": [],
+      "assetCount": 135
+    },
+    ".Traps": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "trap"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 3
+    },
+    ".Cogs": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "gear"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 7
+    },
+    ".Futuristic": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "futuristic"
+      ],
+      "themeTags": [
+        "futuristic"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 11
+    },
+    ".Hay": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "hay"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 13
+    },
+    ".Texture": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "texture"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 12
+    },
+    ".Vegetables": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "vegetables"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 24
+    },
+    ".Art": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "art"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 11
+    },
+    ".Buildings": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "buildings"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 9
+    },
+    ".Hills": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "hills"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 72
+    },
+    ".Mountains": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "mountains"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 143
+    },
+    ".River": {
+      "macroCategory": "water",
+      "assetGroups": [
+        "river"
+      ],
+      "themeTags": [
+        "water"
+      ],
+      "placementTags": [
+        "outdoor",
+        "water"
+      ],
+      "sourcePacks": [],
+      "assetCount": 4
+    },
+    ".Trees": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "tree"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 21
+    },
+    "VM Academy": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "academy",
+        "chair"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 658
+    },
+    "VM Furniture": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "furniture"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 1324
+    },
+    "VM Monster Byproducts": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "monster-byproducts"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 180
+    },
+    "VM Monster Parts": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "monster-parts"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 97
+    },
+    "VM Monstrous": {
+      "macroCategory": "token",
+      "assetGroups": [
+        "monstrous"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 277
+    },
+    "VM Community 6 Year": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "community-6-year"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 116
+    },
+    "VM Destroyed Assets": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "destroyed-assets"
+      ],
+      "themeTags": [
+        "broken"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 447
+    },
+    "VM Elemental Assets": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "elemental-assets"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 228
+    },
+    "VM Garden": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "chair",
+        "garden"
+      ],
+      "themeTags": [
+        "garden"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 654
+    },
+    "VM Adventure 1 - Curse of Strahd": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "adventure-1-curse-of-strahd"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 431
+    },
+    "VM Airship Accessories": {
+      "macroCategory": "window",
+      "assetGroups": [
+        "airship-accessories",
+        "ship",
+        "window"
+      ],
+      "themeTags": [
+        "naval"
+      ],
+      "placementTags": [
+        "wall"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 169
+    },
+    "VM Airship Assets": {
+      "macroCategory": "window",
+      "assetGroups": [
+        "airship-assets",
+        "ship",
+        "window"
+      ],
+      "themeTags": [
+        "naval"
+      ],
+      "placementTags": [
+        "wall"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 348
+    },
+    "VM Airship Misc Parts": {
+      "macroCategory": "water",
+      "assetGroups": [
+        "airship-misc-parts",
+        "ship"
+      ],
+      "themeTags": [
+        "naval"
+      ],
+      "placementTags": [
+        "outdoor",
+        "water"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 70
+    },
+    "VM Airship Structure": {
+      "macroCategory": "water",
+      "assetGroups": [
+        "airship-structure",
+        "ship"
+      ],
+      "themeTags": [
+        "naval"
+      ],
+      "placementTags": [
+        "outdoor",
+        "water"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 109
+    },
+    "VM General Items": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "general-items"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 71
+    },
+    "VM Interior Spaces": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "interior-spaces"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 15
+    },
+    "VM Lodging": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "lodging"
+      ],
+      "themeTags": [
+        "tavern"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 351
+    },
+    "VM Unique Items": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "unique-items"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 55
+    },
+    "VM Wrought Iron Fence": {
+      "macroCategory": "wall",
+      "assetGroups": [
+        "wall",
+        "wrought-iron-fence"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "wall"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 31
+    },
+    "VM Ground Textures": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "floor",
+        "ground-textures"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 658
+    },
+    "VM Sewer": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "sewer"
+      ],
+      "themeTags": [
+        "sewer"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 395
+    },
+    "VM Adventure - Lost Mine of Phandelver": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "adventure-lost-mine-of-phandelver",
+        "bed"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 272
+    },
+    "VM Cult": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "cult"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 293
+    },
+    "VM Ice": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "ice"
+      ],
+      "themeTags": [
+        "ice"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 330
+    },
+    "VM Ruins": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "ruins"
+      ],
+      "themeTags": [
+        "ruins"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 577
+    },
+    "VM Woodland": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "woodland"
+      ],
+      "themeTags": [
+        "forest",
+        "wood"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 1640
+    },
+    "VM Apothecary": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "apothecary"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 68
+    },
+    "VM Blacksmith": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "blacksmith"
+      ],
+      "themeTags": [
+        "blacksmith"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 46
+    },
+    "VM Building Clusters": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "building-clusters"
+      ],
+      "themeTags": [
+        "city"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 665
+    },
+    "VM Buildings": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "buildings"
+      ],
+      "themeTags": [
+        "city"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 2206
+    },
+    "VM Buildings (Misc)": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "buildings",
+        "walkway"
+      ],
+      "themeTags": [
+        "city"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 61
+    },
+    "VM Buildings (Normal)": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "buildings"
+      ],
+      "themeTags": [
+        "city"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 1094
+    },
+    "VM Buildings of Interest": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "buildings-of-interest"
+      ],
+      "themeTags": [
+        "city"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 181
+    },
+    "VM Cacti": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "cacti"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 12
+    },
+    "VM Canyon": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "canyon"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 161
+    },
+    "VM Cartography": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "cartography"
+      ],
+      "themeTags": [
+        "city"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 17
+    },
+    "VM Castle": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "castle"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 15
+    },
+    "VM Cave": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "cave"
+      ],
+      "themeTags": [
+        "cave"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 163
+    },
+    "VM Chase": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "chase",
+        "floor"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 42
+    },
+    "VM City": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "city"
+      ],
+      "themeTags": [
+        "city",
+        "urban"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 2707
+    },
+    "VM City Walls": {
+      "macroCategory": "wall",
+      "assetGroups": [
+        "city-walls",
+        "wall"
+      ],
+      "themeTags": [
+        "city",
+        "urban"
+      ],
+      "placementTags": [
+        "wall"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 16
+    },
+    "VM Cliffsides": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "cliffsides"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 111
+    },
+    "VM Combat": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "combat"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 424
+    },
+    "VM Community 5 Year": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "community-5-year"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 73
+    },
+    "VM Community Pack": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "community-pack"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 51
+    },
+    "VM Corpses": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "corpses"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 66
+    },
+    "VM Desert": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "desert"
+      ],
+      "themeTags": [
+        "desert"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 97
+    },
+    "VM Desert Ground": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "desert-ground"
+      ],
+      "themeTags": [
+        "desert"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 3
+    },
+    "VM Destroyed": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "destroyed"
+      ],
+      "themeTags": [
+        "broken"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 342
+    },
+    "VM Dungeon": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "dungeon"
+      ],
+      "themeTags": [
+        "dungeon"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 279
+    },
+    "VM Dungeon Entrances": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "dungeon-entrances"
+      ],
+      "themeTags": [
+        "dungeon"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 39
+    },
+    "VM Harbor": {
+      "macroCategory": "water",
+      "assetGroups": [
+        "harbor",
+        "walkway"
+      ],
+      "themeTags": [
+        "city",
+        "dock"
+      ],
+      "placementTags": [
+        "outdoor",
+        "water"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 85
+    },
+    "VM Misc": {
+      "macroCategory": "light",
+      "assetGroups": [
+        "lighting"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "corner",
+        "floor",
+        "light_emitter",
+        "wall"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 577
+    },
+    "VM Mountains": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "mountains"
+      ],
+      "themeTags": [
+        "city"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 3
+    },
+    "VM Neighborhoods": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "neighborhoods"
+      ],
+      "themeTags": [
+        "city"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 28
+    },
+    "VM Rocks": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "rock"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 825
+    },
+    "VM Shelves": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "shelf",
+        "shelves"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 62
+    },
+    "VM Strongholds": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "strongholds"
+      ],
+      "themeTags": [
+        "city"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 39
+    },
+    "VM Texts": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "texts"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 132
+    },
+    "VM Tiles": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "floor",
+        "tiles",
+        "wall"
+      ],
+      "themeTags": [
+        "cave"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 239
+    },
+    "VM Trees": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "tree"
+      ],
+      "themeTags": [
+        "city"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 604
+    },
+    "VM Wall Parts": {
+      "macroCategory": "wall",
+      "assetGroups": [
+        "wall",
+        "wall-parts"
+      ],
+      "themeTags": [
+        "city"
+      ],
+      "placementTags": [
+        "wall"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 297
+    },
+    "VM Walls": {
+      "macroCategory": "wall",
+      "assetGroups": [
+        "wall"
+      ],
+      "themeTags": [
+        "city"
+      ],
+      "placementTags": [
+        "wall"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 355
+    },
+    "VM Water": {
+      "macroCategory": "water",
+      "assetGroups": [
+        "water"
+      ],
+      "themeTags": [
+        "city",
+        "water"
+      ],
+      "placementTags": [
+        "outdoor",
+        "water"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 34
+    },
+    "VM Weapons": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "weapon"
+      ],
+      "themeTags": [
+        "blacksmith"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 34
+    },
+    "VM Beds": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "bed",
+        "beds"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 24
+    },
+    "VM Bushes": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "bushes"
+      ],
+      "themeTags": [
+        "forest"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 227
+    },
+    "VM Campsite": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "campsite"
+      ],
+      "themeTags": [
+        "forest"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 105
+    },
+    "VM Dishes + Tables": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "dishes-and-tables"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 17
+    },
+    "VM Dungeon Tiles": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "dungeon-tiles",
+        "floor"
+      ],
+      "themeTags": [
+        "dungeon"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 534
+    },
+    "VM Farm": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "farm"
+      ],
+      "themeTags": [
+        "farm"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 290
+    },
+    "VM Feywild": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "feywild"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 265
+    },
+    "VM Flowers": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "flowers"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 59
+    },
+    "VM Food": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "food"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 218
+    },
+    "VM Forest": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "forest"
+      ],
+      "themeTags": [
+        "forest"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 71
+    },
+    "VM General Assets": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "general-assets"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 39
+    },
+    "VM Leaf Piles": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "leaf-piles"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 99
+    },
+    "VM Plants": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "plant"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 305
+    },
+    "VM Tools": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "tool"
+      ],
+      "themeTags": [
+        "farm"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 91
+    },
+    "VM Traveling": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "traveling"
+      ],
+      "themeTags": [
+        "forest"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 11
+    },
+    "VM Wood Furniture": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "shelf",
+        "wood-furniture"
+      ],
+      "themeTags": [
+        "wood"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 37
+    },
+    "VM Bones": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "bones"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 51
+    },
+    "VM Buildings (Premade)": {
+      "macroCategory": "roof",
+      "assetGroups": [
+        "buildings",
+        "roof"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "roof"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 8
+    },
+    "VM Floor Treatments": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "carpet",
+        "floor",
+        "floor-treatments"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor",
+        "floor_overlay"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 51
+    },
+    "VM Graves": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "graves"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 81
+    },
+    "VM Graveyard": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "graveyard"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 199
+    },
+    "VM Ice Shards": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "ice-shards"
+      ],
+      "themeTags": [
+        "ice"
+      ],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 44
+    },
+    "VM Ice Walls": {
+      "macroCategory": "wall",
+      "assetGroups": [
+        "ice-walls",
+        "wall"
+      ],
+      "themeTags": [
+        "ice"
+      ],
+      "placementTags": [
+        "wall"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 14
+    },
+    "VM Industrial": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "industrial"
+      ],
+      "themeTags": [
+        "industrial"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 358
+    },
+    "VM Magic Items": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "magic-items"
+      ],
+      "themeTags": [
+        "magic"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 316
+    },
+    "VM Market": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "market"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 86
+    },
+    "VM Mine Tracks": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "floor",
+        "mine-tracks",
+        "walkway"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 69
+    },
+    "VM Mining": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "mining"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 181
+    },
+    "VM Montresor Train": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "montresor-train"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 33
+    },
+    "VM Mountainside": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "mountainside"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 884
+    },
+    "VM Props": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "props"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 223
+    },
+    "VM River": {
+      "macroCategory": "water",
+      "assetGroups": [
+        "river"
+      ],
+      "themeTags": [
+        "water"
+      ],
+      "placementTags": [
+        "outdoor",
+        "water"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 74
+    },
+    "VM Roofs (Plank)": {
+      "macroCategory": "roof",
+      "assetGroups": [
+        "roof",
+        "walkway"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "roof"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 42
+    },
+    "VM Roofs (Shingles)": {
+      "macroCategory": "roof",
+      "assetGroups": [
+        "roof"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "roof"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 42
+    },
+    "VM Roofs (Wooden)": {
+      "macroCategory": "roof",
+      "assetGroups": [
+        "roof"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "roof"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 92
+    },
+    "VM Royalty": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "royalty"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 316
+    },
+    "VM Stalls": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "stalls"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 32
+    },
+    "VM Storage": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "storage"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 26
+    },
+    "VM Wall Treatments": {
+      "macroCategory": "wall",
+      "assetGroups": [
+        "carpet",
+        "decor",
+        "wall",
+        "wall-treatments"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor",
+        "floor_overlay",
+        "wall"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 40
+    },
+    "VM Wares": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "wares"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 28
+    },
+    "VM Coin Piles": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "coin-piles"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 96
+    },
+    "VM Decks": {
+      "macroCategory": "water",
+      "assetGroups": [
+        "decks",
+        "ship"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor",
+        "water"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 15
+    },
+    "VM Docks": {
+      "macroCategory": "water",
+      "assetGroups": [
+        "docks",
+        "walkway"
+      ],
+      "themeTags": [
+        "dock",
+        "swamp"
+      ],
+      "placementTags": [
+        "outdoor",
+        "water"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 16
+    },
+    "VM Foliage": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "foliage"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 58
+    },
+    "VM Moors": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "moors"
+      ],
+      "themeTags": [
+        "swamp"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 9
+    },
+    "VM Ships & Sailing": {
+      "macroCategory": "water",
+      "assetGroups": [
+        "ship",
+        "ships-and-sailing"
+      ],
+      "themeTags": [
+        "naval"
+      ],
+      "placementTags": [
+        "outdoor",
+        "water"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 69
+    },
+    "VM Ships (Premade)": {
+      "macroCategory": "water",
+      "assetGroups": [
+        "ship"
+      ],
+      "themeTags": [
+        "naval"
+      ],
+      "placementTags": [
+        "outdoor",
+        "water"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 8
+    },
+    "VM Snow": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "snow"
+      ],
+      "themeTags": [
+        "winter"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 28
+    },
+    "VM Spell Effects": {
+      "macroCategory": "light",
+      "assetGroups": [
+        "spell-effects"
+      ],
+      "themeTags": [
+        "magic"
+      ],
+      "placementTags": [
+        "corner",
+        "floor",
+        "light_emitter",
+        "wall"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 183
+    },
+    "VM Spells (Acid)": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "spells"
+      ],
+      "themeTags": [
+        "magic"
+      ],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 14
+    },
+    "VM Spells (Fire)": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "spells"
+      ],
+      "themeTags": [
+        "magic"
+      ],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 14
+    },
+    "VM Spells (Ice)": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "spells"
+      ],
+      "themeTags": [
+        "ice",
+        "magic"
+      ],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 14
+    },
+    "VM Spells (Light)": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "spells"
+      ],
+      "themeTags": [
+        "magic"
+      ],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 14
+    },
+    "VM Spells (Lightning)": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "spells"
+      ],
+      "themeTags": [
+        "magic"
+      ],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 14
+    },
+    "VM Spells (Misc)": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "spells"
+      ],
+      "themeTags": [
+        "magic"
+      ],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 43
+    },
+    "VM Spells (Nature)": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "spells"
+      ],
+      "themeTags": [
+        "magic"
+      ],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 14
+    },
+    "VM Spells (Psychic)": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "spells"
+      ],
+      "themeTags": [
+        "magic"
+      ],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 14
+    },
+    "VM Spells (Shadow)": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "spells"
+      ],
+      "themeTags": [
+        "magic"
+      ],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 14
+    },
+    "VM Spells (Water)": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "spells"
+      ],
+      "themeTags": [
+        "magic",
+        "water"
+      ],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 14
+    },
+    "VM Spells (Wind)": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "spells"
+      ],
+      "themeTags": [
+        "magic"
+      ],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 14
+    },
+    "VM Statues": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "statue"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 226
+    },
+    "VM Statues (Monsters) (Colors)": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "statue"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 16
+    },
+    "VM Swamp": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "swamp"
+      ],
+      "themeTags": [
+        "swamp"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 54
+    },
+    "VM Tavern": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "chair",
+        "tavern"
+      ],
+      "themeTags": [
+        "tavern"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 69
+    },
+    "VM Thatch Roofs": {
+      "macroCategory": "roof",
+      "assetGroups": [
+        "door",
+        "roof",
+        "thatch-roofs"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "roof"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 13
+    },
+    "VM Town": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "town"
+      ],
+      "themeTags": [
+        "urban"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 403
+    },
+    "VM Travel": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "travel",
+        "walkway"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 150
+    },
+    "VM Treasure": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "treasure"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 134
+    },
+    "VM Trees (Dead)": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "tree"
+      ],
+      "themeTags": [
+        "swamp"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 10
+    },
+    "VM Walls (Separated)": {
+      "macroCategory": "wall",
+      "assetGroups": [
+        "wall"
+      ],
+      "themeTags": [
+        "sewer"
+      ],
+      "placementTags": [
+        "wall"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 18
+    },
+    "VM 45' Roofs": {
+      "macroCategory": "roof",
+      "assetGroups": [
+        "45-roofs",
+        "roof"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "roof"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 14
+    },
+    "VM Circular Roofs": {
+      "macroCategory": "roof",
+      "assetGroups": [
+        "circular-roofs",
+        "roof"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "roof"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 10
+    },
+    "VM Combined Roofs": {
+      "macroCategory": "roof",
+      "assetGroups": [
+        "combined-roofs",
+        "roof"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "roof"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 6
+    },
+    "VM Coral": {
+      "macroCategory": "water",
+      "assetGroups": [
+        "coral"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor",
+        "water"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 51
+    },
+    "VM Dungeon Assets": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "dungeon-assets",
+        "floor"
+      ],
+      "themeTags": [
+        "dungeon"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 184
+    },
+    "VM Extension Roofs": {
+      "macroCategory": "roof",
+      "assetGroups": [
+        "extension-roofs",
+        "roof"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "roof"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 4
+    },
+    "VM Flags": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "flag"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 5
+    },
+    "VM Flagstones": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "flagstones",
+        "floor"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 200
+    },
+    "VM Glowing Crystals": {
+      "macroCategory": "light",
+      "assetGroups": [
+        "glowing-crystals"
+      ],
+      "themeTags": [
+        "underdark"
+      ],
+      "placementTags": [
+        "corner",
+        "floor",
+        "light_emitter",
+        "wall"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 39
+    },
+    "VM Grime": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "floor",
+        "grime"
+      ],
+      "themeTags": [
+        "dungeon"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 112
+    },
+    "VM Landscape Plots": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "landscape-plots"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 26
+    },
+    "VM Plantlife": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "plantlife"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 44
+    },
+    "VM Rectangular Roofs": {
+      "macroCategory": "roof",
+      "assetGroups": [
+        "rectangular-roofs",
+        "roof"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "roof"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 7
+    },
+    "VM Reefs": {
+      "macroCategory": "water",
+      "assetGroups": [
+        "reefs"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor",
+        "water"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 22
+    },
+    "VM Roofs": {
+      "macroCategory": "roof",
+      "assetGroups": [
+        "roof"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "roof"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 61
+    },
+    "VM Roots": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "roots"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 96
+    },
+    "VM Slanted Roof Pieces": {
+      "macroCategory": "roof",
+      "assetGroups": [
+        "roof",
+        "slanted-roof-pieces"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "roof"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 12
+    },
+    "VM Square Roofs": {
+      "macroCategory": "roof",
+      "assetGroups": [
+        "roof",
+        "square-roofs"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "roof"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 5
+    },
+    "VM Tiles (Carnage)": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "floor",
+        "tiles"
+      ],
+      "themeTags": [
+        "dungeon"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 8
+    },
+    "VM Tiles (Trapped)": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "floor",
+        "tiles"
+      ],
+      "themeTags": [
+        "dungeon"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 10
+    },
+    "VM Tropical": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "tropical"
+      ],
+      "themeTags": [
+        "tropical"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 145
+    },
+    "VM Underdark": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "underdark"
+      ],
+      "themeTags": [
+        "underdark"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 913
+    },
+    "VM Underdark Tiles": {
+      "macroCategory": "wall",
+      "assetGroups": [
+        "floor",
+        "underdark-tiles",
+        "wall"
+      ],
+      "themeTags": [
+        "underdark"
+      ],
+      "placementTags": [
+        "wall"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 61
+    },
+    "VM Underwater": {
+      "macroCategory": "water",
+      "assetGroups": [
+        "underwater"
+      ],
+      "themeTags": [
+        "underwater",
+        "water"
+      ],
+      "placementTags": [
+        "outdoor",
+        "water"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 163
+    },
+    "VM Urban": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "urban"
+      ],
+      "themeTags": [
+        "urban"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 435
+    },
+    "VM Warcamp": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "carpet",
+        "decor",
+        "warcamp"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor",
+        "floor_overlay"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 224
+    },
+    "VM Window Roofs": {
+      "macroCategory": "roof",
+      "assetGroups": [
+        "roof",
+        "window",
+        "window-roofs"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "roof"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 3
+    },
+    "VM Winter": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "winter"
+      ],
+      "themeTags": [
+        "winter"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 605
+    },
+    "Debris": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "debris"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 140
+    },
+    "Destroyed Flooring": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "destroyed-flooring",
+        "floor"
+      ],
+      "themeTags": [
+        "broken",
+        "wood"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 18
+    },
+    "Furniture": {
+      "macroCategory": "furniture",
+      "assetGroups": [
+        "furniture"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 72
+    },
+    "VM Ancestral": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "ancestral"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 226
+    },
+    "VM Lights": {
+      "macroCategory": "light",
+      "assetGroups": [
+        "lighting"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "corner",
+        "floor",
+        "light_emitter",
+        "wall"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 140
+    },
+    "VM Lights (Effects)": {
+      "macroCategory": "light",
+      "assetGroups": [
+        "lighting"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "corner",
+        "floor",
+        "light_emitter",
+        "wall"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 32
+    },
+    "VM Lights (Highlights)": {
+      "macroCategory": "light",
+      "assetGroups": [
+        "lighting"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "corner",
+        "floor",
+        "light_emitter",
+        "wall"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 48
+    },
+    "VM Lights (Radial)": {
+      "macroCategory": "light",
+      "assetGroups": [
+        "lighting"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "corner",
+        "floor",
+        "light_emitter",
+        "wall"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 60
+    },
+    "VM Shadows": {
+      "macroCategory": "decoration",
+      "assetGroups": [
+        "shadows"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 138
+    },
+    "VM Stairs": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "stairs"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 128
+    },
+    "VM Stairs Stone": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "stairs-stone"
+      ],
+      "themeTags": [],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 64
+    },
+    "VM Stairs Wood": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "stairs-wood"
+      ],
+      "themeTags": [
+        "wood"
+      ],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 64
+    },
+    "VM Walkways": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "walkway",
+        "walkways"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 26
+    },
+    "Floor Elements": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "floor",
+        "floor-elements"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [],
+      "assetCount": 12
+    },
+    "VM Assets": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "floor"
+      ],
+      "themeTags": [
+        "dungeon"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 199
+    },
+    "VM Crops": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "crops"
+      ],
+      "themeTags": [
+        "farm"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 51
+    },
+    "VM Crystals": {
+      "macroCategory": "unknown",
+      "assetGroups": [
+        "crystals"
+      ],
+      "themeTags": [
+        "underdark"
+      ],
+      "placementTags": [],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 144
+    },
+    "VM Duergar Buildings": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "duergar-buildings"
+      ],
+      "themeTags": [
+        "underdark"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 120
+    },
+    "VM Mushrooms": {
+      "macroCategory": "terrain",
+      "assetGroups": [
+        "mushroom"
+      ],
+      "themeTags": [
+        "underdark"
+      ],
+      "placementTags": [
+        "outdoor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 147
+    },
+    "VM Seamless Pieces": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "seamless-pieces"
+      ],
+      "themeTags": [
+        "farm"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 25
+    },
+    "VM Tile Elements": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "floor",
+        "tile-elements"
+      ],
+      "themeTags": [
+        "dungeon"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 76
+    },
+    "VM Tiles (No Grid)": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "floor",
+        "tiles",
+        "wall"
+      ],
+      "themeTags": [
+        "dungeon"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 49
+    },
+    "VM Tiles (Overgrown)": {
+      "macroCategory": "floor",
+      "assetGroups": [
+        "floor",
+        "tiles"
+      ],
+      "themeTags": [
+        "dungeon"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 16
+    },
+    "VM Webbing": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "webbing"
+      ],
+      "themeTags": [
+        "underdark"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 90
+    },
+    "VM Festival": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "festival"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 202
+    },
+    "VM Objects": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "objects"
+      ],
+      "themeTags": [],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 202
+    },
+    "VM Technology": {
+      "macroCategory": "prop",
+      "assetGroups": [
+        "technology"
+      ],
+      "themeTags": [
+        "futuristic"
+      ],
+      "placementTags": [
+        "floor"
+      ],
+      "sourcePacks": [
+        "VM"
+      ],
+      "assetCount": 174
+    }
+  }
+}

@@ -25,6 +25,22 @@ export {
   type FurnishingRoomType
 } from "./furnishing";
 
+export {
+  manifestItemToFurnishingAsset,
+  selectFurnishingAssets,
+  type AssetManifestItem,
+  type FindAssetsQuery
+} from "./asset-library";
+
+export {
+  findAssets,
+  findAssetsScored,
+  isSuspiciousLight,
+  type AssetManifest,
+  type AssetStatus,
+  type MacroCategory
+} from "@dm-instamap/assets/taxonomy";
+
 export type SimpleDungeonOptions = {
   height: number;
   width: number;

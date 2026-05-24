@@ -127,6 +127,9 @@ importers:
 
   packages/generator:
     dependencies:
+      '@dm-instamap/assets':
+        specifier: workspace:*
+        version: link:../assets
       '@dm-instamap/core':
         specifier: workspace:*
         version: link:../core

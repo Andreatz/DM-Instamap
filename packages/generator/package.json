@@ -17,6 +17,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@dm-instamap/assets": "workspace:*",
     "@dm-instamap/core": "workspace:*"
   },
   "devDependencies": {
