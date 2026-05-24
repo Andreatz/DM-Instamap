@@ -61,9 +61,9 @@ export function AssetTaxonomyReviewWorkspace({
   const [query, setQuery] = useState("");
   const [overrideCount, setOverrideCount] = useState(initialOverrideCount);
   const [outcomes, setOutcomes] = useState<Record<string, GroupOutcome>>({});
-  const [drafts, setDrafts] = useState<Record<string, Partial<CorrectionDraft>>>(
-    {}
-  );
+  const [drafts, setDrafts] = useState<
+    Record<string, Partial<CorrectionDraft>>
+  >({});
   const [busyGroupId, setBusyGroupId] = useState<string | null>(null);
   const [locallyHiddenGroupIds, setLocallyHiddenGroupIds] = useState<Set<string>>(
     () => new Set()
